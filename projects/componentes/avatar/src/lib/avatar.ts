@@ -10,4 +10,5 @@ import { Component, Input } from '@angular/core';
 export class AvatarComponent {
   @Input() nombre = 'Tatoh';
   @Input() imagen = 'https://i.pravatar.cc/300';
+  @Input() placeHolderText = 'No Image';
 }

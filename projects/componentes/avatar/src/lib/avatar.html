@@ -1,6 +1,14 @@
 <section class="layout">
   <div class="avatar">
-    <img [src]="imagen" alt="avatar" />
+    @if (imagen) {
+      <img [src]="imagen" alt="avatar" />
+    } @else {
+      <div class="placeholder">
+        <span>{{ placeHolderText | titlecase }}</span>
+      </div>
+    }
   </div>
-  <div class="name">{{ nombre }}</div>
+  @if (nombre) {
+    <div class="name">{{ nombre }}</div>
+  }
 </section>
