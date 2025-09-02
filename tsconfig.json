@@ -3,6 +3,10 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "avatar": ["./projects/componentes/avatar/src/public-api.ts"]
+    },
     "strict": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
@@ -29,6 +33,24 @@
     },
     {
       "path": "./projects/perfil-personal/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/avatar/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/avatar/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/componentes/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/componentes/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/componentes/avatar/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/componentes/avatar/tsconfig.spec.json"
     }
   ]
 }

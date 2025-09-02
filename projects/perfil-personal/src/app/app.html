@@ -1,4 +1,8 @@
-<router-outlet />
-<h1>{{ title() }}</h1>
-<p>Bienvenido a {{ title() }}!</p>
-<p>Esta es la aplicación de perfil personal.</p>
+<section class="layout">
+  <div class="sidebar">
+    <app-sidebar></app-sidebar>
+  </div>
+  <div class="body">
+    <router-outlet />
+  </div>
+</section>

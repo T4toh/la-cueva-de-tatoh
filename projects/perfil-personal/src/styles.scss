@@ -1,1 +1,44 @@
 /* You can add global styles to this file, and also import other style files */
+body,
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+// Tema
+
+/** Base colors */
+$clr-dark-a0: #000000;
+$clr-light-a0: #ffffff;
+
+/** Theme primary colors */
+$clr-primary-a0: #4c0082;
+$clr-primary-a10: #622690;
+$clr-primary-a20: #76419e;
+$clr-primary-a30: #8a5bac;
+$clr-primary-a40: #9e75ba;
+$clr-primary-a50: #b290c8;
+
+/** Theme surface colors */
+$clr-surface-a0: #121212;
+$clr-surface-a10: #282828;
+$clr-surface-a20: #3f3f3f;
+$clr-surface-a30: #575757;
+$clr-surface-a40: #717171;
+$clr-surface-a50: #8b8b8b;
+
+/** Theme tonal surface colors */
+$clr-surface-tonal-a0: #19131d;
+$clr-surface-tonal-a10: #2e2832;
+$clr-surface-tonal-a20: #443f48;
+$clr-surface-tonal-a30: #5c5860;
+$clr-surface-tonal-a40: #757178;
+$clr-surface-tonal-a50: #8f8c92;
+
+/** Examples */
+.bg-primary {
+  color: $clr-primary-a50;
+  background-color: $clr-surface-a0;
+}
