@@ -22,5 +22,13 @@
     "typeCheckHostBindings": true,
     "strictTemplates": true
   },
-  "files": []
+  "files": [],
+  "references": [
+    {
+      "path": "./projects/perfil-personal/tsconfig.app.json"
+    },
+    {
+      "path": "./projects/perfil-personal/tsconfig.spec.json"
+    }
+  ]
 }
