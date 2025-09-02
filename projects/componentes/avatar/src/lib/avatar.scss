@@ -10,10 +10,10 @@
   height: 100%;
   display: grid;
   grid:
-    'avatar' auto
+    'avatar' 1fr
     'name' auto
-    / auto;
-  gap: 5px;
+    / 1fr;
+  gap: 8px;
   align-items: center;
   justify-items: center;
   box-sizing: border-box;
