@@ -7,4 +7,6 @@ import { AvatarComponent } from 'avatar';
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
 })
-export class Sidebar {}
+export class Sidebar {
+  public imagen = 'LSK-A.jpg';
+}
