@@ -1,9 +1,14 @@
-import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, Input } from '@angular/core';
 
 @Component({
   selector: 'lib-avatar',
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './avatar.html',
   styleUrl: './avatar.scss',
 })
-export class Avatar {}
+export class Avatar {
+  @Input() imagenUrl?: string;
+  @Input() nombre?: string;
+  @Input() textoError = 'No se pudo cargar la imagen';
+}
