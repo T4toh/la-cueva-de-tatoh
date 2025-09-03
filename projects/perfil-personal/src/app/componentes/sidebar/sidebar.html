@@ -3,7 +3,18 @@
     <lib-avatar imagenUrl="LSK-A.jpg" nombre="Ignacio Martín Arano"></lib-avatar>
   </div>
   <div class="main">
+    <!-- Breve descripción de mi persona  -->
     <lib-panel [texto]="'Gordo con barba'" [colapsable]="true" [colapsado]="false"></lib-panel>
+    <!-- skills  -->
+    @for (s of skills(); track $index) {
+      <lib-skill-bar
+        [skill]="s.skill"
+        [nivel]="s.nivel"
+        [color]="s.color"
+        [textColor]="s.textColor"
+      ></lib-skill-bar>
+      <!-- intereses -->
+    }
   </div>
   <div class="footer">3</div>
 </section>
