@@ -33,3 +33,28 @@ export const SKILLS: Skill[] = [
   { skill: 'Linux', nivel: 90, color: '#FCC624', textColor: '#000' },
   { skill: 'CI/CD', nivel: 70, color: '#4B0082', textColor: '#fff' },
 ];
+
+export interface Interes {
+  nombre: string;
+  icono: string;
+  color: string;
+  textColor: string;
+}
+export const INTERESES: Interes[] = [
+  // Intereses Personales
+  // Libros, metal, literatura, manga, japonés, fútbol, juegos, tecnología, linux, comida
+  // Astronomía, ciencia, dungeons and dragons
+  { nombre: 'Libros', icono: '📚', color: '#6F4E37', textColor: '#fff' },
+  { nombre: 'Metal', icono: '🤘', color: '#000000', textColor: '#fff' },
+  { nombre: 'Literatura', icono: '🖋️', color: '#8B4513', textColor: '#fff' },
+  { nombre: 'Manga', icono: '📖', color: '#FF4500', textColor: '#fff' },
+  { nombre: 'Japonés', icono: '🗾', color: '#DC143C', textColor: '#fff' },
+  { nombre: 'Fútbol', icono: '⚽', color: '#228B22', textColor: '#fff' },
+  { nombre: 'Juegos', icono: '🎮', color: '#1E90FF', textColor: '#fff' },
+  { nombre: 'Tecnología', icono: '💻', color: '#4B0082', textColor: '#fff' },
+  { nombre: 'Linux', icono: '🐧', color: '#FCC624', textColor: '#000' },
+  { nombre: 'Comida', icono: '🍣', color: '#FF6347', textColor: '#fff' },
+  { nombre: 'Astronomía', icono: '🌌', color: '#00008B', textColor: '#fff' },
+  { nombre: 'Ciencia', icono: '🔬', color: '#2E8B57', textColor: '#fff' },
+  { nombre: 'Dungeons & Dragons', icono: '🐉', color: '#8B0000', textColor: '#fff' },
+];

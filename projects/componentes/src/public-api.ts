@@ -8,3 +8,5 @@ export * from './lib/avatar/avatar';
 export * from './lib/panel/panel';
 // Skill Bar
 export * from './lib/skill-bar/skill-bar';
+// Tag
+export * from './lib/tag/tag';

@@ -4,17 +4,39 @@
   </div>
   <div class="main">
     <!-- Breve descripción de mi persona  -->
-    <lib-panel [texto]="'Gordo con barba'" [colapsable]="true" [colapsado]="false"></lib-panel>
+    <div class="panel-section">
+      <lib-panel
+        [texto]="descripcion()"
+        [colorFondo]="'#3f51b5'"
+        [colorTexto]="'white'"
+        [colapsable]="true"
+        [colapsado]="true"
+        [negrita]="false"
+        [transparente]="true"
+      ></lib-panel>
+    </div>
     <!-- skills  -->
-    @for (s of skills(); track $index) {
-      <lib-skill-bar
-        [skill]="s.skill"
-        [nivel]="s.nivel"
-        [color]="s.color"
-        [textColor]="s.textColor"
-      ></lib-skill-bar>
-      <!-- intereses -->
-    }
+    <div class="skills-section">
+      @for (s of skills(); track $index) {
+        <lib-skill-bar
+          [skill]="s.skill"
+          [nivel]="s.nivel"
+          [color]="s.color"
+          [textColor]="s.textColor"
+        ></lib-skill-bar>
+      }
+    </div>
+    <!-- intereses / tags -->
+    <div class="tags-section">
+      @for (i of intereses(); track $index) {
+        <lib-tag
+          [texto]="i.nombre"
+          [colorFondo]="i.color"
+          [icono]="i.icono"
+          [colorTexto]="i.textColor"
+        ></lib-tag>
+      }
+    </div>
   </div>
   <div class="footer">3</div>
 </section>

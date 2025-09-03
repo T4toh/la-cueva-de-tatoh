@@ -14,6 +14,9 @@ export class Panel {
   colapsable = input<boolean>(false);
   iconoColapsar = input<string>();
   colapsado = input<boolean>(false);
+  negrita = input<boolean>(false);
+  tamanoFuente = input<string>();
+  transparente = input<boolean>(false);
 
   isCollapsed = signal(false);
 

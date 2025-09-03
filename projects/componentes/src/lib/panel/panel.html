@@ -1,15 +1,23 @@
-<div class="panel" [style.background-color]="colorFondo()" [style.color]="colorTexto()">
+<div
+  class="panel"
+  [style.background-color]="transparente() ? 'transparent' : colorFondo() || '#fff'"
+  [style.color]="colorTexto()"
+>
   @if (colapsable()) {
     <div class="panel-header">
-      <span>{{ textoMostrado() }}</span>
+      <span
+        [style.font-weight]="negrita() ? 'bold' : 'normal'"
+        [style.font-size]="tamanoFuente()"
+        >{{ textoMostrado() }}</span
+      >
       <button (click)="toggleColapsar()" class="toggle-btn">
         @if (isUrl(iconoColapsar())) {
           <img [src]="iconoColapsar()" alt="icon" />
         } @else {
           @if (!isCollapsed()) {
-            <span>{{ iconoColapsar() || '+' }}</span>
+            <span [style.color]="colorTexto()">{{ iconoColapsar() || '+' }}</span>
           } @else {
-            <span>{{ iconoColapsar() || '-' }}</span>
+            <span [style.color]="colorTexto()">{{ iconoColapsar() || '-' }}</span>
           }
         }
       </button>
@@ -17,7 +25,11 @@
   }
   <div class="panel-content" [class.collapsed]="isCollapsed()">
     @if (!colapsable()) {
-      <span>{{ textoMostrado() }}</span>
+      <span
+        [style.font-weight]="negrita() ? 'bold' : 'normal'"
+        [style.font-size]="tamanoFuente()"
+        >{{ textoMostrado() }}</span
+      >
     }
     <ng-content></ng-content>
   </div>

@@ -7,7 +7,7 @@
     'main' 0.8fr
     'footer' 0.1fr
     / auto;
-  gap: 5px 8px;
+  gap: 5px;
 }
 
 .header {
@@ -16,6 +16,25 @@
 .main {
   grid-area: main;
   overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.panel-section {
+  flex: 0 0 auto;
+}
+
+.skills-section {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+.tags-section {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
 }
 .footer {
   grid-area: footer;
