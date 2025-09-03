@@ -1,8 +1,4 @@
-<div
-  class="panel"
-  [style.background-color]="transparente() ? 'transparent' : colorFondo() || '#fff'"
-  [style.color]="colorTexto()"
->
+<div class="panel" [style.background-color]="backgroundColor()" [style.color]="colorTexto()">
   @if (colapsable()) {
     <div class="panel-header">
       <span
