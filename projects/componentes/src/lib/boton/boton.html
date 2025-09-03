@@ -1,0 +1,44 @@
+@if (!enlace()) {
+  <button
+    [type]="tipo()"
+    [disabled]="deshabilitado() || loading()"
+    [class]="clase() || ''"
+    [ngClass]="getClasses()"
+    [style.background-color]="color() && estilo() === 'normal' ? color() : null"
+    [style.border-color]="color() && estilo() === 'outline' ? color() : null"
+    [style.color]="color() && estilo() === 'text' ? color() : null"
+    (click)="handleClick()"
+  >
+    @if (icono() && !loading()) {
+      <span class="icon">
+        <img [src]="icono()" alt="icon" />
+      </span>
+    }
+    @if (loading()) {
+      <span class="spinner"></span>
+    }
+    <span class="text">{{ texto() }}</span>
+  </button>
+}
+
+@if (enlace()) {
+  <a
+    [href]="enlace()"
+    [class]="clase() || ''"
+    [ngClass]="getClasses()"
+    [style.background-color]="color() && estilo() === 'normal' ? color() : null"
+    [style.border-color]="color() && estilo() === 'outline' ? color() : null"
+    [style.color]="color() && estilo() === 'text' ? color() : null"
+    (click)="handleClick()"
+  >
+    @if (icono() && !loading()) {
+      <span class="icon">
+        <img [src]="icono()" alt="icon" />
+      </span>
+    }
+    @if (loading()) {
+      <span class="spinner"></span>
+    }
+    <span class="text">{{ texto() }}</span>
+  </a>
+}

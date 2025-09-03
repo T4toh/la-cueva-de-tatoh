@@ -12,3 +12,5 @@ export * from './lib/skill-bar/skill-bar';
 export * from './lib/tag/tag';
 // Redes
 export * from './lib/redes/redes';
+// Boton
+export * from './lib/boton/boton';
