@@ -4,6 +4,11 @@
   "compileOnSave": false,
   "compilerOptions": {
     "baseUrl": ".",
+    "paths": {
+      "componentes": [
+        "./dist/componentes"
+      ]
+    },
     // "paths": {},
     "strict": true,
     "noImplicitOverride": true,
@@ -31,6 +36,12 @@
     },
     {
       "path": "./projects/perfil-personal/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/componentes/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/componentes/tsconfig.spec.json"
     }
   ]
 }
