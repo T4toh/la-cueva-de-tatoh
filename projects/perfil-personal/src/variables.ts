@@ -58,3 +58,16 @@ export const INTERESES: Interes[] = [
   { nombre: 'Ciencia', icono: '🔬', color: '#2E8B57', textColor: '#fff' },
   { nombre: 'Dungeons & Dragons', icono: '🐉', color: '#8B0000', textColor: '#fff' },
 ];
+
+export interface Red {
+  nombre: string;
+  usuario: string;
+  tipo?: 'logo' | 'tc';
+  formato?: 'svg' | 'png';
+  size?: number;
+}
+
+export const REDES: Red[] = [
+  { nombre: 'github', usuario: 'T4toh' },
+  { nombre: 'linkedin', usuario: 'in/ignacio-martín-arano-ba787353' },
+];
