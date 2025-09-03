@@ -1,0 +1,21 @@
+.layout {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid:
+    'header' 0.1fr
+    'main' 0.8fr
+    'footer' 0.1fr
+    / auto;
+  gap: 5px 8px;
+}
+
+.header {
+  grid-area: header;
+}
+.main {
+  grid-area: main;
+}
+.footer {
+  grid-area: footer;
+}

@@ -13,3 +13,17 @@ html {
   background: url('../public/fondo.webp') no-repeat center center fixed;
   background-size: cover;
 }
+
+/* CSS Variables */
+:root {
+  --color-1: #1e1e48;
+  --color-2: #3e3f7e;
+  --color-3: #5b5c9a;
+  --color-4: #7d7eaa;
+  --color-5: #b2b3d7;
+}
+
+.bg-30 {
+  background-color: rgba(30, 30, 72, 0.3);
+  color: white;
+}
