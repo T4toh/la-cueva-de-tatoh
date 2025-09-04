@@ -1,0 +1,73 @@
+.utilidades-container {
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 20px;
+    width: 100%;
+
+    .tab-button {
+      flex: 1;
+      padding: 12px 20px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--gris-copado);
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      &:hover {
+        color: #007bff;
+        backdrop-filter: blur(10px);
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+
+      &.active {
+        color: #007bff;
+        border-bottom-color: #007bff;
+        backdrop-filter: blur(20px);
+        background-color: rgba(255, 255, 255, 0.15);
+      }
+
+      &:focus {
+        outline: none;
+        box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+      }
+    }
+  }
+
+  .tab-content {
+    width: 100%;
+    max-height: calc(100vh - 200px); /* Adjust based on header/tabs height */
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    .tab-panel {
+      padding: 20px 0;
+      animation: fadeIn 0.3s ease-in-out;
+      width: 100%;
+      box-sizing: border-box;
+      min-height: 100%; /* Ensure it takes full height for scrolling */
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

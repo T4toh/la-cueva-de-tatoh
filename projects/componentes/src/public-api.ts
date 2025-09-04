@@ -14,3 +14,5 @@ export * from './lib/tag/tag';
 export * from './lib/redes/redes';
 // Boton
 export * from './lib/boton/boton';
+// Generador QR
+export * from './lib/generador-qr/generador-qr';

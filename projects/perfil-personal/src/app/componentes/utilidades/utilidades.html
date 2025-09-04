@@ -1,1 +1,26 @@
-<p>utilidades works!</p>
+<div class="utilidades-container">
+  <div class="tabs">
+    <button class="tab-button" [class.active]="activeTab === 'qr'" (click)="setActiveTab('qr')">
+      Generador QR
+    </button>
+    <button
+      class="tab-button"
+      [class.active]="activeTab === 'placeholder'"
+      (click)="setActiveTab('placeholder')"
+    >
+      Próximamente
+    </button>
+  </div>
+
+  <div class="tab-content">
+    @if (activeTab === 'qr') {
+      <div class="tab-panel">
+        <app-generador-qr></app-generador-qr>
+      </div>
+    } @else if (activeTab === 'placeholder') {
+      <div class="tab-panel">
+        <p>Más herramientas próximamente...</p>
+      </div>
+    }
+  </div>
+</div>

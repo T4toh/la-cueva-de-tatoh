@@ -21,6 +21,8 @@ html {
   --color-3: #5b5c9a;
   --color-4: #7d7eaa;
   --color-5: #b2b3d7;
+
+  --gris-copado: #fafafa;
 }
 
 .bg-30 {
@@ -46,9 +48,6 @@ html {
   background: var(--color-3);
 }
 
-///////
-///
-///
 /* Aplica estilos solo dentro del componente markdown */
 markdown {
   display: block;
@@ -134,4 +133,33 @@ markdown img {
   height: auto; /* Mantiene la proporción */
   display: block; /* Evita espacios extra */
   margin: 0 auto; /* Centra las imágenes */
+}
+
+/* Global form elements styling */
+select,
+input[type='color'] {
+  border-radius: 8px;
+  border: 1px solid var(--color-4);
+  background-color: var(--gris-copado);
+  color: var(--color-1);
+  font-family: inherit;
+  transition: all 0.3s ease;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-2);
+    box-shadow: 0 0 8px rgba(62, 63, 126, 0.3);
+  }
+
+  option {
+    background-color: var(--gris-copado);
+    color: var(--color-1);
+    padding: 8px;
+  }
+}
+
+input[type='color'] {
+  cursor: pointer;
+  height: 40px;
+  padding: 2px;
 }

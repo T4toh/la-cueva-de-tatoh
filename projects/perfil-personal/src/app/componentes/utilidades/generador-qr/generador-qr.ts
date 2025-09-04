@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import QRCodeStyling from 'qr-code-styling';
 
 @Component({
-  selector: 'lib-generador-qr',
+  selector: 'app-generador-qr',
   imports: [FormsModule],
   templateUrl: './generador-qr.html',
   styleUrl: './generador-qr.scss',
