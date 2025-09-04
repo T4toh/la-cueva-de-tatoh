@@ -1,1 +1,19 @@
-<p>blog works!</p>
+<div class="post-container">
+  @for (post of posts; track post.src) {
+    <div class="post">
+      <div class="post-header">
+        <h2>{{ post.title }}</h2>
+        <span class="post-date">{{ post.fecha }}</span>
+        <lib-boton
+          [texto]="post.isExpanded ? 'Colapsar' : 'Expandir'"
+          [onClick]="togglePost.bind(this, post)"
+        ></lib-boton>
+      </div>
+      @if (post.isExpanded) {
+        <div class="post-content">
+          <markdown [src]="post.src"></markdown>
+        </div>
+      }
+    </div>
+  }
+</div>

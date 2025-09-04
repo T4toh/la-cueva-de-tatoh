@@ -1,0 +1,38 @@
+.post-container {
+  max-width: 100%; /* Aprovecha el ancho del padre */
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  height: calc(100vh - 100px); /* ajusta 100px si tenés header fijo */
+  overflow-y: auto;
+  border-radius: 12px;
+}
+
+.post {
+  margin-bottom: 2rem; /* Separa los posts */
+  max-width: 100%; /* No crece más que el padre */
+}
+
+.post-header {
+  display: grid;
+  grid-template-columns: 1fr 100px 100px;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.post-header h2 {
+  margin-bottom: 0;
+}
+
+.post-date {
+  text-align: center;
+  color: var(--color-5);
+  font-style: italic;
+}
+
+.post-header lib-boton {
+  text-align: right;
+}
+
+.post-content {
+  width: 100%;
+}
