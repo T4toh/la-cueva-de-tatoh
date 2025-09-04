@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { Boton } from 'componentes';
 
 @Component({
@@ -7,4 +8,10 @@ import { Boton } from 'componentes';
   templateUrl: './not-found.html',
   styleUrl: './not-found.scss',
 })
-export class NotFound {}
+export class NotFound {
+  private router = inject(Router);
+
+  volverAlInicio(): void {
+    this.router.navigate(['/']);
+  }
+}
