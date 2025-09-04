@@ -35,3 +35,18 @@
   background-color: #007bff;
   color: white;
 }
+
+// Responsivo: mostrar solo emojis en pantallas pequeñas
+@media (max-width: 768px) {
+  .navigator a:not([routerLink='/blog']):not([routerLink='/utilidades']) {
+    display: none;
+  }
+
+  .navigator a {
+    width: 40px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: center;
+    padding: 10px 5px;
+  }
+}

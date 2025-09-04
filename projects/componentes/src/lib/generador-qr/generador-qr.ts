@@ -47,9 +47,12 @@ export class GeneradorQr {
       return;
     }
 
+    // Calcular tamaño responsivo basado en ancho de ventana
+    const size = Math.min(200, window.innerWidth - 60); // 60px para padding, bordes y márgenes
+
     this.qrCode = new QRCodeStyling({
-      width: 300,
-      height: 300,
+      width: size,
+      height: size,
       data: this.getQRData(),
       image: this.imageUrl || undefined,
       dotsOptions: {
@@ -121,7 +124,12 @@ export class GeneradorQr {
     }
 
     if (this.qrCode) {
+      // Calcular tamaño responsivo basado en ancho de ventana
+      const size = Math.min(200, window.innerWidth - 60);
+
       this.qrCode.update({
+        width: size,
+        height: size,
         data: this.getQRData(),
         image: this.imageUrl || undefined,
         dotsOptions: {

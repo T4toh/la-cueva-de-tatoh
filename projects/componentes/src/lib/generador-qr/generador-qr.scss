@@ -5,6 +5,7 @@
   border: 1px solid var(--color-4);
   border-radius: 8px;
   background-color: var(--gris-copado);
+  box-sizing: border-box;
 
   h2 {
     text-align: center;
@@ -130,6 +131,19 @@
       border-radius: 4px;
       padding: 10px;
       background-color: white;
+    }
+  }
+
+  // Responsivo: ajustar padding en pantallas pequeñas
+  @media (max-width: 375px) {
+    .qr-generator {
+      padding: 10px;
+      width: 100%;
+      max-width: none;
+    }
+
+    .preview-section .qr-canvas {
+      padding: 5px;
     }
   }
 

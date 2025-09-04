@@ -9,11 +9,13 @@ import { INTERESES, REDES, SKILLS } from 'projects/perfil-personal/src/variables
   styleUrl: './sidebar.scss',
 })
 export class Sidebar {
-  skills = signal(SKILLS);
-  intereses = signal(INTERESES);
-  redes = signal(REDES);
+  readonly skills = signal(SKILLS);
+  readonly intereses = signal(INTERESES);
+  readonly redes = signal(REDES);
 
-  descripcion = signal(
-    `Desarrollador Full Stack con experiencia en Angular, Node.js y bases de datos NoSQL. Apasionado por crear soluciones eficientes y escalables. Siempre en busca de aprender nuevas tecnologías y mejorar mis habilidades.`,
+  readonly descripcion = signal(
+    `Desarrollador Full Stack con experiencia en Angular, Node.js 
+    y bases de datos NoSQL. Apasionado por crear soluciones eficientes y escalables. 
+    Siempre buscando aprender nuevas tecnologías y mejorar mis habilidades.`,
   );
 }

@@ -23,3 +23,16 @@
   overflow: hidden;
   backdrop-filter: blur(2px);
 }
+
+// Responsivo: ocultar sidebar en pantallas pequeñas
+@media (max-width: 768px) {
+  .layout {
+    grid:
+      'body' 1fr
+      / 1fr;
+  }
+
+  .sidebar {
+    display: none;
+  }
+}
