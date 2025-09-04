@@ -86,6 +86,34 @@
         <input id="qrColor" type="color" [(ngModel)]="qrColor" (input)="onColorChange()" />
       </div>
 
+      <!-- Tamaño del QR -->
+      <div class="form-group">
+        <label for="qrSize">Tamaño del QR (px):</label>
+        <input
+          id="qrSize"
+          type="number"
+          [(ngModel)]="qrSize"
+          (input)="onSizeChange()"
+          min="50"
+          max="1000"
+          step="10"
+        />
+      </div>
+
+      <!-- Margen de la imagen -->
+      <div class="form-group">
+        <label for="imageMargin">Margen de la imagen (px):</label>
+        <input
+          id="imageMargin"
+          type="number"
+          [(ngModel)]="imageMargin"
+          (input)="onMarginChange()"
+          min="0"
+          max="50"
+          step="1"
+        />
+      </div>
+
       <!-- Tipo de punto -->
       <div class="form-group">
         <label for="dotType">Tipo de punto:</label>

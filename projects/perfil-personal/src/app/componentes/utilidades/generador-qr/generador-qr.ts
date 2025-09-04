@@ -19,6 +19,8 @@ export class GeneradorQr {
 
   // Nuevas opciones de configuración
   qrColor = '#000000';
+  qrSize = 300;
+  imageMargin = 20;
   dotType: 'square' | 'dots' | 'rounded' | 'classy' | 'classy-rounded' | 'extra-rounded' =
     'rounded';
   cornerSquareType: 'square' | 'dot' | 'extra-rounded' = 'square';
@@ -48,8 +50,8 @@ export class GeneradorQr {
     }
 
     this.qrCode = new QRCodeStyling({
-      width: 300,
-      height: 300,
+      width: this.qrSize,
+      height: this.qrSize,
       data: this.getQRData(),
       image: this.imageData || undefined,
       dotsOptions: {
@@ -69,7 +71,7 @@ export class GeneradorQr {
       },
       imageOptions: {
         crossOrigin: 'anonymous',
-        margin: 20,
+        margin: this.imageMargin,
       },
     });
     this.qrCode.append(canvas.nativeElement);
@@ -85,6 +87,8 @@ export class GeneradorQr {
   async generateQR(): Promise<void> {
     if (this.qrCode) {
       this.qrCode.update({
+        width: this.qrSize,
+        height: this.qrSize,
         data: this.getQRData(),
         image: this.imageData || undefined,
         dotsOptions: {
@@ -98,6 +102,10 @@ export class GeneradorQr {
         cornersDotOptions: {
           color: this.cornerDotColor,
           type: this.cornerDotType,
+        },
+        imageOptions: {
+          crossOrigin: 'anonymous',
+          margin: this.imageMargin,
         },
       });
     } else {
@@ -122,6 +130,14 @@ export class GeneradorQr {
   }
 
   onCornerDotChange(): void {
+    this.generateQR();
+  }
+
+  onSizeChange(): void {
+    this.generateQR();
+  }
+
+  onMarginChange(): void {
     this.generateQR();
   }
 

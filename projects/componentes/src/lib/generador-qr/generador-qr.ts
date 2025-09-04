@@ -19,6 +19,8 @@ export class GeneradorQr {
 
   // Nuevas opciones de configuración
   qrColor = '#000000';
+  qrSize = 200;
+  imageMargin = 20;
   dotType: 'square' | 'dots' | 'rounded' | 'classy' | 'classy-rounded' | 'extra-rounded' =
     'rounded';
   cornerSquareType: 'square' | 'dot' | 'extra-rounded' = 'square';
@@ -47,8 +49,8 @@ export class GeneradorQr {
       return;
     }
 
-    // Calcular tamaño responsivo basado en ancho de ventana
-    const size = Math.min(200, window.innerWidth - 60); // 60px para padding, bordes y márgenes
+    // Usar tamaño configurado por el usuario
+    const size = this.qrSize;
 
     this.qrCode = new QRCodeStyling({
       width: size,
@@ -72,7 +74,7 @@ export class GeneradorQr {
       },
       imageOptions: {
         crossOrigin: 'anonymous',
-        margin: 20,
+        margin: this.imageMargin,
       },
     });
     this.qrCode.append(canvas.nativeElement);
@@ -124,8 +126,8 @@ export class GeneradorQr {
     }
 
     if (this.qrCode) {
-      // Calcular tamaño responsivo basado en ancho de ventana
-      const size = Math.min(200, window.innerWidth - 60);
+      // Usar tamaño configurado por el usuario
+      const size = this.qrSize;
 
       this.qrCode.update({
         width: size,
@@ -143,6 +145,10 @@ export class GeneradorQr {
         cornersDotOptions: {
           color: this.cornerDotColor,
           type: this.cornerDotType,
+        },
+        imageOptions: {
+          crossOrigin: 'anonymous',
+          margin: this.imageMargin,
         },
       });
     } else {
@@ -171,6 +177,14 @@ export class GeneradorQr {
   }
 
   onCornerDotChange(): void {
+    this.generateQR();
+  }
+
+  onSizeChange(): void {
+    this.generateQR();
+  }
+
+  onMarginChange(): void {
     this.generateQR();
   }
 

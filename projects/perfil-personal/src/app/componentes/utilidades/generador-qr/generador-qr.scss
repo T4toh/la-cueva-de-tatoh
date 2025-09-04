@@ -111,6 +111,14 @@
       cursor: pointer;
     }
 
+    input[type='number'] {
+      height: 40px;
+    }
+
+    select {
+      height: 40px;
+    }
+
     .loading-indicator {
       margin-top: 5px;
       font-size: 12px;
