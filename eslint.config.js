@@ -33,7 +33,7 @@ module.exports = tseslint.config(
 
       // Mejores prácticas Angular (del artículo)
       '@angular-eslint/no-empty-lifecycle-method': 'warn',
-      '@angular-eslint/prefer-on-push-component-change-detection': 'warn',
+      '@angular-eslint/prefer-on-push-component-change-detection': 'off',
       '@angular-eslint/prefer-output-readonly': 'warn',
       '@angular-eslint/prefer-signals': 'warn',
       '@angular-eslint/prefer-standalone': 'warn',
