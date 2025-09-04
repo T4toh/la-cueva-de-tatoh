@@ -1,154 +1,157 @@
 <div class="qr-generator">
-  <h3>Generador de QR</h3>
+  <div class="controls-column">
+    <h3>Generador de QR</h3>
 
-  <!-- Modo WiFi Toggle -->
-  <div class="form-group">
-    <label class="checkbox-label">
-      Modo WiFi
-      <input type="checkbox" [(ngModel)]="isWifiMode" (change)="onWifiModeChange()" />
-    </label>
-  </div>
-
-  <!-- Campos normales o WiFi -->
-  @if (!isWifiMode) {
+    <!-- Modo WiFi Toggle -->
     <div class="form-group">
-      <label for="data">Datos del QR:</label>
-      <input
-        id="data"
-        type="text"
-        [(ngModel)]="data"
-        (input)="onDataChange()"
-        placeholder="Ingresa URL o texto"
-      />
+      <label class="checkbox-label">
+        Modo WiFi
+        <input type="checkbox" [(ngModel)]="isWifiMode" (change)="onWifiModeChange()" />
+      </label>
     </div>
-  } @else {
-    <div class="wifi-fields">
+
+    <!-- Campos normales o WiFi -->
+    @if (!isWifiMode) {
       <div class="form-group">
-        <label for="wifiSSID">Nombre de la red (SSID):</label>
+        <label for="data">Datos del QR:</label>
         <input
-          id="wifiSSID"
+          id="data"
           type="text"
-          [(ngModel)]="wifiSSID"
-          (input)="onWifiChange()"
-          placeholder="Nombre de tu red WiFi"
+          [(ngModel)]="data"
+          (input)="onDataChange()"
+          placeholder="Ingresa URL o texto"
         />
       </div>
+    } @else {
+      <div class="wifi-fields">
+        <div class="form-group">
+          <label for="wifiSSID">Nombre de la red (SSID):</label>
+          <input
+            id="wifiSSID"
+            type="text"
+            [(ngModel)]="wifiSSID"
+            (input)="onWifiChange()"
+            placeholder="Nombre de tu red WiFi"
+          />
+        </div>
 
-      <div class="form-group">
-        <label for="wifiPassword">Contraseña:</label>
-        <input
-          id="wifiPassword"
-          type="password"
-          [(ngModel)]="wifiPassword"
-          (input)="onWifiChange()"
-          placeholder="Contraseña de la red"
-        />
+        <div class="form-group">
+          <label for="wifiPassword">Contraseña:</label>
+          <input
+            id="wifiPassword"
+            type="password"
+            [(ngModel)]="wifiPassword"
+            (input)="onWifiChange()"
+            placeholder="Contraseña de la red"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="wifiSecurity">Tipo de seguridad:</label>
+          <select id="wifiSecurity" [(ngModel)]="wifiSecurity" (change)="onWifiChange()">
+            <option value="WPA">WPA/WPA2</option>
+            <option value="WEP">WEP</option>
+            <option value="nopass">Sin contraseña</option>
+          </select>
+        </div>
       </div>
+    }
 
-      <div class="form-group">
-        <label for="wifiSecurity">Tipo de seguridad:</label>
-        <select id="wifiSecurity" [(ngModel)]="wifiSecurity" (change)="onWifiChange()">
-          <option value="WPA">WPA/WPA2</option>
-          <option value="WEP">WEP</option>
-          <option value="nopass">Sin contraseña</option>
-        </select>
+    <!-- Imagen central -->
+    <div class="form-group">
+      <label for="image">Imagen central (opcional):</label>
+      <input
+        id="image"
+        type="file"
+        accept="image/*"
+        (change)="onImageFileChange($event)"
+        [disabled]="isLoadingImage"
+      />
+      @if (isLoadingImage) {
+        <div class="loading-indicator">Cargando imagen...</div>
+      }
+      @if (imageError) {
+        <div class="error-message">{{ imageError }}</div>
+      }
+    </div>
+
+    <!-- Configuraciones de apariencia -->
+    <div class="config-section">
+      <h4>Configuración de apariencia</h4>
+
+      <div class="config-grid">
+        <!-- Color del QR -->
+        <div class="form-group">
+          <label for="qrColor">Color del QR:</label>
+          <input id="qrColor" type="color" [(ngModel)]="qrColor" (input)="onColorChange()" />
+        </div>
+
+        <!-- Tipo de punto -->
+        <div class="form-group">
+          <label for="dotType">Tipo de punto:</label>
+          <select id="dotType" [(ngModel)]="dotType" (change)="onDotTypeChange()">
+            <option value="square">Cuadrado</option>
+            <option value="dots">Puntos</option>
+            <option value="rounded">Redondeado</option>
+            <option value="classy">Elegante</option>
+            <option value="classy-rounded">Elegante redondeado</option>
+            <option value="extra-rounded">Extra redondeado</option>
+          </select>
+        </div>
+
+        <!-- Esquinas cuadradas -->
+        <div class="form-group">
+          <label for="cornerSquareType">Tipo de esquina cuadrada:</label>
+          <select
+            id="cornerSquareType"
+            [(ngModel)]="cornerSquareType"
+            (change)="onCornerSquareChange()"
+          >
+            <option value="square">Cuadrado</option>
+            <option value="dot">Punto</option>
+            <option value="extra-rounded">Extra redondeado</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="cornerSquareColor">Color de esquina cuadrada:</label>
+          <input
+            id="cornerSquareColor"
+            type="color"
+            [(ngModel)]="cornerSquareColor"
+            (input)="onCornerSquareChange()"
+          />
+        </div>
+
+        <!-- Esquinas de puntos -->
+        <div class="form-group">
+          <label for="cornerDotType">Tipo de esquina de punto:</label>
+          <select id="cornerDotType" [(ngModel)]="cornerDotType" (change)="onCornerDotChange()">
+            <option value="square">Cuadrado</option>
+            <option value="dot">Punto</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="cornerDotColor">Color de esquina de punto:</label>
+          <input
+            id="cornerDotColor"
+            type="color"
+            [(ngModel)]="cornerDotColor"
+            (input)="onCornerDotChange()"
+          />
+        </div>
       </div>
     </div>
-  }
-
-  <!-- Imagen central -->
-  <div class="form-group">
-    <label for="image">Imagen central (opcional):</label>
-    <input
-      id="image"
-      type="url"
-      [(ngModel)]="imageUrl"
-      (input)="onImageChange()"
-      placeholder="URL de la imagen"
-      [disabled]="isLoadingImage"
-    />
-    @if (isLoadingImage) {
-      <div class="loading-indicator">Validando imagen...</div>
-    }
-    @if (imageError) {
-      <div class="error-message">{{ imageError }}</div>
-    }
   </div>
 
-  <!-- Configuraciones de apariencia -->
-  <div class="config-section">
-    <h4>Configuración de apariencia</h4>
-
-    <div class="config-grid">
-      <!-- Color del QR -->
-      <div class="form-group">
-        <label for="qrColor">Color del QR:</label>
-        <input id="qrColor" type="color" [(ngModel)]="qrColor" (input)="onColorChange()" />
-      </div>
-
-      <!-- Tipo de punto -->
-      <div class="form-group">
-        <label for="dotType">Tipo de punto:</label>
-        <select id="dotType" [(ngModel)]="dotType" (change)="onDotTypeChange()">
-          <option value="square">Cuadrado</option>
-          <option value="dots">Puntos</option>
-          <option value="rounded">Redondeado</option>
-          <option value="classy">Elegante</option>
-          <option value="classy-rounded">Elegante redondeado</option>
-          <option value="extra-rounded">Extra redondeado</option>
-        </select>
-      </div>
-
-      <!-- Esquinas cuadradas -->
-      <div class="form-group">
-        <label for="cornerSquareType">Tipo de esquina cuadrada:</label>
-        <select
-          id="cornerSquareType"
-          [(ngModel)]="cornerSquareType"
-          (change)="onCornerSquareChange()"
-        >
-          <option value="square">Cuadrado</option>
-          <option value="dot">Punto</option>
-          <option value="extra-rounded">Extra redondeado</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="cornerSquareColor">Color de esquina cuadrada:</label>
-        <input
-          id="cornerSquareColor"
-          type="color"
-          [(ngModel)]="cornerSquareColor"
-          (input)="onCornerSquareChange()"
-        />
-      </div>
-
-      <!-- Esquinas de puntos -->
-      <div class="form-group">
-        <label for="cornerDotType">Tipo de esquina de punto:</label>
-        <select id="cornerDotType" [(ngModel)]="cornerDotType" (change)="onCornerDotChange()">
-          <option value="square">Cuadrado</option>
-          <option value="dot">Punto</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="cornerDotColor">Color de esquina de punto:</label>
-        <input
-          id="cornerDotColor"
-          type="color"
-          [(ngModel)]="cornerDotColor"
-          (input)="onCornerDotChange()"
-        />
-      </div>
+  <div class="preview-column">
+    <!-- Vista previa -->
+    <div class="preview-section">
+      <h4>Vista Previa:</h4>
+      <div #qrCanvas class="qr-canvas"></div>
     </div>
-  </div>
 
-  <!-- Vista previa -->
-  <div class="preview-section">
-    <h4>Vista Previa:</h4>
-    <div #qrCanvas class="qr-canvas"></div>
+    <button (click)="downloadQR()" class="download-btn" [disabled]="!qrCode">Descargar QR</button>
   </div>
-
-  <button (click)="downloadQR()" class="download-btn" [disabled]="!qrCode">Descargar QR</button>
 </div>

@@ -13,7 +13,7 @@ export class GeneradorQr {
 
   qrCode: QRCodeStyling | null = null;
   data = 'https://example.com';
-  imageUrl = '';
+  imageData = '';
   isLoadingImage = false;
   imageError = '';
 
@@ -51,7 +51,7 @@ export class GeneradorQr {
       width: 300,
       height: 300,
       data: this.getQRData(),
-      image: this.imageUrl || undefined,
+      image: this.imageData || undefined,
       dotsOptions: {
         color: this.qrColor,
         type: this.dotType,
@@ -82,48 +82,11 @@ export class GeneradorQr {
     return this.data;
   }
 
-  private async validateImage(url: string): Promise<boolean> {
-    if (!url) {
-      return true;
-    }
-
-    try {
-      this.isLoadingImage = true;
-      this.imageError = '';
-
-      const response = await fetch(url, { method: 'HEAD' });
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const contentType = response.headers.get('content-type');
-      if (!contentType?.startsWith('image/')) {
-        throw new Error('La URL no apunta a una imagen válida');
-      }
-
-      return true;
-    } catch (error) {
-      this.imageError = error instanceof Error ? error.message : 'Error al cargar la imagen';
-      console.error('Error validating image:', error);
-      return false;
-    } finally {
-      this.isLoadingImage = false;
-    }
-  }
-
   async generateQR(): Promise<void> {
-    if (this.imageUrl) {
-      const isValidImage = await this.validateImage(this.imageUrl);
-      if (!isValidImage) {
-        // Si la imagen no es válida, generar QR sin imagen
-        this.imageUrl = '';
-      }
-    }
-
     if (this.qrCode) {
       this.qrCode.update({
         data: this.getQRData(),
-        image: this.imageUrl || undefined,
+        image: this.imageData || undefined,
         dotsOptions: {
           color: this.qrColor,
           type: this.dotType,
@@ -144,10 +107,6 @@ export class GeneradorQr {
 
   onDataChange(): void {
     this.generateQR();
-  }
-
-  async onImageChange(): Promise<void> {
-    await this.generateQR();
   }
 
   onColorChange(): void {
@@ -173,6 +132,42 @@ export class GeneradorQr {
   onWifiChange(): void {
     if (this.isWifiMode) {
       this.generateQR();
+    }
+  }
+
+  async onImageFileChange(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      this.imageData = '';
+      this.generateQR();
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      this.imageError = 'Por favor, selecciona un archivo de imagen válido.';
+      return;
+    }
+
+    try {
+      this.isLoadingImage = true;
+      this.imageError = '';
+
+      const reader = new FileReader();
+      reader.onload = async (e): Promise<void> => {
+        this.imageData = e.target?.result as string;
+        await this.generateQR();
+        this.isLoadingImage = false;
+      };
+      reader.onerror = (): void => {
+        this.imageError = 'Error al leer el archivo.';
+        this.isLoadingImage = false;
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      this.imageError = 'Error al procesar la imagen.';
+      this.isLoadingImage = false;
+      console.error('Error processing image:', error);
     }
   }
 

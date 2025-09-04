@@ -6,11 +6,37 @@
   backdrop-filter: blur(10px);
   background-color: rgba(255, 255, 255, 0.1);
   box-sizing: border-box;
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
 
-  h3 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: var(--gris-copado);
+  @media (max-width: 1024px) {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .controls-column {
+    flex: 1;
+    min-width: 0;
+
+    h3 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: var(--gris-copado);
+    }
+  }
+
+  .preview-column {
+    flex: 0 0 350px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+
+    @media (max-width: 1024px) {
+      flex: none;
+      width: 100%;
+    }
   }
 
   .checkbox-label {
@@ -119,8 +145,8 @@
 
     .config-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
 
       @media (max-width: 768px) {
         grid-template-columns: 1fr;
@@ -130,41 +156,45 @@
 
   .preview-section {
     text-align: center;
-    margin: 20px 0;
     width: 100%;
 
     h4 {
-      margin-bottom: 10px;
+      margin-bottom: 15px;
       color: var(--gris-copado);
+      font-size: 18px;
     }
 
     .qr-canvas {
       display: inline-block;
       border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 4px;
-      padding: 10px;
+      border-radius: 8px;
+      padding: 15px;
       background-color: rgba(255, 255, 255, 0.9);
       max-width: 100%;
       height: auto;
       box-sizing: border-box;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
   }
 
   .download-btn {
-    display: block;
     width: 100%;
-    padding: 10px;
+    padding: 12px 20px;
     background-color: #007bff;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     font-size: 16px;
+    font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease;
     box-sizing: border-box;
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
 
     &:hover:not(:disabled) {
       background-color: #0056b3;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
     }
 
     &:focus {
@@ -176,6 +206,8 @@
       background-color: rgba(108, 117, 125, 0.6);
       cursor: not-allowed;
       backdrop-filter: blur(5px);
+      transform: none;
+      box-shadow: none;
     }
   }
 }
