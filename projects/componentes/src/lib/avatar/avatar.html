@@ -1,14 +1,14 @@
 <section class="layout">
   <div class="imagen">
-    @if (imagenUrl) {
-      <img [src]="imagenUrl" alt="Avatar" />
+    @if (imagenUrl()) {
+      <img [src]="imagenUrl()" alt="Avatar" />
     } @else {
-      <span class="no-img">{{ textoError }}</span>
+      <span class="no-img">{{ textoError() }}</span>
     }
   </div>
-  @if (nombre) {
+  @if (nombre()) {
     <div class="nombre">
-      {{ nombre }}
+      {{ nombre() }}
     </div>
   }
 </section>

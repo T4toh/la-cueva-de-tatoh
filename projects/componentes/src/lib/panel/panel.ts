@@ -1,4 +1,4 @@
-import { Component, input, signal, computed, effect } from '@angular/core';
+import { Component, computed, effect, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -8,18 +8,18 @@ import { CommonModule } from '@angular/common';
   styleUrl: './panel.scss',
 })
 export class Panel {
-  texto = input<string>();
-  colorFondo = input<string>();
-  colorTexto = input<string>();
-  colapsable = input<boolean>(false);
-  iconoColapsar = input<string>();
-  colapsado = input<boolean>(false);
-  negrita = input<boolean>(false);
-  tamanoFuente = input<string>();
-  transparente = input<boolean>(false);
-  sombreado = input<boolean>(false);
+  readonly texto = input<string>();
+  readonly colorFondo = input<string>();
+  readonly colorTexto = input<string>();
+  readonly colapsable = input<boolean>(false);
+  readonly iconoColapsar = input<string>();
+  readonly colapsado = input<boolean>(false);
+  readonly negrita = input<boolean>(false);
+  readonly tamanoFuente = input<string>();
+  readonly transparente = input<boolean>(false);
+  readonly sombreado = input<boolean>(false);
 
-  isCollapsed = signal(false);
+  readonly isCollapsed = signal(false);
 
   constructor() {
     effect(() => {
@@ -27,7 +27,7 @@ export class Panel {
     });
   }
 
-  textoMostrado = computed(() => {
+  readonly textoMostrado = computed(() => {
     const txt = this.texto() || '';
     if (this.isCollapsed()) {
       return txt.length > 10 ? txt.substring(0, 10) + '...' : txt;
@@ -127,7 +127,7 @@ export class Panel {
     return color;
   }
 
-  backgroundColor = computed(() => {
+  readonly backgroundColor = computed(() => {
     const fondo = this.colorFondo();
     if (!fondo) {
       return '#fff';
@@ -145,7 +145,7 @@ export class Panel {
     return fondo;
   });
 
-  toggleColapsar() {
+  toggleColapsar(): void {
     this.isCollapsed.set(!this.isCollapsed());
   }
 }

@@ -7,8 +7,8 @@ import { Component, input } from '@angular/core';
   styleUrl: './skill-bar.scss',
 })
 export class SkillBar {
-  skill = input<string>();
-  nivel = input<number>(0);
-  color = input<string>('blue');
-  textColor = input<string>('#333');
+  readonly skill = input<string>();
+  readonly nivel = input<number>(0);
+  readonly color = input<string>('blue');
+  readonly textColor = input<string>('#333');
 }

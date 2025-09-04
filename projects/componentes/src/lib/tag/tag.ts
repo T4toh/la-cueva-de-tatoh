@@ -7,8 +7,8 @@ import { Component, input } from '@angular/core';
   styleUrl: './tag.scss',
 })
 export class Tag {
-  texto = input<string>();
-  icono = input<string>();
-  colorFondo = input<string>('blue');
-  colorTexto = input<string>('#fff');
+  readonly texto = input<string>();
+  readonly icono = input<string>();
+  readonly colorFondo = input<string>('blue');
+  readonly colorTexto = input<string>('#fff');
 }

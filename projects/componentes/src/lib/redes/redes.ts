@@ -1,13 +1,13 @@
-import { Component, input, inject } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
-interface Red {
+type Red = {
   nombre: string;
   usuario: string;
   tipo?: 'logo' | 'tc';
   formato?: 'svg' | 'png';
   size?: number;
-}
+};
 
 const TWITTER_SVG = `<svg name="twitter" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect width="40" height="40" fill="#55ACE3" />
@@ -38,7 +38,7 @@ const LINKEDIN_SVG = `<svg name="linkedin" viewBox="0 0 40 40" fill="none" xmlns
 export class Redes {
   private sanitizer = inject(DomSanitizer);
 
-  redes = input<Red[]>([]);
+  readonly redes = input<Red[]>([]);
 
   /**
    * Devuelve el SVG del ícono de la red social.
