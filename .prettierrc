@@ -2,7 +2,8 @@
   "singleQuote": true,
   "semi": true,
   "tabWidth": 2,
-  "printWidth": 120,
+  "printWidth": 80,
   "trailingComma": "es5",
-  "bracketSameLine": true
+  "bracketSameLine": false,
+  "htmlWhitespaceSensitivity": "ignore"
 }
