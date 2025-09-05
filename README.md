@@ -3,8 +3,8 @@
 **TODO**
 
 - Perfil personal ✅
-- Lugar para componentes ✅
-- Componentes ✅
 - Blog ✅
 - QR Generator ✅
+- Lugar para componentes
+- Componentes
 - Listado de Libros
