@@ -88,28 +88,12 @@ export type Apk = {
 
 export const APKS: Apk[] = [
   {
-    nombre: 'Mi Primera App',
-    descripcion: 'Una aplicación nativa de ejemplo para Android',
-    version: '1.0.0',
-    url: 'https://example.com/mi-primera-app.apk',
-    icono: '📱',
-    color: '#4285F4',
-  },
-  {
-    nombre: 'App de Tareas',
-    descripcion: 'Gestor de tareas y productividad para dispositivos móviles',
-    version: '2.1.3',
-    url: 'https://example.com/app-tareas.apk',
-    icono: '✅',
-    color: '#34A853',
-  },
-  {
-    nombre: 'App de Notas',
-    descripcion: 'Toma notas rápidas y organízalas fácilmente',
-    version: '1.5.2',
-    url: 'https://example.com/app-notas.apk',
-    icono: '�',
-    color: '#FBBC04',
+    nombre: 'Kanji no Ryoushi - 漢字の漁師',
+    descripcion: 'OCR orientado al Japonés',
+    version: 'v0.0.1',
+    url: 'https://github.com/T4toh/Kanji-no-Ryoushi/releases/download/v0.0.1/kyoshi_no_ryoushi.apk',
+    icono: '🎣 🗾',
+    color: 'indigo',
   },
   // Agrega más APKs aquí
 ];
