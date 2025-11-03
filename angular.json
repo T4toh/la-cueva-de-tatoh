@@ -27,8 +27,7 @@
               {
                 "glob": "**/*",
                 "input": "projects/perfil-personal/public"
-              },
-              "_redirects"
+              }
             ],
             "styles": [
               "projects/perfil-personal/src/styles.scss"
@@ -86,8 +85,7 @@
               {
                 "glob": "**/*",
                 "input": "projects/perfil-personal/public"
-              },
-              "_redirects"
+              }
             ],
             "styles": [
               "projects/perfil-personal/src/styles.scss"
