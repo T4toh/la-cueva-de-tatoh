@@ -1,10 +1,24 @@
 <div class="utilidades-container">
   <div class="tabs">
-    <button class="tab-button" [class.active]="activeTab === 'qr'" (click)="setActiveTab('qr')">
+    <button
+      class="tab-button"
+      type="button"
+      [class.active]="activeTab === 'qr'"
+      (click)="setActiveTab('qr')"
+    >
       Generador QR
     </button>
     <button
       class="tab-button"
+      type="button"
+      [class.active]="activeTab === 'apks'"
+      (click)="setActiveTab('apks')"
+    >
+      Apps Nativas
+    </button>
+    <button
+      class="tab-button"
+      type="button"
       [class.active]="activeTab === 'placeholder'"
       (click)="setActiveTab('placeholder')"
     >
@@ -14,13 +28,17 @@
 
   <div class="tab-content">
     @if (activeTab === 'qr') {
-      <div class="tab-panel">
-        <app-generador-qr></app-generador-qr>
-      </div>
+    <div class="tab-panel">
+      <app-generador-qr />
+    </div>
+    } @else if (activeTab === 'apks') {
+    <div class="tab-panel">
+      <app-lista-apks />
+    </div>
     } @else if (activeTab === 'placeholder') {
-      <div class="tab-panel">
-        <p>Más herramientas próximamente...</p>
-      </div>
+    <div class="tab-panel">
+      <p>Más herramientas próximamente...</p>
+    </div>
     }
   </div>
 </div>

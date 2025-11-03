@@ -1,17 +1,17 @@
 @if (!enlace()) {
   <button
-    [type]="tipo()"
-    [disabled]="deshabilitado() || loading()"
     [class]="clase() || ''"
+    [disabled]="deshabilitado() || loading()"
     [ngClass]="getClasses()"
     [style.background-color]="color() && estilo() === 'normal' ? color() : null"
     [style.border-color]="color() && estilo() === 'outline' ? color() : null"
     [style.color]="color() && estilo() === 'text' ? color() : null"
+    [type]="tipo()"
     (click)="handleClick()"
   >
     @if (icono() && !loading()) {
       <span class="icon">
-        <img [src]="icono()" alt="icon" />
+        <img alt="icon" [src]="icono()" />
       </span>
     }
     @if (loading()) {
@@ -23,8 +23,8 @@
 
 @if (enlace()) {
   <a
-    [href]="enlace()"
     [class]="clase() || ''"
+    [href]="enlace()"
     [ngClass]="getClasses()"
     [style.background-color]="color() && estilo() === 'normal' ? color() : null"
     [style.border-color]="color() && estilo() === 'outline' ? color() : null"
@@ -33,7 +33,7 @@
   >
     @if (icono() && !loading()) {
       <span class="icon">
-        <img [src]="icono()" alt="icon" />
+        <img alt="icon" [src]="icono()" />
       </span>
     }
     @if (loading()) {

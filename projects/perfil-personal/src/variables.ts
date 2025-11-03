@@ -1,9 +1,9 @@
-export interface Skill {
+export type Skill = {
   skill: string;
   nivel: number;
   color: string;
   textColor: string;
-}
+};
 export const SKILLS: Skill[] = [
   // Habilidades Técnicas
   // Básicas
@@ -34,12 +34,12 @@ export const SKILLS: Skill[] = [
   { skill: 'CI/CD', nivel: 70, color: '#4B0082', textColor: '#fff' },
 ];
 
-export interface Interes {
+export type Interes = {
   nombre: string;
   icono: string;
   color: string;
   textColor: string;
-}
+};
 export const INTERESES: Interes[] = [
   // Intereses Personales
   // Libros, metal, literatura, manga, japonés, fútbol, juegos, tecnología, linux, comida
@@ -56,18 +56,60 @@ export const INTERESES: Interes[] = [
   { nombre: 'Comida', icono: '🍣', color: '#FF6347', textColor: '#fff' },
   { nombre: 'Astronomía', icono: '🌌', color: '#00008B', textColor: '#fff' },
   { nombre: 'Ciencia', icono: '🔬', color: '#2E8B57', textColor: '#fff' },
-  { nombre: 'Dungeons & Dragons', icono: '🐉', color: '#8B0000', textColor: '#fff' },
+  {
+    nombre: 'Dungeons & Dragons',
+    icono: '🐉',
+    color: '#8B0000',
+    textColor: '#fff',
+  },
 ];
 
-export interface Red {
+export type Red = {
   nombre: string;
   usuario: string;
   tipo?: 'logo' | 'tc';
   formato?: 'svg' | 'png';
   size?: number;
-}
+};
 
 export const REDES: Red[] = [
   { nombre: 'github', usuario: 'T4toh' },
   { nombre: 'linkedin', usuario: 'in/ignacio-martín-arano-ba787353' },
+];
+
+export type Apk = {
+  nombre: string;
+  descripcion: string;
+  version: string;
+  url: string;
+  icono?: string;
+  color: string;
+};
+
+export const APKS: Apk[] = [
+  {
+    nombre: 'Mi Primera App',
+    descripcion: 'Una aplicación nativa de ejemplo para Android',
+    version: '1.0.0',
+    url: 'https://example.com/mi-primera-app.apk',
+    icono: '📱',
+    color: '#4285F4',
+  },
+  {
+    nombre: 'App de Tareas',
+    descripcion: 'Gestor de tareas y productividad para dispositivos móviles',
+    version: '2.1.3',
+    url: 'https://example.com/app-tareas.apk',
+    icono: '✅',
+    color: '#34A853',
+  },
+  {
+    nombre: 'App de Notas',
+    descripcion: 'Toma notas rápidas y organízalas fácilmente',
+    version: '1.5.2',
+    url: 'https://example.com/app-notas.apk',
+    icono: '�',
+    color: '#FBBC04',
+  },
+  // Agrega más APKs aquí
 ];

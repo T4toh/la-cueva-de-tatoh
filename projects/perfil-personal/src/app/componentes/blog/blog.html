@@ -5,13 +5,13 @@
         <h2>{{ post.title }}</h2>
         <span class="post-date">{{ post.fecha }}</span>
         <lib-boton
-          [texto]="post.isExpanded ? 'Colapsar' : 'Expandir'"
           [onClick]="togglePost.bind(this, post)"
-        ></lib-boton>
+          [texto]="post.isExpanded ? 'Colapsar' : 'Expandir'"
+        />
       </div>
       @if (post.isExpanded) {
         <div class="post-content">
-          <markdown [src]="post.src"></markdown>
+          <markdown [src]="post.src" />
         </div>
       }
     </div>

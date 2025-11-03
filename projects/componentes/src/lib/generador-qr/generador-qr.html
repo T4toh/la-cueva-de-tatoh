@@ -15,10 +15,10 @@
       <label for="data">Datos del QR:</label>
       <input
         id="data"
+        placeholder="Ingresa URL o texto"
         type="text"
         [(ngModel)]="data"
         (input)="onDataChange()"
-        placeholder="Ingresa URL o texto"
       />
     </div>
   } @else {
@@ -27,10 +27,10 @@
         <label for="wifiSSID">Nombre de la red (SSID):</label>
         <input
           id="wifiSSID"
+          placeholder="Nombre de tu red WiFi"
           type="text"
           [(ngModel)]="wifiSSID"
           (input)="onWifiChange()"
-          placeholder="Nombre de tu red WiFi"
         />
       </div>
 
@@ -38,10 +38,10 @@
         <label for="wifiPassword">Contraseña:</label>
         <input
           id="wifiPassword"
+          placeholder="Contraseña de la red"
           type="password"
           [(ngModel)]="wifiPassword"
           (input)="onWifiChange()"
-          placeholder="Contraseña de la red"
         />
       </div>
 
@@ -61,11 +61,11 @@
     <label for="image">Imagen central (opcional):</label>
     <input
       id="image"
+      placeholder="URL de la imagen"
       type="url"
+      [disabled]="isLoadingImage"
       [(ngModel)]="imageUrl"
       (input)="onImageChange()"
-      placeholder="URL de la imagen"
-      [disabled]="isLoadingImage"
     />
     @if (isLoadingImage) {
       <div class="loading-indicator">Validando imagen...</div>
@@ -91,12 +91,12 @@
         <label for="qrSize">Tamaño del QR (px):</label>
         <input
           id="qrSize"
+          max="1000"
+          min="50"
+          step="10"
           type="number"
           [(ngModel)]="qrSize"
           (input)="onSizeChange()"
-          min="50"
-          max="1000"
-          step="10"
         />
       </div>
 
@@ -105,12 +105,12 @@
         <label for="imageMargin">Margen de la imagen (px):</label>
         <input
           id="imageMargin"
+          max="50"
+          min="0"
+          step="1"
           type="number"
           [(ngModel)]="imageMargin"
           (input)="onMarginChange()"
-          min="0"
-          max="50"
-          step="1"
         />
       </div>
 
@@ -178,5 +178,5 @@
     <div #qrCanvas class="qr-canvas"></div>
   </div>
 
-  <button (click)="downloadQR()" class="download-btn" [disabled]="!qrCode">Descargar QR</button>
+  <button class="download-btn" [disabled]="!qrCode" (click)="downloadQR()">Descargar QR</button>
 </div>

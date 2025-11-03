@@ -1,7 +1,7 @@
 <section class="layout">
   <div class="imagen">
     @if (imagenUrl()) {
-      <img [src]="imagenUrl()" alt="Avatar" />
+      <img alt="Avatar" [src]="imagenUrl()" />
     } @else {
       <span class="no-img">{{ textoError() }}</span>
     }

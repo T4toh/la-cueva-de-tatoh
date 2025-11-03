@@ -1,0 +1,39 @@
+<div class="lista-apks">
+  @if (apks().length === 0) {
+  <div class="empty-state">
+    <p>No hay APKs disponibles en este momento.</p>
+  </div>
+  } @else {
+  <div class="apks-grid">
+    @for (apk of apks(); track apk.nombre) {
+    <div class="apk-card">
+      <div class="apk-header" [style.background-color]="apk.color">
+        @if (apk.icono) {
+        <span class="apk-icono">{{ apk.icono }}</span>
+        }
+        <h3 class="apk-nombre">{{ apk.nombre }}</h3>
+      </div>
+      <div class="apk-body">
+        <p class="apk-descripcion">{{ apk.descripcion }}</p>
+        <div class="apk-version">
+          <span class="version-label">Versión:</span>
+          <span class="version-numero">{{ apk.version }}</span>
+        </div>
+      </div>
+      <div class="apk-footer">
+        <a
+          class="download-button"
+          rel="noopener noreferrer"
+          target="_blank"
+          [href]="apk.url"
+          [style.background-color]="apk.color"
+        >
+          <span class="download-icon">⬇</span>
+          Descargar APK
+        </a>
+      </div>
+    </div>
+    }
+  </div>
+  }
+</div>

@@ -1,46 +1,46 @@
 <section class="layout">
   <div class="header">
-    <lib-avatar imagenUrl="LSK-A.jpg" nombre="Ignacio Martín Arano"></lib-avatar>
+    <lib-avatar imagenUrl="LSK-A.jpg" nombre="Ignacio Martín Arano" />
   </div>
   <div class="main">
     <!-- Breve descripción de mi persona  -->
     <div class="panel-section">
       <lib-panel
-        [texto]="descripcion()"
-        [colorFondo]="'#5b5c9a'"
-        [colorTexto]="'white'"
         [colapsable]="true"
         [colapsado]="true"
+        [colorFondo]="'#5b5c9a'"
+        [colorTexto]="'white'"
         [negrita]="false"
-        [transparente]="true"
         [sombreado]="true"
-      ></lib-panel>
+        [texto]="descripcion()"
+        [transparente]="true"
+      />
     </div>
     <!-- skills  -->
     <div class="skills-section">
       @for (s of skills(); track $index) {
         <lib-skill-bar
-          [skill]="s.skill"
-          [nivel]="s.nivel"
           [color]="s.color"
+          [nivel]="s.nivel"
+          [skill]="s.skill"
           [textColor]="s.textColor"
-        ></lib-skill-bar>
+        />
       }
     </div>
     <!-- intereses / tags -->
     <div class="tags-section">
       @for (i of intereses(); track $index) {
         <lib-tag
-          [texto]="i.nombre"
           [colorFondo]="i.color"
-          [icono]="i.icono"
           [colorTexto]="i.textColor"
-        ></lib-tag>
+          [icono]="i.icono"
+          [texto]="i.nombre"
+        />
       }
     </div>
   </div>
   <div class="footer">
     <!-- Redes -->
-    <lib-redes [redes]="redes()"></lib-redes>
+    <lib-redes [redes]="redes()" />
   </div>
 </section>

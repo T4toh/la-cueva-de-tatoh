@@ -1,11 +1,11 @@
 <div class="not-found-container">
-  <img src="404.jpg" alt="Página no encontrada" class="not-found-image" />
+  <img alt="Página no encontrada" class="not-found-image" src="404.jpg" />
   <p class="not-found-text">Saitama está muy ocupado para encontar esta página.</p>
   <lib-boton
-    texto="Volver al Inicio"
-    (click)="volverAlInicio()"
-    tipo="button"
     estilo="normal"
+    texto="Volver al Inicio"
+    tipo="button"
     [color]="'#5b5c9a'"
-  ></lib-boton>
+    (click)="volverAlInicio()"
+  />
 </div>

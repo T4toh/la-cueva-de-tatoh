@@ -18,9 +18,7 @@
           "builder": "@angular/build:application",
           "options": {
             "browser": "projects/perfil-personal/src/main.ts",
-            "polyfills": [
-              "zone.js"
-            ],
+            "polyfills": ["zone.js"],
             "tsConfig": "projects/perfil-personal/tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
@@ -29,9 +27,7 @@
                 "input": "projects/perfil-personal/public"
               }
             ],
-            "styles": [
-              "projects/perfil-personal/src/styles.scss"
-            ]
+            "styles": ["projects/perfil-personal/src/styles.scss"]
           },
           "configurations": {
             "production": {
@@ -75,10 +71,7 @@
         "test": {
           "builder": "@angular/build:karma",
           "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
+            "polyfills": ["zone.js", "zone.js/testing"],
             "tsConfig": "projects/perfil-personal/tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
             "assets": [
@@ -87,9 +80,7 @@
                 "input": "projects/perfil-personal/public"
               }
             ],
-            "styles": [
-              "projects/perfil-personal/src/styles.scss"
-            ]
+            "styles": ["projects/perfil-personal/src/styles.scss"]
           }
         },
         "lint": {
@@ -126,10 +117,7 @@
           "builder": "@angular/build:karma",
           "options": {
             "tsConfig": "projects/componentes/tsconfig.spec.json",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ]
+            "polyfills": ["zone.js", "zone.js/testing"]
           }
         },
         "lint": {
@@ -147,8 +135,6 @@
   },
   "cli": {
     "analytics": "ec4452f5-fb92-4942-86e2-0edb7e4d8d04",
-    "schematicCollections": [
-      "angular-eslint"
-    ]
+    "schematicCollections": ["angular-eslint"]
   }
 }
