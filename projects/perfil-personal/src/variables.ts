@@ -21,6 +21,7 @@ export const SKILLS: Skill[] = [
   { skill: 'Openlayers', nivel: 80, color: '#339933', textColor: '#fff' },
   { skill: 'Google Maps API', nivel: 70, color: '#4285F4', textColor: '#fff' },
   { skill: 'Capacitor', nivel: 60, color: '#3367D6', textColor: '#fff' },
+  { skill: 'Flutter', nivel: 40, color: '#02569B', textColor: '#fff' },
   // Bases de Datos
   { skill: 'MongoDB', nivel: 85, color: '#47A248', textColor: '#fff' },
   { skill: 'SQL', nivel: 45, color: '#003B57', textColor: '#fff' },
@@ -90,8 +91,8 @@ export const APKS: Apk[] = [
   {
     nombre: 'Kanji no Ryoushi - 漢字の漁師',
     descripcion: 'OCR orientado al Japonés',
-    version: 'v0.0.1',
-    url: 'https://github.com/T4toh/Kanji-no-Ryoushi/releases/download/v0.0.1/kyoshi_no_ryoushi.apk',
+    version: 'v0.0.2',
+    url: 'https://github.com/T4toh/Kanji-no-Ryoushi/releases/download/v0.0.2/kanji_no_ryoushi.apk',
     icono: '🎣 🗾',
     color: 'indigo',
   },
