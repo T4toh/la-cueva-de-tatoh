@@ -19,11 +19,11 @@ export class Blog {
   posts: Post[] = [
     {
       title: '#1',
-      src: '/posts/japones-1.md',
+      src: 'posts/japones-1.md',
       fecha: '3/11/25',
       isExpanded: true,
     },
-    // { title: 'Template Post', src: '/posts/template-post.md', fecha: '3/9/25', isExpanded: false },
+    // { title: 'Template Post', src: 'posts/template-post.md', fecha: '3/9/25', isExpanded: false },
   ];
 
   togglePost(post: Post): void {
