@@ -13,7 +13,7 @@ Estoy aprendiendo japonés con el pequeño curso de [Dolly](https://www.youtube.
 Primero hay que decir que, para aprender japonés, el primer paso es dedicarse a meterse en la cabeza los **kanas** (katakana e hiragana).  
 Hay muchas herramientas para eso, pero nada mejor que darle un poco con la mano para grabarlas en la cabeza.
 
-Otra cosa relevante es olvidarse lo más rápido posible del **romanji** (pronunciación del ponja en occidental) para no hacer triple relación en el cerebro con tu idioma nativo o secundario (como es mi caso).
+Otra cosa relevante es olvidarse lo más rápido posible del **roomaji** 「ローマ字」 (pronunciación del ponja en occidental) para no hacer triple relación en el cerebro con tu idioma nativo o secundario (como es mi caso).
 
 El siguiente paso lógico es agrandar el vocabulario, que es lo que vengo encontrando importante.  
 Por otro lado, la inmersión es más que útil, así que meterse japonés a toda hora del día es una tremenda opción (música, series, manga, anime).
