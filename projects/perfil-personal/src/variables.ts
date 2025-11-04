@@ -91,8 +91,8 @@ export const APKS: Apk[] = [
   {
     nombre: 'Kanji no Ryoushi - 漢字の漁師',
     descripcion: 'OCR orientado al Japonés',
-    version: 'v0.0.1',
-    url: 'https://github.com/T4toh/Kanji-no-Ryoushi/releases/download/v0.0.1/kanji_no_ryoushi.apk',
+    version: 'v0.0.2',
+    url: 'https://github.com/T4toh/Kanji-no-Ryoushi/releases/download/v0.0.2/kanji_no_ryoushi.apk',
     icono: '🎣 🗾',
     color: 'indigo',
   },
