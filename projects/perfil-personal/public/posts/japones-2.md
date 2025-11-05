@@ -1,12 +1,6 @@
 # Aprendiendo japonés con un gordo barbudo
 
-Fecha: 5 de noviembre del 2025
-
-Autor: Tatoh
-
-Categoría: Japonés
-
-## Gramática básica con Dolly
+## Gramática básica con Cure Dolly
 
 ### Lección 2
 
@@ -26,7 +20,7 @@ I'm going to eat.
 
 Going to eat no sería una oración correcta (gramaticalmente), ya que siempre hay que escribir I (con mayúscula y todo).
 
-En esta lección, entonces, debemos tener en cuenta que las oraciones pueden tener [sujeto tácito](https://www.rae.es/gtg/sujeto-t%C3%A1cito). En el video, Dolly usa Ø「が」 para mostrar esta faceta de las oraciones. Esto no es un problema para nosotros, pero es importante para los anglosajones, entonces tiene su propio video para prepararlos para leer oraciones con sujeto tácito.
+En esta lección, entonces, debemos tener en cuenta que las oraciones pueden tener [sujeto tácito](https://www.rae.es/gtg/sujeto-t%C3%A1cito). En el video, Dolly usa 「Øが」 para mostrar esta faceta de las oraciones. Esto no es un problema para nosotros, pero es importante para los anglosajones, entonces tiene su propio video para prepararlos para leer oraciones con sujeto tácito.
 
 ```text
 わたし が せんせい だ。
@@ -43,7 +37,7 @@ Esta ya la conocemos y en su forma completa sería de esa forma, pero tanto en e
 せんせい だ。
 ```
 
-Esta oración significa lo mismo que la anterior, omitiendo por completo el sujeto de la misma, que defaultea directamente a 「わたし」. Entonces, como dice en el video, la oración siempre tiene un sujeto con el famoso Ø「が」.
+Esta oración significa lo mismo que la anterior, omitiendo por completo el sujeto de la misma, que defaultea directamente a 「わたし」 「が」. Entonces, como dice en el video, la oración siempre tiene un sujeto con el famoso 「Øが」 escondido en las sombras del contexto.
 
 ---
 
@@ -61,21 +55,29 @@ En esta lección, Dolly termina explicando cómo usar una nueva partícula, 「�
 - 「を」 = marca qué recibe la acción (que será comido, en este caso).
 - 「たべる」 = comer
 
-```traducción funcional
-Yo como pan
+```estructura
+[Sujeto] 「が」 [Objeto] 「を」 [Verbo]。
 ```
 
-El japonés es un idioma muy contextual, y por lo que me vienen diciendo (mi amigo que habla y vive en Japón todo lo que puede), es más que común escucharlo con sujeto tácito. Así que si no agarrás el contexto, preguntás y listo, como todo buen turista.
+```traducción funcional
+Yo como pan.
+```
+
+El japonés es un idioma muy contextual, y por lo que me vienen diciendo (mi amigo que habla y vive en Japón todo lo que puede), es más que común escucharlo con sujeto tácito.
 
 ```text
 パン を たべる。
 ```
 
-```traducción funcional
-Como pan
+```estructura
+[Objeto] 「を」 [Verbo]。
 ```
 
-En este caso, como venimos viendo, la oración principal es "Yo como", pero con el detalle de que ahora podemos agregarle qué estamos comiendo. En este último caso, el Ø「が」 es 「わたし が」, pero también podría ser otra cosa (eso, esa, aquello) en el caso de que el que hace la acción no sea una persona.
+```traducción funcional
+Como pan.
+```
+
+En este caso, como venimos viendo, la oración principal es "Yo como", pero con el detalle de que ahora podemos agregarle qué estamos comiendo. En este último caso, el Ø「が」 es 「わたし が」, pero también podría ser otra cosa (eso, esa, aquello, aquella, etc) en el caso de que el que hace la acción no sea una persona. Así que si no agarrás el contexto, preguntás y listo, como todo buen turista.
 
 ---
 

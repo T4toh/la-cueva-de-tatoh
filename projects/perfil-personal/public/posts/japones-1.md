@@ -1,9 +1,5 @@
 # Aprendiendo japonés con un gordo barbudo
 
-Fecha: 3 de noviembre del 2025  
-Autor: Tatoh  
-Categoría: Japonés
-
 ## Introducción
 
 Estoy aprendiendo japonés con el pequeño curso de [Dolly](https://www.youtube.com/watch?v=pSvH9vH60Ig&list=PLg9uYxuZf8x_A-vcqqyOFZu06WlhnypWj) y quiero respaldar un poco lo que vengo viendo (y haciendo) en texto, que parece ser el único fuerte que tengo.
@@ -22,17 +18,17 @@ Por otro lado, la inmersión es más que útil, así que meterse japonés a toda
 
 ### Herramientas
 
-- GENKI: An Integrated Course in Elementary Japanese y Dolly (Dolly es más moderno y no usa la estructura anglosajona para enseñar).
+- GENKI: An Integrated Course in Elementary Japanese y Cure Dolly (Dolly es más moderno y no usa la estructura anglosajona para enseñar).
 - Anki con [Kaishi](https://github.com/donkuri/Kaishi)
 - Muchas ganas de aprender.
 
 ---
 
-## Gramática básica con Dolly
+## Gramática básica con Cure Dolly
 
 ### Lección 1
 
-¿Con qué empieza Dolly? Con las oraciones más simples del mundo, el viejo y bien ponderado ser y hacer.
+¿Con qué empieza Cure Dolly? Con las oraciones más simples del mundo, el viejo y bien ponderado ser y hacer.
 
 Honestamente, no me gusta mucho la analogía con los vagones de un tren que hace, así que voy a intentar pasar la idea de la lección a algo más encarable en papel (o texto).
 
