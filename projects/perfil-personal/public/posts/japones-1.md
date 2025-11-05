@@ -54,7 +54,7 @@ En el más simple de los casos, se usa la partícula 「が」 (_ga_) para marca
 - 「せんせい」 = maestro
 - 「だ」 = ser
 
-```text
+```estructura
 [Sujeto] 「が」 [Predicado] 「だ」
 ```
 
@@ -78,7 +78,7 @@ Con un ejemplo es fácil de ver.
 - 「が」 = marca quién es qué.
 - 「たかい」 = es alto/alta
 
-```text
+```estructura
 [Sujeto] 「が」 [adjetivo -「い」]
 ```
 
@@ -97,7 +97,7 @@ Con los adjetivos -「な」 estamos igual que con el ejemplo del principio, per
 - 「しずか」 = silencioso/tranquilo
 - 「だ」 = ser
 
-```text
+```estructura
 [Sujeto] 「が」 [adjetivo -「な」] 「だ」
 ```
 

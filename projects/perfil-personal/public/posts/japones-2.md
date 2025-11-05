@@ -59,7 +59,7 @@ En esta lección, Dolly termina explicando cómo usar una nueva partícula, 「�
 [Sujeto] 「が」 [Objeto] 「を」 [Verbo]。
 ```
 
-```traducción funcional
+```traduccion
 Yo como pan.
 ```
 
@@ -73,7 +73,7 @@ El japonés es un idioma muy contextual, y por lo que me vienen diciendo (mi ami
 [Objeto] 「を」 [Verbo]。
 ```
 
-```traducción funcional
+```traduccion
 Como pan.
 ```
 

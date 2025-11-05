@@ -1,4 +1,5 @@
 /* You can add global styles to this file, and also import other style files */
+
 body,
 html {
   font-family: 'Libre Franklin', sans-serif;
@@ -54,9 +55,9 @@ markdown {
   color: #fff; /* blanco para que contraste con el fondo oscuro */
   font-family: system-ui, sans-serif;
   line-height: 1.6;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 1rem;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 /* Titulos */
@@ -105,6 +106,19 @@ markdown pre code {
   background: none;
   color: #e3e3e3;
   font-size: 0.9rem;
+}
+
+/* Bloques de código personalizados */
+markdown pre.language-estructura code,
+markdown pre.language-estructura {
+  background: var(--color-2);
+  color: #ffffff;
+  font-weight: 500;
+}
+
+markdown pre.language-traduccion code,
+markdown pre.language-traduccion {
+  font-style: italic;
 }
 
 /* Listas */
