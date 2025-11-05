@@ -2,9 +2,6 @@
   max-width: 100%; /* Aprovecha el ancho del padre */
   margin: 0 auto;
   padding: 1rem 2rem;
-  height: calc(100vh - 100px); /* ajusta 100px si tenés header fijo */
-  overflow-y: auto;
-  border-radius: 12px;
   animation: fadeIn 0.3s ease-in-out;
 }
 
@@ -15,23 +12,70 @@
 
 .post-header {
   display: grid;
-  grid-template-columns: 1fr 100px 100px;
+  grid-template-columns: 50px 1fr 100px 100px;
   align-items: center;
+  gap: 0.5rem;
   margin-bottom: 1rem;
 }
 
 .post-header h2 {
   margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0; /* Permite que el grid funcione correctamente con ellipsis */
 }
 
 .post-date {
   text-align: center;
   color: var(--color-5);
   font-style: italic;
+  white-space: nowrap;
 }
 
 .post-header lib-boton {
   text-align: right;
+}
+
+/* Estilos responsive para pantallas chicas */
+@media (max-width: 768px) {
+  .post-container {
+    padding: 0.5rem 1rem;
+  }
+
+  .post-header {
+    grid-template-columns: 40px 1fr;
+    grid-template-rows: auto auto;
+    gap: 0.25rem;
+  }
+
+  .post-header h2 {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 1.1rem;
+    white-space: normal; /* Permite que el título se divida en múltiples líneas */
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .post-header span:first-child {
+    /* Número de post */
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .post-date {
+    grid-column: 1;
+    grid-row: 2;
+    text-align: left;
+    font-size: 0.85rem;
+  }
+
+  .post-header lib-boton {
+    grid-column: 2;
+    grid-row: 2;
+    text-align: right;
+  }
 }
 
 .post-content {
