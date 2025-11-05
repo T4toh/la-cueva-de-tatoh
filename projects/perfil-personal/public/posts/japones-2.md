@@ -1,79 +1,82 @@
-# Aprendiendo Japonés con un gordo barbudo
+# Aprendiendo japonés con un gordo barbudo
 
-**Fecha:** 5 de Noviembre del 2025  
-**Autor:** Tatoh  
-**Categoría:** Japonés
+Fecha: 5 de noviembre del 2025
+
+Autor: Tatoh
+
+Categoría: Japonés
 
 ## Gramática básica con Dolly
 
 ### Lección 2
 
-Por alguna razón, Cure Dolly sigue con el sujeto tácito como segunda lección, cosa que parece extraña si venís desde el español como yo. El sujeto tácito es una construcció normal en el español, pero no lo es así en otros idiomas (como el inglés). Entonces, para nosotros es algo normal tener una oración como:
+#### Sujeto tácito
+
+Por alguna razón, Cure Dolly sigue con el sujeto tácito como segunda lección, cosa que parece extraña si venís desde el español como yo. El sujeto tácito es una construcción normal en el español, pero no lo es así en otros idiomas (como en el inglés). Entonces, para nosotros es algo normal tener una oración como:
 
 ```text
 Estoy yendo a comer.
 ```
 
-En este caso _yo_ es tácito, pero la oración completamente coherente y común para nosotros. En inglés, en cambio, siempre escribís el sujeto.
+En este caso, yo es tácito, pero la oración es completamente coherente y común para nosotros. En inglés, en cambio, siempre escribís el sujeto.
 
 ```text
 I'm going to eat.
 ```
 
-Going to eat no sería una oración correcta (gramaticalmente), porque siempre hay que escribir _I_ (Con mayúscula y todo).
+Going to eat no sería una oración correcta (gramaticalmente), ya que siempre hay que escribir I (con mayúscula y todo).
 
-En esta lección, entonces, debemos tener en cuenta de que las oraciones pueden tener [sujeto tácito](https://www.rae.es/gtg/sujeto-t%C3%A1cito). En el video Dolly usa 「Øが」
-
----
-
-### Ser
-
-En el más simple de los casos, se usa 「が」 (_ga_) para marcar quién (sujeto) es qué (adjetivo).
+En esta lección, entonces, debemos tener en cuenta que las oraciones pueden tener [sujeto tácito](https://www.rae.es/gtg/sujeto-t%C3%A1cito). En el video, Dolly usa Ø「が」 para mostrar esta faceta de las oraciones. Esto no es un problema para nosotros, pero es importante para los anglosajones, entonces tiene su propio video para prepararlos para leer oraciones con sujeto tácito.
 
 ```text
 わたし が せんせい だ。
 ```
 
 - 「わたし」 = yo
-- 「が」 = marca quién es qué
+- 「が」 = marca quién es qué.
 - 「せんせい」 = maestro
 - 「だ」 = ser
 
+Esta ya la conocemos y en su forma completa sería de esa forma, pero tanto en español como en japonés es totalmente normal no usar el 「わたし」 「が」.
+
 ```text
-[Sujeto] 「が」 [Predicado] 「だ」
+せんせい だ。
 ```
 
-Entonces esta oración (en inglés funcional, no traducción literal) significa **"Yo soy maestro"**.  
-En realidad sería algo como _"En lo que me corresponde a mí, soy maestro"_, pero eso es para otro debate para el cual no estoy preparado para dar ahora.
+Esta oración significa lo mismo que la anterior, omitiendo por completo el sujeto de la misma, que defaultea directamente a 「わたし」. Entonces, como dice en el video, la oración siempre tiene un sujeto con el famoso Ø「が」.
 
 ---
 
-### Hacer
+#### Partícula 「を」
 
-Por otro lado, en oraciones del tipo _hacer_, 「が」 marca quién ejecuta el verbo.
+En esta lección, Dolly termina explicando cómo usar una nueva partícula, 「を」. Esta partícula marca el objeto que recibe la acción del verbo que el sustantivo está ejecutando. En otras palabras, le da más detalle a lo que estamos haciendo. Parece complicado, pero es fácil de ver con un buen ejemplo.
 
 ```text
-わたし が あるく。
+わたし が パン を たべる。
 ```
 
 - 「わたし」 = yo
-- 「が」 = marca quién hace qué
-- 「あるく」 = caminar
+- 「が」 = marca quién hace la acción.
+- 「パン」 = pan
+- 「を」 = marca qué recibe la acción (que será comido, en este caso).
+- 「たべる」 = comer
 
-Como viene siendo el caso, en este tipo de oraciones pasa lo mismo.  
-Esta oración significa (en inglés funcional) **"Yo camino"**.
+```traducción funcional
+Yo como pan
+```
 
-##### Notas
+El japonés es un idioma muy contextual, y por lo que me vienen diciendo (mi amigo que habla y vive en Japón todo lo que puede), es más que común escucharlo con sujeto tácito. Así que si no agarrás el contexto, preguntás y listo, como todo buen turista.
 
-- 「が」 marca el sujeto real de la oración (quién hace o quién es).
-- En oraciones de acción, indica quién realiza el verbo.
-- En oraciones de estado, indica quién tiene la característica.
-- 「が」 _defaultea_ a 「わたし」 por lo que vengo viendo en este tipo de oraciones simples.
+```text
+パン を たべる。
+```
+
+```traducción funcional
+Como pan
+```
+
+En este caso, como venimos viendo, la oración principal es "Yo como", pero con el detalle de que ahora podemos agregarle qué estamos comiendo. En este último caso, el Ø「が」 es 「わたし が」, pero también podría ser otra cosa (eso, esa, aquello) en el caso de que el que hace la acción no sea una persona.
 
 ---
 
-## Conclusión
-
-El japonés no es tan complicado como uno piensa, pero requiere trabajo y esfuerzo para metérselo en la cabeza al venir desde algo tan diferente como el español o el inglés.
-
-**Tags:** #Japonés #Lenguaje
+Tags: #japonés #lenguaje
