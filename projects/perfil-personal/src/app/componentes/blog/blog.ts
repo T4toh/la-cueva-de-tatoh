@@ -31,7 +31,7 @@ type Post = {
 export class Blog {
   posts: Post[] = [
     {
-      title: 'Aprendiendo Japonés con un gordo barbudo #1',
+      title: 'Aprendiendo Japonés con un Gordo Barbudo #1',
       src: 'posts/japones-1.md',
       fecha: '3/11/25',
       isExpanded: false,
@@ -43,7 +43,7 @@ export class Blog {
       isExpanded: false,
     },
     {
-      title: 'Aprendiendo Japonés con un gordo barbudo #2',
+      title: 'Aprendiendo Japonés con un Gordo Barbudo #2',
       src: 'posts/japones-2.md',
       fecha: '5/11/25',
       isExpanded: true,
