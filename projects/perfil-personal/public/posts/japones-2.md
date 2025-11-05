@@ -77,7 +77,7 @@ El japonés es un idioma muy contextual, y por lo que me vienen diciendo (mi ami
 Como pan.
 ```
 
-En este caso, como venimos viendo, la oración principal es "Yo como", pero con el detalle de que ahora podemos agregarle qué estamos comiendo. En este último caso, el Ø「が」 es 「わたし が」, pero también podría ser otra cosa (eso, esa, aquello, aquella, etc) en el caso de que el que hace la acción no sea una persona. Así que si no agarrás el contexto, preguntás y listo, como todo buen turista.
+En este caso, como venimos viendo, la oración principal es "Yo como", pero con el detalle de que ahora podemos agregarle qué estamos comiendo. En este último caso, el 「Øが」 es 「わたし が」, pero también podría ser otra cosa (eso, esa, aquello, aquella, etc) en el caso de que el que hace la acción no sea una persona. Así que si no agarrás el contexto, preguntás y listo, como todo buen turista.
 
 ---
 
