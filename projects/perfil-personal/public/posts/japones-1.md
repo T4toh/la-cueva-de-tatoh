@@ -43,7 +43,7 @@ Como en el español y el inglés (mis dos idiomas), el japonés tiene dos tipos 
 
 #### Sustantivo
 
-En el más simple de los casos, se usa la partícula 「が」 (_ga_) para marcar quién (sujeto) es qué (adjetivo/sustantivo).
+En el más simple de los casos, se usa la [partícula](https://www.rae.es/gtg/part%C3%ADcula) 「が」 (_ga_) para marcar quién (sujeto) es qué (adjetivo/sustantivo).
 
 ```text
 わたし が せんせい だ。
