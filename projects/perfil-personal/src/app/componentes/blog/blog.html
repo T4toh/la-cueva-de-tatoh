@@ -1,20 +1,21 @@
-<div class="post-container">
-  @for (post of posts; track post.src; let i = $index) {
-  <div class="post">
-    <div class="post-header">
-      <span>{{i + 1}}#</span>
-      <h2>{{ post.title}}</h2>
-      <span class="post-date">{{ post.fecha }}</span>
-      <lib-boton
-        [onClick]="togglePost.bind(this, post)"
-        [texto]="post.isExpanded ? 'Colapsar' : 'Expandir'"
-      />
-    </div>
-    @if (post.isExpanded) {
-    <div class="post-content">
-      <markdown [src]="post.src" />
-    </div>
+<div class="blog-landing">
+  <div class="blog-header">
+    <h1>La Cueva de Tatoh</h1>
+    <p class="blog-descripcion">
+      Blog rancio con pensamientos, tutoriales y mis aventuras aprendiendo
+      japonés.
+    </p>
+  </div>
+
+  <div class="posts-grid">
+    @for (post of posts(); track post.src; let i = $index) {
+    <app-post-card
+      [titulo]="post.title"
+      [fecha]="post.fecha"
+      [id]="i"
+      [esReciente]="esUltimoPost(i)"
+      [tags]="post.tags || []"
+    />
     }
   </div>
-  }
 </div>

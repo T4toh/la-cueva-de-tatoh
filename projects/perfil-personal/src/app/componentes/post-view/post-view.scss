@@ -1,0 +1,67 @@
+.post-view-container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 2rem;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.post-view {
+  max-width: 100%;
+  margin: 0 auto;
+  padding-right: 1rem;
+}
+
+.post-header {
+  margin-bottom: 2rem;
+
+  lib-boton {
+    margin-bottom: 1.5rem;
+    display: inline-block;
+  }
+}
+
+.post-meta {
+  h1 {
+    font-size: 2.5rem;
+    margin: 0 0 0.5rem 0;
+    color: white;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .post-fecha {
+    color: var(--color-5);
+    font-style: italic;
+    font-size: 1rem;
+  }
+}
+
+.post-content {
+  width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .post-view-container {
+    padding: 1rem;
+  }
+
+  .post-meta h1 {
+    font-size: 1.8rem;
+  }
+
+  .post-content {
+    padding: 1rem;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

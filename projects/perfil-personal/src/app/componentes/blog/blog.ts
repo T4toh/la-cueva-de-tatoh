@@ -1,7 +1,6 @@
-import { Component } from '@angular/core';
-import { MarkdownComponent } from 'ngx-markdown';
-import { Boton } from 'componentes';
-import { CommonModule } from '@angular/common';
+import { Component, signal } from '@angular/core';
+import { PostCard } from '../post-card/post-card';
+import { POSTS } from 'projects/perfil-personal/src/variables';
 
 // Temas disponibles de Prism.js (cambiar en angular.json > styles):
 // - prism-okaidia.css (tema oscuro actual)
@@ -15,44 +14,16 @@ import { CommonModule } from '@angular/common';
 // estructura --> estilo de bloque para estructuras de oraciones
 // traduccion --> estilo de bloque para traducciones
 
-type Post = {
-  title: string;
-  src: string;
-  fecha: string;
-  isExpanded: boolean;
-};
-
 @Component({
   selector: 'app-blog',
-  imports: [MarkdownComponent, Boton, CommonModule],
+  imports: [PostCard],
   templateUrl: './blog.html',
   styleUrl: './blog.scss',
 })
 export class Blog {
-  posts: Post[] = [
-    {
-      title: 'Aprendiendo Japonés con un Gordo Barbudo #1',
-      src: 'posts/japones-1.md',
-      fecha: '3/11/25',
-      isExpanded: false,
-    },
-    {
-      title: 'Installar Warp en Fedora',
-      src: 'posts/instalar-warp-fedora.md',
-      fecha: '4/11/25',
-      isExpanded: false,
-    },
-    {
-      title: 'Aprendiendo Japonés con un Gordo Barbudo #2',
-      src: 'posts/japones-2.md',
-      fecha: '5/11/25',
-      isExpanded: true,
-    },
+  readonly posts = signal(POSTS);
 
-    // { title: 'Template Post', src: 'posts/template-post.md', fecha: '3/9/25', isExpanded: false },
-  ];
-
-  togglePost(post: Post): void {
-    post.isExpanded = !post.isExpanded;
+  esUltimoPost(index: number): boolean {
+    return index === this.posts().length - 1;
   }
 }

@@ -98,3 +98,43 @@ export const APKS: Apk[] = [
   },
   // Agrega más APKs aquí
 ];
+
+export type Post = {
+  title: string;
+  src: string;
+  fecha: string;
+  tags?: string[];
+};
+
+export const POSTS: Post[] = [
+  {
+    title: 'Aprendiendo Japonés con un Gordo Barbudo #1',
+    src: 'posts/japones-1.md',
+    fecha: '3/11/25',
+    tags: ['japonés', 'lenguaje'],
+  },
+  {
+    title: 'Installar Warp en Fedora',
+    src: 'posts/instalar-warp-fedora.md',
+    fecha: '4/11/25',
+    tags: ['linux', 'fedora', 'terminal'],
+  },
+  {
+    title: 'Aprendiendo Japonés con un Gordo Barbudo #2',
+    src: 'posts/japones-2.md',
+    fecha: '5/11/25',
+    tags: ['japonés', 'lenguaje'],
+  },
+  {
+    title: 'Aprendiendo Japonés con un Gordo Barbudo #3',
+    src: 'posts/japones-3.md',
+    fecha: '7/11/25',
+    tags: ['japonés', 'lenguaje'],
+  },
+  {
+    title: 'Aprendiendo Japonés con un Gordo Barbudo #3.5',
+    src: 'posts/japones-4.md',
+    fecha: '7/11/25',
+    tags: ['japonés', 'lenguaje'],
+  },
+];

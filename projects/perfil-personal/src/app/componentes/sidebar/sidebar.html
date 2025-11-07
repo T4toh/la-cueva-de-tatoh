@@ -16,26 +16,42 @@
         [transparente]="true"
       />
     </div>
+
+    <!-- Posts recientes -->
+    <div class="posts-recientes-section">
+      <h3 class="section-title">Posts Recientes</h3>
+      <div class="posts-list">
+        @for (post of recentPosts(); track post.src) {
+        <a [routerLink]="['/blog', getPostIndex(post.title)]" class="post-link">
+          <div class="post-item">
+            <span class="post-title">{{ post.title }}</span>
+            <span class="post-date">{{ post.fecha }}</span>
+          </div>
+        </a>
+        }
+      </div>
+    </div>
+
     <!-- skills  -->
     <div class="skills-section">
       @for (s of skills(); track $index) {
-        <lib-skill-bar
-          [color]="s.color"
-          [nivel]="s.nivel"
-          [skill]="s.skill"
-          [textColor]="s.textColor"
-        />
+      <lib-skill-bar
+        [color]="s.color"
+        [nivel]="s.nivel"
+        [skill]="s.skill"
+        [textColor]="s.textColor"
+      />
       }
     </div>
     <!-- intereses / tags -->
     <div class="tags-section">
       @for (i of intereses(); track $index) {
-        <lib-tag
-          [colorFondo]="i.color"
-          [colorTexto]="i.textColor"
-          [icono]="i.icono"
-          [texto]="i.nombre"
-        />
+      <lib-tag
+        [colorFondo]="i.color"
+        [colorTexto]="i.textColor"
+        [icono]="i.icono"
+        [texto]="i.nombre"
+      />
       }
     </div>
   </div>

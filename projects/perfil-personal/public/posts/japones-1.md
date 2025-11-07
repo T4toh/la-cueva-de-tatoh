@@ -58,7 +58,7 @@ En el más simple de los casos, se usa la [partícula](https://www.rae.es/gtg/pa
 [Sujeto] 「が」 [Predicado] 「だ」
 ```
 
-Entonces esta oración (en inglés funcional, no traducción literal) significa "I'm a teacher" o, en español funcional, "Soy maestro". Como se nota con facilidad, en español no tenemos problemas con el sujeto tácito (cosa que vamos a ver en la lección dos). Esta oración en realidad sería algo como "En lo que me corresponde a mí, soy maestro", pero eso es para otro debate para el cual no estoy preparado para dar ahora.
+Entonces esta oración (en inglés funcional, no traducción literal) significa "I'm a teacher" o, en español funcional, "Yo soy maestro". Como se nota con facilidad, en español no tenemos problemas con el sujeto tácito (cosa que vamos a ver en la lección dos).
 
 Por otro lado, deberíamos hacer un par de ejemplos con adjetivos, ya que el anterior es una oración con un sustantivo.
 
@@ -84,7 +84,7 @@ Con un ejemplo es fácil de ver.
 
 Como se nota con facilidad, la oración no usa 「だ」, ya que 「たかい」 significaría algo como "es alto" o podemos imaginar un "= alto" adelante.
 
-En español funcional, esto sería "Soy alto".
+En español funcional, esto sería "Yo soy alto".
 
 Con los adjetivos -「な」 estamos igual que con el ejemplo del principio, pero para completar vamos a ver un ejemplo.
 
@@ -123,7 +123,7 @@ Como viene siendo el caso, en este tipo de oraciones pasa lo mismo.
 
 Esta oración significa (en español funcional) "Yo camino".
 
-##### Notas
+#### Notas
 
 - 「が」 marca el sujeto real de la oración (quién hace o quién es).
 - En oraciones de acción, indica quién realiza el verbo.

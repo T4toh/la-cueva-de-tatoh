@@ -10,6 +10,7 @@ html {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  overflow-x: hidden;
   // Imagen de fondo
   background: url('../public/fondo.webp') no-repeat center center fixed;
   background-size: cover;

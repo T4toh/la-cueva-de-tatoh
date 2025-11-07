@@ -1,0 +1,25 @@
+<a
+  [routerLink]="['/blog', id()]"
+  class="post-card"
+  [class.reciente]="esReciente()"
+>
+  <div class="post-card-header">
+    <h3>{{ titulo() }}</h3>
+    @if (esReciente()) {
+    <span class="badge-reciente">Nuevo</span>
+    }
+  </div>
+
+  @if (tags().length > 0) {
+  <div class="post-card-tags">
+    @for (tag of tags(); track tag) {
+    <lib-tag [texto]="tag" [colorFondo]="'#5b5c9a'" [colorTexto]="'white'" />
+    }
+  </div>
+  }
+
+  <div class="post-card-footer">
+    <span class="fecha">{{ fecha() }}</span>
+    <span class="leer-mas">Leer más →</span>
+  </div>
+</a>
