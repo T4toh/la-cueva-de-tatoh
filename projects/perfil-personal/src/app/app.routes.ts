@@ -8,11 +8,18 @@ export const routes: Routes = [
     loadComponent: () => import('./componentes/blog/blog').then((m) => m.Blog),
   },
   {
+    path: 'blog/:id',
+    loadComponent: () =>
+      import('./componentes/post-view/post-view').then((m) => m.PostView),
+  },
+  {
     path: 'utilidades',
-    loadComponent: () => import('./componentes/utilidades/utilidades').then((m) => m.Utilidades),
+    loadComponent: () =>
+      import('./componentes/utilidades/utilidades').then((m) => m.Utilidades),
   },
   {
     path: '**',
-    loadComponent: () => import('./componentes/not-found/not-found').then((m) => m.NotFound),
+    loadComponent: () =>
+      import('./componentes/not-found/not-found').then((m) => m.NotFound),
   },
 ];
