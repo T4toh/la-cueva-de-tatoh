@@ -4,9 +4,9 @@
 
 ### Lección 4
 
-#### 辞書形 (Forma Diccionario)
+#### 辞書形 (Forma diccionario)
 
-Para esta lección Cure Dolly empieza con un poco de teoría, cosa que yo también tengo que hacer para poder explicar lo que hay en la lección. En todos los idiomas los verbos tienen una forma para el diccionario, en nuestro caso es el infinitivo, (comer, tomar, escribir, etc.). En japonés, a diferencia del español, la forma básica no distingue entre presente y futuro, así que 「たべる」 puede ser "como" (presente), "comeré" (futuro) o "como" (rutinario). En ponja el tiempo de la oración se saca por **contexto** (Vas a leer esto mucho en este blog del orto).
+Para esta lección, Cure Dolly empieza con un poco de teoría, cosa que yo también tengo que hacer para poder explicar lo que hay en la lección. En todos los idiomas los verbos tienen una forma para el diccionario; en nuestro caso es el infinitivo (comer, tomar, escribir, etc.). En japonés, a diferencia del español, la forma básica no distingue entre presente y futuro, así que 「たべる」 puede ser "como" (presente), "comeré" (futuro) o "como" (rutinario). En ponja, el tiempo de la oración se saca por contexto (vas a leer esto mucho en este blog del orto).
 
 ```text
 わたし が たべる。
@@ -16,7 +16,7 @@ Para esta lección Cure Dolly empieza con un poco de teoría, cosa que yo tambi�
 Como.
 ```
 
-En este caso asumimos (No sé cual es el default en este caso), que estoy describiendo lo que hago y está en presente, pero bien podría estar en futuro.
+En este caso asumimos (no sé cuál es el default en este caso) que estoy describiendo lo que hago y está en presente, pero bien podría estar en futuro.
 
 ```text
 あした わたし が たべる。
@@ -26,7 +26,7 @@ En este caso asumimos (No sé cual es el default en este caso), que estoy descri
 Mañana voy a comer. / Mañana comeré.
 ```
 
-Acá ya sabemos que es en el futuro gracias a 「あした」 (mañana)
+Acá ya sabemos que es en el futuro gracias a 「あした」 (mañana).
 
 ```text
 まいにち わたし が たべる。
@@ -36,96 +36,45 @@ Acá ya sabemos que es en el futuro gracias a 「あした」 (mañana)
 Yo como todos los días.
 ```
 
-Ahora es una rutina porque lo marcó 「まいにち」 (Todos los días).
+Ahora es una rutina porque lo marcó 「まいにち」 (todos los días).
+
 El verbo no cambia. El contexto lo define. Con esto en mente, la primera duda debería ser si estamos usando los tiempos verbales de manera correcta, y eso es lo que sigue en la lección.
 
-#### Presente continuo con 「〜て いる」
+#### Notas
 
-La forma 「〜て いる」 se usa para expresar una acción en progreso. En español, esto corresponde al "estoy haciendo".
-
-##### Usos básicos
-
-1. Destino de movimiento
+Cuando usás un tiempo absoluto (ej.: martes, "el año que viene"), tenés que marcarlo con 「-に」.
 
 ```text
-わたし が がっこう に いく。
-```
-
-- 「わたし」 = yo
-- 「が」 = marca quién hace la acción.
-- 「がっこう」 = escuela
-- 「に」 = Apuntador
-- 「いく」 = ir
-
-```estructura
-[Sujeto] 「が」 [Destino] 「に」 [Verbo]。
+にちようび に ともだち が くる。
 ```
 
 ```traduccion
-Yo voy a la escuela.
+Mi amigo viene el domingo.
 ```
-
-En este caso, 「に」 nos da más detalles sobre el verbo, ya que nos marca el destino, la escuela.
-
-2. Lugar
-
-```text
-ねこ が いえ に いる。
-```
-
-- 「ねこ」 = gato
-- 「が」 = marca quién está (en este caso).
-- 「いえ」 = casa
-- 「に」 = Apuntador (de lugar en este caso)
-- 「いる」 = existir/ser/estar (cosas animadas)
 
 ```estructura
-[Sujeto] 「が」 [Destino] 「に」 [Verbo]。
+[Tiempo absoluto] [に] [Sujeto] [が] [Verbo diccionario].
 ```
 
-```traduccion
-El gato está en la casa.
-```
+#### Presente continuo con 「〜ている」
 
-En este caso, 「に」 marca dónde está existiendo el gato.
+La forma 「〜て いる」 se usa para expresar una acción en progreso. En español, esto corresponde al "estoy haciendo". Primero formamos la forma 「て」 del verbo, y luego le agregamos 「いる」. (Esto está en una lección aparte, así que van a tener que confiar en que no estoy mandando fruta).
 
-3. Momento
+##### Forma 「て」
 
-```text
-わたし が ７じ に おきる。
-```
+| Diccionario    | Forma て | Resultado   | Español         |
+| -------------- | -------- | ----------- | --------------- |
+| たべる (comer) | たべて   | たべて いる | Estoy comiendo  |
+| いく (ir)      | いって   | いって いる | Estoy yendo     |
+| ねる (dormir)  | ねて     | ねて いる   | Estoy durmiendo |
 
-- 「わたし」 = yo
-- 「が」 = marca quién hace la acción.
-- 「７じ」 = las 7
-- 「に」 = Apuntador (de tiempo en este caso)
-- 「おきる」 = despertarse
+Es fácil de ver que, dependiendo del verbo, tenemos que cambiar un poco para usar el 「て」, pero con la tabla nos alcanza.
 
-```estructura
-[Sujeto] 「が」 [Tiempo] 「に」 [Verbo]。
-```
+Adelanto: los verbos que terminan en 「る」 son fáciles, solo cambias 「る」 por 「て」.
 
-```traduccion
-Me despierto a las 7.
-```
+#### Notas
 
-En este caso, 「に」 nos indica a qué hora me levanto.
-
-##### Detalles
-
-Ahora tenemos una especie de trío de partículas para marcar cosas, según Cure Dolly, al menos.
-
-```text
-「が」---> quién hace / quién es
-```
-
-```text
-「を」 ---> qué recibe la acción
-```
-
-```text
-「に」 ---> a dónde / dónde está / cuándo ocurre
-```
+Tengo que decir que la estructura de la lección del video deja mucho que desear, ya que empieza con temas sin terminarlos y los deja colgados para el próximo video al pedo, ya que podría haberlos obviado y hacer todo lo que quería hacer con los verbos en forma diccionario.
 
 ---
 
