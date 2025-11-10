@@ -108,11 +108,11 @@ Example:
 ### Build & Serve
 
 ```bash
-npm start               # Serve app (default: http://localhost:4200)
-npm run build           # Production build
-npm run watch           # Development build with watch mode
-npm run lint            # Run ESLint on all projects
-npm test                # Run Karma tests
+pnpm start              # Serve app (default: http://localhost:4200)
+pnpm build              # Production build
+pnpm watch              # Development build with watch mode
+pnpm lint               # Run ESLint on all projects
+pnpm test               # Run Karma tests
 ```
 
 ### Library Development
