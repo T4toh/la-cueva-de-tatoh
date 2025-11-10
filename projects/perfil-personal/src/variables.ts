@@ -137,4 +137,10 @@ export const POSTS: Post[] = [
     fecha: '7/11/25',
     tags: ['japonés', 'lenguaje'],
   },
+  {
+    title: 'Aprendiendo Japonés con un Gordo Barbudo #4',
+    src: 'posts/japones-5.md',
+    fecha: '10/11/25',
+    tags: ['japonés', 'lenguaje'],
+  },
 ];
