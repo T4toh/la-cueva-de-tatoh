@@ -1,15 +1,29 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8"/>
     <title>Ignacio Martín Arano</title>
-    <base href="/" />
-    <meta content="width=device-width, initial-scale=1" name="viewport" />
-    <link href="LSK-A.jpg" rel="icon" type="image/x-icon" />
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,100..900;1,100..900&display=swap');
-    </style>
-  </head>
+    <base href="/"/>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <link href="LSK-A.jpg" rel="icon" type="image/x-icon"/>
+
+    <!-- Preconnect para optimizar carga de fuentes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
+
+    <!-- Preload de la fuente crítica -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,100..900;1,100..900&amp;display=swap"/>
+
+    <!-- Carga asíncrona de fuentes con font-display:swap -->
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet" media="print" onload="this.media='all'"/>
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
+    <link rel="manifest" href="manifest.webmanifest">
+</head>
   <body>
     <app-root></app-root>
   </body>

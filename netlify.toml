@@ -1,5 +1,5 @@
 [build]
-  command = "ng build componentes && ng build perfil-personal"
+  command = "ng build componentes && ng build perfil-personal --configuration=production"
   publish = "dist/perfil-personal/browser"
 
 [[redirects]]
