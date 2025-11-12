@@ -7,7 +7,7 @@
         [texto]="'← Volver al Blog'"
       />
       <div class="post-meta">
-        <h1>{{ currentPost()!.title }}</h1>
+        <h1>{{ extractedTitle() || currentPost()!.title }}</h1>
         <span class="post-fecha">{{ currentPost()!.fecha }}</span>
       </div>
     </div>

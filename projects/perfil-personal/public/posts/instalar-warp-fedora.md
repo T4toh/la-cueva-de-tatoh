@@ -32,4 +32,6 @@ sudo dnf install warp-terminal
 
 - [Nobara Linux](<[url](https://nobaraproject.org)>)
 
+---
+
 Tags: #warp #consolas #sistemas
