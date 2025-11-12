@@ -91,10 +91,18 @@ export const APKS: Apk[] = [
   {
     nombre: 'Kanji no Ryoushi - 漢字の漁師',
     descripcion: 'OCR orientado al Japonés',
-    version: 'v0.0.3',
-    url: 'https://github.com/T4toh/Kanji-no-Ryoushi/releases/download/v0.0.3/kanji_no_ryoushi.apk',
+    version: 'v0.0.4',
+    url: 'https://github.com/T4toh/Kanji-no-Ryoushi/releases/download/v0.0.4/kanji_no_ryoushi.apk',
     icono: '🎣 🗾',
     color: 'indigo',
+  },
+  {
+    nombre: 'Contador de Truco',
+    descripcion: 'Nombre autodescriptivo',
+    version: 'v0.0.1',
+    url: 'https://github.com/T4toh/contador-de-truco/releases/download/v0.0.1/contador_de_truco.apk',
+    icono: '⚔️',
+    color: 'midnightblue',
   },
   // Agrega más APKs aquí
 ];
@@ -141,6 +149,19 @@ export const POSTS: Post[] = [
     title: 'Aprendiendo Japonés con un Gordo Barbudo #4',
     src: 'posts/japones-5.md',
     fecha: '10/11/25',
+    tags: ['japonés', 'lenguaje'],
+  },
+  {
+    title: 'Aprendiendo Japonés con un Gordo Barbudo #5',
+    src: 'posts/japones-6.md',
+    fecha: '12/11/25',
+    tags: ['japonés', 'lenguaje'],
+  },
+
+  {
+    title: 'Aprendiendo Japonés con un Gordo Barbudo #5.5',
+    src: 'posts/japones-7.md',
+    fecha: '12/11/25',
     tags: ['japonés', 'lenguaje'],
   },
 ];

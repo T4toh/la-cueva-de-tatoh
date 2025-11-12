@@ -16,14 +16,14 @@
     >
       Apps Nativas
     </button>
-    <button
+    <!-- <button
       class="tab-button"
       type="button"
       [class.active]="activeTab === 'placeholder'"
       (click)="setActiveTab('placeholder')"
     >
       Próximamente
-    </button>
+    </button> -->
   </div>
 
   <div class="tab-content">
@@ -36,9 +36,7 @@
       <app-lista-apks />
     </div>
     } @else if (activeTab === 'placeholder') {
-    <div class="tab-panel">
-      <p>Contador de Truco ⚔️</p>
-    </div>
+    <div class="tab-panel"></div>
     }
   </div>
 </div>

@@ -61,6 +61,11 @@ markdown {
   padding: 0;
 }
 
+/* Ocultar el primer H1 para evitar duplicación con el título del header */
+markdown h1:first-child {
+  display: none;
+}
+
 /* Titulos */
 markdown h1,
 markdown h2,
@@ -148,6 +153,134 @@ markdown img {
   height: auto; /* Mantiene la proporción */
   display: block; /* Evita espacios extra */
   margin: 0 auto; /* Centra las imágenes */
+}
+
+/* Tables in Markdown */
+markdown table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 1.5rem 0;
+  background: rgba(30, 30, 72, 0.4);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+markdown th,
+markdown td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  vertical-align: top;
+}
+
+markdown th {
+  background: rgba(30, 30, 72, 0.7);
+  font-weight: bold;
+  color: #ffffff;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+markdown td {
+  color: #e8e8e8;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+markdown tr:last-child td {
+  border-bottom: none;
+}
+
+markdown tr:hover td {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Código dentro de tablas */
+markdown td code,
+markdown th code {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: #f0f0f0;
+}
+
+/* Responsive: Convertir tablas en cards en móviles */
+@media (max-width: 768px) {
+  markdown table {
+    border-spacing: 8px;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  markdown thead {
+    display: none; /* Ocultar headers en móvil */
+  }
+
+  markdown tr {
+    display: block;
+    background: rgba(30, 30, 72, 0.4);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  markdown td {
+    display: block;
+    border: none;
+    padding: 8px 0;
+    position: relative;
+    padding-left: 40%;
+  }
+
+  /* Agregar labels a las celdas usando data attributes */
+  markdown td:before {
+    content: attr(data-label) ': ';
+    position: absolute;
+    left: 0;
+    width: 35%;
+    font-weight: bold;
+    color: #b2b3d7;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Para tablas sin data-label, usar nth-child como fallback */
+  markdown tr:not([data-label]) td:nth-child(1):before {
+    content: 'Terminación: ';
+  }
+
+  markdown tr:not([data-label]) td:nth-child(2):before {
+    content: 'Cambia a: ';
+  }
+
+  markdown tr:not([data-label]) td:nth-child(3):before {
+    content: 'Ejemplo: ';
+  }
+
+  markdown tr:not([data-label]) td:nth-child(4):before {
+    content: 'Resultado: ';
+  }
+
+  /* Para la tabla de verbos irregulares */
+  markdown tr:not([data-label]) td:first-child:before {
+    content: 'Verbo: ';
+  }
+
+  markdown tr:not([data-label]) td:nth-child(2):before {
+    content: 'Forma て: ';
+  }
+
+  markdown tr:not([data-label]) td:nth-child(3):before {
+    content: 'Nota: ';
+  }
 }
 
 /* Global form elements styling */

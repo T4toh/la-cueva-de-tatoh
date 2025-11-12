@@ -1,4 +1,4 @@
-# Aprendiendo japonés con un gordo barbudo
+# Aprendiendo japonés con un gordo barbudo #1
 
 ## Introducción
 
@@ -134,6 +134,8 @@ Esta oración significa (en español funcional) "Yo camino".
 
 ## Conclusión
 
-El japonés no es tan complicado como uno piensa, pero requiere trabajo y esfuerzo para metérselo en la cabeza al venir desde algo tan diferente como el español o el inglés.
+El japonés no es tan complicado como uno piensa, pero requiere trabajo y esfuerzo para metérselo en la cabeza al venir desde algo tan diferente como el español o el inglés
+
+---
 
 Tags: #japonés #lenguaje
