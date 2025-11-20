@@ -210,12 +210,12 @@ El gato que duerme.
 - 「の」 convierte esa frase verbal en una especie de “adjetivo”.
 - No es un adjetivo real, pero cumple el mismo rol: modificar un sustantivo.
 
-| Tipo                   | Se usa como              | Conjugación    | Ejemplo             |
-| ---------------------- | ------------------------ | -------------- | ------------------- |
-| **Adjetivos い**       | verbos                   | sí             | たかい → たかかった |
-| **Adjetivos な**       | sustantivos + な         | con だ         | しずか → しずかだ   |
-| **Sustantivos + だ**   | sustantivos descriptivos | con だ         | ほんとうだ          |
-| **Verbo + sustantivo** | verbo descriptivo        | según el verbo | あるいている ひと   |
+| Tipo                                      | Se usa como              | Conjugación | Ejemplo             |
+| ----------------------------------------- | ------------------------ | ----------- | ------------------- |
+| **Adjetivos い**                          | verbos                   | sí          | たかい → たかかった |
+| **Adjetivos な**                          | sustantivos + な         | con だ      | しずか → しずかだ   |
+| **Sustantivos + だ**                      | sustantivos descriptivos | con だ      | ほんとうだ          |
+| **[Verbo en forma diccionario] + 「の」** | verbo descriptivo        | diccionario | ねる の ねこ        |
 
 ---
 
