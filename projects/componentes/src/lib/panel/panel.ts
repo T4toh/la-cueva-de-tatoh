@@ -1,9 +1,9 @@
 import { Component, computed, effect, input, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 @Component({
   selector: 'lib-panel',
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './panel.html',
   styleUrl: './panel.scss',
 })

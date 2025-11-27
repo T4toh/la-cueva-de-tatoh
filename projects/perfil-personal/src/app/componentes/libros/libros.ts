@@ -1,11 +1,11 @@
 import { Component, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { Libro } from 'componentes';
 import { LIBROS } from 'projects/perfil-personal/src/variables';
 
 @Component({
   selector: 'app-libros',
-  imports: [CommonModule, Libro],
+  imports: [Libro],
   templateUrl: './libros.html',
   styleUrl: './libros.scss',
 })

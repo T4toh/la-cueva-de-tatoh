@@ -1,9 +1,9 @@
 import { Component, input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 @Component({
   selector: 'lib-libro',
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './libro.html',
   styleUrl: './libro.scss',
 })

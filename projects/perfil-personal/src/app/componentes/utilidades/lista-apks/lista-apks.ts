@@ -1,10 +1,10 @@
 import { Component, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { type Apk, APKS } from '../../../../variables';
 
 @Component({
   selector: 'app-lista-apks',
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './lista-apks.html',
   styleUrl: './lista-apks.scss',
 })
