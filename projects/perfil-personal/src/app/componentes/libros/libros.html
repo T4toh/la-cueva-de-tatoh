@@ -1,0 +1,18 @@
+<div class="libros-container">
+  @if (libros().length === 0) {
+  <div class="empty-state">
+    <p>No hay libros para mostrar todavía.</p>
+  </div>
+  } @else {
+  <div class="libros-grid">
+    @for (libro of libros(); track libro.titulo) {
+    <lib-libro
+      [imagen]="libro.imagen"
+      [titulo]="libro.titulo"
+      [subtitulo]="libro.subtitulo"
+      [enlace]="libro.enlace"
+    />
+    }
+  </div>
+  }
+</div>

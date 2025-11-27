@@ -18,6 +18,11 @@ export const routes: Routes = [
       import('./componentes/utilidades/utilidades').then((m) => m.Utilidades),
   },
   {
+    path: 'libros',
+    loadComponent: () =>
+      import('./componentes/libros/libros').then((m) => m.Libros),
+  },
+  {
     path: '**',
     loadComponent: () =>
       import('./componentes/not-found/not-found').then((m) => m.NotFound),

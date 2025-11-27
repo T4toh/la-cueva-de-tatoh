@@ -16,3 +16,5 @@ export * from './lib/redes/redes';
 export * from './lib/boton/boton';
 // Generador QR
 export * from './lib/generador-qr/generador-qr';
+// Libro
+export * from './lib/libro/libro';

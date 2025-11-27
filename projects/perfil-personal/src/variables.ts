@@ -171,3 +171,20 @@ export const POSTS: Post[] = [
     tags: ['japonés', 'lenguaje'],
   },
 ];
+
+export type Libro = {
+  titulo: string;
+  subtitulo: string;
+  imagen: string;
+  enlace?: string;
+};
+
+export const LIBROS: Libro[] = [
+  // Agrega tus libros aquí
+  {
+    titulo: '1984: 75th Anniversary',
+    subtitulo: 'George Orwell',
+    imagen: 'https://m.media-amazon.com/images/I/71wANojhEKL._SY522_.jpg',
+    enlace: 'https://www.amazon.com/El-Arte-Guerra-Sun-Tzu/dp/0451524934',
+  },
+];
