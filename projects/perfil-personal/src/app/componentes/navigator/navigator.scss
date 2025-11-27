@@ -2,6 +2,10 @@
   background-color: rgba(255, 255, 255, 0.1);
   padding: 10px;
   border-radius: 5px;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .navigator ul {
@@ -36,6 +40,26 @@
   color: white;
 }
 
+.amazon-link {
+  display: flex;
+  align-items: center;
+  padding: 0 !important;
+  background-color: transparent !important;
+
+  ::ng-deep svg {
+    width: 32px;
+    height: 32px;
+    padding: 4px;
+    border-radius: 4px;
+    background-color: #ffffff;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover ::ng-deep svg {
+    transform: scale(1.1);
+  }
+}
+
 // Responsivo: mostrar solo emojis en pantallas pequeñas
 @media (max-width: 768px) {
   .navigator a:not([routerLink='/blog']):not([routerLink='/utilidades']) {
@@ -48,5 +72,12 @@
     white-space: nowrap;
     text-align: center;
     padding: 10px 5px;
+  }
+
+  .amazon-link {
+    ::ng-deep svg {
+      width: 28px;
+      height: 28px;
+    }
   }
 }

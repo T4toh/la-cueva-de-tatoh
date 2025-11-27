@@ -12,4 +12,14 @@
     <!-- <li><a routerLink="/componentes"> Componentes</a></li>
     <li><a routerLink="/links">Links</a></li> -->
   </ul>
+
+  <a
+    class="amazon-link"
+    [href]="getAmazonUrl()"
+    target="_blank"
+    rel="noopener noreferrer"
+    title="Ver mis libros en Amazon"
+  >
+    <span [innerHTML]="getAmazonSvg()"></span>
+  </a>
 </nav>
