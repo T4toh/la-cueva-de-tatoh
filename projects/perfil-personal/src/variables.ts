@@ -170,6 +170,18 @@ export const POSTS: Post[] = [
     fecha: '20/11/25',
     tags: ['japonés', 'lenguaje'],
   },
+  {
+    title: 'Aprendiendo Japonés con un Gordo Barbudo #7',
+    src: 'posts/japones-9.md',
+    fecha: '28/11/25',
+    tags: ['japonés', 'lenguaje'],
+  },
+  {
+    title: '¡Primer libro en Amazon!',
+    src: 'posts/la-caballera-esmeralda.md',
+    fecha: '28/11/25',
+    tags: ['libros', 'meridian', 'fantasia'],
+  },
 ];
 
 export type Libro = {
