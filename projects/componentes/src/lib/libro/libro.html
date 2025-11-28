@@ -1,0 +1,15 @@
+<div class="libro" [class.clickable]="enlace()" (click)="handleClick()">
+  <div class="libro-contenido">
+    @if (titulo()) {
+    <h3 class="libro-titulo">{{ titulo() }}</h3>
+    } @if (subtitulo()) {
+    <p class="libro-subtitulo">{{ subtitulo() }}</p>
+    }
+  </div>
+
+  @if (imagen()) {
+  <div class="libro-imagen">
+    <img [src]="imagen()" [alt]="titulo() || 'Portada del libro'" />
+  </div>
+  }
+</div>

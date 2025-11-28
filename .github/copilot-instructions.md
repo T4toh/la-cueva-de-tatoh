@@ -2,7 +2,7 @@
 
 ## Architecture Overview
 
-This is an **Angular 20 monorepo** with two projects:
+This is an **Angular 21 monorepo** with two projects:
 
 - **`perfil-personal`** - Main application (personal profile/blog site)
 - **`componentes`** - Reusable Angular library exported to `dist/componentes`
@@ -10,6 +10,10 @@ This is an **Angular 20 monorepo** with two projects:
 The app uses **standalone components** (no NgModules), **signals**, and modern Angular features.
 
 ## Key Conventions
+
+Always use context7 when I need code generation, setup or configuration steps, or
+library/API documentation. This means you should automatically use the Context7 MCP
+tools to resolve library id and get library docs without me having to explicitly ask.
 
 ### Component Structure
 

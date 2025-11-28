@@ -2,6 +2,10 @@
   background-color: rgba(255, 255, 255, 0.1);
   padding: 10px;
   border-radius: 5px;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .navigator ul {
@@ -36,6 +40,40 @@
   color: white;
 }
 
+.amazon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* match outer link shape but avoid increasing nav height */
+  padding: 0 12px;
+  height: 36px;
+  box-sizing: border-box;
+  border-radius: 5px;
+  background-color: transparent !important;
+  overflow: hidden;
+
+  /* wrapper span that receives the SVG (from innerHTML) */
+  > span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ffffff;
+    border-radius: 4px;
+    padding: 4px; /* white space around the icon */
+    height: 28px;
+    box-sizing: border-box;
+    line-height: 0;
+  }
+
+  ::ng-deep svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+    background: none;
+    padding: 0;
+  }
+}
+
 // Responsivo: mostrar solo emojis en pantallas pequeñas
 @media (max-width: 768px) {
   .navigator a:not([routerLink='/blog']):not([routerLink='/utilidades']) {
@@ -48,5 +86,12 @@
     white-space: nowrap;
     text-align: center;
     padding: 10px 5px;
+  }
+
+  .amazon-link {
+    ::ng-deep svg {
+      width: 28px;
+      height: 28px;
+    }
   }
 }

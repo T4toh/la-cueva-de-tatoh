@@ -1,11 +1,11 @@
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 import { Tag } from 'componentes';
 
 @Component({
   selector: 'app-post-card',
-  imports: [CommonModule, RouterLink, Tag],
+  imports: [RouterLink, Tag],
   templateUrl: './post-card.html',
   styleUrl: './post-card.scss',
 })

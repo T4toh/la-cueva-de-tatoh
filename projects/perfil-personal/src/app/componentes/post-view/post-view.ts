@@ -2,13 +2,13 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MarkdownComponent } from 'ngx-markdown';
 import { Boton } from 'componentes';
-import { CommonModule } from '@angular/common';
+
 import { HttpClient } from '@angular/common/http';
 import { type Post, POSTS } from 'projects/perfil-personal/src/variables';
 
 @Component({
   selector: 'app-post-view',
-  imports: [MarkdownComponent, Boton, CommonModule],
+  imports: [MarkdownComponent, Boton],
   templateUrl: './post-view.html',
   styleUrl: './post-view.scss',
 })

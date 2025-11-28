@@ -1,19 +1,69 @@
 <div class="blog-landing">
-  <div class="blog-header">
-    <h1>La Cueva de Tatoh</h1>
-    <p class="blog-descripcion">
-      Blog rancio con pensamientos, tutoriales y mis aventuras aprendiendo
-      japonés.
-    </p>
+  <!-- Header fusionado con controles -->
+  <div class="blog-header-controls">
+    <div class="header-content">
+      <h1>La Cueva de Tatoh</h1>
+      <p class="blog-descripcion">
+        Blog rancio con pensamientos, tutoriales y mis aventuras aprendiendo
+        japonés.
+      </p>
+    </div>
+
+    <div class="controls-section">
+      <div class="sort-buttons">
+        <button
+          class="sort-btn"
+          [class.active]="sortBy() === 'date'"
+          (click)="sortByDate()"
+        >
+          📅 Fecha @if (sortBy() === 'date') {
+          <span class="sort-indicator">
+            {{ sortOrder() === 'desc' ? '↓' : '↑' }}
+          </span>
+          }
+        </button>
+
+        <button
+          class="sort-btn"
+          [class.active]="sortBy() === 'name'"
+          (click)="sortByName()"
+        >
+          🔤 Nombre @if (sortBy() === 'name') {
+          <span class="sort-indicator">
+            {{ sortOrder() === 'desc' ? '↓' : '↑' }}
+          </span>
+          }
+        </button>
+
+        @if (sortBy() !== 'none' || selectedTag()) {
+        <button class="clear-btn" (click)="clearFilters()">✕ Limpiar</button>
+        }
+      </div>
+
+      <!-- Filtros por tag -->
+      @if (allTags().length > 0) {
+      <div class="tag-filters">
+        @for (tag of allTags(); track tag) {
+        <button
+          class="tag-chip"
+          [class.active]="selectedTag() === tag"
+          (click)="filterByTag(tag)"
+        >
+          {{ tag }}
+        </button>
+        }
+      </div>
+      }
+    </div>
   </div>
 
   <div class="posts-grid">
-    @for (post of posts(); track post.src; let i = $index) {
+    @for (post of sortedPosts(); track post.src; let i = $index) {
     <app-post-card
       [titulo]="post.title"
       [fecha]="post.fecha"
       [id]="i"
-      [esReciente]="esUltimoPost(i)"
+      [esReciente]="esUltimoPost(post)"
       [tags]="post.tags || []"
     />
     }

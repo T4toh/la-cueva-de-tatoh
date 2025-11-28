@@ -170,4 +170,33 @@ export const POSTS: Post[] = [
     fecha: '20/11/25',
     tags: ['japonés', 'lenguaje'],
   },
+  {
+    title: 'Aprendiendo Japonés con un Gordo Barbudo #7',
+    src: 'posts/japones-9.md',
+    fecha: '28/11/25',
+    tags: ['japonés', 'lenguaje'],
+  },
+  {
+    title: '¡Primer libro en Amazon!',
+    src: 'posts/la-caballera-esmeralda.md',
+    fecha: '28/11/25',
+    tags: ['libros', 'meridian', 'fantasia'],
+  },
+];
+
+export type Libro = {
+  titulo: string;
+  subtitulo: string;
+  imagen: string;
+  enlace?: string;
+};
+
+export const LIBROS: Libro[] = [
+  // Agrega tus libros aquí
+  {
+    titulo: 'La Caballera Esmeralda',
+    subtitulo: 'Meridian #1',
+    imagen: 'https://m.media-amazon.com/images/I/81UbYlDXTQL._SL1500_.jpg',
+    enlace: 'https://www.amazon.com/dp/B0G3JTSR43',
+  },
 ];

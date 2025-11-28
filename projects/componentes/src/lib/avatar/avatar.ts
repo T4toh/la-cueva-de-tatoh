@@ -1,9 +1,9 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, input } from '@angular/core';
 
 @Component({
   selector: 'lib-avatar',
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './avatar.html',
   styleUrl: './avatar.scss',
 })
