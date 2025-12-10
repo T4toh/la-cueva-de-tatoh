@@ -113,6 +113,11 @@ export class Blog {
     this.selectedTag.set(null);
   }
 
+  getOriginalIndex(post: Post): number {
+    // Encuentra el índice del post en el array original POSTS
+    return this.posts().findIndex((p) => p.src === post.src);
+  }
+
   esUltimoPost(post: Post): boolean {
     // Encontrar el post más reciente por fecha
     const posts = this.posts();

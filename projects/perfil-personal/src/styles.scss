@@ -155,6 +155,115 @@ markdown img {
   margin: 0 auto; /* Centra las imágenes */
 }
 
+/* Clases de utilidad para controlar tamaños de imágenes específicas */
+markdown img.img-small {
+  max-width: 300px;
+}
+
+markdown img.img-medium {
+  max-width: 500px;
+}
+
+markdown img.img-large {
+  max-width: 800px;
+}
+
+markdown img.img-full {
+  max-width: 100%;
+}
+
+/* Responsive: ajustar tamaños en móviles */
+@media (max-width: 768px) {
+  markdown img.img-small,
+  markdown img.img-medium,
+  markdown img.img-large {
+    max-width: 100%; /* En móvil, todas las imágenes usan el ancho completo */
+  }
+}
+
+/* Layout para mostrar libros: imagen a la izquierda, texto a la derecha */
+markdown .book-showcase {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: rgba(30, 30, 72, 0.3);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+markdown .book-showcase .book-cover {
+  flex-shrink: 0;
+  width: 250px;
+}
+
+markdown .book-showcase .book-cover img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  transition: transform 0.3s ease;
+}
+
+markdown .book-showcase .book-cover img:hover {
+  transform: scale(1.05);
+}
+
+markdown .book-showcase .book-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+markdown .book-showcase .book-info h2 {
+  margin-top: 0;
+  color: #fff;
+}
+
+markdown .book-showcase .book-info p {
+  margin: 0.5rem 0;
+  line-height: 1.7;
+}
+
+markdown .book-showcase .book-info a {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-3);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  text-align: center;
+  margin-top: 1rem;
+  width: fit-content;
+}
+
+markdown .book-showcase .book-info a:hover {
+  background: var(--color-2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(91, 92, 154, 0.4);
+}
+
+/* Responsive: en móviles, cambiar a layout vertical */
+@media (max-width: 768px) {
+  markdown .book-showcase {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  markdown .book-showcase .book-cover {
+    width: 200px;
+  }
+
+  markdown .book-showcase .book-info a {
+    width: 100%;
+  }
+}
+
 /* Tables in Markdown */
 markdown table {
   width: 100%;

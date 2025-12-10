@@ -58,11 +58,11 @@
   </div>
 
   <div class="posts-grid">
-    @for (post of sortedPosts(); track post.src; let i = $index) {
+    @for (post of sortedPosts(); track post.src) {
     <app-post-card
       [titulo]="post.title"
       [fecha]="post.fecha"
-      [id]="i"
+      [id]="getOriginalIndex(post)"
       [esReciente]="esUltimoPost(post)"
       [tags]="post.tags || []"
     />
