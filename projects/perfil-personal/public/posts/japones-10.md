@@ -4,11 +4,27 @@
 
 ### Lección 8
 
-¿Qué vamos a ver hoy? Lo más jodido de todo (según internet), las ramas de los verbos y sus usos. En todos lados los nombran como cojugaciones, pero el en japonés no se conjuga, se cambian los verbos de rama para usar verbos auxiliares, cosa que confunde a todo el mundo. Ya usamos la base/rama 「あ」 para negar en la lección anterior y, sino mal recuerdo, ya vimos 「た」 y 「だ」 (Pasado).
+¿Qué vamos a ver hoy?  
+Lo más jodido de todo (según internet): **las ramas de los verbos y sus usos**.
 
-#### Rama 「う」
+En todos lados las nombran como _conjugaciones_, pero el japonés no se conjuga como el español; lo que hace es **cambiar el verbo de rama para engancharle funciones** (auxiliares, partículas, etc.).  
+Eso es lo que termina confundiendo a todo el mundo.
 
-Esta rama es la base de todos los verbos y se usa para la forma diccionario (Como en infinitvo en español) y para el presente y futuro informal (No hay diferencia en ponja y se saca por contexto).
+Ya usamos la rama 「あ」 para negar en la lección anterior y, si no mal recuerdo, también ya vimos 「た」 y 「だ」 para el pasado.
+
+---
+
+## Rama 「う」
+
+Esta rama es la **base del verbo**.
+
+Se usa para:
+
+- La forma diccionario (algo parecido al infinitivo)
+- El presente y futuro informal  
+  (en japonés no hay diferencia; se entiende por contexto)
+
+### Ejemplos
 
 ```text
 たべる
@@ -21,57 +37,98 @@ Esta rama es la base de todos los verbos y se usa para la forma diccionario (Com
 えいがを みる
 ```
 
-#### Rama 「あ」
+---
 
-Esta rama la vimos hace poco al negar, así que volvé una lección atrás para refrescar.
+## Rama 「あ」
 
-#### Rama 「い」
+Esta rama ya la usamos al negar verbos.
 
-Esta rama se usa principalmente para conecctar acciones, forma 〜て y con el 〜ます
+Se usa principalmente para:
+
+- Negación (〜ない)
+- Formas negativas relacionadas
+
+Si necesitás refrescar, volvé a la lección anterior.
+
+---
+
+## Rama 「い」
+
+Esta rama se usa para **conectar acciones** y para la **forma educada**.
+
+Se usa para:
+
+- Forma 〜て (con sus cambios)
+- Forma 〜ます
+
+### Ejemplo
 
 ```text
 えいがを みて、ねる
 ```
 
-#### Rama 「え」
+---
 
-Esta rama se usa para la forma condicional, imperativa y potencial.
+## Rama 「え」
+
+Esta rama se usa para formas más “fuertes”.
+
+Se usa para:
+
+- Forma condicional (〜ば)
+- Forma potencial (poder hacer algo)
+- Forma imperativa (orden)
+
+### Ejemplo
 
 ```text
 はやく いけ
 ```
 
-#### Rama 「お」
+---
 
-Se usa para la forma volitiva.
+## Rama 「お」
+
+Esta rama se usa para expresar **intención o invitación**.
+
+Se usa para:
+
+- Forma volitiva (〜おう)
+
+### Ejemplo
 
 ```text
 いっしょに たべよう
 ```
 
-##### Por qué 「あ」 cambia a 「わ」
+---
 
-En teoría, la rama 「あ」 de 「う」 debería ser 「あ」.
-Pero en japonés moderno no existe うあ como sonido natural.
+## ¿Por qué 「あ」 cambia a 「わ」?
+
+En teoría, la rama 「あ」 del verbo terminado en 「う」 debería ser 「あ」.
+
+Pero en japonés moderno **no existe うあ como sonido natural**.
 
 ```text
 かあない → Incorrecto
-
 かわない → Correcto
-
 ```
 
-Si el verbo termina en 「う」, la rama 「あ」 es 「わ」
+Por eso:
+
+> Si el verbo termina en 「う」, la rama 「あ」 es 「わ」
+
+### Ejemplos
 
 ```text
 買う → 買わない
-
 会う → 会わない
-
 言う → 言わない
 ```
 
-##### Resúmen
+---
+
+## Resumen
 
 | Rama | Vocal | Uso principal                 | Ejemplo         |
 | ---- | ----- | ----------------------------- | --------------- |
