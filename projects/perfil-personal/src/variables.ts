@@ -182,6 +182,12 @@ export const POSTS: Post[] = [
     fecha: '28/11/25',
     tags: ['libros', 'meridian', 'fantasia'],
   },
+  {
+    title: 'Aprendiendo Japonés con un Gordo Barbudo #8',
+    src: 'posts/japones-10.md',
+    fecha: '29/12/25',
+    tags: ['japonés', 'lenguaje'],
+  },
 ];
 
 export type Libro = {

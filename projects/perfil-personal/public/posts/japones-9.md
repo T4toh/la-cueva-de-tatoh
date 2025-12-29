@@ -8,7 +8,7 @@ Hoy vamos a empezar a negar con 「ない」; este adjetivo es el más básico y
 
 #### 「ない」
 
-Este adjetivo 「い」 niega cosas y significa "no es" o "no tiene".
+Este adjetivo 「い」 niega cosas y significa ‘no existir / no haber’ y se usa como base para negar verbos y adjetivos”.
 
 ##### Negación de verbos
 
