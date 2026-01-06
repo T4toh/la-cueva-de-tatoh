@@ -18,7 +18,9 @@
           "builder": "@angular/build:application",
           "options": {
             "browser": "projects/perfil-personal/src/main.ts",
-            "polyfills": ["zone.js"],
+            "polyfills": [
+              "zone.js"
+            ],
             "tsConfig": "projects/perfil-personal/tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
@@ -105,7 +107,10 @@
         "test": {
           "builder": "@angular/build:karma",
           "options": {
-            "polyfills": ["zone.js", "zone.js/testing"],
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ],
             "tsConfig": "projects/perfil-personal/tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
             "assets": [
@@ -163,7 +168,10 @@
           "builder": "@angular/build:karma",
           "options": {
             "tsConfig": "projects/componentes/tsconfig.spec.json",
-            "polyfills": ["zone.js", "zone.js/testing"]
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ]
           }
         },
         "lint": {
@@ -177,10 +185,91 @@
           }
         }
       }
+    },
+    "comidas": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
+      "root": "projects/comidas",
+      "sourceRoot": "projects/comidas/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "projects/comidas/src/main.ts",
+            "tsConfig": "projects/comidas/tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "projects/comidas/public"
+              }
+            ],
+            "styles": [
+              "projects/comidas/src/styles.scss"
+            ]
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all",
+              "serviceWorker": "projects/comidas/ngsw-config.json"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "comidas:build:production"
+            },
+            "development": {
+              "buildTarget": "comidas:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test"
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/comidas/**/*.ts",
+              "projects/comidas/**/*.html"
+            ],
+            "eslintConfig": "projects/comidas/eslint.config.js"
+          }
+        }
+      }
     }
   },
   "cli": {
     "analytics": "ec4452f5-fb92-4942-86e2-0edb7e4d8d04",
-    "schematicCollections": ["angular-eslint"]
+    "schematicCollections": [
+      "angular-eslint"
+    ]
   }
 }

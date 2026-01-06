@@ -1,0 +1,49 @@
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-nav {
+  background-color: rgba(30, 30, 72, 0.9);
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(5px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  a {
+    color: var(--color-5);
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: all 0.3s;
+
+    &:hover {
+      color: white;
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    &.active {
+      color: white;
+      background-color: var(--color-3);
+    }
+  }
+}
+
+@media print {
+  .main-nav {
+    display: none !important;
+  }
+}
+
+main {
+  flex: 1;
+  padding-bottom: 2rem;
+}

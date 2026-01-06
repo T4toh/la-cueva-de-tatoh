@@ -1,0 +1,34 @@
+<div class="meal-card" (click)="onCardClick()">
+  <lib-panel
+    [texto]="meal.name"
+    [colorFondo]="'var(--color-2)'"
+    [colorTexto]="'white'"
+    [sombreado]="true"
+  >
+    <div class="meal-content-wrapper">
+      <div class="meal-info">
+        <ul class="ingredient-list">
+          @for (ing of meal.ingredients; track ing.name) {
+            <li>{{ing.name}} ({{ing.quantity}})</li>
+          } @empty {
+            <li>Sin ingredientes</li>
+          }
+        </ul>
+        @if (meal.description) {
+          <p class="description">{{ meal.description }}</p>
+        }
+      </div>
+
+      @if (showEdit || showDelete) {
+        <div class="card-footer">
+          <button *ngIf="showEdit" (click)="onEdit($event)" class="btn-icon" title="Editar">
+              ✏️
+          </button>
+          <button *ngIf="showDelete" (click)="onDelete($event)" class="btn-icon btn-delete" title="Eliminar">
+              🗑️
+          </button>
+        </div>
+      }
+    </div>
+  </lib-panel>
+</div>

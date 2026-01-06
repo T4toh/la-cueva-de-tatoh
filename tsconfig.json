@@ -34,6 +34,12 @@
     },
     {
       "path": "./projects/componentes/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/comidas/tsconfig.app.json"
+    },
+    {
+      "path": "./projects/comidas/tsconfig.spec.json"
     }
   ]
 }

@@ -1,0 +1,73 @@
+.meal-card {
+  cursor: pointer;
+  transition: transform 0.2s;
+  height: 100%; // Ensure card takes full height if in grid
+  
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.meal-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-top: 0.5rem;
+}
+
+.meal-info {
+  flex: 1;
+}
+
+.description {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: #ccc;
+}
+
+.ingredient-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0;
+  font-size: 0.85rem;
+  max-height: 120px;
+  overflow-y: auto;
+  
+  li {
+    padding: 2px 5px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 3px;
+    margin-bottom: 3px;
+  }
+}
+
+.card-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding-top: 0.8rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-icon {
+    background: transparent;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s, transform 0.2s;
+    padding: 4px 8px;
+    border-radius: 4px;
+
+    &:hover {
+        opacity: 1;
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    &.btn-delete:hover {
+        color: #ff5252;
+        background: rgba(255, 82, 82, 0.1);
+    }
+}

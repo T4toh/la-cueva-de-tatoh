@@ -1,0 +1,133 @@
+<div class="shopping-list-container">
+  <div class="header">
+    <div>
+      <h1>Lista de Compras</h1>
+      <span class="week-range">
+        Semana: {{ mealService.weekRangeDisplay() }}
+      </span>
+    </div>
+    <div class="actions">
+      <button (click)="copyToClipboard()">Copiar</button>
+      <button (click)="print()">Imprimir</button>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button (click)="showExtraForm = !showExtraForm" class="btn-secondary">
+      + Agregar Item
+    </button>
+    <button (click)="showTagForm = !showTagForm" class="btn-secondary">
+      + Crear Tag
+    </button>
+  </div>
+
+  <!-- Forms -->
+  @if (showExtraForm) {
+    <form
+      [formGroup]="extraItemForm"
+      (ngSubmit)="addExtraItem()"
+      class="inline-form"
+    >
+      <input formControlName="name" placeholder="Item (ej: Jabón)" autoFocus />
+      <input formControlName="quantity" placeholder="Cant." />
+      <select formControlName="tagId">
+        <option value="">Sin categoría</option>
+        @for (tag of mealService.tags(); track tag.id) {
+          <option [value]="tag.id">{{ tag.name }}</option>
+        }
+      </select>
+      <button type="submit" [disabled]="extraItemForm.invalid">Agregar</button>
+    </form>
+  }
+
+  @if (showTagForm) {
+    <form [formGroup]="tagForm" (ngSubmit)="addTag()" class="inline-form">
+      <input formControlName="name" placeholder="Nombre Tag (ej: Farmacia)" />
+      <input type="color" formControlName="color" />
+      <button type="submit" [disabled]="tagForm.invalid">Crear</button>
+    </form>
+  }
+
+  <div class="list-groups">
+    @for (
+      group of mealService.shoppingListGrouped();
+      track group.tag?.id || 'untagged'
+    ) {
+      <div class="group">
+        <h3 [style.color]="group.tag ? group.tag.color : 'var(--color-5)'">
+          {{ group.tag ? group.tag.name : 'Sin Categoría' }}
+        </h3>
+
+        <div class="items">
+          @for (item of group.items; track item.name) {
+            <div class="item">
+              <input
+                type="checkbox"
+                [id]="item.name + (group.tag?.id || 'untagged')"
+              />
+              <label
+                [for]="item.name + (group.tag?.id || 'untagged')"
+                class="item-label"
+              >
+                <span class="name">{{ item.name }}</span>
+                <span class="quantity">{{ item.quantity }}</span>
+              </label>
+
+              <div class="tag-chip-container">
+                <lib-tag
+                  [texto]="getTagName(item.tagId)"
+                  [colorFondo]="getTagColor(item.tagId)"
+                  [colorTexto]="'white'"
+                ></lib-tag>
+                <select
+                  class="hidden-select"
+                  [value]="item.tagId || ''"
+                  (change)="updateItemTag(item.name, $event)"
+                  (click)="$event.stopPropagation()"
+                >
+                  <option value="">Sin Tag</option>
+                  @for (tag of mealService.tags(); track tag.id) {
+                    <option [value]="tag.id">{{ tag.name }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    } @empty {
+      <p class="empty">No hay items en la lista.</p>
+    }
+  </div>
+
+  @if (mealService.extraItems().length > 0) {
+    <div class="extra-management">
+      <h3>Items Manuales</h3>
+      <div class="chip-list">
+        @for (item of mealService.extraItems(); track $index) {
+          <span class="chip">
+            {{ item.name }} ({{ item.quantity }})
+            <button (click)="deleteExtraItem($index)">x</button>
+          </span>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Vista exclusiva para impresión (Correctamente ubicada fuera de los loops) -->
+  <div class="print-only-section">
+    <h1>Lista de Compras</h1>
+    <h2 class="print-date-range">{{ mealService.weekRangeDisplay() }}</h2>
+
+    @for (group of mealService.shoppingListGrouped(); track group.tag?.id || 'untagged') {
+      <div class="print-group">
+        <h3>{{ group.tag ? group.tag.name : 'Otros' }}</h3>
+        <ul>
+          @for (item of group.items; track item.name) {
+            <li>[ ] {{ item.name }}: {{ item.quantity }}</li>
+          }
+        </ul>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,43 @@
+<div class="meal-list-container">
+  <div class="header">
+    <h1>Comidas</h1>
+    <div class="actions-header">
+      <button (click)="printRecipes()" class="btn-secondary">Imprimir</button>
+      <a routerLink="/meals/new" class="btn-add">+Comida</a>
+    </div>
+  </div>
+
+  <div class="grid">
+    @for (meal of mealService.meals(); track meal.id) {
+      <app-meal-card
+        [meal]="meal"
+        [showDelete]="true"
+        [showEdit]="true"
+        (delete)="deleteMeal(meal.id)"
+        (edit)="editMeal($event)"
+        (cardClick)="editMeal(meal.id)"
+      ></app-meal-card>
+    } @empty {
+      <p class="empty-state">No hay comidas guardadas. ¡Creá una!</p>
+    }
+  </div>
+
+  <div class="print-only-section">
+    <h1>Recetario de Comidas</h1>
+    <div class="print-meals">
+      @for (meal of mealService.meals(); track meal.id) {
+        <div class="print-meal-card">
+          <h3>{{ meal.name }}</h3>
+          @if (meal.description) {
+            <p class="print-desc"><em>{{ meal.description }}</em></p>
+          }
+          <ul class="print-ingredients">
+            @for (ing of meal.ingredients; track ing.name) {
+              <li>{{ ing.name }} - {{ ing.quantity }}</li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
+  </div>
+</div>
