@@ -1,0 +1,37 @@
+<div class="editor-container">
+  <h1>{{ mealId ? 'Editar' : 'Nueva' }} Comida</h1>
+
+  <form [formGroup]="form" (ngSubmit)="save()">
+    <div class="form-group">
+      <label for="name">Nombre</label>
+      <input id="name" type="text" formControlName="name" placeholder="Ej: Fideos con tuco">
+    </div>
+
+    <div class="form-group">
+      <label for="description">Descripción (Opcional)</label>
+      <textarea id="description" formControlName="description" rows="3"></textarea>
+    </div>
+
+    <div class="ingredients-section">
+      <div class="header">
+        <h2>Ingredientes</h2>
+        <button type="button" class="btn-secondary" (click)="addIngredient()">+ Agregar</button>
+      </div>
+
+      <div formArrayName="ingredients">
+        @for (ing of ingredients.controls; track $index) {
+          <div [formGroupName]="$index" class="ingredient-row">
+            <input type="text" formControlName="name" placeholder="Ingrediente (ej: Fideos)">
+            <input type="text" formControlName="quantity" placeholder="Cant. (ej: 500g)">
+            <button type="button" class="btn-remove" (click)="removeIngredient($index)">X</button>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="actions">
+      <a routerLink="/meals" class="btn-cancel">Cancelar</a>
+      <button type="submit" class="btn-primary" [disabled]="form.invalid">Guardar</button>
+    </div>
+  </form>
+</div>

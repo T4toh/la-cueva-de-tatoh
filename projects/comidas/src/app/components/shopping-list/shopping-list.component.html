@@ -1,0 +1,23 @@
+<div class="shopping-list-container">
+  <div class="header">
+    <h1>Lista de Compras</h1>
+    <div class="actions">
+      <button (click)="copyToClipboard()">Copiar</button>
+      <button (click)="print()">Imprimir</button>
+    </div>
+  </div>
+
+  <div class="list">
+    @for (item of mealService.shoppingList(); track item.name) {
+      <div class="item">
+        <input type="checkbox" [id]="item.name">
+        <label [for]="item.name">
+          <span class="name">{{ item.name }}</span>
+          <span class="quantity">{{ item.quantity }}</span>
+        </label>
+      </div>
+    } @empty {
+      <p class="empty">No hay ingredientes. Planifica algunas comidas primero.</p>
+    }
+  </div>
+</div>

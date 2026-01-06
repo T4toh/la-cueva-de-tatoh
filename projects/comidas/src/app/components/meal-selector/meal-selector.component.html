@@ -1,0 +1,28 @@
+<div class="selector-container">
+  <h1>Seleccionar {{ type }} para el {{ dayName }}</h1>
+
+  <div class="actions">
+    <button (click)="clearSelection()" class="btn-clear">Limpiar selección</button>
+  </div>
+
+  <div class="grid">
+    @for (meal of mealService.meals(); track meal.id) {
+      <div class="meal-card" (click)="selectMeal(meal.id)">
+        <lib-panel
+          [texto]="meal.name"
+          [colorFondo]="'var(--color-2)'"
+          [sombreado]="true"
+        >
+          <div class="meal-content">
+            <p>{{ meal.ingredients.length }} ingredientes</p>
+          </div>
+        </lib-panel>
+      </div>
+    } @empty {
+      <p class="empty-state">
+        No hay comidas creadas. 
+        <a routerLink="/meals/new">Crear una nueva</a>
+      </p>
+    }
+  </div>
+</div>

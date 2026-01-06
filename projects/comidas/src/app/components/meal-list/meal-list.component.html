@@ -1,0 +1,28 @@
+<div class="meal-list-container">
+  <div class="header">
+    <h1>Mis Comidas</h1>
+    <a routerLink="/meals/new" class="btn-add">+ Nueva Comida</a>
+  </div>
+
+  <div class="grid">
+    @for (meal of mealService.meals(); track meal.id) {
+      <div class="meal-card" [routerLink]="['/meals/edit', meal.id]">
+        <lib-panel
+          [texto]="meal.name"
+          [colorFondo]="'var(--color-2)'"
+          [sombreado]="true"
+        >
+          <div class="meal-content">
+            <p>{{ meal.ingredients.length }} ingredientes</p>
+            @if (meal.description) {
+              <p class="description">{{ meal.description }}</p>
+            }
+            <button (click)="deleteMeal(meal.id, $event)" class="btn-delete">Eliminar</button>
+          </div>
+        </lib-panel>
+      </div>
+    } @empty {
+      <p class="empty-state">No hay comidas guardadas. ¡Crea una!</p>
+    }
+  </div>
+</div>

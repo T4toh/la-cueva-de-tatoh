@@ -1,0 +1,76 @@
+.shopping-list-container {
+  padding: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+
+  h1 { color: var(--color-5); margin: 0; }
+  
+  .actions {
+    display: flex;
+    gap: 0.5rem;
+    
+    button {
+      background: var(--color-3);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      
+      &:hover { background: var(--color-2); }
+    }
+  }
+}
+
+.list {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  padding: 0.8rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  &:last-child { border-bottom: none; }
+
+  input[type="checkbox"] {
+    margin-right: 1rem;
+    width: 20px;
+    height: 20px;
+  }
+
+  label {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    cursor: pointer;
+  }
+  
+  .quantity {
+    color: var(--color-5);
+    font-weight: bold;
+  }
+}
+
+.empty {
+  text-align: center;
+  color: #ccc;
+  padding: 2rem;
+}
+
+@media print {
+  .actions { display: none; }
+  body { background: white; color: black; }
+  .list { background: none; color: black; }
+  .item { border-bottom-color: #ccc; }
+  input { border: 1px solid black; }
+}

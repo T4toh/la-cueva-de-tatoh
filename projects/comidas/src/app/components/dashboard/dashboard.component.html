@@ -1,0 +1,33 @@
+<div class="dashboard-container">
+  <h1>Plan Semanal</h1>
+  
+  <div class="schedule-grid">
+    @for (day of mealService.schedule(); track day.dayName) {
+      <lib-panel 
+        [texto]="day.dayName" 
+        [colorFondo]="'var(--color-3)'"
+        [sombreado]="true"
+        class="day-panel"
+      >
+        <div class="meal-slots">
+          <div class="slot">
+            <span class="label">Almuerzo:</span>
+            <a [routerLink]="['/schedule', day.dayName, 'almuerzo']" class="meal-link">
+              {{ getMealName(day.almuerzo) }}
+            </a>
+          </div>
+          <div class="slot">
+            <span class="label">Desayuno:</span>
+            <a [routerLink]="['/schedule', day.dayName, 'desayuno']" class="meal-link">
+              {{ getMealName(day.desayuno) }}
+            </a>
+          </div>
+        </div>
+      </lib-panel>
+    }
+  </div>
+
+  <div class="actions">
+    <button (click)="mealService.clearSchedule()" class="btn-clear">Limpiar Semana</button>
+  </div>
+</div>

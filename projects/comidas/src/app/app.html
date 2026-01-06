@@ -1,0 +1,11 @@
+<div class="app-container">
+  <nav class="main-nav">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Plan</a>
+    <a routerLink="/meals" routerLinkActive="active">Comidas</a>
+    <a routerLink="/shopping-list" routerLinkActive="active">Compras</a>
+  </nav>
+
+  <main>
+    <router-outlet></router-outlet>
+  </main>
+</div>
