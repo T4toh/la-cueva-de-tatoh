@@ -1,23 +1,80 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MealService } from '../../services/meal.service';
 
 @Component({
   selector: 'app-shopping-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './shopping-list.component.html',
   styleUrls: ['./shopping-list.component.scss']
 })
 export class ShoppingListComponent {
   mealService = inject(MealService);
+  fb = inject(FormBuilder);
+
+  extraItemForm: FormGroup;
+  tagForm: FormGroup;
+  showTagForm = false;
+  showExtraForm = false;
+
+  constructor() {
+    this.extraItemForm = this.fb.group({
+      name: ['', Validators.required],
+      quantity: ['', Validators.required],
+      tagId: ['']
+    });
+
+    this.tagForm = this.fb.group({
+      name: ['', Validators.required],
+      color: ['#000000', Validators.required]
+    });
+  }
+
+  addExtraItem() {
+    if (this.extraItemForm.valid) {
+      const { name, quantity, tagId } = this.extraItemForm.value;
+      this.mealService.addExtraItem(name, quantity, tagId);
+      this.extraItemForm.reset({ tagId: '' }); // Keep tag selection? No, reset.
+      this.showExtraForm = false;
+    }
+  }
+
+  addTag() {
+    if (this.tagForm.valid) {
+      const { name, color } = this.tagForm.value;
+      this.mealService.addTag(name, color);
+      this.tagForm.reset({ color: '#000000' });
+      this.showTagForm = false;
+    }
+  }
+
+  updateItemTag(itemName: string, event: Event) {
+    const select = event.target as HTMLSelectElement;
+    this.mealService.setIngredientTag(itemName, select.value);
+  }
+  
+  deleteExtraItem(index: number) {
+      this.mealService.removeExtraItem(index);
+  }
 
   print() {
     window.print();
   }
   
   copyToClipboard() {
-    const list = this.mealService.shoppingList().map(i => `- ${i.name}: ${i.quantity}`).join('\n');
-    navigator.clipboard.writeText(list).then(() => alert('Lista copiada!'));
+    let text = `Lista de Compras (${this.mealService.weekRangeDisplay()})\n\n`;
+    
+    this.mealService.shoppingListGrouped().forEach(group => {
+        const groupName = group.tag ? group.tag.name : 'Otros';
+        text += `[${groupName}]\n`;
+        group.items.forEach(item => {
+            text += `- ${item.name}: ${item.quantity}\n`;
+        });
+        text += '\n';
+    });
+    
+    navigator.clipboard.writeText(text).then(() => alert('Lista copiada!'));
   }
 }

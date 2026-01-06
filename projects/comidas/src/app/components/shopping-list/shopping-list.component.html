@@ -10,17 +10,92 @@
     </div>
   </div>
 
-  <div class="list">
-    @for (item of mealService.shoppingList(); track item.name) {
-      <div class="item">
-        <input type="checkbox" [id]="item.name">
-        <label [for]="item.name">
-          <span class="name">{{ item.name }}</span>
-          <span class="quantity">{{ item.quantity }}</span>
-        </label>
+  <div class="controls">
+    <button (click)="showExtraForm = !showExtraForm" class="btn-secondary">+ Agregar Item</button>
+    <button (click)="showTagForm = !showTagForm" class="btn-secondary">+ Crear Tag</button>
+  </div>
+
+  <!-- Forms -->
+  @if (showExtraForm) {
+    <form [formGroup]="extraItemForm" (ngSubmit)="addExtraItem()" class="inline-form">
+      <input formControlName="name" placeholder="Item (ej: Jabón)" autoFocus>
+      <input formControlName="quantity" placeholder="Cant.">
+      <select formControlName="tagId">
+        <option value="">Sin categoría</option>
+        @for (tag of mealService.tags(); track tag.id) {
+          <option [value]="tag.id">{{ tag.name }}</option>
+        }
+      </select>
+      <button type="submit" [disabled]="extraItemForm.invalid">Agregar</button>
+    </form>
+  }
+
+  @if (showTagForm) {
+    <form [formGroup]="tagForm" (ngSubmit)="addTag()" class="inline-form">
+      <input formControlName="name" placeholder="Nombre Tag (ej: Farmacia)">
+      <input type="color" formControlName="color">
+      <button type="submit" [disabled]="tagForm.invalid">Crear</button>
+    </form>
+  }
+
+  <div class="list-groups">
+    @for (group of mealService.shoppingListGrouped(); track group.tag?.id || 'untagged') {
+      <div class="group">
+        <h3 [style.color]="group.tag ? group.tag.color : 'var(--color-5)'">
+            {{ group.tag ? group.tag.name : 'Sin Categoría' }}
+        </h3>
+        
+        <div class="items">
+            @for (item of group.items; track item.name) {
+              <div class="item">
+                <input type="checkbox" [id]="item.name + group.tag?.id">
+                <label [for]="item.name + group.tag?.id">
+                  <span class="name">{{ item.name }}</span>
+                  <span class="quantity">{{ item.quantity }}</span>
+                </label>
+                
+                <!-- Tag Selector for Quick Categorization -->
+                <select 
+                    class="tag-selector" 
+                    [value]="item.tagId || ''" 
+                    (change)="updateItemTag(item.name, $event)"
+                    (click)="$event.stopPropagation()"
+                >
+                    <option value="">Tag...</option>
+                    @for (tag of mealService.tags(); track tag.id) {
+                        <option [value]="tag.id">{{ tag.name }}</option>
+                    }
+                </select>
+                
+                @if(item.isExtra) {
+                    <!-- How to delete extra items? We need ID or index. 
+                         Since we aggregate, deleting from aggregation is tricky.
+                         For now, let's just show a simple remove button if it's purely extra.
+                         BUT, aggregation merges extras with meal items.
+                         Refactor: Maybe list extras separately? 
+                         Or just allow clearing extra items list in service.
+                    -->
+                }
+              </div>
+            }
+        </div>
       </div>
     } @empty {
-      <p class="empty">No hay ingredientes. Planifica algunas comidas primero.</p>
+      <p class="empty">No hay items en la lista.</p>
     }
   </div>
+  
+  @if (mealService.extraItems().length > 0) {
+      <div class="extra-management">
+          <h3>Items Manuales</h3>
+          <div class="chip-list">
+              @for (item of mealService.extraItems(); track $index) {
+                  <span class="chip">
+                      {{ item.name }} ({{ item.quantity }})
+                      <button (click)="deleteExtraItem($index)">x</button>
+                  </span>
+              }
+          </div>
+      </div>
+  }
 </div>

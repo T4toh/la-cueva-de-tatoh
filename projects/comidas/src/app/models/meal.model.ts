@@ -19,3 +19,19 @@ export interface DaySchedule {
   almuerzo: string | null; // Meal ID
   desayuno: string | null; // Meal ID
 }
+
+export interface ShoppingTag {
+  id: string;
+  name: string;
+  color: string;
+}
+
+export interface ShoppingItem extends Ingredient {
+  tagId?: string;
+  isExtra?: boolean;
+}
+
+export interface ShoppingListGroup {
+  tag: ShoppingTag | null; // null for "Uncategorized"
+  items: ShoppingItem[];
+}
