@@ -48,16 +48,13 @@ export class MealEditorComponent implements OnInit {
       } else {
         this.router.navigate(['/meals']);
       }
-    } else {
-      // Start with one empty ingredient row
-      this.addIngredient();
     }
   }
 
   addIngredient(name = '', quantity = '') {
     const ingredientGroup = this.fb.group({
-      name: [name, Validators.required],
-      quantity: [quantity, Validators.required]
+      name: [name], // Removed Validators.required to allow saving even if an empty row exists (we'll filter it)
+      quantity: [quantity]
     });
     this.ingredients.push(ingredientGroup);
   }
@@ -69,10 +66,14 @@ export class MealEditorComponent implements OnInit {
   save() {
     if (this.form.valid) {
       const formValue = this.form.value;
+      
+      // Filter out ingredients with no name
+      const validIngredients = formValue.ingredients.filter((ing: any) => ing.name && ing.name.trim() !== '');
+
       const mealData: Omit<Meal, 'id'> = {
         name: formValue.name,
         description: formValue.description,
-        ingredients: formValue.ingredients
+        ingredients: validIngredients
       };
 
       if (this.mealId) {

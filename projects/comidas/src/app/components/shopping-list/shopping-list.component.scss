@@ -146,41 +146,38 @@
     }
   }
 
-    .tag-chip-container {
-        position: relative; // Establish stacking context
-        flex-shrink: 0;
-        cursor: pointer;
-        display: inline-block; // Ensure it wraps content
-        
-        lib-tag {
-          display: block;
-          min-width: 40px;
-          text-align: center;
-          /* Ensure tag component doesn't block clicks if needed, 
-             but hidden-select is on top via z-index */
-        }
-        
-        &:hover {
-            transform: scale(1.05);
-        }
-  
-        .hidden-select {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-            appearance: none;
-            z-index: 10; // Ensure it's on top
-            border: none;
-            margin: 0;
-            padding: 0;
-        }
-    }
-  }
-.extra-management {
+      .tag-chip-container {
+          display: grid;
+          place-items: center;
+          position: relative;
+          flex-shrink: 0;
+          cursor: pointer;
+          
+          lib-tag {
+            grid-area: 1 / 1;
+            display: block;
+            min-width: 40px;
+            text-align: center;
+          }
+          
+          &:hover {
+              transform: scale(1.05);
+          }
+    
+          .hidden-select {
+              grid-area: 1 / 1;
+              width: 100%;
+              height: 100%;
+              opacity: 0;
+              cursor: pointer;
+              appearance: none;
+              z-index: 10;
+              border: none;
+              margin: 0;
+              padding: 0;
+          }
+      }
+    }.extra-management {
   margin-top: 2rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding-top: 1rem;

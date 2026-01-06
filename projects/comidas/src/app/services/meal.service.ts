@@ -123,8 +123,13 @@ export class MealService {
 
   // Actions
   // ... (Meal actions remain the same) ...
+  private generateId(): string {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  }
+
+  // Meal Actions
   addMeal(meal: Omit<Meal, 'id'>) {
-    const newMeal: Meal = { ...meal, id: crypto.randomUUID() };
+    const newMeal: Meal = { ...meal, id: this.generateId() };
     this.meals.update(current => [...current, newMeal]);
   }
 
@@ -211,7 +216,7 @@ export class MealService {
 
   // Tag Actions
   addTag(name: string, color: string) {
-    const newTag: ShoppingTag = { id: crypto.randomUUID(), name, color };
+    const newTag: ShoppingTag = { id: this.generateId(), name, color };
     this.tags.update(t => [...t, newTag]);
   }
 
