@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 
 // Redirects a blog (home) path to the blog component
 export const routes: Routes = [
-  { path: '', redirectTo: '/blog', pathMatch: 'full' },
+  { path: '', redirectTo: 'blog', pathMatch: 'full' },
   {
     path: 'blog',
     loadComponent: () => import('./componentes/blog/blog').then((m) => m.Blog),
@@ -21,16 +21,6 @@ export const routes: Routes = [
     path: 'libros',
     loadComponent: () =>
       import('./componentes/libros/libros').then((m) => m.Libros),
-  },
-  {
-    path: 'comidas',
-    canActivate: [
-      () => {
-        window.location.href = '/comidas/';
-        return false;
-      },
-    ],
-    component: class {}, // Dummy component
   },
   {
     path: '**',
