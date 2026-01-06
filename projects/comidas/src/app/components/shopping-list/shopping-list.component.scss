@@ -96,61 +96,55 @@
 .item {
   display: flex;
   align-items: center;
-  padding: 0.8rem;
+  padding: 0.6rem 0.8rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  flex-wrap: wrap; // Allow wrapping on small screens
+  gap: 0.8rem;
 
   &:last-child { border-bottom: none; }
 
   input[type="checkbox"] {
-    margin-right: 1rem;
     width: 20px;
     height: 20px;
-    flex-shrink: 0; // Don't shrink checkbox
+    flex-shrink: 0;
   }
 
-  label {
+  .item-label {
     flex: 1;
     display: flex;
     justify-content: space-between;
-    cursor: pointer;
     align-items: center;
-    margin-right: 1rem;
-    min-width: 150px; // Ensure label has some width before wrapping
-  }
-  
-  .quantity {
-    color: var(--color-5);
-    font-weight: bold;
-    margin-left: 1rem;
-  }
-  
-  .tag-chip {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 4px 10px;
-      border-radius: 16px;
-      font-size: 0.75rem;
+    cursor: pointer;
+    min-width: 0;
+    gap: 0.5rem;
+
+    .name {
+      flex: 1;
+      font-size: 0.95rem;
+      // Allow wrap if necessary, but label will stay in one flex line with others
+    }
+
+    .quantity {
+      color: var(--color-5);
       font-weight: bold;
-      color: white;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-      min-width: 24px;
-      height: 24px;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+  }
+  
+  .tag-chip-container {
+      position: relative;
+      flex-shrink: 0;
       cursor: pointer;
-      transition: transform 0.2s;
+      
+      lib-tag {
+        display: block;
+        min-width: 40px;
+        text-align: center;
+      }
       
       &:hover {
           transform: scale(1.05);
       }
-      
-      &.has-tag {
-          padding-left: 10px;
-          padding-right: 10px;
-      }
-      
-      /* Use a neutral color for "Add Tag" state if needed, but inline style handles it */
   }
   
   .hidden-select {
@@ -162,6 +156,7 @@
       opacity: 0;
       cursor: pointer;
       appearance: none;
+      z-index: 2;
   }
 }
 

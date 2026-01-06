@@ -48,41 +48,30 @@
         <div class="items">
             @for (item of group.items; track item.name) {
               <div class="item">
-                <input type="checkbox" [id]="item.name + group.tag?.id">
-                <label [for]="item.name + group.tag?.id">
+                <input type="checkbox" [id]="item.name + (group.tag?.id || 'untagged')">
+                <label [for]="item.name + (group.tag?.id || 'untagged')" class="item-label">
                   <span class="name">{{ item.name }}</span>
                   <span class="quantity">{{ item.quantity }}</span>
                 </label>
                 
-                <!-- Chip-style Tag Selector -->
-                <div 
-                    class="tag-chip" 
-                    [style.background-color]="getTagColor(item.tagId)"
-                    [class.has-tag]="!!item.tagId"
-                >
-                    <span class="chip-text">{{ getTagName(item.tagId) }}</span>
-                    <select 
-                        class="hidden-select" 
-                        [value]="item.tagId || ''" 
-                        (change)="updateItemTag(item.name, $event)"
-                        (click)="$event.stopPropagation()"
-                    >
-                        <option value="">Sin Tag</option>
-                        @for (tag of mealService.tags(); track tag.id) {
-                            <option [value]="tag.id">{{ tag.name }}</option>
-                        }
-                    </select>
+                <div class="tag-chip-container">
+                  <lib-tag 
+                    [texto]="getTagName(item.tagId)" 
+                    [colorFondo]="getTagColor(item.tagId)"
+                    [colorTexto]="'white'"
+                  ></lib-tag>
+                  <select 
+                      class="hidden-select" 
+                      [value]="item.tagId || ''" 
+                      (change)="updateItemTag(item.name, $event)"
+                      (click)="$event.stopPropagation()"
+                  >
+                      <option value="">Sin Tag</option>
+                      @for (tag of mealService.tags(); track tag.id) {
+                          <option [value]="tag.id">{{ tag.name }}</option>
+                      }
+                  </select>
                 </div>
-                
-                @if(item.isExtra) {
-                    <!-- How to delete extra items? We need ID or index. 
-                         Since we aggregate, deleting from aggregation is tricky.
-                         For now, let's just show a simple remove button if it's purely extra.
-                         BUT, aggregation merges extras with meal items.
-                         Refactor: Maybe list extras separately? 
-                         Or just allow clearing extra items list in service.
-                    -->
-                }
               </div>
             }
         </div>
