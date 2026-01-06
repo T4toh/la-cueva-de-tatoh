@@ -76,7 +76,7 @@
 
 // Responsivo: mostrar solo emojis en pantallas pequeñas
 @media (max-width: 768px) {
-  .navigator a:not([routerLink='/blog']):not([routerLink='/utilidades']) {
+  .navigator a:not([routerLink='/blog']):not([routerLink='/utilidades']):not([href='/comidas']) {
     display: none;
   }
 
