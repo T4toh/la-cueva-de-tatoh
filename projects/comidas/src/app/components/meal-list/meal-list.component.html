@@ -10,10 +10,17 @@
         <lib-panel
           [texto]="meal.name"
           [colorFondo]="'var(--color-2)'"
+          [colorTexto]="'white'"
           [sombreado]="true"
         >
           <div class="meal-content">
-            <p>{{ meal.ingredients.length }} ingredientes</p>
+            <ul class="ingredient-list">
+              @for (ing of meal.ingredients; track ing.name) {
+                <li>{{ing.name}} ({{ing.quantity}})</li>
+              } @empty {
+                <li>Sin ingredientes</li>
+              }
+            </ul>
             @if (meal.description) {
               <p class="description">{{ meal.description }}</p>
             }

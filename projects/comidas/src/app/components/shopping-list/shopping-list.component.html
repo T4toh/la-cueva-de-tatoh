@@ -1,6 +1,9 @@
 <div class="shopping-list-container">
   <div class="header">
-    <h1>Lista de Compras</h1>
+    <div>
+      <h1>Lista de Compras</h1>
+      <span class="week-range">Semana: {{ mealService.weekRangeDisplay() }}</span>
+    </div>
     <div class="actions">
       <button (click)="copyToClipboard()">Copiar</button>
       <button (click)="print()">Imprimir</button>

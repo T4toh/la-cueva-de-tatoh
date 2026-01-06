@@ -11,6 +11,12 @@
   margin-bottom: 2rem;
 
   h1 { color: var(--color-5); margin: 0; }
+
+  .week-range {
+    color: var(--color-5);
+    font-size: 0.9rem;
+    margin-top: 4px;
+  }
   
   .actions {
     display: flex;

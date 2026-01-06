@@ -52,6 +52,22 @@
     font-size: 0.9rem;
   }
 
+  .ingredient-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0;
+    font-size: 0.85rem;
+    max-height: 80px;
+    overflow-y: auto;
+    
+    li {
+      padding: 2px 5px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 3px;
+      margin-bottom: 3px;
+    }
+  }
+
   .description {
     font-style: italic;
     color: #ccc;
