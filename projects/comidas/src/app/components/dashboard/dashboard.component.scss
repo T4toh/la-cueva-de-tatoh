@@ -54,11 +54,19 @@
 
 .family-mode-toggle {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     align-items: center;
-    gap: 0.5rem;
+    gap: 1.5rem;
     background: rgba(0,0,0,0.2);
-    padding: 0.5rem 1rem;
+    padding: 0.8rem 1.5rem;
     border-radius: 20px;
+    
+    .toggle-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
     
     .mode-label {
         color: white;

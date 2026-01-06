@@ -56,6 +56,12 @@ export class ShoppingListComponent {
     this.mealService.setIngredientTag(itemName, select.value);
   }
 
+  resetQuantities() {
+    if (confirm('¿Estás seguro de resetear todas las cantidades a los valores originales del menú?')) {
+      this.mealService.clearOverrides();
+    }
+  }
+
   editQuantity(itemName: string, event: Event) {
     const input = event.target as HTMLInputElement;
     this.mealService.overrideQuantity(itemName, input.value);
@@ -82,17 +88,31 @@ export class ShoppingListComponent {
   }
   
   copyToClipboard() {
-    let text = `Lista de Compras (${this.mealService.weekRangeDisplay()})\n\n`;
-    
+    let text = `🛒 *Lista de Compras* (${this.mealService.weekRangeDisplay()})\n\n`;
+    let hasItems = false;
+
     this.mealService.shoppingListGrouped().forEach(group => {
-        const groupName = group.tag ? group.tag.name : 'Otros';
-        text += `[${groupName}]\n`;
-        group.items.forEach(item => {
-            text += `- ${item.name}: ${item.quantity}\n`;
-        });
-        text += '\n';
+        const remainingItems = group.items.filter(item => !item.checked);
+        
+        if (remainingItems.length > 0) {
+            hasItems = true;
+            const groupName = group.tag ? group.tag.name.toUpperCase() : 'OTROS';
+            text += `*${groupName}*\n`;
+            remainingItems.forEach(item => {
+                const quantity = item.quantityOverride || item.quantity;
+                text += `• ${item.name}: ${quantity}\n`;
+            });
+            text += '\n';
+        }
     });
     
-    navigator.clipboard.writeText(text).then(() => alert('Lista copiada!'));
+    if (!hasItems) {
+        alert('No hay items pendientes para copiar.');
+        return;
+    }
+
+    text += '_Generado por Comidas - La Cueva de Tatoh_';
+    
+    navigator.clipboard.writeText(text).then(() => alert('¡Lista copiada al portapapeles!'));
   }
 }

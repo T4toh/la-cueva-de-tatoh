@@ -10,11 +10,21 @@
     </div>
     
     <div class="family-mode-toggle">
-        <label class="switch">
-            <input type="checkbox" [checked]="mealService.isFamilyMode()" (change)="mealService.toggleFamilyMode()">
-            <span class="slider round"></span>
-        </label>
-        <span class="mode-label">{{ mealService.isFamilyMode() ? 'Modo Familiar' : 'Modo Individual' }}</span>
+        <div class="toggle-group">
+            <label class="switch">
+                <input type="checkbox" [checked]="mealService.isFamilyMode()" (change)="mealService.toggleFamilyMode()">
+                <span class="slider round"></span>
+            </label>
+            <span class="mode-label">{{ mealService.isFamilyMode() ? 'Modo Familiar' : 'Modo Individual' }}</span>
+        </div>
+
+        <div class="toggle-group">
+            <label class="switch">
+                <input type="checkbox" [checked]="mealService.isBreakfastEnabled()" (change)="mealService.toggleBreakfast()">
+                <span class="slider round"></span>
+            </label>
+            <span class="mode-label">Desayuno</span>
+        </div>
         
         @if (mealService.isFamilyMode()) {
             <div class="portions-input">
@@ -44,7 +54,7 @@
       >
         <div class="meal-slots">
           <!-- Desayuno -->
-          <div class="slot">
+          <div class="slot" *ngIf="mealService.isBreakfastEnabled()">
             <span class="label">Desayuno:</span>
             <a [routerLink]="['/schedule', day.dayName, 'desayuno']" class="meal-link">
               {{ getMealName(day.desayuno) }}
@@ -101,7 +111,7 @@
       <thead>
         <tr>
           <th>Día</th>
-          <th>Desayuno</th>
+          <th *ngIf="mealService.isBreakfastEnabled()">Desayuno</th>
           <th>Almuerzo</th>
           <th>Colación</th>
           <th>Cena</th>
@@ -111,7 +121,7 @@
         @for (day of mealService.schedule(); track day.dayName) {
           <tr>
             <td class="day-name"><strong>{{ day.dayName }}</strong></td>
-            <td>{{ getMealName(day.desayuno) }}</td>
+            <td *ngIf="mealService.isBreakfastEnabled()">{{ getMealName(day.desayuno) }}</td>
             <td>
                 {{ getMealName(day.almuerzo) }}
                 <div class="print-sub" *ngIf="day.postreAlmuerzo">Postre: {{ day.postreAlmuerzo }}</div>

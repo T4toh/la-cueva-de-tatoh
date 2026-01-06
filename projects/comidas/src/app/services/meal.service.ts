@@ -12,6 +12,7 @@ export class MealService {
   private readonly EXTRA_ITEMS_KEY = 'comidas_extra_items';
   private readonly FAMILY_SETTINGS_KEY = 'comidas_family_settings';
   private readonly QUANTITY_OVERRIDES_KEY = 'comidas_quantity_overrides';
+  private readonly CHECKED_ITEMS_KEY = 'comidas_checked_items';
 
   // State
   meals = signal<Meal[]>(this.loadMeals());
@@ -23,9 +24,13 @@ export class MealService {
   
   // Map of "weekKey_ingredientName" -> newQuantity
   quantityOverrides = signal<Record<string, string>>(this.loadOverrides());
+  
+  // Map of "weekKey" -> string[] (list of checked ingredient names)
+  checkedItems = signal<Record<string, string[]>>(this.loadCheckedItems());
 
   // Family Mode State
   isFamilyMode = signal<boolean>(false);
+  isBreakfastEnabled = signal<boolean>(true);
   familyPortions = signal<number>(4);
 
   // Navigation State
@@ -54,8 +59,12 @@ export class MealService {
       localStorage.setItem(this.QUANTITY_OVERRIDES_KEY, JSON.stringify(this.quantityOverrides()));
     });
     effect(() => {
+      localStorage.setItem(this.CHECKED_ITEMS_KEY, JSON.stringify(this.checkedItems()));
+    });
+    effect(() => {
       const settings = {
         isFamilyMode: this.isFamilyMode(),
+        isBreakfastEnabled: this.isBreakfastEnabled(),
         familyPortions: this.familyPortions()
       };
       localStorage.setItem(this.FAMILY_SETTINGS_KEY, JSON.stringify(settings));
@@ -111,11 +120,17 @@ export class MealService {
     return data ? JSON.parse(data) : {};
   }
 
+  private loadCheckedItems(): Record<string, string[]> {
+    const data = localStorage.getItem(this.CHECKED_ITEMS_KEY);
+    return data ? JSON.parse(data) : {};
+  }
+
   private loadFamilySettings() {
     const data = localStorage.getItem(this.FAMILY_SETTINGS_KEY);
     if (data) {
       const settings = JSON.parse(data);
-      this.isFamilyMode.set(settings.isFamilyMode || false);
+      this.isFamilyMode.set(settings.isFamilyMode ?? false);
+      this.isBreakfastEnabled.set(settings.isBreakfastEnabled ?? true);
       this.familyPortions.set(settings.familyPortions || 4);
     }
   }
@@ -264,6 +279,34 @@ export class MealService {
     this.quantityOverrides.update(o => ({ ...o, [key]: newQuantity }));
   }
 
+  clearOverrides() {
+    const weekKey = this.formatDateKey(this.currentWeekStart());
+    this.quantityOverrides.update(o => {
+      const newOverrides = { ...o };
+      Object.keys(newOverrides).forEach(key => {
+        if (key.startsWith(weekKey)) delete newOverrides[key];
+      });
+      return newOverrides;
+    });
+  }
+
+  toggleItemCheck(name: string) {
+    const weekKey = this.formatDateKey(this.currentWeekStart());
+    const itemName = name.toLowerCase().trim();
+    
+    this.checkedItems.update(prev => {
+        const currentChecked = prev[weekKey] || [];
+        const isChecked = currentChecked.includes(itemName);
+        
+        return {
+            ...prev,
+            [weekKey]: isChecked 
+                ? currentChecked.filter(n => n !== itemName)
+                : [...currentChecked, itemName]
+        };
+    });
+  }
+
   private multiplyQuantity(quantity: string, factor: number): string {
     if (factor <= 1) return quantity;
     const match = quantity.trim().match(/^(\d+(\.\d+)?)\s*(.*)$/);
@@ -286,6 +329,7 @@ export class MealService {
     const weekKey = this.formatDateKey(weekStart);
     const tagMap = this.ingredientTags();
     const overrides = this.quantityOverrides();
+    const weekChecked = this.checkedItems()[weekKey] || [];
     const multiplier = this.isFamilyMode() ? this.familyPortions() : 1;
 
     currentSchedule.forEach((day, index) => {
@@ -300,7 +344,13 @@ export class MealService {
              meal.ingredients.forEach(ing => {
                const key = ing.name.toLowerCase().trim();
                const quantity = this.multiplyQuantity(ing.quantity, multiplier);
-               items.push({ ...ing, quantity, tagId: tagMap[key], isExtra: false });
+               items.push({ 
+                   ...ing, 
+                   quantity, 
+                   tagId: tagMap[key], 
+                   isExtra: false,
+                   checked: weekChecked.includes(key)
+               });
              });
            }
         };
@@ -312,7 +362,11 @@ export class MealService {
 
     this.extraItems().forEach(extra => {
         const key = extra.name.toLowerCase().trim();
-        items.push({ ...extra, tagId: extra.tagId || tagMap[key] });
+        items.push({ 
+            ...extra, 
+            tagId: extra.tagId || tagMap[key],
+            checked: weekChecked.includes(key)
+        });
     });
 
     const aggregated: { [key: string]: ShoppingItem } = {};
@@ -346,6 +400,7 @@ export class MealService {
   shoppingList = computed(() => this.shoppingListGrouped().flatMap(g => g.items));
 
   toggleFamilyMode() { this.isFamilyMode.update(v => !v); }
+  toggleBreakfast() { this.isBreakfastEnabled.update(v => !v); }
   setFamilyPortions(portions: number) { this.familyPortions.set(portions); }
 
   exportData() {
