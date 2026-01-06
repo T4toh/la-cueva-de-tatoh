@@ -1,13 +1,13 @@
 <div class="meal-list-container">
   <div class="header">
-    <h1>Mis Comidas</h1>
-    <a routerLink="/meals/new" class="btn-add">+ Nueva Comida</a>
+    <h1>Comidas</h1>
+    <a routerLink="/meals/new" class="btn-add">+Comida</a>
   </div>
 
   <div class="grid">
     @for (meal of mealService.meals(); track meal.id) {
-      <app-meal-card 
-        [meal]="meal" 
+      <app-meal-card
+        [meal]="meal"
         [showDelete]="true"
         [showEdit]="true"
         (delete)="deleteMeal(meal.id)"
@@ -15,7 +15,7 @@
         (cardClick)="editMeal(meal.id)"
       ></app-meal-card>
     } @empty {
-      <p class="empty-state">No hay comidas guardadas. ¡Crea una!</p>
+      <p class="empty-state">No hay comidas guardadas. ¡Creá una!</p>
     }
   </div>
 </div>
