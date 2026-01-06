@@ -1,6 +1,11 @@
 [build]
-  command = "ng build componentes && ng build perfil-personal --configuration=production"
+  command = "ng build componentes && ng build perfil-personal --configuration=production && ng build comidas --configuration=production --base-href=/comidas/ && mkdir -p dist/perfil-personal/browser/comidas && cp -r dist/comidas/browser/* dist/perfil-personal/browser/comidas/"
   publish = "dist/perfil-personal/browser"
+
+[[redirects]]
+  from = "/comidas/*"
+  to = "/comidas/index.html"
+  status = 200
 
 [[redirects]]
   from = "/*"
