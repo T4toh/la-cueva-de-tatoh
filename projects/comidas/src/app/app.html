@@ -1,9 +1,21 @@
 <div class="app-container">
   <nav class="main-nav">
-    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Plan</a>
-    <a routerLink="/meals" routerLinkActive="active">Comidas</a>
-    <a routerLink="/shopping-list" routerLinkActive="active">Compras</a>
-    <a routerLink="/settings" routerLinkActive="active">Config</a>
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" title="Plan Semanal">
+      <span class="icon">📅</span>
+      <span class="text">Plan</span>
+    </a>
+    <a routerLink="/meals" routerLinkActive="active" title="Mis Comidas">
+      <span class="icon">🍲</span>
+      <span class="text">Comidas</span>
+    </a>
+    <a routerLink="/shopping-list" routerLinkActive="active" title="Lista de Compras">
+      <span class="icon">🛒</span>
+      <span class="text">Compras</span>
+    </a>
+    <a routerLink="/settings" routerLinkActive="active" title="Configuración">
+      <span class="icon">⚙️</span>
+      <span class="text">Config</span>
+    </a>
   </nav>
 
   <main>

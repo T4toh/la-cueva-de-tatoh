@@ -138,46 +138,197 @@
       // Allow wrap if necessary, but label will stay in one flex line with others
     }
 
-    .quantity {
-      color: var(--color-5);
-      font-weight: bold;
-      font-size: 0.9rem;
+    .quantity-container {
+      margin-left: 1rem;
+      padding-right: 0.5rem; // Space before the tag chip
       flex-shrink: 0;
+    }
+
+    .quantity-edit-input {
+        background: transparent;
+        border: none;
+        border-bottom: 1px dashed rgba(255,255,255,0.3);
+        color: var(--color-5);
+        font-weight: bold;
+        text-align: right;
+        width: 80px;
+        padding: 2px;
+        font-size: 0.9rem;
+        
+        &:focus {
+            outline: none;
+            border-bottom-style: solid;
+            border-bottom-color: var(--color-3);
+            color: white;
+        }
     }
   }
 
-      .tag-chip-container {
-          display: grid;
-          place-items: center;
-          position: relative;
-          flex-shrink: 0;
-          cursor: pointer;
-          
-          lib-tag {
-            grid-area: 1 / 1;
-            display: block;
-            min-width: 40px;
-            text-align: center;
-          }
-          
-          &:hover {
-              transform: scale(1.05);
-          }
-    
-          .hidden-select {
+        .tag-chip-container {
+
+            display: grid;
+
+            place-items: center;
+
+            position: relative;
+
+            flex-shrink: 0;
+
+            cursor: pointer;
+
+            
+
+            lib-tag {
+
               grid-area: 1 / 1;
-              width: 100%;
-              height: 100%;
-              opacity: 0;
-              cursor: pointer;
-              appearance: none;
-              z-index: 10;
-              border: none;
-              margin: 0;
-              padding: 0;
-          }
+
+              display: block;
+
+              min-width: 40px;
+
+              text-align: center;
+
+            }
+
+            
+
+            &:hover {
+
+                transform: scale(1.05);
+
+            }
+
+      
+
+            .hidden-select {
+
+                grid-area: 1 / 1;
+
+                width: 100%;
+
+                height: 100%;
+
+                opacity: 0;
+
+                cursor: pointer;
+
+                appearance: none;
+
+                z-index: 10;
+
+                border: none;
+
+                margin: 0;
+
+                padding: 0;
+
+            }
+
+        }
+
       }
-    }.extra-management {
+
+      
+
+      /* Ajustes para Móvil */
+
+      @media (max-width: 600px) {
+
+          .item {
+
+              padding: 0.5rem 0.4rem;
+
+              gap: 0.4rem;
+
+      
+
+              .item-label {
+
+                  gap: 0.3rem;
+
+                  
+
+                  .name {
+
+                      font-size: 0.85rem;
+
+                      white-space: nowrap;
+
+                      overflow: hidden;
+
+                      text-overflow: ellipsis; // Truncate long names
+
+                  }
+
+              }
+
+      
+
+              .quantity-edit-input {
+
+                  width: 60px;
+
+                  font-size: 0.8rem;
+
+              }
+
+      
+
+              .tag-chip-container {
+
+                  width: 24px;
+
+                  height: 24px;
+
+                  
+
+                  lib-tag {
+
+                      min-width: 24px;
+
+                      padding: 0;
+
+                      border-radius: 50%;
+
+                      overflow: hidden;
+
+                      
+
+                      ::ng-deep .tag {
+
+                          padding: 0;
+
+                          width: 24px;
+
+                          height: 24px;
+
+                          justify-content: center;
+
+                          border-radius: 50%;
+
+                      }
+
+      
+
+                      ::ng-deep .text {
+
+                          display: inline-block;
+
+                          width: 1ch;
+
+                          overflow: hidden;
+
+                          text-transform: uppercase;
+
+                      }
+
+                  }
+
+              }
+
+          }
+
+      }.extra-management {
   margin-top: 2rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding-top: 1rem;

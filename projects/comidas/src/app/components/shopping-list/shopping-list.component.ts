@@ -55,6 +55,11 @@ export class ShoppingListComponent {
     const select = event.target as HTMLSelectElement;
     this.mealService.setIngredientTag(itemName, select.value);
   }
+
+  editQuantity(itemName: string, event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.mealService.overrideQuantity(itemName, input.value);
+  }
   
   getTagColor(tagId?: string): string {
     if (!tagId) return '#e0e0e0'; // Gray for no tag

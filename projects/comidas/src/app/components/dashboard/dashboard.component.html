@@ -43,17 +43,45 @@
         class="day-panel"
       >
         <div class="meal-slots">
+          <!-- Desayuno -->
+          <div class="slot">
+            <span class="label">Desayuno:</span>
+            <a [routerLink]="['/schedule', day.dayName, 'desayuno']" class="meal-link">
+              {{ getMealName(day.desayuno) }}
+            </a>
+          </div>
+
+          <!-- Almuerzo -->
           <div class="slot">
             <span class="label">Almuerzo:</span>
             <a [routerLink]="['/schedule', day.dayName, 'almuerzo']" class="meal-link">
               {{ getMealName(day.almuerzo) }}
             </a>
           </div>
+          <div class="slot postre-slot">
+            <span class="label">Postre Almuerzo:</span>
+            <input type="text" class="postre-input" [value]="day.postreAlmuerzo || ''" 
+                (change)="updateField(day.dayName, 'postreAlmuerzo', $event)" placeholder="Fruta, yogurt...">
+          </div>
+
+          <!-- Colación -->
+          <div class="slot postre-slot">
+            <span class="label">Colación:</span>
+            <input type="text" class="postre-input" [value]="day.colacion || ''" 
+                (change)="updateField(day.dayName, 'colacion', $event)" placeholder="Fruta, frutos secos...">
+          </div>
+
+          <!-- Cena -->
           <div class="slot">
-            <span class="label">Desayuno:</span>
-            <a [routerLink]="['/schedule', day.dayName, 'desayuno']" class="meal-link">
-              {{ getMealName(day.desayuno) }}
+            <span class="label">Cena:</span>
+            <a [routerLink]="['/schedule', day.dayName, 'cena']" class="meal-link">
+              {{ getMealName(day.cena) }}
             </a>
+          </div>
+          <div class="slot postre-slot">
+            <span class="label">Postre Cena:</span>
+            <input type="text" class="postre-input" [value]="day.postreCena || ''" 
+                (change)="updateField(day.dayName, 'postreCena', $event)" placeholder="Gelatina, fruta...">
           </div>
         </div>
       </lib-panel>
@@ -64,7 +92,7 @@
     <button (click)="mealService.clearSchedule()" class="btn-clear">Limpiar Semana</button>
   </div>
 
-  <!-- Vista exclusiva para impresión (oculta en pantalla) -->
+  <!-- Vista exclusiva para impresión -->
   <div class="print-only-section">
     <h1>Menú Semanal</h1>
     <h2 class="print-date-range">{{ mealService.weekRangeDisplay() }}</h2>
@@ -73,16 +101,26 @@
       <thead>
         <tr>
           <th>Día</th>
-          <th>Almuerzo</th>
           <th>Desayuno</th>
+          <th>Almuerzo</th>
+          <th>Colación</th>
+          <th>Cena</th>
         </tr>
       </thead>
       <tbody>
         @for (day of mealService.schedule(); track day.dayName) {
           <tr>
             <td class="day-name"><strong>{{ day.dayName }}</strong></td>
-            <td>{{ getMealName(day.almuerzo) }}</td>
             <td>{{ getMealName(day.desayuno) }}</td>
+            <td>
+                {{ getMealName(day.almuerzo) }}
+                <div class="print-sub" *ngIf="day.postreAlmuerzo">Postre: {{ day.postreAlmuerzo }}</div>
+            </td>
+            <td>{{ day.colacion || '-' }}</td>
+            <td>
+                {{ getMealName(day.cena) }}
+                <div class="print-sub" *ngIf="day.postreCena">Postre: {{ day.postreCena }}</div>
+            </td>
           </tr>
         }
       </tbody>

@@ -14,8 +14,10 @@ export class MealCardComponent {
   @Input({ required: true }) meal!: Meal;
   @Input() showDelete: boolean = false;
   @Input() showEdit: boolean = false;
+  @Input() showDuplicate: boolean = false;
   @Output() delete = new EventEmitter<string>();
   @Output() edit = new EventEmitter<string>();
+  @Output() duplicate = new EventEmitter<string>();
   @Output() cardClick = new EventEmitter<void>();
 
   onDelete(event: Event) {
@@ -26,6 +28,11 @@ export class MealCardComponent {
   onEdit(event: Event) {
     event.stopPropagation();
     this.edit.emit(this.meal.id);
+  }
+
+  onDuplicate(event: Event) {
+    event.stopPropagation();
+    this.duplicate.emit(this.meal.id);
   }
 
   onCardClick() {

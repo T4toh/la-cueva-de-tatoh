@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MealService } from '../../services/meal.service';
+import { DaySchedule } from '../../models/meal.model';
 import { Panel } from 'componentes';
 import { FormsModule } from '@angular/forms';
 
@@ -62,5 +63,10 @@ export class DashboardComponent {
   updatePortions(event: Event) {
       const input = event.target as HTMLInputElement;
       this.mealService.setFamilyPortions(Number(input.value));
+  }
+
+  updateField(dayName: string, field: keyof DaySchedule, event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.mealService.updateSchedule(dayName, field, input.value);
   }
 }

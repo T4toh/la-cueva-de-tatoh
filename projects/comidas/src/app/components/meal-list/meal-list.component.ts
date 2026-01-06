@@ -25,6 +25,10 @@ export class MealListComponent {
     this.router.navigate(['/meals/edit', id]);
   }
 
+  duplicateMeal(id: string) {
+    this.mealService.duplicateMeal(id);
+  }
+
   printRecipes() {
     window.print();
   }

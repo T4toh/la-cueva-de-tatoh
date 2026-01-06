@@ -10,7 +10,9 @@
       <app-meal-card 
         [meal]="meal" 
         [showEdit]="true"
+        [showDuplicate]="true"
         (edit)="editMeal($event)"
+        (duplicate)="duplicateMeal($event)"
         (cardClick)="selectMeal(meal.id)"
       ></app-meal-card>
     } @empty {

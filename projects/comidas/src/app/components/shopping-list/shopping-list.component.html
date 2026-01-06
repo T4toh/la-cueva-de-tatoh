@@ -65,13 +65,17 @@
                 type="checkbox"
                 [id]="item.name + (group.tag?.id || 'untagged')"
               />
-              <label
-                [for]="item.name + (group.tag?.id || 'untagged')"
-                class="item-label"
-              >
-                <span class="name">{{ item.name }}</span>
-                <span class="quantity">{{ item.quantity }}</span>
-              </label>
+                              <label [for]="item.name + (group.tag?.id || 'untagged')" class="item-label">
+                                <span class="name">{{ item.name }}</span>
+                                <div class="quantity-container">
+                                  <input 
+                                      type="text" 
+                                      class="quantity-edit-input" 
+                                      [value]="item.quantityOverride || item.quantity" 
+                                      (change)="editQuantity(item.name, $event)"
+                                      (click)="$event.stopPropagation()">
+                                </div>
+                              </label>
 
               <div class="tag-chip-container">
                 <lib-tag

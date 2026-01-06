@@ -8,18 +8,21 @@ export class MealService {
   private readonly MEALS_KEY = 'comidas_meals';
   private readonly SCHEDULES_KEY = 'comidas_schedules';
   private readonly TAGS_KEY = 'comidas_tags';
-  private readonly INGREDIENT_TAGS_KEY = 'comidas_ingredient_tags'; // Map name -> tagId
+  private readonly INGREDIENT_TAGS_KEY = 'comidas_ingredient_tags'; 
   private readonly EXTRA_ITEMS_KEY = 'comidas_extra_items';
   private readonly FAMILY_SETTINGS_KEY = 'comidas_family_settings';
+  private readonly QUANTITY_OVERRIDES_KEY = 'comidas_quantity_overrides';
 
   // State
   meals = signal<Meal[]>(this.loadMeals());
-  // Map of weekStart (YYYY-MM-DD) -> DaySchedule[]
   private schedules = signal<Record<string, DaySchedule[]>>(this.loadSchedules());
   
   tags = signal<ShoppingTag[]>(this.loadTags());
   ingredientTags = signal<Record<string, string>>(this.loadIngredientTags());
   extraItems = signal<ShoppingItem[]>(this.loadExtraItems());
+  
+  // Map of "weekKey_ingredientName" -> newQuantity
+  quantityOverrides = signal<Record<string, string>>(this.loadOverrides());
 
   // Family Mode State
   isFamilyMode = signal<boolean>(false);
@@ -48,6 +51,9 @@ export class MealService {
       localStorage.setItem(this.EXTRA_ITEMS_KEY, JSON.stringify(this.extraItems()));
     });
     effect(() => {
+      localStorage.setItem(this.QUANTITY_OVERRIDES_KEY, JSON.stringify(this.quantityOverrides()));
+    });
+    effect(() => {
       const settings = {
         isFamilyMode: this.isFamilyMode(),
         familyPortions: this.familyPortions()
@@ -56,7 +62,6 @@ export class MealService {
     });
   }
 
-  // ... (Helper methods remain the same) ...
   private getStartOfWeek(date: Date): Date {
     const d = new Date(date);
     const day = d.getDay();
@@ -78,22 +83,12 @@ export class MealService {
 
   private loadSchedules(): Record<string, DaySchedule[]> {
     const data = localStorage.getItem(this.SCHEDULES_KEY);
-    if (data) {
-      return JSON.parse(data);
-    }
-    const oldData = localStorage.getItem('comidas_schedule');
-    if (oldData) {
-      const schedule = JSON.parse(oldData);
-      const key = this.formatDateKey(this.getStartOfWeek(new Date()));
-      return { [key]: schedule };
-    }
-    return {};
+    return data ? JSON.parse(data) : {};
   }
 
   private loadTags(): ShoppingTag[] {
     const data = localStorage.getItem(this.TAGS_KEY);
     if (data) return JSON.parse(data);
-    
     return [
       { id: 'verduderia', name: 'Verdulería', color: '#4caf50' },
       { id: 'carniceria', name: 'Carnicería', color: '#f44336' },
@@ -111,6 +106,11 @@ export class MealService {
     return data ? JSON.parse(data) : [];
   }
 
+  private loadOverrides(): Record<string, string> {
+    const data = localStorage.getItem(this.QUANTITY_OVERRIDES_KEY);
+    return data ? JSON.parse(data) : {};
+  }
+
   private loadFamilySettings() {
     const data = localStorage.getItem(this.FAMILY_SETTINGS_KEY);
     if (data) {
@@ -124,8 +124,12 @@ export class MealService {
     const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
     return days.map(day => ({
       dayName: day,
+      desayuno: null,
       almuerzo: null,
-      desayuno: null
+      postreAlmuerzo: null,
+      colacion: null,
+      cena: null,
+      postreCena: null
     }));
   }
 
@@ -139,7 +143,6 @@ export class MealService {
     const start = this.currentWeekStart();
     const end = new Date(start);
     end.setDate(start.getDate() + 6);
-    
     const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
     return `${start.toLocaleDateString('es-ES', options)} - ${end.toLocaleDateString('es-ES', options)}`;
   });
@@ -155,9 +158,7 @@ export class MealService {
   }
 
   updateMeal(id: string, updatedMeal: Partial<Meal>) {
-    this.meals.update(current =>
-      current.map(m => m.id === id ? { ...m, ...updatedMeal } : m)
-    );
+    this.meals.update(current => current.map(m => m.id === id ? { ...m, ...updatedMeal } : m));
   }
 
   deleteMeal(id: string) {
@@ -168,11 +169,24 @@ export class MealService {
         newSchedules[key] = week.map(day => ({
           ...day,
           almuerzo: day.almuerzo === id ? null : day.almuerzo,
-          desayuno: day.desayuno === id ? null : day.desayuno
+          desayuno: day.desayuno === id ? null : day.desayuno,
+          cena: day.cena === id ? null : day.cena
         }));
       }
       return newSchedules;
     });
+  }
+
+  duplicateMeal(id: string) {
+    const original = this.getMeal(id);
+    if (original) {
+      const copy: Omit<Meal, 'id'> = {
+        name: `${original.name} (Copia)`,
+        description: original.description,
+        ingredients: original.ingredients.map(i => ({ ...i }))
+      };
+      this.addMeal(copy);
+    }
   }
 
   getMeal(id: string | null): Meal | undefined {
@@ -180,30 +194,20 @@ export class MealService {
     return this.meals().find(m => m.id === id);
   }
 
-  // Schedule Actions
-  updateSchedule(dayName: string, type: MealType, mealId: string | null) {
+  updateSchedule(dayName: string, type: keyof DaySchedule, value: string | null) {
     const key = this.formatDateKey(this.currentWeekStart());
     const currentWeekSchedule = this.schedule(); 
-    
     const updatedWeek = currentWeekSchedule.map(day =>
-      day.dayName === dayName ? { ...day, [type]: mealId } : day
+      day.dayName === dayName ? { ...day, [type]: value } : day
     );
-
-    this.schedules.update(s => ({
-      ...s,
-      [key]: updatedWeek
-    }));
+    this.schedules.update(s => ({ ...s, [key]: updatedWeek }));
   }
   
   clearSchedule() {
     const key = this.formatDateKey(this.currentWeekStart());
-    this.schedules.update(s => ({
-      ...s,
-      [key]: this.createEmptySchedule()
-    }));
+    this.schedules.update(s => ({ ...s, [key]: this.createEmptySchedule() }));
   }
 
-  // Week Navigation
   nextWeek() {
     const next = new Date(this.currentWeekStart());
     next.setDate(next.getDate() + 7);
@@ -226,7 +230,6 @@ export class MealService {
     prevDate.setDate(prevDate.getDate() - 7);
     const prevKey = this.formatDateKey(prevDate);
     const prevSchedule = this.schedules()[prevKey];
-    
     if (prevSchedule) {
       const copy = JSON.parse(JSON.stringify(prevSchedule));
       this.schedules.update(s => ({ ...s, [currentKey]: copy }));
@@ -235,7 +238,6 @@ export class MealService {
     }
   }
 
-  // Tag Actions
   addTag(name: string, color: string) {
     const newTag: ShoppingTag = { id: this.generateId(), name, color };
     this.tags.update(t => [...t, newTag]);
@@ -246,57 +248,49 @@ export class MealService {
     this.ingredientTags.update(map => ({ ...map, [key]: tagId }));
   }
 
-  // Extra Items Actions
   addExtraItem(name: string, quantity: string, tagId?: string) {
     const newItem: ShoppingItem = { name, quantity, tagId, isExtra: true };
     this.extraItems.update(items => [...items, newItem]);
-    
-    // Also remember the tag preference
-    if (tagId) {
-        this.setIngredientTag(name, tagId);
-    }
+    if (tagId) this.setIngredientTag(name, tagId);
   }
 
   removeExtraItem(index: number) {
     this.extraItems.update(items => items.filter((_, i) => i !== index));
   }
 
-  // Helper to multiply quantities
+  overrideQuantity(ingredientName: string, newQuantity: string) {
+    const weekKey = this.formatDateKey(this.currentWeekStart());
+    const key = `${weekKey}_${ingredientName.toLowerCase().trim()}`;
+    this.quantityOverrides.update(o => ({ ...o, [key]: newQuantity }));
+  }
+
   private multiplyQuantity(quantity: string, factor: number): string {
     if (factor <= 1) return quantity;
-    
-    // Try to find a number at the start (e.g., "500g", "2 paquetes", "1.5 kg")
     const match = quantity.trim().match(/^(\d+(\.\d+)?)\s*(.*)$/);
-    
     if (match) {
       const value = parseFloat(match[1]);
       const unit = match[3];
       const newValue = value * factor;
-      // If unit is empty, just return number
       return unit ? `${newValue} ${unit}` : `${newValue}`;
     }
-    
-    // Fallback: append multiplier hint
     return `${quantity} (x${factor})`;
   }
 
-  // Grouped Shopping List
   shoppingListGrouped = computed(() => {
     const items: ShoppingItem[] = [];
     const currentSchedule = this.schedule();
     const allMeals = this.meals();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const displayWeekStart = this.currentWeekStart();
+    const weekStart = this.currentWeekStart();
+    const weekKey = this.formatDateKey(weekStart);
     const tagMap = this.ingredientTags();
-    
-    const isFamily = this.isFamilyMode();
-    const multiplier = isFamily ? this.familyPortions() : 1;
+    const overrides = this.quantityOverrides();
+    const multiplier = this.isFamilyMode() ? this.familyPortions() : 1;
 
-    // 1. Gather ingredients from schedule
     currentSchedule.forEach((day, index) => {
-      const dayDate = new Date(displayWeekStart);
-      dayDate.setDate(displayWeekStart.getDate() + index);
+      const dayDate = new Date(weekStart);
+      dayDate.setDate(weekStart.getDate() + index);
 
       if (dayDate >= today) {
         const processMeal = (mealId: string | null) => {
@@ -305,78 +299,55 @@ export class MealService {
            if (meal) {
              meal.ingredients.forEach(ing => {
                const key = ing.name.toLowerCase().trim();
-               const tagId = tagMap[key];
                const quantity = this.multiplyQuantity(ing.quantity, multiplier);
-               items.push({ ...ing, quantity, tagId, isExtra: false });
+               items.push({ ...ing, quantity, tagId: tagMap[key], isExtra: false });
              });
            }
         };
         processMeal(day.almuerzo);
         processMeal(day.desayuno);
+        processMeal(day.cena);
       }
     });
 
-    // 2. Add extra items
     this.extraItems().forEach(extra => {
         const key = extra.name.toLowerCase().trim();
-        const tagId = extra.tagId || tagMap[key];
-        items.push({ ...extra, tagId });
+        items.push({ ...extra, tagId: extra.tagId || tagMap[key] });
     });
 
-    // 3. Aggregate
     const aggregated: { [key: string]: ShoppingItem } = {};
     items.forEach(item => {
       const key = item.name.toLowerCase().trim();
       if (aggregated[key]) {
         aggregated[key].quantity += ` + ${item.quantity}`;
-        if (!aggregated[key].tagId && item.tagId) {
-            aggregated[key].tagId = item.tagId;
-        }
+        if (!aggregated[key].tagId && item.tagId) aggregated[key].tagId = item.tagId;
       } else {
         aggregated[key] = { ...item };
       }
     });
 
-    // 4. Group by Tag
-    const groups: ShoppingListGroup[] = [];
-    const allTags = this.tags();
-    
-    allTags.forEach(tag => {
-        groups.push({ tag, items: [] });
-    });
+    const groups: ShoppingListGroup[] = this.tags().map(tag => ({ tag, items: [] }));
     const uncategorizedGroup: ShoppingListGroup = { tag: null, items: [] };
     groups.push(uncategorizedGroup);
 
     Object.values(aggregated).forEach(item => {
-        if (item.tagId) {
-            const group = groups.find(g => g.tag?.id === item.tagId);
-            if (group) {
-                group.items.push(item);
-            } else {
-                uncategorizedGroup.items.push(item);
-            }
-        } else {
-            uncategorizedGroup.items.push(item);
+        const overrideKey = `${weekKey}_${item.name.toLowerCase().trim()}`;
+        if (overrides[overrideKey]) {
+            item.quantityOverride = overrides[overrideKey];
         }
+        
+        const group = item.tagId ? groups.find(g => g.tag?.id === item.tagId) : null;
+        (group || uncategorizedGroup).items.push(item);
     });
 
     return groups.filter(g => g.items.length > 0);
   });
   
-  shoppingList = computed(() => {
-      return this.shoppingListGrouped().flatMap(g => g.items);
-  });
+  shoppingList = computed(() => this.shoppingListGrouped().flatMap(g => g.items));
 
-  // Toggle Family Mode
-  toggleFamilyMode() {
-    this.isFamilyMode.update(v => !v);
-  }
+  toggleFamilyMode() { this.isFamilyMode.update(v => !v); }
+  setFamilyPortions(portions: number) { this.familyPortions.set(portions); }
 
-  setFamilyPortions(portions: number) {
-    this.familyPortions.set(portions);
-  }
-
-  // Backup & Restore
   exportData() {
     const data = {
       meals: this.meals(),
@@ -384,13 +355,10 @@ export class MealService {
       tags: this.tags(),
       ingredientTags: this.ingredientTags(),
       extraItems: this.extraItems(),
-      familySettings: {
-        isFamilyMode: this.isFamilyMode(),
-        familyPortions: this.familyPortions()
-      },
-      version: '1.0'
+      overrides: this.quantityOverrides(),
+      familySettings: { isFamilyMode: this.isFamilyMode(), familyPortions: this.familyPortions() },
+      version: '1.1'
     };
-
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -403,18 +371,16 @@ export class MealService {
   importData(jsonContent: string) {
     try {
       const data = JSON.parse(jsonContent);
-      
       if (data.meals) this.meals.set(data.meals);
       if (data.schedules) this.schedules.set(data.schedules);
       if (data.tags) this.tags.set(data.tags);
       if (data.ingredientTags) this.ingredientTags.set(data.ingredientTags);
       if (data.extraItems) this.extraItems.set(data.extraItems);
-      
+      if (data.overrides) this.quantityOverrides.set(data.overrides);
       if (data.familySettings) {
         this.isFamilyMode.set(data.familySettings.isFamilyMode);
         this.familyPortions.set(data.familySettings.familyPortions);
       }
-
       alert('¡Datos importados con éxito!');
     } catch (error) {
       console.error('Error al importar:', error);

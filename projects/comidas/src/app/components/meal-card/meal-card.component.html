@@ -19,8 +19,11 @@
         }
       </div>
 
-      @if (showEdit || showDelete) {
+      @if (showEdit || showDelete || showDuplicate) {
         <div class="card-footer">
+          <button *ngIf="showDuplicate" (click)="onDuplicate($event)" class="btn-icon" title="Duplicar">
+              📑
+          </button>
           <button *ngIf="showEdit" (click)="onEdit($event)" class="btn-icon" title="Editar">
               ✏️
           </button>

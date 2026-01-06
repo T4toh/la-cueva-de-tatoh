@@ -13,8 +13,10 @@
         [meal]="meal"
         [showDelete]="true"
         [showEdit]="true"
+        [showDuplicate]="true"
         (delete)="deleteMeal(meal.id)"
         (edit)="editMeal($event)"
+        (duplicate)="duplicateMeal($event)"
         (cardClick)="editMeal(meal.id)"
       ></app-meal-card>
     } @empty {

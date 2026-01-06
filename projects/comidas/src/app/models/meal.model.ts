@@ -11,13 +11,17 @@ export interface Meal {
   description?: string;
 }
 
-export type MealType = 'almuerzo' | 'desayuno';
+export type MealType = 'almuerzo' | 'desayuno' | 'cena' | 'colacion' | 'postreAlmuerzo' | 'postreCena';
 
 export interface DaySchedule {
-  dayName: string; // Lunes, Martes, etc.
-  date?: string; // ISO string date
-  almuerzo: string | null; // Meal ID
-  desayuno: string | null; // Meal ID
+  dayName: string; 
+  date?: string; 
+  desayuno: string | null;
+  almuerzo: string | null; 
+  postreAlmuerzo: string | null;
+  colacion: string | null;
+  cena: string | null;
+  postreCena: string | null;
 }
 
 export interface ShoppingTag {
@@ -29,9 +33,10 @@ export interface ShoppingTag {
 export interface ShoppingItem extends Ingredient {
   tagId?: string;
   isExtra?: boolean;
+  quantityOverride?: string;
 }
 
 export interface ShoppingListGroup {
-  tag: ShoppingTag | null; // null for "Uncategorized"
+  tag: ShoppingTag | null; 
   items: ShoppingItem[];
 }

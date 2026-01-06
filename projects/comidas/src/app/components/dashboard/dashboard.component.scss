@@ -198,6 +198,26 @@ input:checked + .slider:before {
   padding: 0.5rem;
   border-radius: 4px;
 
+  &.postre-slot {
+      background: rgba(255, 255, 255, 0.05);
+  }
+
+  .postre-input {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      color: white;
+      font-size: 0.9rem;
+      padding: 2px 0;
+      width: 100%;
+      
+      &:focus {
+          outline: none;
+          border-bottom-color: var(--color-3);
+          box-shadow: none;
+      }
+  }
+
   .label {
     font-size: 0.8rem;
     color: var(--color-5);
@@ -301,9 +321,16 @@ input:checked + .slider:before {
         }
 
         .day-name {
-            width: 20%;
+            width: 15%;
             background-color: #f9f9f9 !important;
             -webkit-print-color-adjust: exact;
+        }
+
+        .print-sub {
+            font-size: 9pt;
+            color: #555;
+            margin-top: 4pt;
+            font-style: italic;
         }
     }
 

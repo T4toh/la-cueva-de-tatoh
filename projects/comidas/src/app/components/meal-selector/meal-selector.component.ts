@@ -33,6 +33,10 @@ export class MealSelectorComponent implements OnInit {
   editMeal(id: string) {
     this.router.navigate(['/meals/edit', id]);
   }
+
+  duplicateMeal(id: string) {
+    this.mealService.duplicateMeal(id);
+  }
   
   clearSelection() {
     this.mealService.updateSchedule(this.dayName, this.type, null);
