@@ -1,9 +1,12 @@
 {
-  "name": "comidas",
-  "short_name": "comidas",
+  "name": "Comidas - La Cueva de Tatoh",
+  "short_name": "Comidas",
+  "description": "Planificador de menú semanal y lista de compras inteligente.",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",
+  "background_color": "#1e1e48",
+  "theme_color": "#3e3f7e",
   "icons": [
     {
       "src": "icons/icon-72x72.png",

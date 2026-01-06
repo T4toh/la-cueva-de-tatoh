@@ -375,4 +375,50 @@ export class MealService {
   setFamilyPortions(portions: number) {
     this.familyPortions.set(portions);
   }
+
+  // Backup & Restore
+  exportData() {
+    const data = {
+      meals: this.meals(),
+      schedules: this.schedules(),
+      tags: this.tags(),
+      ingredientTags: this.ingredientTags(),
+      extraItems: this.extraItems(),
+      familySettings: {
+        isFamilyMode: this.isFamilyMode(),
+        familyPortions: this.familyPortions()
+      },
+      version: '1.0'
+    };
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `comidas-backup-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  importData(jsonContent: string) {
+    try {
+      const data = JSON.parse(jsonContent);
+      
+      if (data.meals) this.meals.set(data.meals);
+      if (data.schedules) this.schedules.set(data.schedules);
+      if (data.tags) this.tags.set(data.tags);
+      if (data.ingredientTags) this.ingredientTags.set(data.ingredientTags);
+      if (data.extraItems) this.extraItems.set(data.extraItems);
+      
+      if (data.familySettings) {
+        this.isFamilyMode.set(data.familySettings.isFamilyMode);
+        this.familyPortions.set(data.familySettings.familyPortions);
+      }
+
+      alert('¡Datos importados con éxito!');
+    } catch (error) {
+      console.error('Error al importar:', error);
+      alert('Error: El archivo no tiene un formato válido.');
+    }
+  }
 }
