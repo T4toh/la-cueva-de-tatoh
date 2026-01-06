@@ -23,6 +23,16 @@ export const routes: Routes = [
       import('./componentes/libros/libros').then((m) => m.Libros),
   },
   {
+    path: 'comidas',
+    canActivate: [
+      () => {
+        window.location.href = '/comidas/';
+        return false;
+      },
+    ],
+    component: class {}, // Dummy component
+  },
+  {
     path: '**',
     loadComponent: () =>
       import('./componentes/not-found/not-found').then((m) => m.NotFound),
