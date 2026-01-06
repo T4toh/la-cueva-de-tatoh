@@ -113,4 +113,21 @@
       </div>
     </div>
   }
+
+  <!-- Vista exclusiva para impresión (Correctamente ubicada fuera de los loops) -->
+  <div class="print-only-section">
+    <h1>Lista de Compras</h1>
+    <h2 class="print-date-range">{{ mealService.weekRangeDisplay() }}</h2>
+
+    @for (group of mealService.shoppingListGrouped(); track group.tag?.id || 'untagged') {
+      <div class="print-group">
+        <h3>{{ group.tag ? group.tag.name : 'Otros' }}</h3>
+        <ul>
+          @for (item of group.items; track item.name) {
+            <li>[ ] {{ item.name }}: {{ item.quantity }}</li>
+          }
+        </ul>
+      </div>
+    }
+  </div>
 </div>

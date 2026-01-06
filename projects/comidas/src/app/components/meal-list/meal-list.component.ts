@@ -24,4 +24,8 @@ export class MealListComponent {
   editMeal(id: string) {
     this.router.navigate(['/meals/edit', id]);
   }
+
+  printRecipes() {
+    window.print();
+  }
 }

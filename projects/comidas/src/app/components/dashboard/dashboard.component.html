@@ -1,16 +1,34 @@
 <div class="dashboard-container">
-  <div class="week-controls">
-    <button (click)="mealService.previousWeek()" class="btn-nav">&lt;</button>
-    <div class="week-info">
-      <h1>Plan Semanal</h1>
-      <span class="date-range">{{ mealService.weekRangeDisplay() }}</span>
+  <div class="header-controls">
+    <div class="week-controls">
+      <button (click)="mealService.previousWeek()" class="btn-nav">&lt;</button>
+      <div class="week-info">
+        <h1>Plan Semanal</h1>
+        <span class="date-range">{{ mealService.weekRangeDisplay() }}</span>
+      </div>
+      <button (click)="mealService.nextWeek()" class="btn-nav">&gt;</button>
     </div>
-    <button (click)="mealService.nextWeek()" class="btn-nav">&gt;</button>
+    
+    <div class="family-mode-toggle">
+        <label class="switch">
+            <input type="checkbox" [checked]="mealService.isFamilyMode()" (change)="mealService.toggleFamilyMode()">
+            <span class="slider round"></span>
+        </label>
+        <span class="mode-label">{{ mealService.isFamilyMode() ? 'Modo Familiar' : 'Modo Individual' }}</span>
+        
+        @if (mealService.isFamilyMode()) {
+            <div class="portions-input">
+                <span>x</span>
+                <input type="number" [value]="mealService.familyPortions()" (change)="updatePortions($event)" min="1">
+            </div>
+        }
+    </div>
   </div>
   
   <div class="actions-top">
     <button (click)="mealService.goToCurrentWeek()" class="btn-secondary">Hoy</button>
     <button (click)="mealService.copyFromPreviousWeek()" class="btn-secondary">Copiar semana anterior</button>
+    <button (click)="printMenu()" class="btn-secondary btn-print">Imprimir Menú</button>
   </div>
 
   <div class="schedule-grid">
@@ -44,5 +62,34 @@
 
   <div class="actions">
     <button (click)="mealService.clearSchedule()" class="btn-clear">Limpiar Semana</button>
+  </div>
+
+  <!-- Vista exclusiva para impresión (oculta en pantalla) -->
+  <div class="print-only-section">
+    <h1>Menú Semanal</h1>
+    <h2 class="print-date-range">{{ mealService.weekRangeDisplay() }}</h2>
+    
+    <table class="print-table">
+      <thead>
+        <tr>
+          <th>Día</th>
+          <th>Almuerzo</th>
+          <th>Desayuno</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (day of mealService.schedule(); track day.dayName) {
+          <tr>
+            <td class="day-name"><strong>{{ day.dayName }}</strong></td>
+            <td>{{ getMealName(day.almuerzo) }}</td>
+            <td>{{ getMealName(day.desayuno) }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    
+    <div class="print-footer">
+      <p>Generado con La Cueva de Tatoh - Comidas</p>
+    </div>
   </div>
 </div>

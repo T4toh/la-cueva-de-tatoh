@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MealService } from '../../services/meal.service';
 import { Panel } from 'componentes';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, Panel],
+  imports: [CommonModule, RouterModule, Panel, FormsModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
@@ -52,5 +53,14 @@ export class DashboardComponent {
     d.setDate(diff);
     d.setHours(0, 0, 0, 0);
     return d;
+  }
+  
+  printMenu() {
+    window.print();
+  }
+  
+  updatePortions(event: Event) {
+      const input = event.target as HTMLInputElement;
+      this.mealService.setFamilyPortions(Number(input.value));
   }
 }

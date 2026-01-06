@@ -4,11 +4,19 @@
   margin: 0 auto;
 }
 
+.header-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
 .week-controls {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  margin-bottom: 1rem;
+  gap: 1rem;
 
   .week-info {
     text-align: center;
@@ -44,11 +52,99 @@
   }
 }
 
+.family-mode-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(0,0,0,0.2);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    
+    .mode-label {
+        color: white;
+        font-size: 0.9rem;
+    }
+    
+    .portions-input {
+        display: flex;
+        align-items: center;
+        gap: 0.2rem;
+        color: white;
+        
+        input {
+            width: 40px;
+            padding: 2px;
+            text-align: center;
+            border-radius: 4px;
+            border: 1px solid var(--color-4);
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+    }
+}
+
+/* Toggle Switch Styles */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+}
+
+.switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: var(--color-3);
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px var(--color-3);
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
 .actions-top {
   display: flex;
   justify-content: center;
   gap: 1rem;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
   
   .btn-secondary {
     background: transparent;
@@ -77,14 +173,14 @@
   &.is-today {
     transform: scale(1.02);
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-    border-radius: 12px; // Match standard panel rounding
+    border-radius: 12px;
     z-index: 10;
   }
 
   &.is-past {
     opacity: 0.6;
     filter: grayscale(0.5);
-    pointer-events: none; // Block interactions
+    pointer-events: none; 
   }
 }
 
@@ -140,4 +236,83 @@
       background-color: #b71c1c;
     }
   }
+}
+
+/* Print Styles */
+.print-only-section {
+    display: none;
+}
+
+@media print {
+    @page {
+        size: A4;
+        margin: 1cm;
+    }
+
+    body {
+        background: white !important;
+        color: black !important;
+    }
+
+    .dashboard-container > *:not(.print-only-section) {
+        display: none !important;
+    }
+    
+    nav.main-nav {
+        display: none !important;
+    }
+
+    .print-only-section {
+        display: block !important;
+        width: 100%;
+        font-family: 'Libre Franklin', sans-serif;
+
+        h1 {
+            text-align: center;
+            font-size: 28pt;
+            margin-bottom: 5pt;
+            color: black !important;
+        }
+
+        .print-date-range {
+            text-align: center;
+            font-size: 16pt;
+            margin-bottom: 30pt;
+            color: #666 !important;
+        }
+    }
+
+    .print-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20pt;
+
+        th, td {
+            border: 1px solid #333;
+            padding: 12pt;
+            text-align: left;
+            font-size: 12pt;
+        }
+
+        th {
+            background-color: #f0f0f0 !important;
+            font-weight: bold;
+            -webkit-print-color-adjust: exact;
+        }
+
+        .day-name {
+            width: 20%;
+            background-color: #f9f9f9 !important;
+            -webkit-print-color-adjust: exact;
+        }
+    }
+
+    .print-footer {
+        margin-top: 50pt;
+        text-align: center;
+        font-size: 9pt;
+        color: #999 !important;
+        border-top: 0.5pt solid #eee;
+        padding-top: 10pt;
+    }
 }

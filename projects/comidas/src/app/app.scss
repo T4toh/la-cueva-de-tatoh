@@ -37,6 +37,12 @@
   }
 }
 
+@media print {
+  .main-nav {
+    display: none !important;
+  }
+}
+
 main {
   flex: 1;
   padding-bottom: 2rem;

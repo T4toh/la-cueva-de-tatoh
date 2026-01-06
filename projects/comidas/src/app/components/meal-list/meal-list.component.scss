@@ -15,6 +15,26 @@
     margin: 0;
   }
 
+  .actions-header {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--color-4);
+      color: var(--color-5);
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      
+      &:hover {
+        border-color: white;
+        color: white;
+      }
+    }
+  }
+
   .btn-add {
     background-color: var(--color-3);
     color: white;
@@ -93,4 +113,34 @@
   grid-column: 1 / -1;
   color: var(--color-5);
   padding: 2rem;
+}
+
+.print-only-section {
+    display: none;
+}
+
+@media print {
+    body { background: white !important; color: black !important; }
+    .meal-list-container > *:not(.print-only-section) { display: none !important; }
+    
+    .print-only-section {
+        display: block !important;
+        h1 { text-align: center; border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 20px; }
+    }
+
+    .print-meals {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .print-meal-card {
+        border: 1px solid #ccc;
+        padding: 10px;
+        page-break-inside: avoid;
+        
+        h3 { margin-top: 0; border-bottom: 1px solid #eee; }
+        .print-desc { font-size: 0.9rem; color: #444; }
+        .print-ingredients { font-size: 0.9rem; padding-left: 20px; }
+    }
 }
