@@ -55,6 +55,18 @@ export class ShoppingListComponent {
     this.mealService.setIngredientTag(itemName, select.value);
   }
   
+  getTagColor(tagId?: string): string {
+    if (!tagId) return '#e0e0e0'; // Gray for no tag
+    const tag = this.mealService.tags().find(t => t.id === tagId);
+    return tag ? tag.color : '#e0e0e0';
+  }
+
+  getTagName(tagId?: string): string {
+    if (!tagId) return '+';
+    const tag = this.mealService.tags().find(t => t.id === tagId);
+    return tag ? tag.name : '+';
+  }
+  
   deleteExtraItem(index: number) {
       this.mealService.removeExtraItem(index);
   }

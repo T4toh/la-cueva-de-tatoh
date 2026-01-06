@@ -54,18 +54,25 @@
                   <span class="quantity">{{ item.quantity }}</span>
                 </label>
                 
-                <!-- Tag Selector for Quick Categorization -->
-                <select 
-                    class="tag-selector" 
-                    [value]="item.tagId || ''" 
-                    (change)="updateItemTag(item.name, $event)"
-                    (click)="$event.stopPropagation()"
+                <!-- Chip-style Tag Selector -->
+                <div 
+                    class="tag-chip" 
+                    [style.background-color]="getTagColor(item.tagId)"
+                    [class.has-tag]="!!item.tagId"
                 >
-                    <option value="">Tag...</option>
-                    @for (tag of mealService.tags(); track tag.id) {
-                        <option [value]="tag.id">{{ tag.name }}</option>
-                    }
-                </select>
+                    <span class="chip-text">{{ getTagName(item.tagId) }}</span>
+                    <select 
+                        class="hidden-select" 
+                        [value]="item.tagId || ''" 
+                        (change)="updateItemTag(item.name, $event)"
+                        (click)="$event.stopPropagation()"
+                    >
+                        <option value="">Sin Tag</option>
+                        @for (tag of mealService.tags(); track tag.id) {
+                            <option [value]="tag.id">{{ tag.name }}</option>
+                        }
+                    </select>
+                </div>
                 
                 @if(item.isExtra) {
                     <!-- How to delete extra items? We need ID or index. 
