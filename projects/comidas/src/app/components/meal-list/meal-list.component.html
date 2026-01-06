@@ -9,7 +9,9 @@
       <app-meal-card 
         [meal]="meal" 
         [showDelete]="true"
+        [showEdit]="true"
         (delete)="deleteMeal(meal.id)"
+        (edit)="editMeal($event)"
         (cardClick)="editMeal(meal.id)"
       ></app-meal-card>
     } @empty {

@@ -13,12 +13,19 @@ import { Panel } from 'componentes';
 export class MealCardComponent {
   @Input({ required: true }) meal!: Meal;
   @Input() showDelete: boolean = false;
+  @Input() showEdit: boolean = false;
   @Output() delete = new EventEmitter<string>();
+  @Output() edit = new EventEmitter<string>();
   @Output() cardClick = new EventEmitter<void>();
 
   onDelete(event: Event) {
     event.stopPropagation();
     this.delete.emit(this.meal.id);
+  }
+
+  onEdit(event: Event) {
+    event.stopPropagation();
+    this.edit.emit(this.meal.id);
   }
 
   onCardClick() {

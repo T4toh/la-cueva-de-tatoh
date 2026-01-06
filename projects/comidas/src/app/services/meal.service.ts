@@ -191,18 +191,29 @@ export class MealService {
     const list: Ingredient[] = [];
     const currentSchedule = this.schedule();
     const allMeals = this.meals();
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const displayWeekStart = this.currentWeekStart();
 
-    currentSchedule.forEach(day => {
-      if (day.almuerzo) {
-        const meal = allMeals.find(m => m.id === day.almuerzo);
-        if (meal) {
-          list.push(...meal.ingredients);
+    currentSchedule.forEach((day, index) => {
+      // Calculate date for this day
+      const dayDate = new Date(displayWeekStart);
+      dayDate.setDate(displayWeekStart.getDate() + index);
+
+      // Only include if day is today or in the future
+      if (dayDate >= today) {
+        if (day.almuerzo) {
+          const meal = allMeals.find(m => m.id === day.almuerzo);
+          if (meal) {
+            list.push(...meal.ingredients);
+          }
         }
-      }
-      if (day.desayuno) {
-        const meal = allMeals.find(m => m.id === day.desayuno);
-        if (meal) {
-          list.push(...meal.ingredients);
+        if (day.desayuno) {
+          const meal = allMeals.find(m => m.id === day.desayuno);
+          if (meal) {
+            list.push(...meal.ingredients);
+          }
         }
       }
     });

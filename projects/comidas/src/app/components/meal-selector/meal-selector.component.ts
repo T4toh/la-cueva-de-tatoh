@@ -29,6 +29,10 @@ export class MealSelectorComponent implements OnInit {
     this.mealService.updateSchedule(this.dayName, this.type, mealId);
     this.router.navigate(['/']);
   }
+
+  editMeal(id: string) {
+    this.router.navigate(['/meals/edit', id]);
+  }
   
   clearSelection() {
     this.mealService.updateSchedule(this.dayName, this.type, null);

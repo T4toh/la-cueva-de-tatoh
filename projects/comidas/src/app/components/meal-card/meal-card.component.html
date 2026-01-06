@@ -5,8 +5,11 @@
     [colorTexto]="'white'"
     [sombreado]="true"
   >
-    <div class="meal-header-addon" *ngIf="showDelete">
-        <button (click)="onDelete($event)" class="btn-delete-icon" title="Eliminar">
+    <div class="meal-header-addon">
+        <button *ngIf="showEdit" (click)="onEdit($event)" class="btn-icon" title="Editar">
+            ✏️
+        </button>
+        <button *ngIf="showDelete" (click)="onDelete($event)" class="btn-icon btn-delete" title="Eliminar">
             🗑️
         </button>
     </div>
