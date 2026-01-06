@@ -227,7 +227,8 @@
                   "maximumError": "8kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "serviceWorker": "projects/comidas/ngsw-config.json"
             },
             "development": {
               "optimization": false,
