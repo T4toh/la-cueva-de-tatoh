@@ -4,10 +4,64 @@
   margin: 0 auto;
 }
 
-h1 {
-  text-align: center;
-  color: var(--color-5);
+.week-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+
+  .week-info {
+    text-align: center;
+    
+    h1 {
+      color: var(--color-5);
+      margin: 0 0 0.5rem 0;
+    }
+
+    .date-range {
+      font-size: 1.2rem;
+      color: white;
+      font-weight: bold;
+    }
+  }
+
+  .btn-nav {
+    background: transparent;
+    border: 1px solid var(--color-4);
+    color: white;
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--color-3);
+    }
+  }
+}
+
+.actions-top {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
   margin-bottom: 2rem;
+  
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--color-4);
+    color: var(--color-5);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+  }
 }
 
 .schedule-grid {

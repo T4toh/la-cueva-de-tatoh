@@ -1,6 +1,18 @@
 <div class="dashboard-container">
-  <h1>Plan Semanal</h1>
+  <div class="week-controls">
+    <button (click)="mealService.previousWeek()" class="btn-nav">&lt;</button>
+    <div class="week-info">
+      <h1>Plan Semanal</h1>
+      <span class="date-range">{{ mealService.weekRangeDisplay() }}</span>
+    </div>
+    <button (click)="mealService.nextWeek()" class="btn-nav">&gt;</button>
+  </div>
   
+  <div class="actions-top">
+    <button (click)="mealService.goToCurrentWeek()" class="btn-secondary">Hoy</button>
+    <button (click)="mealService.copyFromPreviousWeek()" class="btn-secondary">Copiar semana anterior</button>
+  </div>
+
   <div class="schedule-grid">
     @for (day of mealService.schedule(); track day.dayName) {
       <lib-panel 
