@@ -1,0 +1,57 @@
+.meal-card {
+  cursor: pointer;
+  transition: transform 0.2s;
+  position: relative;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.meal-header-addon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+}
+
+.btn-delete-icon {
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s, transform 0.2s;
+
+    &:hover {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+}
+
+.meal-content {
+  padding-top: 0.5rem;
+  
+  .description {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    font-style: italic;
+    color: #ccc;
+  }
+
+  .ingredient-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0;
+    font-size: 0.85rem;
+    max-height: 120px;
+    overflow-y: auto;
+    
+    li {
+      padding: 2px 5px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 3px;
+      margin-bottom: 3px;
+    }
+  }
+}

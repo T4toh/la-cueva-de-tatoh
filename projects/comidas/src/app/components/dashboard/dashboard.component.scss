@@ -72,6 +72,19 @@
 
 .day-panel {
   height: 100%;
+  transition: all 0.3s;
+
+  &.is-today {
+    transform: scale(1.02);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    z-index: 10;
+  }
+
+  &.is-past {
+    opacity: 0.6;
+    filter: grayscale(0.5);
+    pointer-events: none; // Block interactions
+  }
 }
 
 .meal-slots {

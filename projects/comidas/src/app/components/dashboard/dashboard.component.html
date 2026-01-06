@@ -16,10 +16,12 @@
   <div class="schedule-grid">
     @for (day of mealService.schedule(); track day.dayName) {
       <lib-panel 
-        [texto]="day.dayName" 
-        [colorFondo]="'var(--color-3)'"
+        [texto]="day.dayName + (isToday(day.dayName) ? ' (Hoy)' : '')" 
+        [colorFondo]="isToday(day.dayName) ? 'var(--color-2)' : 'var(--color-3)'"
         [colorTexto]="'white'"
         [sombreado]="true"
+        [class.is-today]="isToday(day.dayName)"
+        [class.is-past]="isPast(day.dayName)"
         class="day-panel"
       >
         <div class="meal-slots">

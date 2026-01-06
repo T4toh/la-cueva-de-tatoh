@@ -6,28 +6,12 @@
 
   <div class="grid">
     @for (meal of mealService.meals(); track meal.id) {
-      <div class="meal-card" [routerLink]="['/meals/edit', meal.id]">
-        <lib-panel
-          [texto]="meal.name"
-          [colorFondo]="'var(--color-2)'"
-          [colorTexto]="'white'"
-          [sombreado]="true"
-        >
-          <div class="meal-content">
-            <ul class="ingredient-list">
-              @for (ing of meal.ingredients; track ing.name) {
-                <li>{{ing.name}} ({{ing.quantity}})</li>
-              } @empty {
-                <li>Sin ingredientes</li>
-              }
-            </ul>
-            @if (meal.description) {
-              <p class="description">{{ meal.description }}</p>
-            }
-            <button (click)="deleteMeal(meal.id, $event)" class="btn-delete">Eliminar</button>
-          </div>
-        </lib-panel>
-      </div>
+      <app-meal-card 
+        [meal]="meal" 
+        [showDelete]="true"
+        (delete)="deleteMeal(meal.id)"
+        (cardClick)="editMeal(meal.id)"
+      ></app-meal-card>
     } @empty {
       <p class="empty-state">No hay comidas guardadas. ¡Crea una!</p>
     }

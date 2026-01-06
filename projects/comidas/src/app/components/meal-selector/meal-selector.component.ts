@@ -3,12 +3,12 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MealService } from '../../services/meal.service';
 import { MealType } from '../../models/meal.model';
-import { Panel } from 'componentes';
+import { MealCardComponent } from '../meal-card/meal-card.component';
 
 @Component({
   selector: 'app-meal-selector',
   standalone: true,
-  imports: [CommonModule, RouterModule, Panel],
+  imports: [CommonModule, RouterModule, MealCardComponent],
   templateUrl: './meal-selector.component.html',
   styleUrls: ['./meal-selector.component.scss']
 })

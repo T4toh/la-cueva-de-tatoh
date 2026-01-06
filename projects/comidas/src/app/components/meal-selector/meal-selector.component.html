@@ -7,17 +7,10 @@
 
   <div class="grid">
     @for (meal of mealService.meals(); track meal.id) {
-      <div class="meal-card" (click)="selectMeal(meal.id)">
-        <lib-panel
-          [texto]="meal.name"
-          [colorFondo]="'var(--color-2)'"
-          [sombreado]="true"
-        >
-          <div class="meal-content">
-            <p>{{ meal.ingredients.length }} ingredientes</p>
-          </div>
-        </lib-panel>
-      </div>
+      <app-meal-card 
+        [meal]="meal" 
+        (cardClick)="selectMeal(meal.id)"
+      ></app-meal-card>
     } @empty {
       <p class="empty-state">
         No hay comidas creadas. 
