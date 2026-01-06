@@ -3,33 +3,54 @@
     [colorFondo]="'var(--color-2)'"
     [colorTexto]="'white'"
     [sombreado]="true"
-    [texto]="meal.name"
+    [texto]="meal().name"
   >
     <div class="meal-content-wrapper">
       <div class="meal-info">
         <ul class="ingredient-list">
-          @for (ing of meal.ingredients; track ing.name) {
-            <li>{{ing.name}} ({{ing.quantity}})</li>
+          @for (ing of meal().ingredients; track ing.name) {
+            <li>{{ ing.name }} ({{ ing.quantity }})</li>
           } @empty {
             <li>Sin ingredientes</li>
           }
         </ul>
-        @if (meal.description) {
-          <p class="description">{{ meal.description }}</p>
+        @if (meal().description) {
+          <p class="description">{{ meal().description }}</p>
         }
       </div>
 
-      @if (showEdit || showDelete || showDuplicate) {
+      @if (showEdit() || showDelete() || showDuplicate()) {
         <div class="card-footer">
-          <button *ngIf="showDuplicate" class="btn-icon" title="Duplicar" (click)="onDuplicate($event)">
+          @if (showDuplicate()) {
+            <button
+              class="btn-icon"
+              title="Duplicar"
+              type="button"
+              (click)="onDuplicate($event)"
+            >
               📑
-          </button>
-          <button *ngIf="showEdit" class="btn-icon" title="Editar" (click)="onEdit($event)">
+            </button>
+          }
+          @if (showEdit()) {
+            <button
+              class="btn-icon"
+              title="Editar"
+              type="button"
+              (click)="onEdit($event)"
+            >
               ✏️
-          </button>
-          <button *ngIf="showDelete" class="btn-icon btn-delete" title="Eliminar" (click)="onDelete($event)">
+            </button>
+          }
+          @if (showDelete()) {
+            <button
+              class="btn-icon btn-delete"
+              title="Eliminar"
+              type="button"
+              (click)="onDelete($event)"
+            >
               🗑️
-          </button>
+            </button>
+          }
         </div>
       }
     </div>

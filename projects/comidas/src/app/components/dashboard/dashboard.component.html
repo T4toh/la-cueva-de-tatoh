@@ -8,33 +8,33 @@
       </div>
       <button class="btn-nav" (click)="mealService.nextWeek()">&gt;</button>
     </div>
-    
-    <div class="family-mode-toggle">
-        <div class="toggle-group">
-            <label class="switch">
-                <input type="checkbox" [checked]="mealService.isFamilyMode()" (change)="mealService.toggleFamilyMode()">
-                <span class="slider round"></span>
-            </label>
-            <span class="mode-label">{{ mealService.isFamilyMode() ? 'Modo Familiar' : 'Modo Individual' }}</span>
-        </div>
 
-        <div class="toggle-group">
-            <label class="switch">
-                <input type="checkbox" [checked]="mealService.isBreakfastEnabled()" (change)="mealService.toggleBreakfast()">
-                <span class="slider round"></span>
-            </label>
-            <span class="mode-label">Desayuno</span>
+    <div class="family-mode-toggle">
+      <div class="toggle-group">
+        <label class="switch">
+          <input type="checkbox" [checked]="mealService.isFamilyMode()" (change)="mealService.toggleFamilyMode()">
+          <span class="slider round"></span>
+        </label>
+        <span class="mode-label">{{ mealService.isFamilyMode() ? 'Modo Familiar' : 'Modo Individual' }}</span>
+      </div>
+
+      <div class="toggle-group">
+        <label class="switch">
+          <input type="checkbox" [checked]="mealService.isBreakfastEnabled()" (change)="mealService.toggleBreakfast()">
+          <span class="slider round"></span>
+        </label>
+        <span class="mode-label">Desayuno</span>
+      </div>
+
+      @if (mealService.isFamilyMode()) {
+        <div class="portions-input">
+          <span>x</span>
+          <input min="1" type="number" [value]="mealService.familyPortions()" (change)="updatePortions($event)">
         </div>
-        
-        @if (mealService.isFamilyMode()) {
-            <div class="portions-input">
-                <span>x</span>
-                <input min="1" type="number" [value]="mealService.familyPortions()" (change)="updatePortions($event)">
-            </div>
-        }
+      }
     </div>
   </div>
-  
+
   <div class="actions-top">
     <button class="btn-secondary" (click)="mealService.goToCurrentWeek()">Hoy</button>
     <button class="btn-secondary" (click)="mealService.copyFromPreviousWeek()">Copiar semana anterior</button>
@@ -43,23 +43,25 @@
 
   <div class="schedule-grid">
     @for (day of mealService.schedule(); track day.dayName) {
-      <lib-panel 
-        class="day-panel" 
+      <lib-panel
+        class="day-panel"
         [class.is-past]="isPast(day.dayName)"
         [class.is-today]="isToday(day.dayName)"
         [colorFondo]="isToday(day.dayName) ? 'var(--color-2)' : 'var(--color-3)'"
         [colorTexto]="'white'"
         [sombreado]="true"
         [texto]="day.dayName + (isToday(day.dayName) ? ' (Hoy)' : '')"
-      >
+        >
         <div class="meal-slots">
           <!-- Desayuno -->
-          <div *ngIf="mealService.isBreakfastEnabled()" class="slot">
-            <span class="label">Desayuno:</span>
-            <a class="meal-link" [routerLink]="['/schedule', day.dayName, 'desayuno']">
-              {{ getMealName(day.desayuno) }}
-            </a>
-          </div>
+          @if (mealService.isBreakfastEnabled()) {
+            <div class="slot">
+              <span class="label">Desayuno:</span>
+              <a class="meal-link" [routerLink]="['/schedule', day.dayName, 'desayuno']">
+                {{ getMealName(day.desayuno) }}
+              </a>
+            </div>
+          }
 
           <!-- Almuerzo -->
           <div class="slot">
@@ -70,15 +72,15 @@
           </div>
           <div class="slot postre-slot">
             <span class="label">Postre Almuerzo:</span>
-            <input class="postre-input" placeholder="Fruta, yogurt..." type="text" 
-                [value]="day.postreAlmuerzo || ''" (change)="updateField(day.dayName, 'postreAlmuerzo', $event)">
+            <input class="postre-input" placeholder="Fruta, yogurt..." type="text"
+              [value]="day.postreAlmuerzo || ''" (change)="updateField(day.dayName, 'postreAlmuerzo', $event)">
           </div>
 
           <!-- Colación -->
           <div class="slot postre-slot">
             <span class="label">Colación:</span>
-            <input class="postre-input" placeholder="Fruta, frutos secos..." type="text" 
-                [value]="day.colacion || ''" (change)="updateField(day.dayName, 'colacion', $event)">
+            <input class="postre-input" placeholder="Fruta, frutos secos..." type="text"
+              [value]="day.colacion || ''" (change)="updateField(day.dayName, 'colacion', $event)">
           </div>
 
           <!-- Cena -->
@@ -90,8 +92,8 @@
           </div>
           <div class="slot postre-slot">
             <span class="label">Postre Cena:</span>
-            <input class="postre-input" placeholder="Gelatina, fruta..." type="text" 
-                [value]="day.postreCena || ''" (change)="updateField(day.dayName, 'postreCena', $event)">
+            <input class="postre-input" placeholder="Gelatina, fruta..." type="text"
+              [value]="day.postreCena || ''" (change)="updateField(day.dayName, 'postreCena', $event)">
           </div>
         </div>
       </lib-panel>
@@ -106,12 +108,14 @@
   <div class="print-only-section">
     <h1>Menú Semanal</h1>
     <h2 class="print-date-range">{{ mealService.weekRangeDisplay() }}</h2>
-    
+
     <table class="print-table">
       <thead>
         <tr>
           <th>Día</th>
-          <th *ngIf="mealService.isBreakfastEnabled()">Desayuno</th>
+          @if (mealService.isBreakfastEnabled()) {
+            <th>Desayuno</th>
+          }
           <th>Almuerzo</th>
           <th>Colación</th>
           <th>Cena</th>
@@ -121,21 +125,27 @@
         @for (day of mealService.schedule(); track day.dayName) {
           <tr>
             <td class="day-name"><strong>{{ day.dayName }}</strong></td>
-            <td *ngIf="mealService.isBreakfastEnabled()">{{ getMealName(day.desayuno) }}</td>
+            @if (mealService.isBreakfastEnabled()) {
+              <td>{{ getMealName(day.desayuno) }}</td>
+            }
             <td>
-                {{ getMealName(day.almuerzo) }}
-                <div *ngIf="day.postreAlmuerzo" class="print-sub">Postre: {{ day.postreAlmuerzo }}</div>
+              {{ getMealName(day.almuerzo) }}
+              @if (day.postreAlmuerzo) {
+                <div class="print-sub">Postre: {{ day.postreAlmuerzo }}</div>
+              }
             </td>
             <td>{{ day.colacion || '-' }}</td>
             <td>
-                {{ getMealName(day.cena) }}
-                <div *ngIf="day.postreCena" class="print-sub">Postre: {{ day.postreCena }}</div>
+              {{ getMealName(day.cena) }}
+              @if (day.postreCena) {
+                <div class="print-sub">Postre: {{ day.postreCena }}</div>
+              }
             </td>
           </tr>
         }
       </tbody>
     </table>
-    
+
     <div class="print-footer">
       <p>Generado con La Cueva de Tatoh - Comidas</p>
     </div>

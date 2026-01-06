@@ -1,12 +1,12 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { MealService } from '../../services/meal.service';
 import { Panel } from 'componentes';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, Panel],
+  imports: [Panel],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss']
 })

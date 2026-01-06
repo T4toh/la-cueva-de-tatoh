@@ -15,7 +15,7 @@
         [showDuplicate]="true"
         [showEdit]="true"
         (cardClick)="editMeal(meal.id)"
-        (delete)="deleteMeal(meal.id)"
+        (delete)="deleteMeal($event)"
         (duplicate)="duplicateMeal($event)"
         (edit)="editMeal($event)"
       />
@@ -31,7 +31,9 @@
         <div class="print-meal-card">
           <h3>{{ meal.name }}</h3>
           @if (meal.description) {
-            <p class="print-desc"><em>{{ meal.description }}</em></p>
+            <p class="print-desc">
+              <em>{{ meal.description }}</em>
+            </p>
           }
           <ul class="print-ingredients">
             @for (ing of meal.ingredients; track ing.name) {

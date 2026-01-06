@@ -2,13 +2,15 @@
   <h1>Seleccionar {{ type }} para el {{ dayName }}</h1>
 
   <div class="actions">
-    <button class="btn-clear" (click)="clearSelection()">Limpiar selección</button>
+    <button class="btn-clear" (click)="clearSelection()">
+      Limpiar selección
+    </button>
   </div>
 
   <div class="grid">
     @for (meal of mealService.meals(); track meal.id) {
-      <app-meal-card 
-        [meal]="meal" 
+      <app-meal-card
+        [meal]="meal"
         [showDuplicate]="true"
         [showEdit]="true"
         (cardClick)="selectMeal(meal.id)"
@@ -17,7 +19,7 @@
       />
     } @empty {
       <p class="empty-state">
-        No hay comidas creadas. 
+        No hay comidas creadas.
         <a routerLink="/meals/new">Crear una nueva</a>
       </p>
     }

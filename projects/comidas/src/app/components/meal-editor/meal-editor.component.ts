@@ -1,16 +1,22 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+
+import {
+  FormArray,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MealService } from '../../services/meal.service';
-import { Meal } from '../../models/meal.model';
+import { Ingredient, Meal } from '../../models/meal.model';
 
 @Component({
   selector: 'app-meal-editor',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [ReactiveFormsModule, RouterModule],
   templateUrl: './meal-editor.component.html',
-  styleUrls: ['./meal-editor.component.scss']
+  styleUrls: ['./meal-editor.component.scss'],
 })
 export class MealEditorComponent implements OnInit {
   fb = inject(FormBuilder);
@@ -25,24 +31,24 @@ export class MealEditorComponent implements OnInit {
     this.form = this.fb.group({
       name: ['', Validators.required],
       description: [''],
-      ingredients: this.fb.array([])
+      ingredients: this.fb.array([]),
     });
   }
 
-  get ingredients() {
+  get ingredients(): FormArray {
     return this.form.get('ingredients') as FormArray;
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.mealId = this.route.snapshot.paramMap.get('id');
     if (this.mealId) {
       const meal = this.mealService.getMeal(this.mealId);
       if (meal) {
         this.form.patchValue({
           name: meal.name,
-          description: meal.description
+          description: meal.description,
         });
-        meal.ingredients.forEach(ing => {
+        meal.ingredients.forEach((ing) => {
           this.addIngredient(ing.name, ing.quantity);
         });
       } else {
@@ -51,29 +57,31 @@ export class MealEditorComponent implements OnInit {
     }
   }
 
-  addIngredient(name = '', quantity = '') {
+  addIngredient(name = '', quantity = ''): void {
     const ingredientGroup = this.fb.group({
       name: [name], // Removed Validators.required to allow saving even if an empty row exists (we'll filter it)
-      quantity: [quantity]
+      quantity: [quantity],
     });
     this.ingredients.push(ingredientGroup);
   }
 
-  removeIngredient(index: number) {
+  removeIngredient(index: number): void {
     this.ingredients.removeAt(index);
   }
 
-  save() {
+  save(): void {
     if (this.form.valid) {
       const formValue = this.form.value;
-      
+
       // Filter out ingredients with no name
-      const validIngredients = formValue.ingredients.filter((ing: any) => ing.name && ing.name.trim() !== '');
+      const validIngredients = formValue.ingredients.filter(
+        (ing: Ingredient) => ing.name && ing.name.trim() !== ''
+      );
 
       const mealData: Omit<Meal, 'id'> = {
         name: formValue.name,
         description: formValue.description,
-        ingredients: validIngredients
+        ingredients: validIngredients,
       };
 
       if (this.mealId) {

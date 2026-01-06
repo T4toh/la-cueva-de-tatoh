@@ -1,9 +1,7 @@
 import { computed, effect, Injectable, signal } from '@angular/core';
 import {
   DaySchedule,
-  Ingredient,
   Meal,
-  MealType,
   ShoppingItem,
   ShoppingListGroup,
   ShoppingTag,
