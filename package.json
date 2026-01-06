@@ -5,7 +5,7 @@
     "preinstall": "npx only-allow pnpm",
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build componentes && ng build perfil-personal --configuration=production",
+    "build": "ng build componentes && ng build perfil-personal && ng build comidas --configuration=production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint"
