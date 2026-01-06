@@ -1,3 +1,4 @@
 packages:
   - 'projects/componentes'
   - 'projects/perfil-personal'
+  - 'projects/comidas'
