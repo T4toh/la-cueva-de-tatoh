@@ -7,17 +7,17 @@
       </span>
     </div>
     <div class="actions">
-      <button (click)="resetQuantities()" class="btn-reset" title="Recargar cantidades del menú">🔄</button>
+      <button class="btn-reset" title="Recargar cantidades del menú" (click)="resetQuantities()">🔄</button>
       <button (click)="copyToClipboard()">Copiar</button>
       <button (click)="print()">Imprimir</button>
     </div>
   </div>
 
   <div class="controls">
-    <button (click)="showExtraForm = !showExtraForm" class="btn-secondary">
+    <button class="btn-secondary" (click)="showExtraForm = !showExtraForm">
       + Agregar Item
     </button>
-    <button (click)="showTagForm = !showTagForm" class="btn-secondary">
+    <button class="btn-secondary" (click)="showTagForm = !showTagForm">
       + Crear Tag
     </button>
   </div>
@@ -25,11 +25,11 @@
   <!-- Forms -->
   @if (showExtraForm) {
     <form
+      class="inline-form"
       [formGroup]="extraItemForm"
       (ngSubmit)="addExtraItem()"
-      class="inline-form"
     >
-      <input formControlName="name" placeholder="Item (ej: Jabón)" autoFocus />
+      <input autoFocus formControlName="name" placeholder="Item (ej: Jabón)" />
       <input formControlName="quantity" placeholder="Cant." />
       <select formControlName="tagId">
         <option value="">Sin categoría</option>
@@ -42,9 +42,9 @@
   }
 
   @if (showTagForm) {
-    <form [formGroup]="tagForm" (ngSubmit)="addTag()" class="inline-form">
+    <form class="inline-form" [formGroup]="tagForm" (ngSubmit)="addTag()">
       <input formControlName="name" placeholder="Nombre Tag (ej: Farmacia)" />
-      <input type="color" formControlName="color" />
+      <input formControlName="color" type="color" />
       <button type="submit" [disabled]="tagForm.invalid">Crear</button>
     </form>
   }
@@ -69,20 +69,20 @@
 
                         type="checkbox"
 
-                        [id]="item.name + (group.tag?.id || 'untagged')"
-
                         [checked]="item.checked"
+
+                        [id]="item.name + (group.tag?.id || 'untagged')"
 
                         (change)="mealService.toggleItemCheck(item.name)"
 
                       />
 
-                      <label [for]="item.name + (group.tag?.id || 'untagged')" class="item-label">
+                      <label class="item-label" [for]="item.name + (group.tag?.id || 'untagged')">
                                 <span class="name">{{ item.name }}</span>
                                 <div class="quantity-container">
                                   <input 
-                                      type="text" 
                                       class="quantity-edit-input" 
+                                      type="text" 
                                       [value]="item.quantityOverride || item.quantity" 
                                       (change)="editQuantity(item.name, $event)"
                                       (click)="$event.stopPropagation()">
@@ -91,10 +91,10 @@
 
               <div class="tag-chip-container">
                 <lib-tag
-                  [texto]="getTagName(item.tagId)"
                   [colorFondo]="getTagColor(item.tagId)"
                   [colorTexto]="'white'"
-                ></lib-tag>
+                  [texto]="getTagName(item.tagId)"
+                />
                 <select
                   class="hidden-select"
                   [value]="item.tagId || ''"

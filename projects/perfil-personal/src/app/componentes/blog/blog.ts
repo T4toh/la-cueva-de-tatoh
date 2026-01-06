@@ -1,6 +1,6 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
 import { PostCard } from '../post-card/post-card';
-import { POSTS, Post } from 'projects/perfil-personal/src/variables';
+import { Post, POSTS } from 'projects/perfil-personal/src/variables';
 
 // Temas disponibles de Prism.js (cambiar en angular.json > styles):
 // - prism-okaidia.css (tema oscuro actual)

@@ -17,7 +17,7 @@ export class MealSelectorComponent implements OnInit {
   route = inject(ActivatedRoute);
   router = inject(Router);
 
-  dayName: string = '';
+  dayName = '';
   type: MealType = 'almuerzo';
 
   ngOnInit() {

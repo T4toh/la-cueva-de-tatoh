@@ -1,8 +1,8 @@
 import {
   ApplicationConfig,
   importProvidersFrom,
-  provideBrowserGlobalErrorListeners,
-  provideZoneChangeDetection, isDevMode,
+  isDevMode,
+  provideBrowserGlobalErrorListeners, provideZoneChangeDetection,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
 

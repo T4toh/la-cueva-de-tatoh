@@ -68,13 +68,13 @@ export class ShoppingListComponent {
   }
   
   getTagColor(tagId?: string): string {
-    if (!tagId) return '#e0e0e0'; // Gray for no tag
+    if (!tagId) {return '#e0e0e0';} // Gray for no tag
     const tag = this.mealService.tags().find(t => t.id === tagId);
     return tag ? tag.color : '#e0e0e0';
   }
 
   getTagName(tagId?: string): string {
-    if (!tagId) return '+';
+    if (!tagId) {return '+';}
     const tag = this.mealService.tags().find(t => t.id === tagId);
     return tag ? tag.name : '+';
   }

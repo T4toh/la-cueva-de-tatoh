@@ -1,10 +1,10 @@
-export interface Ingredient {
+export type Ingredient = {
   name: string;
   quantity: string;
   checked?: boolean;
 }
 
-export interface Meal {
+export type Meal = {
   id: string;
   name: string;
   ingredients: Ingredient[];
@@ -13,7 +13,7 @@ export interface Meal {
 
 export type MealType = 'almuerzo' | 'desayuno' | 'cena' | 'colacion' | 'postreAlmuerzo' | 'postreCena';
 
-export interface DaySchedule {
+export type DaySchedule = {
   dayName: string; 
   date?: string; 
   desayuno: string | null;
@@ -24,19 +24,19 @@ export interface DaySchedule {
   postreCena: string | null;
 }
 
-export interface ShoppingTag {
+export type ShoppingTag = {
   id: string;
   name: string;
   color: string;
 }
 
-export interface ShoppingItem extends Ingredient {
+export type ShoppingItem = {
   tagId?: string;
   isExtra?: boolean;
   quantityOverride?: string;
-}
+} & Ingredient
 
-export interface ShoppingListGroup {
+export type ShoppingListGroup = {
   tag: ShoppingTag | null; 
   items: ShoppingItem[];
 }

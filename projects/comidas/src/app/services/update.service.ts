@@ -30,7 +30,7 @@ export class UpdateService {
     updates.checkForUpdate();
   }
 
-  public checkForUpdates(): void {
+  checkForUpdates(): void {
     this.updates.versionUpdates.subscribe(evt => {
       switch (evt.type) {
         case 'VERSION_DETECTED':

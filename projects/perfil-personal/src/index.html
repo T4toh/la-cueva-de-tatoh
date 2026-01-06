@@ -8,21 +8,21 @@
     <link href="LSK-A.jpg" rel="icon" type="image/x-icon"/>
 
     <!-- Preconnect para optimizar carga de fuentes -->
-    <link rel="preconnect" href="https://fonts.googleapis.com"/>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 
     <!-- Preload de la fuente crítica -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,100..900;1,100..900&amp;display=swap"/>
+    <link as="style" href="https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="preload"/>
 
     <!-- Carga asíncrona de fuentes con font-display:swap -->
-    <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet" media="print" onload="this.media='all'"/>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,100..900;1,100..900&amp;display=swap" media="print" onload="this.media='all'" rel="stylesheet"/>
     <noscript>
       <link
         href="https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,100..900;1,100..900&display=swap"
         rel="stylesheet"
       />
     </noscript>
-    <link rel="manifest" href="manifest.webmanifest">
+    <link href="manifest.webmanifest" rel="manifest">
 </head>
   <body>
     <app-root></app-root>

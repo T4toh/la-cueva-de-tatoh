@@ -2,22 +2,22 @@
   <h1>Configuración</h1>
 
   <lib-panel 
-    [texto]="'Gestión de Datos'" 
-    [colorFondo]="'var(--color-3)'"
+    [colorFondo]="'var(--color-3)'" 
     [colorTexto]="'white'"
     [sombreado]="true"
+    [texto]="'Gestión de Datos'"
   >
     <div class="settings-content">
       <p>Exporta tus comidas y planificación para usarlas en otro dispositivo o guardarlas como copia de seguridad.</p>
       
       <div class="actions">
-        <button (click)="mealService.exportData()" class="btn-primary">
+        <button class="btn-primary" (click)="mealService.exportData()">
           📤 Exportar JSON
         </button>
         
         <label class="btn-secondary">
           📥 Importar JSON
-          <input type="file" (change)="onFileSelected($event)" accept=".json" style="display: none;">
+          <input accept=".json" style="display: none;" type="file" (change)="onFileSelected($event)">
         </label>
       </div>
     </div>

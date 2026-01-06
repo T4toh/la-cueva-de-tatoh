@@ -60,11 +60,11 @@
   <div class="posts-grid">
     @for (post of sortedPosts(); track post.src) {
     <app-post-card
-      [titulo]="post.title"
+      [esReciente]="esUltimoPost(post)"
       [fecha]="post.fecha"
       [id]="getOriginalIndex(post)"
-      [esReciente]="esUltimoPost(post)"
       [tags]="post.tags || []"
+      [titulo]="post.title"
     />
     }
   </div>

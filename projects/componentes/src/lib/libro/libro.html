@@ -9,7 +9,7 @@
 
   @if (imagen()) {
   <div class="libro-imagen">
-    <img [src]="imagen()" [alt]="titulo() || 'Portada del libro'" />
+    <img [alt]="titulo() || 'Portada del libro'" [src]="imagen()" />
   </div>
   }
 </div>

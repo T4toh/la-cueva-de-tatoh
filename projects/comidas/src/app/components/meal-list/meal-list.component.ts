@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { MealService } from '../../services/meal.service';
 import { MealCardComponent } from '../meal-card/meal-card.component';
 

@@ -7,10 +7,10 @@
   <div class="libros-grid">
     @for (libro of libros(); track libro.titulo) {
     <lib-libro
-      [imagen]="libro.imagen"
-      [titulo]="libro.titulo"
-      [subtitulo]="libro.subtitulo"
       [enlace]="libro.enlace"
+      [imagen]="libro.imagen"
+      [subtitulo]="libro.subtitulo"
+      [titulo]="libro.titulo"
     />
     }
   </div>

@@ -4,34 +4,34 @@
   <form [formGroup]="form" (ngSubmit)="save()">
     <div class="form-group">
       <label for="name">Nombre</label>
-      <input id="name" type="text" formControlName="name" placeholder="Ej: Fideos con tuco">
+      <input formControlName="name" id="name" placeholder="Ej: Fideos con tuco" type="text">
     </div>
 
     <div class="form-group">
       <label for="description">Descripción (Opcional)</label>
-      <textarea id="description" formControlName="description" rows="3"></textarea>
+      <textarea formControlName="description" id="description" rows="3"></textarea>
     </div>
 
     <div class="ingredients-section">
       <div class="header">
         <h2>Ingredientes</h2>
-        <button type="button" class="btn-secondary" (click)="addIngredient()">+ Agregar</button>
+        <button class="btn-secondary" type="button" (click)="addIngredient()">+ Agregar</button>
       </div>
 
       <div formArrayName="ingredients">
         @for (ing of ingredients.controls; track $index) {
-          <div [formGroupName]="$index" class="ingredient-row">
-            <input type="text" formControlName="name" placeholder="Ingrediente (ej: Fideos)">
-            <input type="text" formControlName="quantity" placeholder="Cant. (ej: 500g)">
-            <button type="button" class="btn-remove" (click)="removeIngredient($index)">X</button>
+          <div class="ingredient-row" [formGroupName]="$index">
+            <input formControlName="name" placeholder="Ingrediente (ej: Fideos)" type="text">
+            <input formControlName="quantity" placeholder="Cant. (ej: 500g)" type="text">
+            <button class="btn-remove" type="button" (click)="removeIngredient($index)">X</button>
           </div>
         }
       </div>
     </div>
 
     <div class="actions">
-      <a routerLink="/meals" class="btn-cancel">Cancelar</a>
-      <button type="submit" class="btn-primary" [disabled]="form.invalid">Guardar</button>
+      <a class="btn-cancel" routerLink="/meals">Cancelar</a>
+      <button class="btn-primary" type="submit" [disabled]="form.invalid">Guardar</button>
     </div>
   </form>
 </div>

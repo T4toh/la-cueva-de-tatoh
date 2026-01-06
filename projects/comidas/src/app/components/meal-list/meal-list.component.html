@@ -2,8 +2,8 @@
   <div class="header">
     <h1>Comidas</h1>
     <div class="actions-header">
-      <button (click)="printRecipes()" class="btn-secondary">Imprimir</button>
-      <a routerLink="/meals/new" class="btn-add">+Comida</a>
+      <button class="btn-secondary" (click)="printRecipes()">Imprimir</button>
+      <a class="btn-add" routerLink="/meals/new">+Comida</a>
     </div>
   </div>
 
@@ -12,13 +12,13 @@
       <app-meal-card
         [meal]="meal"
         [showDelete]="true"
-        [showEdit]="true"
         [showDuplicate]="true"
-        (delete)="deleteMeal(meal.id)"
-        (edit)="editMeal($event)"
-        (duplicate)="duplicateMeal($event)"
+        [showEdit]="true"
         (cardClick)="editMeal(meal.id)"
-      ></app-meal-card>
+        (delete)="deleteMeal(meal.id)"
+        (duplicate)="duplicateMeal($event)"
+        (edit)="editMeal($event)"
+      />
     } @empty {
       <p class="empty-state">No hay comidas guardadas. ¡Creá una!</p>
     }

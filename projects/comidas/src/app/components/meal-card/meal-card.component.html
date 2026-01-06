@@ -1,9 +1,9 @@
 <div class="meal-card" (click)="onCardClick()">
   <lib-panel
-    [texto]="meal.name"
     [colorFondo]="'var(--color-2)'"
     [colorTexto]="'white'"
     [sombreado]="true"
+    [texto]="meal.name"
   >
     <div class="meal-content-wrapper">
       <div class="meal-info">
@@ -21,13 +21,13 @@
 
       @if (showEdit || showDelete || showDuplicate) {
         <div class="card-footer">
-          <button *ngIf="showDuplicate" (click)="onDuplicate($event)" class="btn-icon" title="Duplicar">
+          <button *ngIf="showDuplicate" class="btn-icon" title="Duplicar" (click)="onDuplicate($event)">
               📑
           </button>
-          <button *ngIf="showEdit" (click)="onEdit($event)" class="btn-icon" title="Editar">
+          <button *ngIf="showEdit" class="btn-icon" title="Editar" (click)="onEdit($event)">
               ✏️
           </button>
-          <button *ngIf="showDelete" (click)="onDelete($event)" class="btn-icon btn-delete" title="Eliminar">
+          <button *ngIf="showDelete" class="btn-icon btn-delete" title="Eliminar" (click)="onDelete($event)">
               🗑️
           </button>
         </div>

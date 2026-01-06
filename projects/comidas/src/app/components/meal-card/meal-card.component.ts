@@ -12,9 +12,9 @@ import { Panel } from 'componentes';
 })
 export class MealCardComponent {
   @Input({ required: true }) meal!: Meal;
-  @Input() showDelete: boolean = false;
-  @Input() showEdit: boolean = false;
-  @Input() showDuplicate: boolean = false;
+  @Input() showDelete = false;
+  @Input() showEdit = false;
+  @Input() showDuplicate = false;
   @Output() delete = new EventEmitter<string>();
   @Output() edit = new EventEmitter<string>();
   @Output() duplicate = new EventEmitter<string>();

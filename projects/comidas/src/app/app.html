@@ -1,6 +1,6 @@
 <div class="app-container">
   <nav class="main-nav">
-    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" title="Plan Semanal">
+    <a routerLink="/" routerLinkActive="active" title="Plan Semanal" [routerLinkActiveOptions]="{exact: true}">
       <span class="icon">📅</span>
       <span class="text">Plan</span>
     </a>
@@ -19,6 +19,6 @@
   </nav>
 
   <main>
-    <router-outlet></router-outlet>
+    <router-outlet />
   </main>
 </div>

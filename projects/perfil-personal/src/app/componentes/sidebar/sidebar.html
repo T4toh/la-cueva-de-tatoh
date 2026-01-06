@@ -22,7 +22,7 @@
       <h3 class="section-title">Posts Recientes</h3>
       <div class="posts-list">
         @for (post of recentPosts(); track post.src) {
-        <a [routerLink]="['/blog', getPostIndex(post.title)]" class="post-link">
+        <a class="post-link" [routerLink]="['/blog', getPostIndex(post.title)]">
           <div class="post-item">
             <span class="post-title">{{ post.title }}</span>
             <span class="post-date">{{ post.fecha }}</span>

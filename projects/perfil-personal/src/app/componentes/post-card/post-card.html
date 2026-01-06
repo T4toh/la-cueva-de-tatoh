@@ -1,7 +1,7 @@
 <a
-  [routerLink]="['/blog', id()]"
   class="post-card"
   [class.reciente]="esReciente()"
+  [routerLink]="['/blog', id()]"
 >
   <div class="post-card-header">
     <h3>{{ titulo() }}</h3>
@@ -13,7 +13,7 @@
   @if (tags().length > 0) {
   <div class="post-card-tags">
     @for (tag of tags(); track tag) {
-    <lib-tag [texto]="tag" [colorFondo]="'#5b5c9a'" [colorTexto]="'white'" />
+    <lib-tag [colorFondo]="'#5b5c9a'" [colorTexto]="'white'" [texto]="tag" />
     }
   </div>
   }
