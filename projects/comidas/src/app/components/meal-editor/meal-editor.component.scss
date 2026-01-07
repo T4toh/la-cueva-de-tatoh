@@ -117,3 +117,43 @@ h1, h2 {
     color: white;
   }
 }
+
+.tags-input-container {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+
+  input {
+      flex: 1;
+  }
+}
+
+.tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tag-item {
+  display: flex;
+  align-items: center;
+  background: rgba(0,0,0,0.2);
+  border-radius: 16px;
+  padding-right: 0.5rem;
+  overflow: hidden;
+
+  .btn-remove-tag {
+    background: none;
+    border: none;
+    color: #ff5252;
+    cursor: pointer;
+    font-size: 1.2rem;
+    line-height: 1;
+    margin-left: 0.2rem;
+    padding: 0 0.2rem;
+    
+    &:hover {
+      color: #ff8a80;
+    }
+  }
+}

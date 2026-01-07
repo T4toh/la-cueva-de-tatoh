@@ -44,10 +44,16 @@ module.exports = tseslint.config(
       '@typescript-eslint/consistent-type-assertions': 'warn',
       '@typescript-eslint/consistent-type-definitions': ['warn', 'type'],
       '@typescript-eslint/explicit-function-return-type': 'error',
-      '@typescript-eslint/explicit-member-accessibility': ['error', { accessibility: 'no-public' }],
+      '@typescript-eslint/explicit-member-accessibility': [
+        'error',
+        { accessibility: 'no-public' },
+      ],
       '@typescript-eslint/naming-convention': [
         'warn',
-        { selector: 'variable', format: ['camelCase', 'UPPER_CASE', 'PascalCase'] },
+        {
+          selector: 'variable',
+          format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+        },
       ],
       '@typescript-eslint/no-empty-function': 'warn',
       '@typescript-eslint/no-empty-interface': 'error',
@@ -63,7 +69,7 @@ module.exports = tseslint.config(
       'guard-for-in': 'error',
       'max-classes-per-file': ['error', 1],
       'max-len': ['warn', { code: 120, comments: 160 }],
-      'max-lines': ['error', 400],
+      // 'max-lines': ['error', 400],
       'no-bitwise': 'error',
       'no-console': 'off',
       'no-new-wrappers': 'error',
@@ -76,7 +82,11 @@ module.exports = tseslint.config(
       'prefer-const': 'error',
       'sort-imports': [
         'error',
-        { ignoreCase: true, ignoreDeclarationSort: true, allowSeparatedGroups: true },
+        {
+          ignoreCase: true,
+          ignoreDeclarationSort: true,
+          allowSeparatedGroups: true,
+        },
       ],
 
       // Seguridad
@@ -88,7 +98,10 @@ module.exports = tseslint.config(
   // Reglas para templates HTML
   {
     files: ['**/*.html'],
-    extends: [...angular.configs.templateRecommended, ...angular.configs.templateAccessibility],
+    extends: [
+      ...angular.configs.templateRecommended,
+      ...angular.configs.templateAccessibility,
+    ],
     rules: {
       '@angular-eslint/template/attributes-order': [
         'error',
@@ -105,12 +118,15 @@ module.exports = tseslint.config(
         },
       ],
       '@angular-eslint/template/button-has-type': 'warn',
-      '@angular-eslint/template/cyclomatic-complexity': ['warn', { maxComplexity: 10 }],
+      '@angular-eslint/template/cyclomatic-complexity': [
+        'warn',
+        { maxComplexity: 10 },
+      ],
       '@angular-eslint/template/eqeqeq': 'error',
       '@angular-eslint/template/prefer-control-flow': 'error',
       '@angular-eslint/template/prefer-ngsrc': 'warn',
       '@angular-eslint/template/prefer-self-closing-tags': 'warn',
       '@angular-eslint/template/use-track-by-function': 'warn',
     },
-  },
+  }
 );

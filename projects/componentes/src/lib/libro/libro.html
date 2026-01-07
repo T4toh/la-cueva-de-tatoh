@@ -1,4 +1,12 @@
-<div class="libro" [class.clickable]="enlace()" (click)="handleClick()">
+<div
+  class="libro"
+  [attr.role]="enlace() ? 'button' : null"
+  [attr.tabindex]="enlace() ? 0 : null"
+  [class.clickable]="enlace()"
+  (click)="handleClick()"
+  (keydown.enter)="handleClick()"
+  (keydown.space)="$event.preventDefault(); handleClick()"
+>
   <div class="libro-contenido">
     @if (titulo()) {
     <h3 class="libro-titulo">{{ titulo() }}</h3>
@@ -9,7 +17,7 @@
 
   @if (imagen()) {
   <div class="libro-imagen">
-    <img [alt]="titulo() || 'Portada del libro'" [src]="imagen()" />
+    <img fill [alt]="titulo() || 'Portada del libro'" [ngSrc]="imagen()!" />
   </div>
   }
 </div>

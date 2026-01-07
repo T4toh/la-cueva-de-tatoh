@@ -12,6 +12,22 @@
       <textarea formControlName="description" id="description" rows="3"></textarea>
     </div>
 
+    <div class="form-group">
+      <label for="tag-input">Etiquetas</label>
+      <div class="tags-input-container">
+        <input id="tag-input" placeholder="Ej: Vegetariano, Rápido" type="text" [formControl]="newTagControl" (keydown.enter)="addTag($event)">
+        <button class="btn-secondary" type="button" (click)="addTag()">+</button>
+      </div>
+      <div class="tags-list">
+        @for (tag of tags.controls; track $index) {
+          <div class="tag-item">
+            <lib-tag [colorFondo]="'var(--color-3)'" [texto]="tag.value" />
+            <button class="btn-remove-tag" type="button" (click)="removeTag($index)">×</button>
+          </div>
+        }
+      </div>
+    </div>
+
     <div class="ingredients-section">
       <div class="header">
         <h2>Ingredientes</h2>

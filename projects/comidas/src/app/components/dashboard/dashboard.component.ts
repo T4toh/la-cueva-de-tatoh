@@ -56,16 +56,16 @@ export class DashboardComponent {
     return d;
   }
   
-  printMenu() {
+  printMenu(): void {
     window.print();
   }
   
-  updatePortions(event: Event) {
+  updatePortions(event: Event): void {
       const input = event.target as HTMLInputElement;
       this.mealService.setFamilyPortions(Number(input.value));
   }
 
-  updateField(dayName: string, field: keyof DaySchedule, event: Event) {
+  updateField(dayName: string, field: keyof DaySchedule, event: Event): void {
     const input = event.target as HTMLInputElement;
     this.mealService.updateSchedule(dayName, field, input.value);
   }

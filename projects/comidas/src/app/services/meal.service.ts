@@ -44,7 +44,17 @@ export class MealService {
 
   // Family Mode State
   readonly isFamilyMode = signal<boolean>(false);
-  readonly isBreakfastEnabled = signal<boolean>(true);
+  readonly visibleMeals = signal<{
+    breakfast: boolean;
+    lunch: boolean;
+    snack: boolean;
+    dinner: boolean;
+  }>({
+    breakfast: true,
+    lunch: true,
+    snack: false,
+    dinner: true,
+  });
   readonly familyPortions = signal<number>(4);
 
   // Navigation State
@@ -93,7 +103,7 @@ export class MealService {
     effect(() => {
       const settings = {
         isFamilyMode: this.isFamilyMode(),
-        isBreakfastEnabled: this.isBreakfastEnabled(),
+        visibleMeals: this.visibleMeals(),
         familyPortions: this.familyPortions(),
       };
       localStorage.setItem(this.FAMILY_SETTINGS_KEY, JSON.stringify(settings));
@@ -156,12 +166,24 @@ export class MealService {
     return data ? JSON.parse(data) : {};
   }
 
-  private loadFamilySettings() {
+  private loadFamilySettings(): void {
     const data = localStorage.getItem(this.FAMILY_SETTINGS_KEY);
     if (data) {
       const settings = JSON.parse(data);
       this.isFamilyMode.set(settings.isFamilyMode ?? false);
-      this.isBreakfastEnabled.set(settings.isBreakfastEnabled ?? true);
+
+      if (settings.visibleMeals) {
+        this.visibleMeals.set(settings.visibleMeals);
+      } else {
+        // Migration: defaults based on old setting
+        this.visibleMeals.set({
+          breakfast: settings.isBreakfastEnabled ?? false,
+          lunch: true,
+          snack: false,
+          dinner: true,
+        });
+      }
+
       this.familyPortions.set(settings.familyPortions || 4);
     }
   }
@@ -209,18 +231,18 @@ export class MealService {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
   }
 
-  addMeal(meal: Omit<Meal, 'id'>) {
+  addMeal(meal: Omit<Meal, 'id'>): void {
     const newMeal: Meal = { ...meal, id: this.generateId() };
     this.meals.update((current) => [...current, newMeal]);
   }
 
-  updateMeal(id: string, updatedMeal: Partial<Meal>) {
+  updateMeal(id: string, updatedMeal: Partial<Meal>): void {
     this.meals.update((current) =>
       current.map((m) => (m.id === id ? { ...m, ...updatedMeal } : m))
     );
   }
 
-  deleteMeal(id: string) {
+  deleteMeal(id: string): void {
     this.meals.update((current) => current.filter((m) => m.id !== id));
     this.schedules.update((schedules) => {
       const newSchedules: Record<string, DaySchedule[]> = {};
@@ -236,13 +258,14 @@ export class MealService {
     });
   }
 
-  duplicateMeal(id: string) {
+  duplicateMeal(id: string): void {
     const original = this.getMeal(id);
     if (original) {
       const copy: Omit<Meal, 'id'> = {
         name: `${original.name} (Copia)`,
         description: original.description,
         ingredients: original.ingredients.map((i) => ({ ...i })),
+        tags: original.tags ? [...original.tags] : [],
       };
       this.addMeal(copy);
     }
@@ -259,7 +282,7 @@ export class MealService {
     dayName: string,
     type: keyof DaySchedule,
     value: string | null
-  ) {
+  ): void {
     const key = this.formatDateKey(this.currentWeekStart());
     const currentWeekSchedule = this.schedule();
     const updatedWeek = currentWeekSchedule.map((day) =>
@@ -268,28 +291,28 @@ export class MealService {
     this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
   }
 
-  clearSchedule() {
+  clearSchedule(): void {
     const key = this.formatDateKey(this.currentWeekStart());
     this.schedules.update((s) => ({ ...s, [key]: this.createEmptySchedule() }));
   }
 
-  nextWeek() {
+  nextWeek(): void {
     const next = new Date(this.currentWeekStart());
     next.setDate(next.getDate() + 7);
     this.currentWeekStart.set(next);
   }
 
-  previousWeek() {
+  previousWeek(): void {
     const prev = new Date(this.currentWeekStart());
     prev.setDate(prev.getDate() - 7);
     this.currentWeekStart.set(prev);
   }
 
-  goToCurrentWeek() {
+  goToCurrentWeek(): void {
     this.currentWeekStart.set(this.getStartOfWeek(new Date()));
   }
 
-  copyFromPreviousWeek() {
+  copyFromPreviousWeek(): void {
     const currentKey = this.formatDateKey(this.currentWeekStart());
     const prevDate = new Date(this.currentWeekStart());
     prevDate.setDate(prevDate.getDate() - 7);
@@ -303,17 +326,17 @@ export class MealService {
     }
   }
 
-  addTag(name: string, color: string) {
+  addTag(name: string, color: string): void {
     const newTag: ShoppingTag = { id: this.generateId(), name, color };
     this.tags.update((t) => [...t, newTag]);
   }
 
-  setIngredientTag(ingredientName: string, tagId: string) {
+  setIngredientTag(ingredientName: string, tagId: string): void {
     const key = ingredientName.toLowerCase().trim();
     this.ingredientTags.update((map) => ({ ...map, [key]: tagId }));
   }
 
-  addExtraItem(name: string, quantity: string, tagId?: string) {
+  addExtraItem(name: string, quantity: string, tagId?: string): void {
     const newItem: ShoppingItem = { name, quantity, tagId, isExtra: true };
     this.extraItems.update((items) => [...items, newItem]);
     if (tagId) {
@@ -321,17 +344,17 @@ export class MealService {
     }
   }
 
-  removeExtraItem(index: number) {
+  removeExtraItem(index: number): void {
     this.extraItems.update((items) => items.filter((_, i) => i !== index));
   }
 
-  overrideQuantity(ingredientName: string, newQuantity: string) {
+  overrideQuantity(ingredientName: string, newQuantity: string): void {
     const weekKey = this.formatDateKey(this.currentWeekStart());
     const key = `${weekKey}_${ingredientName.toLowerCase().trim()}`;
     this.quantityOverrides.update((o) => ({ ...o, [key]: newQuantity }));
   }
 
-  clearOverrides() {
+  clearOverrides(): void {
     const weekKey = this.formatDateKey(this.currentWeekStart());
     this.quantityOverrides.update((o) => {
       const newOverrides = { ...o };
@@ -344,7 +367,7 @@ export class MealService {
     });
   }
 
-  toggleItemCheck(name: string) {
+  toggleItemCheck(name: string): void {
     const weekKey = this.formatDateKey(this.currentWeekStart());
     const itemName = name.toLowerCase().trim();
 
@@ -393,7 +416,7 @@ export class MealService {
       dayDate.setDate(weekStart.getDate() + index);
 
       if (dayDate >= today) {
-        const processMeal = (mealId: string | null) => {
+        const processMeal = (mealId: string | null): void => {
           if (!mealId) {
             return;
           }
@@ -466,17 +489,20 @@ export class MealService {
     this.shoppingListGrouped().flatMap((g) => g.items)
   );
 
-  toggleFamilyMode() {
+  toggleFamilyMode(): void {
     this.isFamilyMode.update((v) => !v);
   }
-  toggleBreakfast() {
-    this.isBreakfastEnabled.update((v) => !v);
+  toggleMealVisibility(meal: 'breakfast' | 'lunch' | 'snack' | 'dinner'): void {
+    this.visibleMeals.update((current) => ({
+      ...current,
+      [meal]: !current[meal],
+    }));
   }
-  setFamilyPortions(portions: number) {
+  setFamilyPortions(portions: number): void {
     this.familyPortions.set(portions);
   }
 
-  exportData() {
+  exportData(): void {
     const data = {
       meals: this.meals(),
       schedules: this.schedules(),
@@ -486,9 +512,10 @@ export class MealService {
       overrides: this.quantityOverrides(),
       familySettings: {
         isFamilyMode: this.isFamilyMode(),
+        visibleMeals: this.visibleMeals(),
         familyPortions: this.familyPortions(),
       },
-      version: '1.1',
+      version: '1.2',
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], {
       type: 'application/json',
@@ -501,7 +528,7 @@ export class MealService {
     window.URL.revokeObjectURL(url);
   }
 
-  importData(jsonContent: string) {
+  importData(jsonContent: string): void {
     try {
       const data = JSON.parse(jsonContent);
       if (data.meals) {
@@ -524,6 +551,16 @@ export class MealService {
       }
       if (data.familySettings) {
         this.isFamilyMode.set(data.familySettings.isFamilyMode);
+        if (data.familySettings.visibleMeals) {
+            this.visibleMeals.set(data.familySettings.visibleMeals);
+        } else {
+             this.visibleMeals.set({
+                breakfast: data.familySettings.isBreakfastEnabled ?? false,
+                lunch: true,
+                snack: false,
+                dinner: true
+            });
+        }
         this.familyPortions.set(data.familySettings.familyPortions);
       }
       alert('¡Datos importados con éxito!');

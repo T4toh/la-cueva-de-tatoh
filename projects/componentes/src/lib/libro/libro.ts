@@ -1,9 +1,10 @@
 import { Component, input } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 
 
 @Component({
   selector: 'lib-libro',
-  imports: [],
+  imports: [NgOptimizedImage],
   templateUrl: './libro.html',
   styleUrl: './libro.scss',
 })

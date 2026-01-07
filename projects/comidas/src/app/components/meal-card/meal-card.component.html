@@ -1,4 +1,11 @@
-<div class="meal-card" (click)="onCardClick()">
+<div
+  class="meal-card"
+  role="button"
+  tabindex="0"
+  (click)="onCardClick()"
+  (keydown.enter)="onCardClick()"
+  (keydown.space)="$event.preventDefault(); onCardClick()"
+>
   <lib-panel
     [colorFondo]="'var(--color-2)'"
     [colorTexto]="'white'"
@@ -16,6 +23,14 @@
         </ul>
         @if (meal().description) {
           <p class="description">{{ meal().description }}</p>
+        }
+        
+        @if (meal().tags && meal().tags!.length > 0) {
+          <div class="tags-list">
+             @for (tag of meal().tags; track tag) {
+                <lib-tag style="transform: scale(0.9)" [colorFondo]="'var(--color-3)'" [texto]="tag" />
+             }
+          </div>
         }
       </div>
 
