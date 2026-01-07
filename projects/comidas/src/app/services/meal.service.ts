@@ -44,7 +44,17 @@ export class MealService {
 
   // Family Mode State
   readonly isFamilyMode = signal<boolean>(false);
-  readonly isBreakfastEnabled = signal<boolean>(true);
+  readonly visibleMeals = signal<{
+    breakfast: boolean;
+    lunch: boolean;
+    snack: boolean;
+    dinner: boolean;
+  }>({
+    breakfast: true,
+    lunch: true,
+    snack: false,
+    dinner: true,
+  });
   readonly familyPortions = signal<number>(4);
 
   // Navigation State
@@ -93,7 +103,7 @@ export class MealService {
     effect(() => {
       const settings = {
         isFamilyMode: this.isFamilyMode(),
-        isBreakfastEnabled: this.isBreakfastEnabled(),
+        visibleMeals: this.visibleMeals(),
         familyPortions: this.familyPortions(),
       };
       localStorage.setItem(this.FAMILY_SETTINGS_KEY, JSON.stringify(settings));
@@ -161,7 +171,19 @@ export class MealService {
     if (data) {
       const settings = JSON.parse(data);
       this.isFamilyMode.set(settings.isFamilyMode ?? false);
-      this.isBreakfastEnabled.set(settings.isBreakfastEnabled ?? true);
+
+      if (settings.visibleMeals) {
+        this.visibleMeals.set(settings.visibleMeals);
+      } else {
+        // Migration: defaults based on old setting
+        this.visibleMeals.set({
+          breakfast: settings.isBreakfastEnabled ?? false,
+          lunch: true,
+          snack: false,
+          dinner: true,
+        });
+      }
+
       this.familyPortions.set(settings.familyPortions || 4);
     }
   }
@@ -243,6 +265,7 @@ export class MealService {
         name: `${original.name} (Copia)`,
         description: original.description,
         ingredients: original.ingredients.map((i) => ({ ...i })),
+        tags: original.tags ? [...original.tags] : [],
       };
       this.addMeal(copy);
     }
@@ -469,8 +492,11 @@ export class MealService {
   toggleFamilyMode(): void {
     this.isFamilyMode.update((v) => !v);
   }
-  toggleBreakfast(): void {
-    this.isBreakfastEnabled.update((v) => !v);
+  toggleMealVisibility(meal: 'breakfast' | 'lunch' | 'snack' | 'dinner'): void {
+    this.visibleMeals.update((current) => ({
+      ...current,
+      [meal]: !current[meal],
+    }));
   }
   setFamilyPortions(portions: number): void {
     this.familyPortions.set(portions);
@@ -486,9 +512,10 @@ export class MealService {
       overrides: this.quantityOverrides(),
       familySettings: {
         isFamilyMode: this.isFamilyMode(),
+        visibleMeals: this.visibleMeals(),
         familyPortions: this.familyPortions(),
       },
-      version: '1.1',
+      version: '1.2',
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], {
       type: 'application/json',
@@ -524,6 +551,16 @@ export class MealService {
       }
       if (data.familySettings) {
         this.isFamilyMode.set(data.familySettings.isFamilyMode);
+        if (data.familySettings.visibleMeals) {
+            this.visibleMeals.set(data.familySettings.visibleMeals);
+        } else {
+             this.visibleMeals.set({
+                breakfast: data.familySettings.isBreakfastEnabled ?? false,
+                lunch: true,
+                snack: false,
+                dinner: true
+            });
+        }
         this.familyPortions.set(data.familySettings.familyPortions);
       }
       alert('¡Datos importados con éxito!');

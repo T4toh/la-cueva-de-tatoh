@@ -24,6 +24,14 @@
         @if (meal().description) {
           <p class="description">{{ meal().description }}</p>
         }
+        
+        @if (meal().tags && meal().tags!.length > 0) {
+          <div class="tags-list">
+             @for (tag of meal().tags; track tag) {
+                <lib-tag style="transform: scale(0.9)" [colorFondo]="'var(--color-3)'" [texto]="tag" />
+             }
+          </div>
+        }
       </div>
 
       @if (showEdit() || showDelete() || showDuplicate()) {

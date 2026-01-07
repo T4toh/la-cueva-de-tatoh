@@ -9,6 +9,7 @@ export type Meal = {
   name: string;
   ingredients: Ingredient[];
   description?: string;
+  tags?: string[];
 }
 
 export type MealType = 'almuerzo' | 'desayuno' | 'cena' | 'colacion' | 'postreAlmuerzo' | 'postreCena';

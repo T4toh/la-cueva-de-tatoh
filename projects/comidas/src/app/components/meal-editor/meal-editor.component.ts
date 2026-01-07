@@ -3,6 +3,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
+  FormControl,
   FormGroup,
   ReactiveFormsModule,
   Validators,
@@ -10,11 +11,12 @@ import {
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MealService } from '../../services/meal.service';
 import { Ingredient, Meal } from '../../models/meal.model';
+import { Tag } from 'componentes';
 
 @Component({
   selector: 'app-meal-editor',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterModule],
+  imports: [ReactiveFormsModule, RouterModule, Tag],
   templateUrl: './meal-editor.component.html',
   styleUrls: ['./meal-editor.component.scss'],
 })
@@ -26,17 +28,23 @@ export class MealEditorComponent implements OnInit {
 
   mealId: string | null = null;
   form: FormGroup;
+  newTagControl = new FormControl('');
 
   constructor() {
     this.form = this.fb.group({
       name: ['', Validators.required],
       description: [''],
       ingredients: this.fb.array([]),
+      tags: this.fb.array([]),
     });
   }
 
   get ingredients(): FormArray {
     return this.form.get('ingredients') as FormArray;
+  }
+
+  get tags(): FormArray {
+    return this.form.get('tags') as FormArray;
   }
 
   ngOnInit(): void {
@@ -51,6 +59,11 @@ export class MealEditorComponent implements OnInit {
         meal.ingredients.forEach((ing) => {
           this.addIngredient(ing.name, ing.quantity);
         });
+        if (meal.tags) {
+          meal.tags.forEach((tag) => {
+            this.tags.push(this.fb.control(tag));
+          });
+        }
       } else {
         this.router.navigate(['/meals']);
       }
@@ -69,6 +82,21 @@ export class MealEditorComponent implements OnInit {
     this.ingredients.removeAt(index);
   }
 
+  addTag(event?: Event): void {
+    if (event) {
+      event.preventDefault(); // Prevent form submission if enter is pressed
+    }
+    const val = this.newTagControl.value?.trim();
+    if (val) {
+      this.tags.push(this.fb.control(val));
+      this.newTagControl.setValue('');
+    }
+  }
+
+  removeTag(index: number): void {
+    this.tags.removeAt(index);
+  }
+
   save(): void {
     if (this.form.valid) {
       const formValue = this.form.value;
@@ -82,6 +110,7 @@ export class MealEditorComponent implements OnInit {
         name: formValue.name,
         description: formValue.description,
         ingredients: validIngredients,
+        tags: formValue.tags,
       };
 
       if (this.mealId) {

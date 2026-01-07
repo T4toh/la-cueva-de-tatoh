@@ -18,12 +18,23 @@
         <span class="mode-label">{{ mealService.isFamilyMode() ? 'Modo Familiar' : 'Modo Individual' }}</span>
       </div>
 
-      <div class="toggle-group">
-        <label class="switch">
-          <input type="checkbox" [checked]="mealService.isBreakfastEnabled()" (change)="mealService.toggleBreakfast()">
-          <span class="slider round"></span>
+      <div class="meals-config">
+        <label class="checkbox-label">
+            <input type="checkbox" [checked]="mealService.visibleMeals().breakfast" (change)="mealService.toggleMealVisibility('breakfast')">
+            Desayuno
         </label>
-        <span class="mode-label">Desayuno</span>
+        <label class="checkbox-label">
+            <input type="checkbox" [checked]="mealService.visibleMeals().lunch" (change)="mealService.toggleMealVisibility('lunch')">
+            Almuerzo
+        </label>
+        <label class="checkbox-label">
+            <input type="checkbox" [checked]="mealService.visibleMeals().snack" (change)="mealService.toggleMealVisibility('snack')">
+            Merienda
+        </label>
+        <label class="checkbox-label">
+            <input type="checkbox" [checked]="mealService.visibleMeals().dinner" (change)="mealService.toggleMealVisibility('dinner')">
+            Cena
+        </label>
       </div>
 
       @if (mealService.isFamilyMode()) {
@@ -54,7 +65,7 @@
         >
         <div class="meal-slots">
           <!-- Desayuno -->
-          @if (mealService.isBreakfastEnabled()) {
+          @if (mealService.visibleMeals().breakfast) {
             <div class="slot">
               <span class="label">Desayuno:</span>
               <a class="meal-link" [routerLink]="['/schedule', day.dayName, 'desayuno']">
@@ -64,37 +75,41 @@
           }
 
           <!-- Almuerzo -->
-          <div class="slot">
-            <span class="label">Almuerzo:</span>
-            <a class="meal-link" [routerLink]="['/schedule', day.dayName, 'almuerzo']">
-              {{ getMealName(day.almuerzo) }}
-            </a>
-          </div>
-          <div class="slot postre-slot">
-            <span class="label">Postre Almuerzo:</span>
-            <input class="postre-input" placeholder="Fruta, yogurt..." type="text"
-              [value]="day.postreAlmuerzo || ''" (change)="updateField(day.dayName, 'postreAlmuerzo', $event)">
-          </div>
+          @if (mealService.visibleMeals().lunch) {
+            <div class="slot">
+              <span class="label">Almuerzo:</span>
+              <a class="meal-link" [routerLink]="['/schedule', day.dayName, 'almuerzo']">
+                {{ getMealName(day.almuerzo) }}
+              </a>
+              <div class="embedded-postre">
+                <input class="postre-input" placeholder="Postre..." type="text"
+                [value]="day.postreAlmuerzo || ''" (change)="updateField(day.dayName, 'postreAlmuerzo', $event)">
+              </div>
+            </div>
+          }
 
           <!-- Colación -->
-          <div class="slot postre-slot">
-            <span class="label">Colación:</span>
-            <input class="postre-input" placeholder="Fruta, frutos secos..." type="text"
-              [value]="day.colacion || ''" (change)="updateField(day.dayName, 'colacion', $event)">
-          </div>
+          @if (mealService.visibleMeals().snack) {
+            <div class="slot">
+              <span class="label">Merienda:</span>
+              <input class="postre-input" placeholder="Fruta, frutos secos..." type="text"
+                [value]="day.colacion || ''" (change)="updateField(day.dayName, 'colacion', $event)">
+            </div>
+          }
 
           <!-- Cena -->
-          <div class="slot">
-            <span class="label">Cena:</span>
-            <a class="meal-link" [routerLink]="['/schedule', day.dayName, 'cena']">
-              {{ getMealName(day.cena) }}
-            </a>
-          </div>
-          <div class="slot postre-slot">
-            <span class="label">Postre Cena:</span>
-            <input class="postre-input" placeholder="Gelatina, fruta..." type="text"
-              [value]="day.postreCena || ''" (change)="updateField(day.dayName, 'postreCena', $event)">
-          </div>
+          @if (mealService.visibleMeals().dinner) {
+            <div class="slot">
+              <span class="label">Cena:</span>
+              <a class="meal-link" [routerLink]="['/schedule', day.dayName, 'cena']">
+                {{ getMealName(day.cena) }}
+              </a>
+              <div class="embedded-postre">
+                <input class="postre-input" placeholder="Postre..." type="text"
+                [value]="day.postreCena || ''" (change)="updateField(day.dayName, 'postreCena', $event)">
+              </div>
+            </div>
+          }
         </div>
       </lib-panel>
     }
@@ -113,34 +128,46 @@
       <thead>
         <tr>
           <th>Día</th>
-          @if (mealService.isBreakfastEnabled()) {
+          @if (mealService.visibleMeals().breakfast) {
             <th>Desayuno</th>
           }
-          <th>Almuerzo</th>
-          <th>Colación</th>
-          <th>Cena</th>
+          @if (mealService.visibleMeals().lunch) {
+            <th>Almuerzo</th>
+          }
+          @if (mealService.visibleMeals().snack) {
+            <th>Merienda</th>
+          }
+          @if (mealService.visibleMeals().dinner) {
+            <th>Cena</th>
+          }
         </tr>
       </thead>
       <tbody>
         @for (day of mealService.schedule(); track day.dayName) {
           <tr>
             <td class="day-name"><strong>{{ day.dayName }}</strong></td>
-            @if (mealService.isBreakfastEnabled()) {
+            @if (mealService.visibleMeals().breakfast) {
               <td>{{ getMealName(day.desayuno) }}</td>
             }
-            <td>
-              {{ getMealName(day.almuerzo) }}
-              @if (day.postreAlmuerzo) {
-                <div class="print-sub">Postre: {{ day.postreAlmuerzo }}</div>
-              }
-            </td>
-            <td>{{ day.colacion || '-' }}</td>
-            <td>
-              {{ getMealName(day.cena) }}
-              @if (day.postreCena) {
-                <div class="print-sub">Postre: {{ day.postreCena }}</div>
-              }
-            </td>
+            @if (mealService.visibleMeals().lunch) {
+              <td>
+                {{ getMealName(day.almuerzo) }}
+                @if (day.postreAlmuerzo) {
+                  <div class="print-sub">Postre: {{ day.postreAlmuerzo }}</div>
+                }
+              </td>
+            }
+            @if (mealService.visibleMeals().snack) {
+              <td>{{ day.colacion || '-' }}</td>
+            }
+            @if (mealService.visibleMeals().dinner) {
+              <td>
+                {{ getMealName(day.cena) }}
+                @if (day.postreCena) {
+                  <div class="print-sub">Postre: {{ day.postreCena }}</div>
+                }
+              </td>
+            }
           </tr>
         }
       </tbody>

@@ -91,6 +91,33 @@
     }
 }
 
+.meals-config {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+    padding: 0.5rem;
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: white;
+      font-size: 0.9rem;
+      cursor: pointer;
+  
+      input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        cursor: pointer;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid var(--color-4);
+      }
+    }
+}
+
 /* Toggle Switch Styles */
 .switch {
   position: relative;
@@ -246,6 +273,21 @@ input:checked + .slider:before {
       background: rgba(255, 255, 255, 0.2);
     }
   }
+
+  .embedded-postre {
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-top: 1px dashed rgba(255,255,255,0.1);
+    padding-top: 0.5rem;
+
+    .mini-label {
+        font-size: 0.75rem;
+        color: var(--color-5);
+        white-space: nowrap;
+    }
+  }
 }
 
 .actions {
@@ -306,7 +348,7 @@ input:checked + .slider:before {
             text-align: center;
             font-size: 16pt;
             margin-bottom: 30pt;
-            color: #666 !important;
+            color: black !important;
         }
     }
 
@@ -316,27 +358,27 @@ input:checked + .slider:before {
         margin-bottom: 20pt;
 
         th, td {
-            border: 1px solid #333;
+            border: 1px solid black;
             padding: 12pt;
             text-align: left;
             font-size: 12pt;
+            color: black !important;
         }
 
         th {
-            background-color: #f0f0f0 !important;
+            background-color: transparent !important;
             font-weight: bold;
-            -webkit-print-color-adjust: exact;
         }
 
         .day-name {
             width: 15%;
-            background-color: #f9f9f9 !important;
-            -webkit-print-color-adjust: exact;
+            background-color: transparent !important;
+            font-weight: bold;
         }
 
         .print-sub {
             font-size: 9pt;
-            color: #555;
+            color: black !important;
             margin-top: 4pt;
             font-style: italic;
         }
@@ -346,8 +388,8 @@ input:checked + .slider:before {
         margin-top: 50pt;
         text-align: center;
         font-size: 9pt;
-        color: #999 !important;
-        border-top: 0.5pt solid #eee;
+        color: black !important;
+        border-top: 1px solid black;
         padding-top: 10pt;
     }
 }

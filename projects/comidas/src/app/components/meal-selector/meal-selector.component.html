@@ -7,8 +7,17 @@
     </button>
   </div>
 
+  @if (uniqueTags().length > 0) {
+    <div class="filters">
+      <button [class.active]="selectedTag() === null" (click)="selectTag(null)">Todos</button>
+      @for (tag of uniqueTags(); track tag) {
+        <button [class.active]="selectedTag() === tag" (click)="selectTag(tag)">{{ tag }}</button>
+      }
+    </div>
+  }
+
   <div class="grid">
-    @for (meal of mealService.meals(); track meal.id) {
+    @for (meal of filteredMeals(); track meal.id) {
       <app-meal-card
         [meal]="meal"
         [showDuplicate]="true"
