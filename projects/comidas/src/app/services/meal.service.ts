@@ -156,7 +156,7 @@ export class MealService {
     return data ? JSON.parse(data) : {};
   }
 
-  private loadFamilySettings() {
+  private loadFamilySettings(): void {
     const data = localStorage.getItem(this.FAMILY_SETTINGS_KEY);
     if (data) {
       const settings = JSON.parse(data);
@@ -209,18 +209,18 @@ export class MealService {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
   }
 
-  addMeal(meal: Omit<Meal, 'id'>) {
+  addMeal(meal: Omit<Meal, 'id'>): void {
     const newMeal: Meal = { ...meal, id: this.generateId() };
     this.meals.update((current) => [...current, newMeal]);
   }
 
-  updateMeal(id: string, updatedMeal: Partial<Meal>) {
+  updateMeal(id: string, updatedMeal: Partial<Meal>): void {
     this.meals.update((current) =>
       current.map((m) => (m.id === id ? { ...m, ...updatedMeal } : m))
     );
   }
 
-  deleteMeal(id: string) {
+  deleteMeal(id: string): void {
     this.meals.update((current) => current.filter((m) => m.id !== id));
     this.schedules.update((schedules) => {
       const newSchedules: Record<string, DaySchedule[]> = {};
@@ -236,7 +236,7 @@ export class MealService {
     });
   }
 
-  duplicateMeal(id: string) {
+  duplicateMeal(id: string): void {
     const original = this.getMeal(id);
     if (original) {
       const copy: Omit<Meal, 'id'> = {
@@ -259,7 +259,7 @@ export class MealService {
     dayName: string,
     type: keyof DaySchedule,
     value: string | null
-  ) {
+  ): void {
     const key = this.formatDateKey(this.currentWeekStart());
     const currentWeekSchedule = this.schedule();
     const updatedWeek = currentWeekSchedule.map((day) =>
@@ -268,28 +268,28 @@ export class MealService {
     this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
   }
 
-  clearSchedule() {
+  clearSchedule(): void {
     const key = this.formatDateKey(this.currentWeekStart());
     this.schedules.update((s) => ({ ...s, [key]: this.createEmptySchedule() }));
   }
 
-  nextWeek() {
+  nextWeek(): void {
     const next = new Date(this.currentWeekStart());
     next.setDate(next.getDate() + 7);
     this.currentWeekStart.set(next);
   }
 
-  previousWeek() {
+  previousWeek(): void {
     const prev = new Date(this.currentWeekStart());
     prev.setDate(prev.getDate() - 7);
     this.currentWeekStart.set(prev);
   }
 
-  goToCurrentWeek() {
+  goToCurrentWeek(): void {
     this.currentWeekStart.set(this.getStartOfWeek(new Date()));
   }
 
-  copyFromPreviousWeek() {
+  copyFromPreviousWeek(): void {
     const currentKey = this.formatDateKey(this.currentWeekStart());
     const prevDate = new Date(this.currentWeekStart());
     prevDate.setDate(prevDate.getDate() - 7);
@@ -303,17 +303,17 @@ export class MealService {
     }
   }
 
-  addTag(name: string, color: string) {
+  addTag(name: string, color: string): void {
     const newTag: ShoppingTag = { id: this.generateId(), name, color };
     this.tags.update((t) => [...t, newTag]);
   }
 
-  setIngredientTag(ingredientName: string, tagId: string) {
+  setIngredientTag(ingredientName: string, tagId: string): void {
     const key = ingredientName.toLowerCase().trim();
     this.ingredientTags.update((map) => ({ ...map, [key]: tagId }));
   }
 
-  addExtraItem(name: string, quantity: string, tagId?: string) {
+  addExtraItem(name: string, quantity: string, tagId?: string): void {
     const newItem: ShoppingItem = { name, quantity, tagId, isExtra: true };
     this.extraItems.update((items) => [...items, newItem]);
     if (tagId) {
@@ -321,17 +321,17 @@ export class MealService {
     }
   }
 
-  removeExtraItem(index: number) {
+  removeExtraItem(index: number): void {
     this.extraItems.update((items) => items.filter((_, i) => i !== index));
   }
 
-  overrideQuantity(ingredientName: string, newQuantity: string) {
+  overrideQuantity(ingredientName: string, newQuantity: string): void {
     const weekKey = this.formatDateKey(this.currentWeekStart());
     const key = `${weekKey}_${ingredientName.toLowerCase().trim()}`;
     this.quantityOverrides.update((o) => ({ ...o, [key]: newQuantity }));
   }
 
-  clearOverrides() {
+  clearOverrides(): void {
     const weekKey = this.formatDateKey(this.currentWeekStart());
     this.quantityOverrides.update((o) => {
       const newOverrides = { ...o };
@@ -344,7 +344,7 @@ export class MealService {
     });
   }
 
-  toggleItemCheck(name: string) {
+  toggleItemCheck(name: string): void {
     const weekKey = this.formatDateKey(this.currentWeekStart());
     const itemName = name.toLowerCase().trim();
 
@@ -393,7 +393,7 @@ export class MealService {
       dayDate.setDate(weekStart.getDate() + index);
 
       if (dayDate >= today) {
-        const processMeal = (mealId: string | null) => {
+        const processMeal = (mealId: string | null): void => {
           if (!mealId) {
             return;
           }
@@ -466,17 +466,17 @@ export class MealService {
     this.shoppingListGrouped().flatMap((g) => g.items)
   );
 
-  toggleFamilyMode() {
+  toggleFamilyMode(): void {
     this.isFamilyMode.update((v) => !v);
   }
-  toggleBreakfast() {
+  toggleBreakfast(): void {
     this.isBreakfastEnabled.update((v) => !v);
   }
-  setFamilyPortions(portions: number) {
+  setFamilyPortions(portions: number): void {
     this.familyPortions.set(portions);
   }
 
-  exportData() {
+  exportData(): void {
     const data = {
       meals: this.meals(),
       schedules: this.schedules(),
@@ -501,7 +501,7 @@ export class MealService {
     window.URL.revokeObjectURL(url);
   }
 
-  importData(jsonContent: string) {
+  importData(jsonContent: string): void {
     try {
       const data = JSON.parse(jsonContent);
       if (data.meals) {

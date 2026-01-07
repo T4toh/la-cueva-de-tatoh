@@ -13,12 +13,12 @@ import { Panel } from 'componentes';
 export class SettingsComponent {
   mealService = inject(MealService);
 
-  onFileSelected(event: Event) {
+  onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = (e): void => {
         const content = e.target?.result as string;
         this.mealService.importData(content);
       };

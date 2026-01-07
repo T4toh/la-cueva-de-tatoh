@@ -13,7 +13,7 @@ export class AppComponent implements OnInit {
   title = 'comidas';
   updateService = inject(UpdateService);
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.updateService.checkForUpdates();
   }
 }

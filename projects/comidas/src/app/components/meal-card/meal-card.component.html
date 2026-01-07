@@ -1,4 +1,11 @@
-<div class="meal-card" (click)="onCardClick()">
+<div
+  class="meal-card"
+  role="button"
+  tabindex="0"
+  (click)="onCardClick()"
+  (keydown.enter)="onCardClick()"
+  (keydown.space)="$event.preventDefault(); onCardClick()"
+>
   <lib-panel
     [colorFondo]="'var(--color-2)'"
     [colorTexto]="'white'"

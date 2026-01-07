@@ -33,7 +33,7 @@ export class ShoppingListComponent {
     });
   }
 
-  addExtraItem() {
+  addExtraItem(): void {
     if (this.extraItemForm.valid) {
       const { name, quantity, tagId } = this.extraItemForm.value;
       this.mealService.addExtraItem(name, quantity, tagId);
@@ -42,7 +42,7 @@ export class ShoppingListComponent {
     }
   }
 
-  addTag() {
+  addTag(): void {
     if (this.tagForm.valid) {
       const { name, color } = this.tagForm.value;
       this.mealService.addTag(name, color);
@@ -51,18 +51,18 @@ export class ShoppingListComponent {
     }
   }
 
-  updateItemTag(itemName: string, event: Event) {
+  updateItemTag(itemName: string, event: Event): void {
     const select = event.target as HTMLSelectElement;
     this.mealService.setIngredientTag(itemName, select.value);
   }
 
-  resetQuantities() {
+  resetQuantities(): void {
     if (confirm('¿Estás seguro de resetear todas las cantidades a los valores originales del menú?')) {
       this.mealService.clearOverrides();
     }
   }
 
-  editQuantity(itemName: string, event: Event) {
+  editQuantity(itemName: string, event: Event): void {
     const input = event.target as HTMLInputElement;
     this.mealService.overrideQuantity(itemName, input.value);
   }
@@ -79,15 +79,15 @@ export class ShoppingListComponent {
     return tag ? tag.name : '+';
   }
   
-  deleteExtraItem(index: number) {
+  deleteExtraItem(index: number): void {
       this.mealService.removeExtraItem(index);
   }
 
-  print() {
+  print(): void {
     window.print();
   }
   
-  copyToClipboard() {
+  copyToClipboard(): void {
     let text = `🛒 *Lista de Compras* (${this.mealService.weekRangeDisplay()})\n\n`;
     let hasItems = false;
 
