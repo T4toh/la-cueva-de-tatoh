@@ -1,4 +1,6 @@
-import { computed, effect, Injectable, signal } from '@angular/core';
+import { computed, effect, Injectable, signal, inject } from '@angular/core';
+import { Firestore, doc, setDoc, getDoc } from '@angular/fire/firestore';
+import { AuthService } from './auth.service';
 import {
   DaySchedule,
   Meal,
@@ -11,6 +13,9 @@ import {
   providedIn: 'root',
 })
 export class MealService {
+  private firestore = inject(Firestore);
+  private authService = inject(AuthService);
+
   private readonly MEALS_KEY = 'comidas_meals';
   private readonly SCHEDULES_KEY = 'comidas_schedules';
   private readonly TAGS_KEY = 'comidas_tags';
@@ -63,42 +68,64 @@ export class MealService {
   constructor() {
     this.loadFamilySettings();
 
+    // Sync with Firestore on login
+    effect(() => {
+        const user = this.authService.currentUser();
+        if (user) {
+            this.syncFromFirestore(user.uid);
+        }
+    });
+
     // Persist changes
     effect(() => {
-      localStorage.setItem(this.MEALS_KEY, JSON.stringify(this.meals()));
+      const data = this.meals();
+      localStorage.setItem(this.MEALS_KEY, JSON.stringify(data));
+      this.saveToFirestore('meals', data);
     });
     effect(() => {
+      const data = this.schedules();
       localStorage.setItem(
         this.SCHEDULES_KEY,
-        JSON.stringify(this.schedules())
+        JSON.stringify(data)
       );
+      this.saveToFirestore('schedules', data);
     });
     effect(() => {
-      localStorage.setItem(this.TAGS_KEY, JSON.stringify(this.tags()));
+      const data = this.tags();
+      localStorage.setItem(this.TAGS_KEY, JSON.stringify(data));
+      this.saveToFirestore('tags', data);
     });
     effect(() => {
+      const data = this.ingredientTags();
       localStorage.setItem(
         this.INGREDIENT_TAGS_KEY,
-        JSON.stringify(this.ingredientTags())
+        JSON.stringify(data)
       );
+      this.saveToFirestore('ingredientTags', data);
     });
     effect(() => {
+      const data = this.extraItems();
       localStorage.setItem(
         this.EXTRA_ITEMS_KEY,
-        JSON.stringify(this.extraItems())
+        JSON.stringify(data)
       );
+      this.saveToFirestore('extraItems', data);
     });
     effect(() => {
+      const data = this.quantityOverrides();
       localStorage.setItem(
         this.QUANTITY_OVERRIDES_KEY,
-        JSON.stringify(this.quantityOverrides())
+        JSON.stringify(data)
       );
+      this.saveToFirestore('overrides', data);
     });
     effect(() => {
+      const data = this.checkedItems();
       localStorage.setItem(
         this.CHECKED_ITEMS_KEY,
-        JSON.stringify(this.checkedItems())
+        JSON.stringify(data)
       );
+      this.saveToFirestore('checkedItems', data);
     });
     effect(() => {
       const settings = {
@@ -107,7 +134,64 @@ export class MealService {
         familyPortions: this.familyPortions(),
       };
       localStorage.setItem(this.FAMILY_SETTINGS_KEY, JSON.stringify(settings));
+      this.saveToFirestore('familySettings', settings);
     });
+  }
+
+  private async saveToFirestore(key: string, data: any) {
+    const user = this.authService.currentUser();
+    if (!user) return;
+    try {
+        const docRef = doc(this.firestore, 'users', user.uid);
+        await setDoc(docRef, { [key]: data }, { merge: true });
+    } catch(e) {
+        console.error(`Error saving ${key} to firestore:`, e);
+    }
+  }
+
+  private async syncFromFirestore(uid: string) {
+      try {
+          const docRef = doc(this.firestore, 'users', uid);
+          const docSnap = await getDoc(docRef);
+
+          if (docSnap.exists()) {
+              const data = docSnap.data();
+              if (data['meals']) this.meals.set(data['meals']);
+              if (data['schedules']) this.schedules.set(data['schedules']);
+              if (data['tags']) this.tags.set(data['tags']);
+              if (data['ingredientTags']) this.ingredientTags.set(data['ingredientTags']);
+              if (data['extraItems']) this.extraItems.set(data['extraItems']);
+              if (data['overrides']) this.quantityOverrides.set(data['overrides']);
+              if (data['checkedItems']) this.checkedItems.set(data['checkedItems']);
+              if (data['familySettings']) {
+                  const fs = data['familySettings'];
+                  this.isFamilyMode.set(fs.isFamilyMode);
+                  if (fs.visibleMeals) {
+                      this.visibleMeals.set(fs.visibleMeals);
+                  }
+                  this.familyPortions.set(fs.familyPortions);
+              }
+          } else {
+              this.uploadAllToFirestore();
+          }
+      } catch (e) {
+          console.error("Error syncing from Firestore", e);
+      }
+  }
+
+  private uploadAllToFirestore() {
+      this.saveToFirestore('meals', this.meals());
+      this.saveToFirestore('schedules', this.schedules());
+      this.saveToFirestore('tags', this.tags());
+      this.saveToFirestore('ingredientTags', this.ingredientTags());
+      this.saveToFirestore('extraItems', this.extraItems());
+      this.saveToFirestore('overrides', this.quantityOverrides());
+      this.saveToFirestore('checkedItems', this.checkedItems());
+      this.saveToFirestore('familySettings', {
+        isFamilyMode: this.isFamilyMode(),
+        visibleMeals: this.visibleMeals(),
+        familyPortions: this.familyPortions(),
+      });
   }
 
   private getStartOfWeek(date: Date): Date {

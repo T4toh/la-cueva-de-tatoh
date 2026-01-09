@@ -12,10 +12,28 @@
       <span class="icon">🛒</span>
       <span class="text">Compras</span>
     </a>
-    <a routerLink="/settings" routerLinkActive="active" title="Configuración">
-      <span class="icon">⚙️</span>
-      <span class="text">Config</span>
-    </a>
+    
+    <!-- Auth & Config Logic -->
+    <ng-container *ngIf="authService.user$ | async as user; else guestNav">
+      <!-- Logged in: Avatar replaces the config button -->
+      <a routerLink="/settings" routerLinkActive="active" title="Configuración" class="auth-link">
+        <img [src]="user.photoURL" alt="User" class="user-avatar" referrerpolicy="no-referrer">
+        <span class="text">Config</span>
+      </a>
+    </ng-container>
+
+    <ng-template #guestNav>
+      <!-- Guest: Standard config button + login button -->
+      <a routerLink="/settings" routerLinkActive="active" title="Configuración">
+        <span class="icon">⚙️</span>
+        <span class="text">Config</span>
+      </a>
+      <a (click)="login()" title="Iniciar Sesión" class="auth-link clickable">
+        <span class="icon">👤</span>
+        <span class="text">Entrar</span>
+      </a>
+    </ng-template>
+
   </nav>
 
   <main>
