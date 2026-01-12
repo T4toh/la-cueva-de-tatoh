@@ -24,6 +24,21 @@ h1, h2 {
   }
 }
 
+.checkbox-group {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  
+  input {
+    width: auto;
+    margin: 0;
+  }
+  
+  label {
+    margin: 0;
+  }
+}
+
 .ingredients-section {
   margin-bottom: 2rem;
   background: rgba(0, 0, 0, 0.2);

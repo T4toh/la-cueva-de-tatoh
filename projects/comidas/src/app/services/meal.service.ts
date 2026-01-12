@@ -24,6 +24,7 @@ export class MealService {
   private readonly FAMILY_SETTINGS_KEY = 'comidas_family_settings';
   private readonly QUANTITY_OVERRIDES_KEY = 'comidas_quantity_overrides';
   private readonly CHECKED_ITEMS_KEY = 'comidas_checked_items';
+  private readonly CURRENT_WEEK_KEY = 'comidas_current_week';
 
   // State
   readonly meals = signal<Meal[]>(this.loadMeals());
@@ -63,7 +64,7 @@ export class MealService {
   readonly familyPortions = signal<number>(4);
 
   // Navigation State
-  readonly currentWeekStart = signal<Date>(this.getStartOfWeek(new Date()));
+  readonly currentWeekStart = signal<Date>(this.loadCurrentWeekStart());
 
   constructor() {
     this.loadFamilySettings();
@@ -136,11 +137,15 @@ export class MealService {
       localStorage.setItem(this.FAMILY_SETTINGS_KEY, JSON.stringify(settings));
       this.saveToFirestore('familySettings', settings);
     });
+    effect(() => {
+      const date = this.currentWeekStart();
+      localStorage.setItem(this.CURRENT_WEEK_KEY, date.toISOString());
+    });
   }
 
-  private async saveToFirestore(key: string, data: any) {
+  private async saveToFirestore(key: string, data: any): Promise<void> {
     const user = this.authService.currentUser();
-    if (!user) return;
+    if (!user) { return; }
     try {
         const docRef = doc(this.firestore, 'users', user.uid);
         await setDoc(docRef, { [key]: data }, { merge: true });
@@ -149,20 +154,20 @@ export class MealService {
     }
   }
 
-  private async syncFromFirestore(uid: string) {
+  private async syncFromFirestore(uid: string): Promise<void> {
       try {
           const docRef = doc(this.firestore, 'users', uid);
           const docSnap = await getDoc(docRef);
 
           if (docSnap.exists()) {
               const data = docSnap.data();
-              if (data['meals']) this.meals.set(data['meals']);
-              if (data['schedules']) this.schedules.set(data['schedules']);
-              if (data['tags']) this.tags.set(data['tags']);
-              if (data['ingredientTags']) this.ingredientTags.set(data['ingredientTags']);
-              if (data['extraItems']) this.extraItems.set(data['extraItems']);
-              if (data['overrides']) this.quantityOverrides.set(data['overrides']);
-              if (data['checkedItems']) this.checkedItems.set(data['checkedItems']);
+              if (data['meals']) { this.meals.set(data['meals']); }
+              if (data['schedules']) { this.schedules.set(data['schedules']); }
+              if (data['tags']) { this.tags.set(data['tags']); }
+              if (data['ingredientTags']) { this.ingredientTags.set(data['ingredientTags']); }
+              if (data['extraItems']) { this.extraItems.set(data['extraItems']); }
+              if (data['overrides']) { this.quantityOverrides.set(data['overrides']); }
+              if (data['checkedItems']) { this.checkedItems.set(data['checkedItems']); }
               if (data['familySettings']) {
                   const fs = data['familySettings'];
                   this.isFamilyMode.set(fs.isFamilyMode);
@@ -248,6 +253,17 @@ export class MealService {
   private loadCheckedItems(): Record<string, string[]> {
     const data = localStorage.getItem(this.CHECKED_ITEMS_KEY);
     return data ? JSON.parse(data) : {};
+  }
+
+  private loadCurrentWeekStart(): Date {
+    const data = localStorage.getItem(this.CURRENT_WEEK_KEY);
+    if (data) {
+      const d = new Date(data);
+      if (!isNaN(d.getTime())) {
+        return d;
+      }
+    }
+    return this.getStartOfWeek(new Date());
   }
 
   private loadFamilySettings(): void {
@@ -365,7 +381,7 @@ export class MealService {
   updateSchedule(
     dayName: string,
     type: keyof DaySchedule,
-    value: string | null
+    value: string | null | boolean
   ): void {
     const key = this.formatDateKey(this.currentWeekStart());
     const currentWeekSchedule = this.schedule();
@@ -500,12 +516,12 @@ export class MealService {
       dayDate.setDate(weekStart.getDate() + index);
 
       if (dayDate >= today) {
-        const processMeal = (mealId: string | null): void => {
-          if (!mealId) {
+        const processMeal = (mealId: string | null, excluded?: boolean): void => {
+          if (!mealId || excluded) {
             return;
           }
           const meal = allMeals.find((m) => m.id === mealId);
-          if (meal) {
+          if (meal && meal.includeInShoppingList !== false) {
             meal.ingredients.forEach((ing) => {
               const key = ing.name.toLowerCase().trim();
               const quantity = this.multiplyQuantity(ing.quantity, multiplier);
@@ -519,9 +535,9 @@ export class MealService {
             });
           }
         };
-        processMeal(day.almuerzo);
-        processMeal(day.desayuno);
-        processMeal(day.cena);
+        processMeal(day.almuerzo, day.almuerzoExcluded);
+        processMeal(day.desayuno, day.desayunoExcluded);
+        processMeal(day.cena, day.cenaExcluded);
       }
     });
 

@@ -34,6 +34,7 @@ export class MealEditorComponent implements OnInit {
     this.form = this.fb.group({
       name: ['', Validators.required],
       description: [''],
+      includeInShoppingList: [true],
       ingredients: this.fb.array([]),
       tags: this.fb.array([]),
     });
@@ -55,6 +56,7 @@ export class MealEditorComponent implements OnInit {
         this.form.patchValue({
           name: meal.name,
           description: meal.description,
+          includeInShoppingList: meal.includeInShoppingList ?? true,
         });
         meal.ingredients.forEach((ing) => {
           this.addIngredient(ing.name, ing.quantity);
@@ -109,6 +111,7 @@ export class MealEditorComponent implements OnInit {
       const mealData: Omit<Meal, 'id'> = {
         name: formValue.name,
         description: formValue.description,
+        includeInShoppingList: formValue.includeInShoppingList,
         ingredients: validIngredients,
         tags: formValue.tags,
       };
