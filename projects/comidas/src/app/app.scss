@@ -28,6 +28,7 @@
     padding: 0.6rem 1rem;
     border-radius: 12px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
 
     .icon {
       font-size: 1.2rem;
@@ -43,6 +44,14 @@
       background-color: var(--color-3);
       box-shadow: 0 4px 12px rgba(91, 92, 154, 0.4);
     }
+  }
+
+  .user-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--color-3);
+    object-fit: cover;
   }
 }
 
@@ -80,6 +89,11 @@ main {
       .icon {
         font-size: 1.4rem;
       }
+    }
+    
+    .user-avatar {
+        width: 32px;
+        height: 32px;
     }
   }
 }

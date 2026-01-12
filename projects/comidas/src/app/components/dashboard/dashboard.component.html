@@ -67,8 +67,14 @@
           <!-- Desayuno -->
           @if (mealService.visibleMeals().breakfast) {
             <div class="slot">
-              <span class="label">Desayuno:</span>
-              <a class="meal-link" [routerLink]="['/schedule', day.dayName, 'desayuno']">
+              <div class="slot-top">
+                <span class="label">Desayuno:</span>
+                                @if (day.desayuno && !isPlaceholder(day.desayuno)) {
+                                  <input class="exclude-check" title="Sumar a compras" type="checkbox"
+                                    [checked]="!day.desayunoExcluded"
+                                    (change)="toggleExclusion(day.dayName, 'desayuno', $event)">
+                                }              </div>
+              <a class="meal-link" [class.is-placeholder]="isPlaceholder(day.desayuno)" [routerLink]="['/schedule', day.dayName, 'desayuno']">
                 {{ getMealName(day.desayuno) }}
               </a>
             </div>
@@ -77,8 +83,15 @@
           <!-- Almuerzo -->
           @if (mealService.visibleMeals().lunch) {
             <div class="slot">
-              <span class="label">Almuerzo:</span>
-              <a class="meal-link" [routerLink]="['/schedule', day.dayName, 'almuerzo']">
+              <div class="slot-top">
+                <span class="label">Almuerzo:</span>
+                @if (day.almuerzo && !isPlaceholder(day.almuerzo)) {
+                  <input class="exclude-check" title="Sumar a compras" type="checkbox"
+                    [checked]="!day.almuerzoExcluded"
+                    (change)="toggleExclusion(day.dayName, 'almuerzo', $event)">
+                }
+              </div>
+              <a class="meal-link" [class.is-placeholder]="isPlaceholder(day.almuerzo)" [routerLink]="['/schedule', day.dayName, 'almuerzo']">
                 {{ getMealName(day.almuerzo) }}
               </a>
               <div class="embedded-postre">
@@ -100,8 +113,15 @@
           <!-- Cena -->
           @if (mealService.visibleMeals().dinner) {
             <div class="slot">
-              <span class="label">Cena:</span>
-              <a class="meal-link" [routerLink]="['/schedule', day.dayName, 'cena']">
+              <div class="slot-top">
+                <span class="label">Cena:</span>
+                @if (day.cena && !isPlaceholder(day.cena)) {
+                  <input class="exclude-check" title="Sumar a compras" type="checkbox"
+                    [checked]="!day.cenaExcluded"
+                    (change)="toggleExclusion(day.dayName, 'cena', $event)">
+                }
+              </div>
+              <a class="meal-link" [class.is-placeholder]="isPlaceholder(day.cena)" [routerLink]="['/schedule', day.dayName, 'cena']">
                 {{ getMealName(day.cena) }}
               </a>
               <div class="embedded-postre">

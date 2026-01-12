@@ -1,17 +1,20 @@
 import { Component, inject } from '@angular/core';
+import { AsyncPipe, NgIf } from '@angular/common';
 
 import { MealService } from '../../services/meal.service';
+import { AuthService } from '../../services/auth.service';
 import { Panel } from 'componentes';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [Panel],
+  imports: [Panel, NgIf, AsyncPipe],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss']
 })
 export class SettingsComponent {
   mealService = inject(MealService);
+  authService = inject(AuthService);
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;

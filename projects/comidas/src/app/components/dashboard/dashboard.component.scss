@@ -237,6 +237,13 @@ input:checked + .slider:before {
       background: rgba(255, 255, 255, 0.05);
   }
 
+  .slot-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.2rem;
+  }
+
   .postre-input {
       background: transparent;
       border: none;
@@ -256,7 +263,13 @@ input:checked + .slider:before {
   .label {
     font-size: 0.8rem;
     color: var(--color-5);
-    margin-bottom: 0.2rem;
+  }
+
+  .exclude-check {
+    cursor: pointer;
+    width: 14px;
+    height: 14px;
+    accent-color: var(--color-3);
   }
 
   .meal-link {
@@ -271,6 +284,13 @@ input:checked + .slider:before {
 
     &:hover {
       background: rgba(255, 255, 255, 0.2);
+    }
+
+    &.is-placeholder {
+      font-style: italic;
+      color: rgba(255, 255, 255, 0.7);
+      background: rgba(0, 0, 0, 0.1);
+      border: 1px dashed rgba(255, 255, 255, 0.3);
     }
   }
 

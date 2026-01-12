@@ -1,11 +1,39 @@
 <div class="settings-container">
   <h1>Configuración</h1>
 
+  <!-- Auth Panel -->
+  <lib-panel
+    [colorFondo]="'var(--color-1)'"
+    [colorTexto]="'white'"
+    [sombreado]="true"
+    [texto]="'Sincronización en la Nube'"
+  >
+    <div class="settings-content" *ngIf="authService.user$ | async as user; else loginTpl">
+      <div class="actions">
+        <p>Conectado como: <strong>{{ user.email }}</strong></p>
+        <p class="info-text">Tus datos se sincronizan automáticamente.</p>
+        <button class="btn-danger" (click)="authService.logout()">
+          Cerrar Sesión
+        </button>
+      </div>
+    </div>
+    <ng-template #loginTpl>
+      <div class="settings-content">
+        <div class="actions">
+          <p>Inicia sesión con Google para guardar y sincronizar tus comidas en la nube de forma gratuita.</p>
+          <button class="btn-google" (click)="authService.loginWithGoogle()">
+            Iniciar sesión con Google
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </lib-panel>
+
   <lib-panel 
     [colorFondo]="'var(--color-3)'" 
     [colorTexto]="'white'"
     [sombreado]="true"
-    [texto]="'Gestión de Datos'"
+    [texto]="'Gestión de Datos Local'"
   >
     <div class="settings-content">
       <p>Exporta tus comidas y planificación para usarlas en otro dispositivo o guardarlas como copia de seguridad.</p>
@@ -24,6 +52,6 @@
   </lib-panel>
 
   <div class="version">
-    <p>Comidas v1.0.0</p>
+    <p>Comidas v1.2.0</p>
   </div>
 </div>

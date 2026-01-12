@@ -26,7 +26,7 @@ h1 {
   align-items: center; // Center buttons horizontally
 }
 
-.btn-primary, .btn-secondary {
+.btn-primary, .btn-secondary, .btn-danger, .btn-google {
   display: flex; // Use flex to center text inside label/button
   align-items: center;
   justify-content: center;
@@ -59,6 +59,31 @@ h1 {
   &:hover {
     background-color: rgba(255, 255, 255, 0.1);
   }
+}
+
+.btn-danger {
+  background-color: #f44336;
+  color: white;
+  
+  &:hover {
+    background-color: #d32f2f;
+  }
+}
+
+.btn-google {
+  background-color: white;
+  color: #333;
+  
+  &:hover {
+    background-color: #f1f1f1;
+  }
+}
+
+.info-text {
+  font-size: 0.9rem;
+  color: #ccc;
+  margin-bottom: 0.5rem !important;
+  margin-top: -1rem;
 }
 
 .version {

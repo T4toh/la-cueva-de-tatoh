@@ -21,6 +21,11 @@ export class DashboardComponent {
     return meal ? meal.name : 'Seleccionar';
   }
 
+  isPlaceholder(id: string | null): boolean {
+    const meal = this.mealService.getMeal(id);
+    return meal ? meal.includeInShoppingList === false : false;
+  }
+
   isToday(dayName: string): boolean {
     const today = new Date();
     const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -68,5 +73,11 @@ export class DashboardComponent {
   updateField(dayName: string, field: keyof DaySchedule, event: Event): void {
     const input = event.target as HTMLInputElement;
     this.mealService.updateSchedule(dayName, field, input.value);
+  }
+
+  toggleExclusion(dayName: string, type: string, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const fieldName = `${type}Excluded` as keyof DaySchedule;
+    this.mealService.updateSchedule(dayName, fieldName, !input.checked);
   }
 }
