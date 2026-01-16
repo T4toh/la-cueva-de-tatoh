@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 
 import { MealService } from '../../services/meal.service';
 import { AuthService } from '../../services/auth.service';
@@ -8,13 +8,18 @@ import { Panel } from 'componentes';
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [Panel, NgIf, AsyncPipe],
+  imports: [Panel, AsyncPipe],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss']
 })
 export class SettingsComponent {
   mealService = inject(MealService);
   authService = inject(AuthService);
+
+  async refreshData(): Promise<void> {
+    await this.mealService.refreshData();
+    alert('Datos sincronizados con la nube.');
+  }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;

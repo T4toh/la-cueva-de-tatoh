@@ -2,11 +2,14 @@ import { ApplicationRef, inject, Injectable } from '@angular/core';
 import { SwUpdate } from '@angular/service-worker';
 import { concat, interval } from 'rxjs';
 import { first } from 'rxjs/operators';
+import { DialogService } from './dialog.service';
 
 @Injectable({ providedIn: 'root' })
 export class UpdateService {
   appRef = inject(ApplicationRef);
   updates = inject(SwUpdate);
+  dialogService = inject(DialogService);
+
   constructor() {
     if (!this.updates.isEnabled) {
       console.log('SW not enabled');
@@ -49,10 +52,15 @@ export class UpdateService {
           console.log(
             `New app version ready for use: ${evt.latestVersion.hash}`
           );
-          if (confirm('Nueva versión disponible. ¿Recargar ahora?')) {
-            // Reload the page to update to the latest version.
-            document.location.reload();
-          }
+          
+          this.dialogService.confirm(
+            'Actualización Disponible',
+            'Nueva versión disponible. ¿Recargar ahora?'
+          ).then(confirmed => {
+            if (confirmed) {
+              document.location.reload();
+            }
+          });
           break;
         case 'VERSION_INSTALLATION_FAILED':
           console.log(

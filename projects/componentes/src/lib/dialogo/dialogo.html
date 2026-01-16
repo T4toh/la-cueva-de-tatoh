@@ -1,0 +1,43 @@
+@if (visible()) {
+  <div
+    class="dialogo-backdrop"
+    role="button"
+    tabindex="0"
+    (click)="onBackdropClick($event)"
+    (keydown.enter)="onBackdropClick($event)"
+    (keydown.space)="onBackdropClick($event)"
+  >
+    <div class="dialogo-container" [style.max-width]="ancho()">
+      <!-- Encabezado -->
+      @if (titulo()) {
+        <div class="dialogo-header">
+          <h3>{{ titulo() }}</h3>
+          <button class="btn-close" type="button" (click)="cerrar()">×</button>
+        </div>
+      }
+
+      <!-- Cuerpo -->
+      <div class="dialogo-body">
+        @if (mensaje()) {
+          <p>{{ mensaje() }}</p>
+        }
+        <ng-content />
+      </div>
+
+      <!-- Footer -->
+      @if (acciones().length > 0) {
+        <div class="dialogo-footer">
+          @for (accion of acciones(); track $index) {
+            <lib-boton
+              [color]="accion.color"
+              [estilo]="accion.estilo || 'normal'"
+              [icono]="accion.icono"
+              [onClick]="accion.accion"
+              [texto]="accion.texto"
+            />
+          }
+        </div>
+      }
+    </div>
+  </div>
+}

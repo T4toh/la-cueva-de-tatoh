@@ -3,6 +3,7 @@ import { Component, inject } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { MealService } from '../../services/meal.service';
 import { MealCardComponent } from '../meal-card/meal-card.component';
+import { DialogService } from '../../services/dialog.service';
 
 @Component({
   selector: 'app-meal-list',
@@ -14,9 +15,14 @@ import { MealCardComponent } from '../meal-card/meal-card.component';
 export class MealListComponent {
   mealService = inject(MealService);
   router = inject(Router);
+  dialogService = inject(DialogService);
 
-  deleteMeal(id: string): void {
-    if (confirm('¿Estás seguro de eliminar esta comida?')) {
+  async deleteMeal(id: string): Promise<void> {
+    const confirmed = await this.dialogService.confirm(
+      'Eliminar Comida',
+      '¿Estás seguro de eliminar esta comida?'
+    );
+    if (confirmed) {
       this.mealService.deleteMeal(id);
     }
   }

@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 
 import { RouterModule } from '@angular/router';
 import { MealService } from '../../services/meal.service';
+import { DialogService } from '../../services/dialog.service';
 import { DaySchedule } from '../../models/meal.model';
 import { Panel } from 'componentes';
 import { FormsModule } from '@angular/forms';
@@ -15,10 +16,25 @@ import { FormsModule } from '@angular/forms';
 })
 export class DashboardComponent {
   mealService = inject(MealService);
+  private dialogService = inject(DialogService);
 
   getMealName(id: string | null): string {
     const meal = this.mealService.getMeal(id);
     return meal ? meal.name : 'Seleccionar';
+  }
+
+  async clearWeek(): Promise<void> {
+    const confirmed = await this.dialogService.confirm(
+      'Limpiar Semana',
+      '¿Estás seguro de que quieres borrar toda la planificación de esta semana?'
+    );
+    if (confirmed) {
+      this.mealService.clearSchedule();
+    }
+  }
+
+  async refreshData(): Promise<void> {
+    await this.mealService.refreshData();
   }
 
   isPlaceholder(id: string | null): boolean {

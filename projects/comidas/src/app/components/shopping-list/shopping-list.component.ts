@@ -1,19 +1,26 @@
 import { Component, inject } from '@angular/core';
 
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { MealService } from '../../services/meal.service';
 import { Tag } from 'componentes';
+import { DialogService } from '../../services/dialog.service';
 
 @Component({
   selector: 'app-shopping-list',
   standalone: true,
   imports: [ReactiveFormsModule, Tag],
   templateUrl: './shopping-list.component.html',
-  styleUrls: ['./shopping-list.component.scss']
+  styleUrls: ['./shopping-list.component.scss'],
 })
 export class ShoppingListComponent {
   mealService = inject(MealService);
   fb = inject(FormBuilder);
+  dialogService = inject(DialogService);
 
   extraItemForm: FormGroup;
   tagForm: FormGroup;
@@ -24,12 +31,12 @@ export class ShoppingListComponent {
     this.extraItemForm = this.fb.group({
       name: ['', Validators.required],
       quantity: ['', Validators.required],
-      tagId: ['']
+      tagId: [''],
     });
 
     this.tagForm = this.fb.group({
       name: ['', Validators.required],
-      color: ['#000000', Validators.required]
+      color: ['#000000', Validators.required],
     });
   }
 
@@ -56,8 +63,12 @@ export class ShoppingListComponent {
     this.mealService.setIngredientTag(itemName, select.value);
   }
 
-  resetQuantities(): void {
-    if (confirm('¿Estás seguro de resetear todas las cantidades a los valores originales del menú?')) {
+  async resetQuantities(): Promise<void> {
+    const confirmed = await this.dialogService.confirm(
+      'Resetear Cantidades',
+      '¿Estás seguro de resetear todas las cantidades a los valores originales del menú?'
+    );
+    if (confirmed) {
       this.mealService.clearOverrides();
     }
   }
@@ -66,53 +77,68 @@ export class ShoppingListComponent {
     const input = event.target as HTMLInputElement;
     this.mealService.overrideQuantity(itemName, input.value);
   }
-  
+
   getTagColor(tagId?: string): string {
-    if (!tagId) {return '#e0e0e0';} // Gray for no tag
-    const tag = this.mealService.tags().find(t => t.id === tagId);
+    if (!tagId) {
+      return '#e0e0e0';
+    } // Gray for no tag
+    const tag = this.mealService.tags().find((t) => t.id === tagId);
     return tag ? tag.color : '#e0e0e0';
   }
 
   getTagName(tagId?: string): string {
-    if (!tagId) {return '+';}
-    const tag = this.mealService.tags().find(t => t.id === tagId);
+    if (!tagId) {
+      return '+';
+    }
+    const tag = this.mealService.tags().find((t) => t.id === tagId);
     return tag ? tag.name : '+';
   }
-  
+
   deleteExtraItem(index: number): void {
-      this.mealService.removeExtraItem(index);
+    this.mealService.removeExtraItem(index);
   }
 
   print(): void {
     window.print();
   }
-  
-  copyToClipboard(): void {
+
+  async copyToClipboard(): Promise<void> {
+    const confirmed = await this.dialogService.confirm(
+      'Copiar Lista',
+      '¿Quieres copiar la lista de compras al portapapeles?'
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
     let text = `🛒 *Lista de Compras* (${this.mealService.weekRangeDisplay()})\n\n`;
     let hasItems = false;
 
-    this.mealService.shoppingListGrouped().forEach(group => {
-        const remainingItems = group.items.filter(item => !item.checked);
-        
-        if (remainingItems.length > 0) {
-            hasItems = true;
-            const groupName = group.tag ? group.tag.name.toUpperCase() : 'OTROS';
-            text += `*${groupName}*\n`;
-            remainingItems.forEach(item => {
-                const quantity = item.quantityOverride || item.quantity;
-                text += `• ${item.name}: ${quantity}\n`;
-            });
-            text += '\n';
-        }
+    this.mealService.shoppingListGrouped().forEach((group) => {
+      const remainingItems = group.items.filter((item) => !item.checked);
+
+      if (remainingItems.length > 0) {
+        hasItems = true;
+        const groupName = group.tag ? group.tag.name.toUpperCase() : 'OTROS';
+        text += `*${groupName}*\n`;
+        remainingItems.forEach((item) => {
+          const quantity = item.quantityOverride || item.quantity;
+          text += `• ${item.name}: ${quantity}\n`;
+        });
+        text += '\n';
+      }
     });
-    
+
     if (!hasItems) {
-        alert('No hay items pendientes para copiar.');
-        return;
+      alert('No hay items pendientes para copiar.');
+      return;
     }
 
     text += '_Generado por Comidas - La Cueva de Tatoh_';
-    
-    navigator.clipboard.writeText(text).then(() => alert('¡Lista copiada al portapapeles!'));
+
+    navigator.clipboard
+      .writeText(text)
+      .then(() => alert('¡Lista copiada al portapapeles!'));
   }
 }

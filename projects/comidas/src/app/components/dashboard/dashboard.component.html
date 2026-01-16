@@ -1,12 +1,12 @@
 <div class="dashboard-container">
   <div class="header-controls">
     <div class="week-controls">
-      <button class="btn-nav" (click)="mealService.previousWeek()">&lt;</button>
+      <button class="btn-nav" type="button" (click)="mealService.previousWeek()">&lt;</button>
       <div class="week-info">
         <h1>Plan Semanal</h1>
         <span class="date-range">{{ mealService.weekRangeDisplay() }}</span>
       </div>
-      <button class="btn-nav" (click)="mealService.nextWeek()">&gt;</button>
+      <button class="btn-nav" type="button" (click)="mealService.nextWeek()">&gt;</button>
     </div>
 
     <div class="family-mode-toggle">
@@ -47,9 +47,9 @@
   </div>
 
   <div class="actions-top">
-    <button class="btn-secondary" (click)="mealService.goToCurrentWeek()">Hoy</button>
-    <button class="btn-secondary" (click)="mealService.copyFromPreviousWeek()">Copiar semana anterior</button>
-    <button class="btn-secondary btn-print" (click)="printMenu()">Imprimir Menú</button>
+    <button class="btn-secondary" type="button" (click)="mealService.goToCurrentWeek()">Hoy</button>
+    <button class="btn-secondary" type="button" (click)="mealService.copyFromPreviousWeek()">Copiar semana anterior</button>
+    <button class="btn-secondary btn-print" type="button" (click)="printMenu()">Imprimir Menú</button>
   </div>
 
   <div class="schedule-grid">
@@ -136,7 +136,7 @@
   </div>
 
   <div class="actions">
-    <button class="btn-clear" (click)="mealService.clearSchedule()">Limpiar Semana</button>
+    <button class="btn-clear" type="button" (click)="clearWeek()">Limpiar Semana</button>
   </div>
 
   <!-- Vista exclusiva para impresión -->

@@ -18,3 +18,5 @@ export * from './lib/boton/boton';
 export * from './lib/generador-qr/generador-qr';
 // Libro
 export * from './lib/libro/libro';
+// Dialogo
+export * from './lib/dialogo/dialogo';
