@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { Auth, GoogleAuthProvider, signInWithPopup, signOut, user, User } from '@angular/fire/auth';
 import { Observable } from 'rxjs';
 
@@ -8,13 +8,13 @@ import { Observable } from 'rxjs';
 export class AuthService {
   private auth: Auth = inject(Auth);
   user$: Observable<User | null> = user(this.auth);
-  currentUser = signal<User | null>(null);
+  readonly currentUser = signal<User | null>(null);
 
   constructor() {
     this.user$.subscribe(u => this.currentUser.set(u));
   }
 
-  async loginWithGoogle() {
+  async loginWithGoogle(): Promise<void> {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(this.auth, provider);
@@ -24,7 +24,7 @@ export class AuthService {
     }
   }
 
-  async logout() {
+  async logout(): Promise<void> {
     try {
       await signOut(this.auth);
     } catch (error) {

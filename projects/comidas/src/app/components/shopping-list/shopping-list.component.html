@@ -7,17 +7,17 @@
       </span>
     </div>
     <div class="actions">
-      <button class="btn-reset" title="Recargar cantidades del menú" (click)="resetQuantities()">🔄</button>
-      <button (click)="copyToClipboard()">Copiar</button>
-      <button (click)="print()">Imprimir</button>
+      <button class="btn-reset" title="Recargar cantidades del menú" type="button" (click)="resetQuantities()">🔄</button>
+      <button type="button" (click)="copyToClipboard()">Copiar</button>
+      <button type="button" (click)="print()">Imprimir</button>
     </div>
   </div>
 
   <div class="controls">
-    <button class="btn-secondary" (click)="showExtraForm = !showExtraForm">
+    <button class="btn-secondary" type="button" (click)="showExtraForm = !showExtraForm">
       + Agregar Item
     </button>
-    <button class="btn-secondary" (click)="showTagForm = !showTagForm">
+    <button class="btn-secondary" type="button" (click)="showTagForm = !showTagForm">
       + Crear Tag
     </button>
   </div>
@@ -123,7 +123,7 @@
         @for (item of mealService.extraItems(); track $index) {
           <span class="chip">
             {{ item.name }} ({{ item.quantity }})
-            <button (click)="deleteExtraItem($index)">x</button>
+            <button type="button" (click)="deleteExtraItem($index)">x</button>
           </span>
         }
       </div>

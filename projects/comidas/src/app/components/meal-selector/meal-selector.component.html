@@ -2,16 +2,16 @@
   <h1>Seleccionar {{ type }} para el {{ dayName }}</h1>
 
   <div class="actions">
-    <button class="btn-clear" (click)="clearSelection()">
+    <button class="btn-clear" type="button" (click)="clearSelection()">
       Limpiar selección
     </button>
   </div>
 
   @if (uniqueTags().length > 0) {
     <div class="filters">
-      <button [class.active]="selectedTag() === null" (click)="selectTag(null)">Todos</button>
+      <button type="button" [class.active]="selectedTag() === null" (click)="selectTag(null)">Todos</button>
       @for (tag of uniqueTags(); track tag) {
-        <button [class.active]="selectedTag() === tag" (click)="selectTag(tag)">{{ tag }}</button>
+        <button type="button" [class.active]="selectedTag() === tag" (click)="selectTag(tag)">{{ tag }}</button>
       }
     </div>
   }

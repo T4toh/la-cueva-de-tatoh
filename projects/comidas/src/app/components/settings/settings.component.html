@@ -8,25 +8,29 @@
     [sombreado]="true"
     [texto]="'Sincronización en la Nube'"
   >
-    <div class="settings-content" *ngIf="authService.user$ | async as user; else loginTpl">
-      <div class="actions">
-        <p>Conectado como: <strong>{{ user.email }}</strong></p>
-        <p class="info-text">Tus datos se sincronizan automáticamente.</p>
-        <button class="btn-danger" (click)="authService.logout()">
-          Cerrar Sesión
-        </button>
+    @if (authService.user$ | async; as user) {
+      <div class="settings-content">
+        <div class="actions">
+          <p>Conectado como: <strong>{{ user.email }}</strong></p>
+          <p class="info-text">Tus datos se sincronizan automáticamente.</p>
+          <button class="btn-secondary" type="button" (click)="refreshData()">
+            🔄 Forzar Sincronización
+          </button>
+          <button class="btn-danger" type="button" (click)="authService.logout()">
+            Cerrar Sesión
+          </button>
+        </div>
       </div>
-    </div>
-    <ng-template #loginTpl>
+    } @else {
       <div class="settings-content">
         <div class="actions">
           <p>Inicia sesión con Google para guardar y sincronizar tus comidas en la nube de forma gratuita.</p>
-          <button class="btn-google" (click)="authService.loginWithGoogle()">
+          <button class="btn-google" type="button" (click)="authService.loginWithGoogle()">
             Iniciar sesión con Google
           </button>
         </div>
       </div>
-    </ng-template>
+    }
   </lib-panel>
 
   <lib-panel 
@@ -39,7 +43,7 @@
       <p>Exporta tus comidas y planificación para usarlas en otro dispositivo o guardarlas como copia de seguridad.</p>
       
       <div class="actions">
-        <button class="btn-primary" (click)="mealService.exportData()">
+        <button class="btn-primary" type="button" (click)="mealService.exportData()">
           📤 Exportar JSON
         </button>
         

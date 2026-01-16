@@ -1,5 +1,5 @@
-import { computed, effect, Injectable, signal, inject } from '@angular/core';
-import { Firestore, doc, setDoc, getDoc } from '@angular/fire/firestore';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
+import { doc, Firestore, getDoc, setDoc } from '@angular/fire/firestore';
 import { AuthService } from './auth.service';
 import {
   DaySchedule,
@@ -71,10 +71,10 @@ export class MealService {
 
     // Sync with Firestore on login
     effect(() => {
-        const user = this.authService.currentUser();
-        if (user) {
-            this.syncFromFirestore(user.uid);
-        }
+      const user = this.authService.currentUser();
+      if (user) {
+        this.syncFromFirestore(user.uid);
+      }
     });
 
     // Persist changes
@@ -85,10 +85,7 @@ export class MealService {
     });
     effect(() => {
       const data = this.schedules();
-      localStorage.setItem(
-        this.SCHEDULES_KEY,
-        JSON.stringify(data)
-      );
+      localStorage.setItem(this.SCHEDULES_KEY, JSON.stringify(data));
       this.saveToFirestore('schedules', data);
     });
     effect(() => {
@@ -98,34 +95,22 @@ export class MealService {
     });
     effect(() => {
       const data = this.ingredientTags();
-      localStorage.setItem(
-        this.INGREDIENT_TAGS_KEY,
-        JSON.stringify(data)
-      );
+      localStorage.setItem(this.INGREDIENT_TAGS_KEY, JSON.stringify(data));
       this.saveToFirestore('ingredientTags', data);
     });
     effect(() => {
       const data = this.extraItems();
-      localStorage.setItem(
-        this.EXTRA_ITEMS_KEY,
-        JSON.stringify(data)
-      );
+      localStorage.setItem(this.EXTRA_ITEMS_KEY, JSON.stringify(data));
       this.saveToFirestore('extraItems', data);
     });
     effect(() => {
       const data = this.quantityOverrides();
-      localStorage.setItem(
-        this.QUANTITY_OVERRIDES_KEY,
-        JSON.stringify(data)
-      );
+      localStorage.setItem(this.QUANTITY_OVERRIDES_KEY, JSON.stringify(data));
       this.saveToFirestore('overrides', data);
     });
     effect(() => {
       const data = this.checkedItems();
-      localStorage.setItem(
-        this.CHECKED_ITEMS_KEY,
-        JSON.stringify(data)
-      );
+      localStorage.setItem(this.CHECKED_ITEMS_KEY, JSON.stringify(data));
       this.saveToFirestore('checkedItems', data);
     });
     effect(() => {
@@ -145,58 +130,81 @@ export class MealService {
 
   private async saveToFirestore(key: string, data: any): Promise<void> {
     const user = this.authService.currentUser();
-    if (!user) { return; }
+    if (!user) {
+      return;
+    }
     try {
-        const docRef = doc(this.firestore, 'users', user.uid);
-        await setDoc(docRef, { [key]: data }, { merge: true });
-    } catch(e) {
-        console.error(`Error saving ${key} to firestore:`, e);
+      const docRef = doc(this.firestore, 'users', user.uid);
+      await setDoc(docRef, { [key]: data }, { merge: true });
+    } catch (e) {
+      console.error(`Error saving ${key} to firestore:`, e);
+    }
+  }
+
+  async refreshData(): Promise<void> {
+    const user = this.authService.currentUser();
+    if (user) {
+      await this.syncFromFirestore(user.uid);
     }
   }
 
   private async syncFromFirestore(uid: string): Promise<void> {
-      try {
-          const docRef = doc(this.firestore, 'users', uid);
-          const docSnap = await getDoc(docRef);
+    try {
+      const docRef = doc(this.firestore, 'users', uid);
+      const docSnap = await getDoc(docRef);
 
-          if (docSnap.exists()) {
-              const data = docSnap.data();
-              if (data['meals']) { this.meals.set(data['meals']); }
-              if (data['schedules']) { this.schedules.set(data['schedules']); }
-              if (data['tags']) { this.tags.set(data['tags']); }
-              if (data['ingredientTags']) { this.ingredientTags.set(data['ingredientTags']); }
-              if (data['extraItems']) { this.extraItems.set(data['extraItems']); }
-              if (data['overrides']) { this.quantityOverrides.set(data['overrides']); }
-              if (data['checkedItems']) { this.checkedItems.set(data['checkedItems']); }
-              if (data['familySettings']) {
-                  const fs = data['familySettings'];
-                  this.isFamilyMode.set(fs.isFamilyMode);
-                  if (fs.visibleMeals) {
-                      this.visibleMeals.set(fs.visibleMeals);
-                  }
-                  this.familyPortions.set(fs.familyPortions);
-              }
-          } else {
-              this.uploadAllToFirestore();
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data['meals']) {
+          this.meals.set(data['meals']);
+        }
+        if (data['schedules']) {
+          this.schedules.set(data['schedules']);
+        }
+        if (data['tags']) {
+          this.tags.set(data['tags']);
+        }
+        if (data['ingredientTags']) {
+          this.ingredientTags.set(data['ingredientTags']);
+        }
+        if (data['extraItems']) {
+          this.extraItems.set(data['extraItems']);
+        }
+        if (data['overrides']) {
+          this.quantityOverrides.set(data['overrides']);
+        }
+        if (data['checkedItems']) {
+          this.checkedItems.set(data['checkedItems']);
+        }
+        if (data['familySettings']) {
+          const fs = data['familySettings'];
+          this.isFamilyMode.set(fs.isFamilyMode);
+          if (fs.visibleMeals) {
+            this.visibleMeals.set(fs.visibleMeals);
           }
-      } catch (e) {
-          console.error("Error syncing from Firestore", e);
+          this.familyPortions.set(fs.familyPortions);
+        }
+      } else {
+        this.uploadAllToFirestore();
       }
+    } catch (e) {
+      console.error('Error syncing from Firestore', e);
+    }
   }
 
-  private uploadAllToFirestore() {
-      this.saveToFirestore('meals', this.meals());
-      this.saveToFirestore('schedules', this.schedules());
-      this.saveToFirestore('tags', this.tags());
-      this.saveToFirestore('ingredientTags', this.ingredientTags());
-      this.saveToFirestore('extraItems', this.extraItems());
-      this.saveToFirestore('overrides', this.quantityOverrides());
-      this.saveToFirestore('checkedItems', this.checkedItems());
-      this.saveToFirestore('familySettings', {
-        isFamilyMode: this.isFamilyMode(),
-        visibleMeals: this.visibleMeals(),
-        familyPortions: this.familyPortions(),
-      });
+  private uploadAllToFirestore(): void {
+    this.saveToFirestore('meals', this.meals());
+    this.saveToFirestore('schedules', this.schedules());
+    this.saveToFirestore('tags', this.tags());
+    this.saveToFirestore('ingredientTags', this.ingredientTags());
+    this.saveToFirestore('extraItems', this.extraItems());
+    this.saveToFirestore('overrides', this.quantityOverrides());
+    this.saveToFirestore('checkedItems', this.checkedItems());
+    this.saveToFirestore('familySettings', {
+      isFamilyMode: this.isFamilyMode(),
+      visibleMeals: this.visibleMeals(),
+      familyPortions: this.familyPortions(),
+    });
   }
 
   private getStartOfWeek(date: Date): Date {
@@ -516,7 +524,10 @@ export class MealService {
       dayDate.setDate(weekStart.getDate() + index);
 
       if (dayDate >= today) {
-        const processMeal = (mealId: string | null, excluded?: boolean): void => {
+        const processMeal = (
+          mealId: string | null,
+          excluded?: boolean
+        ): void => {
           if (!mealId || excluded) {
             return;
           }
@@ -652,14 +663,14 @@ export class MealService {
       if (data.familySettings) {
         this.isFamilyMode.set(data.familySettings.isFamilyMode);
         if (data.familySettings.visibleMeals) {
-            this.visibleMeals.set(data.familySettings.visibleMeals);
+          this.visibleMeals.set(data.familySettings.visibleMeals);
         } else {
-             this.visibleMeals.set({
-                breakfast: data.familySettings.isBreakfastEnabled ?? false,
-                lunch: true,
-                snack: false,
-                dinner: true
-            });
+          this.visibleMeals.set({
+            breakfast: data.familySettings.isBreakfastEnabled ?? false,
+            lunch: true,
+            snack: false,
+            dinner: true,
+          });
         }
         this.familyPortions.set(data.familySettings.familyPortions);
       }

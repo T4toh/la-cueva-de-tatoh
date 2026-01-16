@@ -1,26 +1,29 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { UpdateService } from './services/update.service';
 import { AuthService } from './services/auth.service';
+import { Dialogo } from 'componentes';
+import { DialogService } from './services/dialog.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterModule, AsyncPipe, NgIf],
+  imports: [RouterModule, AsyncPipe, Dialogo],
   templateUrl: './app.html',
-  styleUrl: './app.scss'
+  styleUrl: './app.scss',
 })
 export class AppComponent implements OnInit {
   title = 'comidas';
   updateService = inject(UpdateService);
   authService = inject(AuthService);
+  dialogService = inject(DialogService);
 
   ngOnInit(): void {
     this.updateService.checkForUpdates();
   }
 
-  login() {
+  login(): void {
     this.authService.loginWithGoogle();
   }
 }
