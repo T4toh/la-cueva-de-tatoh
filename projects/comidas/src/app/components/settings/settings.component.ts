@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
+import { Capacitor } from '@capacitor/core';
 
 import { MealService } from '../../services/meal.service';
 import { AuthService } from '../../services/auth.service';
@@ -15,6 +16,7 @@ import { Panel } from 'componentes';
 export class SettingsComponent {
   mealService = inject(MealService);
   authService = inject(AuthService);
+  isAndroid = Capacitor.getPlatform() === 'android';
 
   async refreshData(): Promise<void> {
     await this.mealService.refreshData();

@@ -11,6 +11,12 @@ html {
   overflow-x: hidden;
   background-color: var(--color-1);
   color: white;
+  
+  // Safe area insets al 75%
+  padding-top: calc(env(safe-area-inset-top) * 0.75);
+  padding-bottom: calc(env(safe-area-inset-bottom) * 0.75);
+  padding-left: calc(env(safe-area-inset-left) * 0.75);
+  padding-right: calc(env(safe-area-inset-right) * 0.75);
 }
 
 /* CSS Variables */
@@ -22,6 +28,12 @@ html {
   --color-5: #b2b3d7;
 
   --gris-copado: #fafafa;
+  
+  // Safe area variables al 75%
+  --safe-area-top: calc(env(safe-area-inset-top) * 0.75);
+  --safe-area-bottom: calc(env(safe-area-inset-bottom) * 0.75);
+  --safe-area-left: calc(env(safe-area-inset-left) * 0.75);
+  --safe-area-right: calc(env(safe-area-inset-right) * 0.75);
 }
 
 /* Custom Scrollbar Styles */
