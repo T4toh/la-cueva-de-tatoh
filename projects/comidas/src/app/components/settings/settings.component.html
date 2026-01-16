@@ -1,37 +1,39 @@
 <div class="settings-container">
   <h1>Configuración</h1>
 
-  <!-- Auth Panel -->
-  <lib-panel
-    [colorFondo]="'var(--color-1)'"
-    [colorTexto]="'white'"
-    [sombreado]="true"
-    [texto]="'Sincronización en la Nube'"
-  >
-    @if (authService.user$ | async; as user) {
-      <div class="settings-content">
-        <div class="actions">
-          <p>Conectado como: <strong>{{ user.email }}</strong></p>
-          <p class="info-text">Tus datos se sincronizan automáticamente.</p>
-          <button class="btn-secondary" type="button" (click)="refreshData()">
-            🔄 Forzar Sincronización
-          </button>
-          <button class="btn-danger" type="button" (click)="authService.logout()">
-            Cerrar Sesión
-          </button>
+  <!-- Auth Panel - Oculto en Android -->
+  @if (!isAndroid) {
+    <lib-panel
+      [colorFondo]="'var(--color-1)'"
+      [colorTexto]="'white'"
+      [sombreado]="true"
+      [texto]="'Sincronización en la Nube'"
+    >
+      @if (authService.user$ | async; as user) {
+        <div class="settings-content">
+          <div class="actions">
+            <p>Conectado como: <strong>{{ user.email }}</strong></p>
+            <p class="info-text">Tus datos se sincronizan automáticamente.</p>
+            <button class="btn-secondary" type="button" (click)="refreshData()">
+              🔄 Forzar Sincronización
+            </button>
+            <button class="btn-danger" type="button" (click)="authService.logout()">
+              Cerrar Sesión
+            </button>
+          </div>
         </div>
-      </div>
-    } @else {
-      <div class="settings-content">
-        <div class="actions">
-          <p>Inicia sesión con Google para guardar y sincronizar tus comidas en la nube de forma gratuita.</p>
-          <button class="btn-google" type="button" (click)="authService.loginWithGoogle()">
-            Iniciar sesión con Google
-          </button>
+      } @else {
+        <div class="settings-content">
+          <div class="actions">
+            <p>Inicia sesión con Google para guardar y sincronizar tus comidas en la nube de forma gratuita.</p>
+            <button class="btn-google" type="button" (click)="authService.loginWithGoogle()">
+              Iniciar sesión con Google
+            </button>
+          </div>
         </div>
-      </div>
-    }
-  </lib-panel>
+      }
+    </lib-panel>
+  }
 
   <lib-panel 
     [colorFondo]="'var(--color-3)'" 

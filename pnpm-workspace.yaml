@@ -1,4 +1,7 @@
 packages:
-  - 'projects/componentes'
-  - 'projects/perfil-personal'
-  - 'projects/comidas'
+  - projects/componentes
+  - projects/perfil-personal
+  - projects/comidas
+
+onlyBuiltDependencies:
+  - sharp
