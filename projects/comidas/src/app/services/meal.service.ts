@@ -1,6 +1,7 @@
 import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { doc, Firestore, getDoc, setDoc } from '@angular/fire/firestore';
 import { AuthService } from './auth.service';
+import { DialogService } from './dialog.service';
 import {
   DaySchedule,
   Meal,
@@ -15,6 +16,7 @@ import {
 export class MealService {
   private firestore = inject(Firestore);
   private authService = inject(AuthService);
+  private dialogService = inject(DialogService);
 
   private readonly MEALS_KEY = 'comidas_meals';
   private readonly SCHEDULES_KEY = 'comidas_schedules';
@@ -25,6 +27,7 @@ export class MealService {
   private readonly QUANTITY_OVERRIDES_KEY = 'comidas_quantity_overrides';
   private readonly CHECKED_ITEMS_KEY = 'comidas_checked_items';
   private readonly CURRENT_WEEK_KEY = 'comidas_current_week';
+  private readonly LAST_UPDATED_KEY = 'comidas_last_updated';
 
   // State
   readonly meals = signal<Meal[]>(this.loadMeals());
@@ -48,6 +51,9 @@ export class MealService {
     this.loadCheckedItems()
   );
 
+  // Sync state - prevents effects from saving during sync from Firebase
+  private isSyncing = false;
+
   // Family Mode State
   readonly isFamilyMode = signal<boolean>(false);
   readonly visibleMeals = signal<{
@@ -66,6 +72,10 @@ export class MealService {
   // Navigation State
   readonly currentWeekStart = signal<Date>(this.loadCurrentWeekStart());
 
+  // Sync state
+  readonly lastUpdated = signal<number>(this.loadLastUpdated());
+  readonly syncStatus = signal<'synced' | 'local-newer' | 'loading' | 'error' | 'offline'>('loading');
+
   constructor() {
     this.loadFamilySettings();
 
@@ -77,41 +87,55 @@ export class MealService {
       }
     });
 
-    // Persist changes
+    // Persist changes - skip Firebase save during sync from Firestore
     effect(() => {
       const data = this.meals();
       localStorage.setItem(this.MEALS_KEY, JSON.stringify(data));
-      this.saveToFirestore('meals', data);
+      if (!this.isSyncing) {
+        this.saveToFirestore('meals', data);
+      }
     });
     effect(() => {
       const data = this.schedules();
       localStorage.setItem(this.SCHEDULES_KEY, JSON.stringify(data));
-      this.saveToFirestore('schedules', data);
+      if (!this.isSyncing) {
+        this.saveToFirestore('schedules', data);
+      }
     });
     effect(() => {
       const data = this.tags();
       localStorage.setItem(this.TAGS_KEY, JSON.stringify(data));
-      this.saveToFirestore('tags', data);
+      if (!this.isSyncing) {
+        this.saveToFirestore('tags', data);
+      }
     });
     effect(() => {
       const data = this.ingredientTags();
       localStorage.setItem(this.INGREDIENT_TAGS_KEY, JSON.stringify(data));
-      this.saveToFirestore('ingredientTags', data);
+      if (!this.isSyncing) {
+        this.saveToFirestore('ingredientTags', data);
+      }
     });
     effect(() => {
       const data = this.extraItems();
       localStorage.setItem(this.EXTRA_ITEMS_KEY, JSON.stringify(data));
-      this.saveToFirestore('extraItems', data);
+      if (!this.isSyncing) {
+        this.saveToFirestore('extraItems', data);
+      }
     });
     effect(() => {
       const data = this.quantityOverrides();
       localStorage.setItem(this.QUANTITY_OVERRIDES_KEY, JSON.stringify(data));
-      this.saveToFirestore('overrides', data);
+      if (!this.isSyncing) {
+        this.saveToFirestore('overrides', data);
+      }
     });
     effect(() => {
       const data = this.checkedItems();
       localStorage.setItem(this.CHECKED_ITEMS_KEY, JSON.stringify(data));
-      this.saveToFirestore('checkedItems', data);
+      if (!this.isSyncing) {
+        this.saveToFirestore('checkedItems', data);
+      }
     });
     effect(() => {
       const settings = {
@@ -120,7 +144,9 @@ export class MealService {
         familyPortions: this.familyPortions(),
       };
       localStorage.setItem(this.FAMILY_SETTINGS_KEY, JSON.stringify(settings));
-      this.saveToFirestore('familySettings', settings);
+      if (!this.isSyncing) {
+        this.saveToFirestore('familySettings', settings);
+      }
     });
     effect(() => {
       const date = this.currentWeekStart();
@@ -128,16 +154,24 @@ export class MealService {
     });
   }
 
-  private async saveToFirestore(key: string, data: any): Promise<void> {
+  private async saveToFirestore(key: string, data: unknown): Promise<void> {
     const user = this.authService.currentUser();
     if (!user) {
+      this.syncStatus.set('offline');
       return;
     }
     try {
+      this.updateTimestamp();
       const docRef = doc(this.firestore, 'users', user.uid);
-      await setDoc(docRef, { [key]: data }, { merge: true });
+      await setDoc(
+        docRef,
+        { [key]: data, lastUpdated: this.lastUpdated() },
+        { merge: true }
+      );
+      this.syncStatus.set('synced');
     } catch (e) {
       console.error(`Error saving ${key} to firestore:`, e);
+      this.syncStatus.set('error');
     }
   }
 
@@ -148,13 +182,52 @@ export class MealService {
     }
   }
 
+  async forceUpload(): Promise<void> {
+    const user = this.authService.currentUser();
+    if (user) {
+      await this.uploadAllToFirestore();
+    }
+  }
+
+  getLastUpdatedDisplay(): string {
+    const ts = this.lastUpdated();
+    if (ts === 0) {
+      return 'Nunca sincronizado';
+    }
+    return new Date(ts).toLocaleString('es-AR');
+  }
+
   private async syncFromFirestore(uid: string): Promise<void> {
+    this.isSyncing = true;
+    this.syncStatus.set('loading');
+
     try {
       const docRef = doc(this.firestore, 'users', uid);
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
         const data = docSnap.data();
+        const remoteTimestamp = data['lastUpdated'] || 0;
+        const localTimestamp = this.lastUpdated();
+
+        console.log(
+          `[Sync] Local: ${new Date(localTimestamp).toISOString()}, ` +
+            `Remote: ${new Date(remoteTimestamp).toISOString()}`
+        );
+
+        // If local is newer, upload to Firebase instead of downloading
+        if (localTimestamp > remoteTimestamp) {
+          console.log('[Sync] Local data is newer, uploading to Firebase');
+          this.syncStatus.set('local-newer');
+          setTimeout(() => {
+            this.isSyncing = false;
+          }, 0);
+          this.uploadAllToFirestore();
+          return;
+        }
+
+        // Remote is newer or same, download from Firebase
+        console.log('[Sync] Remote data is newer or same, downloading');
         if (data['meals']) {
           this.meals.set(data['meals']);
         }
@@ -184,27 +257,60 @@ export class MealService {
           }
           this.familyPortions.set(fs.familyPortions);
         }
+        // Update local timestamp to match remote
+        this.lastUpdated.set(remoteTimestamp);
+        localStorage.setItem(this.LAST_UPDATED_KEY, remoteTimestamp.toString());
+        this.syncStatus.set('synced');
       } else {
+        // First time user - upload local data
+        console.log('[Sync] No remote data, uploading local data');
+        setTimeout(() => {
+          this.isSyncing = false;
+        }, 0);
         this.uploadAllToFirestore();
+        return;
       }
     } catch (e) {
       console.error('Error syncing from Firestore', e);
+      this.syncStatus.set('error');
     }
+    // Wait for effects to run before resetting flag
+    setTimeout(() => {
+      this.isSyncing = false;
+    }, 0);
   }
 
-  private uploadAllToFirestore(): void {
-    this.saveToFirestore('meals', this.meals());
-    this.saveToFirestore('schedules', this.schedules());
-    this.saveToFirestore('tags', this.tags());
-    this.saveToFirestore('ingredientTags', this.ingredientTags());
-    this.saveToFirestore('extraItems', this.extraItems());
-    this.saveToFirestore('overrides', this.quantityOverrides());
-    this.saveToFirestore('checkedItems', this.checkedItems());
-    this.saveToFirestore('familySettings', {
-      isFamilyMode: this.isFamilyMode(),
-      visibleMeals: this.visibleMeals(),
-      familyPortions: this.familyPortions(),
-    });
+  private async uploadAllToFirestore(): Promise<void> {
+    const user = this.authService.currentUser();
+    if (!user) {
+      this.syncStatus.set('offline');
+      return;
+    }
+
+    this.updateTimestamp();
+    try {
+      const docRef = doc(this.firestore, 'users', user.uid);
+      await setDoc(docRef, {
+        meals: this.meals(),
+        schedules: this.schedules(),
+        tags: this.tags(),
+        ingredientTags: this.ingredientTags(),
+        extraItems: this.extraItems(),
+        overrides: this.quantityOverrides(),
+        checkedItems: this.checkedItems(),
+        familySettings: {
+          isFamilyMode: this.isFamilyMode(),
+          visibleMeals: this.visibleMeals(),
+          familyPortions: this.familyPortions(),
+        },
+        lastUpdated: this.lastUpdated(),
+      });
+      this.syncStatus.set('synced');
+      console.log('[Sync] All data uploaded to Firebase');
+    } catch (e) {
+      console.error('Error uploading all data to Firestore:', e);
+      this.syncStatus.set('error');
+    }
   }
 
   private getStartOfWeek(date: Date): Date {
@@ -272,6 +378,17 @@ export class MealService {
       }
     }
     return this.getStartOfWeek(new Date());
+  }
+
+  private loadLastUpdated(): number {
+    const data = localStorage.getItem(this.LAST_UPDATED_KEY);
+    return data ? parseInt(data, 10) : 0;
+  }
+
+  private updateTimestamp(): void {
+    const now = Date.now();
+    this.lastUpdated.set(now);
+    localStorage.setItem(this.LAST_UPDATED_KEY, now.toString());
   }
 
   private loadFamilySettings(): void {
@@ -430,7 +547,7 @@ export class MealService {
       const copy = JSON.parse(JSON.stringify(prevSchedule));
       this.schedules.update((s) => ({ ...s, [currentKey]: copy }));
     } else {
-      alert('No hay datos de la semana anterior para copiar.');
+      this.dialogService.alert('Sin datos', 'No hay datos de la semana anterior para copiar.');
     }
   }
 
@@ -674,10 +791,10 @@ export class MealService {
         }
         this.familyPortions.set(data.familySettings.familyPortions);
       }
-      alert('¡Datos importados con éxito!');
+      this.dialogService.alert('Importación', '¡Datos importados con éxito!');
     } catch (error) {
       console.error('Error al importar:', error);
-      alert('Error: El archivo no tiene un formato válido.');
+      this.dialogService.alert('Error', 'El archivo no tiene un formato válido.');
     }
   }
 }

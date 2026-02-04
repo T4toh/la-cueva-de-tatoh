@@ -13,9 +13,33 @@
         <div class="settings-content">
           <div class="actions">
             <p>Conectado como: <strong>{{ user.email }}</strong></p>
-            <p class="info-text">Tus datos se sincronizan automáticamente.</p>
+
+            <div class="sync-status">
+              @switch (mealService.syncStatus()) {
+                @case ('synced') {
+                  <span class="status-badge synced">✓ Sincronizado</span>
+                }
+                @case ('loading') {
+                  <span class="status-badge loading">⏳ Sincronizando...</span>
+                }
+                @case ('local-newer') {
+                  <span class="status-badge local-newer">📤 Subiendo datos locales...</span>
+                }
+                @case ('error') {
+                  <span class="status-badge error">⚠️ Error de sincronización</span>
+                }
+                @case ('offline') {
+                  <span class="status-badge offline">📴 Sin conexión</span>
+                }
+              }
+              <p class="last-updated">Última actualización: {{ mealService.getLastUpdatedDisplay() }}</p>
+            </div>
+
             <button class="btn-secondary" type="button" (click)="refreshData()">
-              🔄 Forzar Sincronización
+              🔄 Descargar de la Nube
+            </button>
+            <button class="btn-secondary" type="button" (click)="forceUpload()">
+              📤 Subir a la Nube
             </button>
             <button class="btn-danger" type="button" (click)="authService.logout()">
               Cerrar Sesión
