@@ -131,7 +131,7 @@ export class ShoppingListComponent {
     });
 
     if (!hasItems) {
-      alert('No hay items pendientes para copiar.');
+      this.dialogService.alert('Lista vacía', 'No hay items pendientes para copiar.');
       return;
     }
 
@@ -139,6 +139,6 @@ export class ShoppingListComponent {
 
     navigator.clipboard
       .writeText(text)
-      .then(() => alert('¡Lista copiada al portapapeles!'));
+      .then(() => this.dialogService.alert('Copiado', '¡Lista copiada al portapapeles!'));
   }
 }

@@ -43,7 +43,7 @@ export class DialogService {
           {
             texto: 'Confirmar',
             estilo: 'normal',
-            color: 'var(--color-3)', // Using app theme color
+            color: 'var(--color-3)',
             accion: (): void => {
               this.close();
               resolve(true);
@@ -51,6 +51,23 @@ export class DialogService {
           },
         ],
       });
+    });
+  }
+
+  alert(title: string, message: string): void {
+    this.open({
+      title,
+      message,
+      actions: [
+        {
+          texto: 'Aceptar',
+          estilo: 'normal',
+          color: 'var(--color-3)',
+          accion: (): void => {
+            this.close();
+          },
+        },
+      ],
     });
   }
 }

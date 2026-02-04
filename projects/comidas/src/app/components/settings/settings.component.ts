@@ -4,6 +4,7 @@ import { Capacitor } from '@capacitor/core';
 
 import { MealService } from '../../services/meal.service';
 import { AuthService } from '../../services/auth.service';
+import { DialogService } from '../../services/dialog.service';
 import { Panel } from 'componentes';
 
 @Component({
@@ -14,13 +15,19 @@ import { Panel } from 'componentes';
   styleUrls: ['./settings.component.scss']
 })
 export class SettingsComponent {
+  private dialogService = inject(DialogService);
   mealService = inject(MealService);
   authService = inject(AuthService);
   isAndroid = Capacitor.getPlatform() === 'android';
 
   async refreshData(): Promise<void> {
     await this.mealService.refreshData();
-    alert('Datos sincronizados con la nube.');
+    this.dialogService.alert('Sincronización', 'Datos descargados de la nube.');
+  }
+
+  async forceUpload(): Promise<void> {
+    await this.mealService.forceUpload();
+    this.dialogService.alert('Sincronización', 'Datos subidos a la nube.');
   }
 
   onFileSelected(event: Event): void {
