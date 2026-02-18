@@ -26,7 +26,6 @@ export class MealService {
   private readonly FAMILY_SETTINGS_KEY = 'comidas_family_settings';
   private readonly QUANTITY_OVERRIDES_KEY = 'comidas_quantity_overrides';
   private readonly CHECKED_ITEMS_KEY = 'comidas_checked_items';
-  private readonly CURRENT_WEEK_KEY = 'comidas_current_week';
   private readonly LAST_UPDATED_KEY = 'comidas_last_updated';
 
   // State
@@ -70,7 +69,7 @@ export class MealService {
   readonly familyPortions = signal<number>(4);
 
   // Navigation State
-  readonly currentWeekStart = signal<Date>(this.loadCurrentWeekStart());
+  readonly currentWeekStart = signal<Date>(this.getStartOfWeek(new Date()));
 
   // Sync state
   readonly lastUpdated = signal<number>(this.loadLastUpdated());
@@ -147,10 +146,6 @@ export class MealService {
       if (!this.isSyncing) {
         this.saveToFirestore('familySettings', settings);
       }
-    });
-    effect(() => {
-      const date = this.currentWeekStart();
-      localStorage.setItem(this.CURRENT_WEEK_KEY, date.toISOString());
     });
   }
 
@@ -367,17 +362,6 @@ export class MealService {
   private loadCheckedItems(): Record<string, string[]> {
     const data = localStorage.getItem(this.CHECKED_ITEMS_KEY);
     return data ? JSON.parse(data) : {};
-  }
-
-  private loadCurrentWeekStart(): Date {
-    const data = localStorage.getItem(this.CURRENT_WEEK_KEY);
-    if (data) {
-      const d = new Date(data);
-      if (!isNaN(d.getTime())) {
-        return d;
-      }
-    }
-    return this.getStartOfWeek(new Date());
   }
 
   private loadLastUpdated(): number {
