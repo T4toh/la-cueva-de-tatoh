@@ -2,8 +2,11 @@
   <h1>Seleccionar {{ type }} para el {{ dayName }}</h1>
 
   <div class="actions">
+    <button class="btn-back" routerLink="/" type="button">
+      Volver sin cambios
+    </button>
     <button class="btn-clear" type="button" (click)="clearSelection()">
-      Limpiar selección
+      Borrar y dejar vacío
     </button>
   </div>
 

@@ -69,11 +69,17 @@
             <div class="slot">
               <div class="slot-top">
                 <span class="label">Desayuno:</span>
-                                @if (day.desayuno && !isPlaceholder(day.desayuno)) {
-                                  <input class="exclude-check" title="Sumar a compras" type="checkbox"
-                                    [checked]="!day.desayunoExcluded"
-                                    (change)="toggleExclusion(day.dayName, 'desayuno', $event)">
-                                }              </div>
+                <div class="slot-actions">
+                  @if (day.desayuno) {
+                    <button class="btn-clear-slot" title="Quitar comida" type="button" (click)="clearMeal(day.dayName, 'desayuno')">×</button>
+                  }
+                  @if (day.desayuno && !isPlaceholder(day.desayuno)) {
+                    <input class="exclude-check" title="Sumar a compras" type="checkbox"
+                      [checked]="!day.desayunoExcluded"
+                      (change)="toggleExclusion(day.dayName, 'desayuno', $event)">
+                  }
+                </div>
+              </div>
               <a class="meal-link" [class.is-placeholder]="isPlaceholder(day.desayuno)" [routerLink]="['/schedule', day.dayName, 'desayuno']">
                 {{ getMealName(day.desayuno) }}
               </a>
@@ -85,11 +91,16 @@
             <div class="slot">
               <div class="slot-top">
                 <span class="label">Almuerzo:</span>
-                @if (day.almuerzo && !isPlaceholder(day.almuerzo)) {
-                  <input class="exclude-check" title="Sumar a compras" type="checkbox"
-                    [checked]="!day.almuerzoExcluded"
-                    (change)="toggleExclusion(day.dayName, 'almuerzo', $event)">
-                }
+                <div class="slot-actions">
+                  @if (day.almuerzo) {
+                    <button class="btn-clear-slot" title="Quitar comida" type="button" (click)="clearMeal(day.dayName, 'almuerzo')">×</button>
+                  }
+                  @if (day.almuerzo && !isPlaceholder(day.almuerzo)) {
+                    <input class="exclude-check" title="Sumar a compras" type="checkbox"
+                      [checked]="!day.almuerzoExcluded"
+                      (change)="toggleExclusion(day.dayName, 'almuerzo', $event)">
+                  }
+                </div>
               </div>
               <a class="meal-link" [class.is-placeholder]="isPlaceholder(day.almuerzo)" [routerLink]="['/schedule', day.dayName, 'almuerzo']">
                 {{ getMealName(day.almuerzo) }}
@@ -115,11 +126,16 @@
             <div class="slot">
               <div class="slot-top">
                 <span class="label">Cena:</span>
-                @if (day.cena && !isPlaceholder(day.cena)) {
-                  <input class="exclude-check" title="Sumar a compras" type="checkbox"
-                    [checked]="!day.cenaExcluded"
-                    (change)="toggleExclusion(day.dayName, 'cena', $event)">
-                }
+                <div class="slot-actions">
+                  @if (day.cena) {
+                    <button class="btn-clear-slot" title="Quitar comida" type="button" (click)="clearMeal(day.dayName, 'cena')">×</button>
+                  }
+                  @if (day.cena && !isPlaceholder(day.cena)) {
+                    <input class="exclude-check" title="Sumar a compras" type="checkbox"
+                      [checked]="!day.cenaExcluded"
+                      (change)="toggleExclusion(day.dayName, 'cena', $event)">
+                  }
+                </div>
               </div>
               <a class="meal-link" [class.is-placeholder]="isPlaceholder(day.cena)" [routerLink]="['/schedule', day.dayName, 'cena']">
                 {{ getMealName(day.cena) }}

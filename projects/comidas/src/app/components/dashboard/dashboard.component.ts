@@ -91,6 +91,10 @@ export class DashboardComponent {
     this.mealService.updateSchedule(dayName, field, input.value);
   }
 
+  clearMeal(dayName: string, type: string): void {
+    this.mealService.updateSchedule(dayName, type as keyof DaySchedule, null);
+  }
+
   toggleExclusion(dayName: string, type: string, event: Event): void {
     const input = event.target as HTMLInputElement;
     const fieldName = `${type}Excluded` as keyof DaySchedule;
