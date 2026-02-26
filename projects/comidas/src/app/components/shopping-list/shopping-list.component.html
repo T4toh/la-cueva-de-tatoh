@@ -107,6 +107,26 @@
                   }
                 </select>
               </div>
+              <div class="pantry-actions">
+                <button
+                  class="btn-subtract-pantry"
+                  [disabled]="!item.inPantry"
+                  title="Restar de la despensa"
+                  type="button"
+                  (click)="item.inPantry && subtractFromPantry(item)"
+                >−</button>
+                <span
+                  class="pantry-qty-chip"
+                  [class.pantry-qty-chip--empty]="!item.inPantry"
+                  [title]="item.inPantry ? 'Tenés ' + item.pantryQuantity + ' en la despensa' : 'No hay en la despensa'"
+                >🥫 {{ item.inPantry ? item.pantryQuantity : '—' }}</span>
+                <button
+                  class="btn-to-pantry"
+                  title="Mandar a despensa"
+                  type="button"
+                  (click)="sendToPantry(item)"
+                >+</button>
+              </div>
             </div>
           }
         </div>

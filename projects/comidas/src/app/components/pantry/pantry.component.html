@@ -1,0 +1,141 @@
+<div class="pantry-container">
+  <div class="header">
+    <div>
+      <h1>🥫 Despensa</h1>
+      <p class="subtitle">Lo que tenés en casa ahora mismo</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-danger" title="Vaciar despensa" type="button" (click)="clearPantry()">🗑️ Vaciar</button>
+      <button class="btn-primary" title="Restar ítems del carrito a la despensa" type="button" (click)="applyCartToPantry()">
+        🛒→🥫 Restar carrito
+      </button>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn-secondary" type="button" (click)="showAddForm = !showAddForm">+ Agregar Ítem</button>
+    <button class="btn-secondary" type="button" (click)="showGroupForm = !showGroupForm">+ Nuevo Grupo</button>
+  </div>
+
+  @if (showAddForm) {
+    <form class="inline-form" [formGroup]="addForm" (ngSubmit)="addItem()">
+      <input autoFocus formControlName="name" placeholder="Nombre (ej: Zanahorias)" />
+      <input formControlName="quantity" placeholder="Cantidad (ej: 3)" />
+      <select formControlName="groupId">
+        <option value="">Sin grupo</option>
+        @for (group of mealService.pantryGroups(); track group.id) {
+          <option [value]="group.id">{{ group.name }}</option>
+        }
+      </select>
+      <button type="submit" [disabled]="addForm.invalid">Agregar</button>
+    </form>
+  }
+
+  @if (showGroupForm) {
+    <form class="inline-form" [formGroup]="groupForm" (ngSubmit)="addGroup()">
+      <input autoFocus formControlName="name" placeholder="Nombre del grupo (ej: Freezer)" />
+      <input
+        class="color-picker"
+        formControlName="color"
+        type="color"
+        (change)="groupForm.patchValue({ color: $any($event.target).value })"
+      />
+      <button type="submit" [disabled]="groupForm.invalid">Crear</button>
+    </form>
+  }
+
+  <div class="pantry-groups">
+    @for (group of mealService.pantryGroups(); track group.id) {
+      @if (itemsByGroup(group.id).length > 0) {
+        <div class="group-section" [style.border-left-color]="group.color || 'var(--color-5)'">
+          <div class="group-header">
+            <h3 [style.color]="group.color || 'var(--color-5)'">{{ group.name }}</h3>
+            <div class="group-header-actions">
+              <input
+                class="color-picker-inline"
+                title="Color del grupo"
+                type="color"
+                [value]="group.color || '#888888'"
+                (change)="updateGroupColor(group.id, $event)"
+              />
+              <button class="btn-icon" title="Eliminar grupo" type="button" (click)="removeGroup(group.id, group.name)">✕</button>
+            </div>
+          </div>
+          <div class="pantry-list">
+            @for (item of itemsByGroup(group.id); track item.name) {
+              <ng-container *ngTemplateOutlet="itemRow; context: { $implicit: item }" />
+            }
+          </div>
+        </div>
+      }
+    }
+
+    @if (ungroupedItems().length > 0) {
+      <div class="group-section">
+        <div class="group-header">
+          <h3>Sin grupo</h3>
+        </div>
+        <div class="pantry-list">
+          @for (item of ungroupedItems(); track item.name) {
+            <ng-container *ngTemplateOutlet="itemRow; context: { $implicit: item }" />
+          }
+        </div>
+      </div>
+    }
+
+    @if (mealService.pantry().length === 0) {
+      <p class="empty">La despensa está vacía. Agregá ítems o mandálos desde el carrito.</p>
+    }
+  </div>
+</div>
+
+<ng-template #itemRow let-item>
+  <div class="pantry-item">
+    <div class="item-main">
+      <span class="item-name">{{ item.name }}</span>
+      <select
+        class="group-select"
+        [value]="item.groupId || ''"
+        (change)="updateGroup(item.name, $event)"
+      >
+        <option value="">Sin grupo</option>
+        @for (group of mealService.pantryGroups(); track group.id) {
+          <option [selected]="item.groupId === group.id" [value]="group.id">{{ group.name }}</option>
+        }
+      </select>
+    </div>
+
+    @if (editingName === item.name) {
+      <div class="action-row">
+        <input
+          class="qty-input"
+          type="text"
+          [value]="editingQuantity"
+          (input)="editingQuantity = $any($event.target).value"
+        />
+        <button class="btn-icon btn-ok" title="Guardar" type="button" (click)="saveEdit()">✓</button>
+        <button class="btn-icon" title="Cancelar" type="button" (click)="cancelEdit()">✗</button>
+      </div>
+    } @else if (subtractingName === item.name) {
+      <div class="action-row subtract-row">
+        <span class="hint">Tenés {{ item.quantity }}. ¿Cuánto restás?</span>
+        <input
+          class="qty-input"
+          placeholder="Cantidad"
+          type="text"
+          [value]="subtractingAmount"
+          (input)="subtractingAmount = $any($event.target).value"
+        />
+        <button class="btn-icon btn-ok" title="Restar" type="button" (click)="saveSubtract()">✓</button>
+        <button class="btn-icon" title="Cancelar" type="button" (click)="cancelSubtract()">✗</button>
+      </div>
+    } @else {
+      <div class="item-actions">
+        <span class="item-quantity">{{ item.quantity }}</span>
+        <button class="btn-icon" title="Restar cantidad" type="button" (click)="startSubtract(item.name)">−</button>
+        <button class="btn-icon" title="Editar cantidad" type="button" (click)="startEdit(item.name, item.quantity)">✏️</button>
+        <button class="btn-icon btn-delete" title="Eliminar" type="button" (click)="removeItem(item.name)">🗑️</button>
+      </div>
+    }
+  </div>
+</ng-template>
