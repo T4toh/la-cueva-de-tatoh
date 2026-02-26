@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 
 import {
   FormBuilder,
@@ -17,7 +17,7 @@ import { DialogService } from '../../services/dialog.service';
   templateUrl: './shopping-list.component.html',
   styleUrls: ['./shopping-list.component.scss'],
 })
-export class ShoppingListComponent {
+export class ShoppingListComponent implements OnInit {
   mealService = inject(MealService);
   fb = inject(FormBuilder);
   dialogService = inject(DialogService);
@@ -38,6 +38,10 @@ export class ShoppingListComponent {
       name: ['', Validators.required],
       color: ['#000000', Validators.required],
     });
+  }
+
+  ngOnInit(): void {
+    this.mealService.refreshTodayTimestamp();
   }
 
   addExtraItem(): void {
@@ -96,6 +100,19 @@ export class ShoppingListComponent {
 
   deleteExtraItem(index: number): void {
     this.mealService.removeExtraItem(index);
+  }
+
+  sendToPantry(item: { name: string; quantity: string; quantityOverride?: string }): void {
+    const quantity = item.quantityOverride || item.quantity;
+    this.mealService.addToPantry(item.name, quantity);
+  }
+
+  subtractFromPantry(item: { name: string; quantity: string; quantityOverride?: string; checked?: boolean }): void {
+    const quantity = item.quantityOverride || item.quantity;
+    this.mealService.subtractFromPantry(item.name, quantity);
+    if (!item.checked) {
+      this.mealService.toggleItemCheck(item.name);
+    }
   }
 
   reAddFromHistory(item: { name: string; quantity: string; tagId?: string }): void {

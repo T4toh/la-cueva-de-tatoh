@@ -1,5 +1,5 @@
 <div class="app-container">
-  <nav class="main-nav">
+  <nav #mainNav class="main-nav">
     <a routerLink="/" routerLinkActive="active" title="Plan Semanal" [routerLinkActiveOptions]="{exact: true}">
       <span class="icon">📅</span>
       <span class="text">Plan</span>
@@ -11,6 +11,10 @@
     <a routerLink="/shopping-list" routerLinkActive="active" title="Lista de Compras">
       <span class="icon">🛒</span>
       <span class="text">Compras</span>
+    </a>
+    <a routerLink="/despensa" routerLinkActive="active" title="Despensa">
+      <span class="icon">🥫</span>
+      <span class="text">Despensa</span>
     </a>
     
     <!-- Auth & Config Logic -->

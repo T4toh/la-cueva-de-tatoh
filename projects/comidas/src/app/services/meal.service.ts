@@ -5,6 +5,8 @@ import { DialogService } from './dialog.service';
 import {
   DaySchedule,
   Meal,
+  PantryGroup,
+  PantryItem,
   ShoppingItem,
   ShoppingListGroup,
   ShoppingTag,
@@ -28,6 +30,8 @@ export class MealService {
   private readonly QUANTITY_OVERRIDES_KEY = 'comidas_quantity_overrides';
   private readonly CHECKED_ITEMS_KEY = 'comidas_checked_items';
   private readonly LAST_UPDATED_KEY = 'comidas_last_updated';
+  private readonly PANTRY_KEY = 'comidas_pantry';
+  private readonly PANTRY_GROUPS_KEY = 'comidas_pantry_groups';
 
   // State
   readonly meals = signal<Meal[]>(this.loadMeals());
@@ -60,6 +64,10 @@ export class MealService {
   readonly checkedItems = signal<Record<string, string[]>>(
     this.loadCheckedItems()
   );
+
+  readonly pantry = signal<PantryItem[]>(this.loadPantry());
+  readonly pantryGroups = signal<PantryGroup[]>(this.loadPantryGroups());
+  readonly todayTimestamp = signal<number>(this.getTodayTimestamp());
 
   // Sync state - prevents effects from saving during sync from Firebase
   private isSyncing = false;
@@ -152,6 +160,20 @@ export class MealService {
       localStorage.setItem(this.CHECKED_ITEMS_KEY, JSON.stringify(data));
       if (!this.isSyncing) {
         this.saveToFirestore('checkedItems', data);
+      }
+    });
+    effect(() => {
+      const data = this.pantry();
+      localStorage.setItem(this.PANTRY_KEY, JSON.stringify(data));
+      if (!this.isSyncing) {
+        this.saveToFirestore('pantry', data);
+      }
+    });
+    effect(() => {
+      const data = this.pantryGroups();
+      localStorage.setItem(this.PANTRY_GROUPS_KEY, JSON.stringify(data));
+      if (!this.isSyncing) {
+        this.saveToFirestore('pantryGroups', data);
       }
     });
     effect(() => {
@@ -268,6 +290,12 @@ export class MealService {
         if (data['checkedItems']) {
           this.checkedItems.set(data['checkedItems']);
         }
+        if (data['pantry']) {
+          this.pantry.set(data['pantry'] as PantryItem[]);
+        }
+        if (data['pantryGroups']) {
+          this.pantryGroups.set(data['pantryGroups'] as PantryGroup[]);
+        }
         if (data['familySettings']) {
           const fs = data['familySettings'];
           this.isFamilyMode.set(fs.isFamilyMode);
@@ -318,6 +346,8 @@ export class MealService {
         extraItemsHistory: this.extraItemsHistory(),
         overrides: this.quantityOverrides(),
         checkedItems: this.checkedItems(),
+        pantry: this.pantry(),
+        pantryGroups: this.pantryGroups(),
         familySettings: {
           isFamilyMode: this.isFamilyMode(),
           visibleMeals: this.visibleMeals(),
@@ -403,6 +433,24 @@ export class MealService {
     return data ? JSON.parse(data) : {};
   }
 
+  private loadPantry(): PantryItem[] {
+    const data = localStorage.getItem(this.PANTRY_KEY);
+    return data ? (JSON.parse(data) as PantryItem[]) : [];
+  }
+
+  private loadPantryGroups(): PantryGroup[] {
+    const data = localStorage.getItem(this.PANTRY_GROUPS_KEY);
+    if (data) {
+      return JSON.parse(data) as PantryGroup[];
+    }
+    return [
+      { id: 'heladera', name: 'Heladera', color: '#42a5f5' },
+      { id: 'verduras', name: 'Verduras', color: '#66bb6a' },
+      { id: 'freezer', name: 'Freezer', color: '#ab47bc' },
+      { id: 'alacena', name: 'Alacena', color: '#ffa726' },
+    ];
+  }
+
   private loadLastUpdated(): number {
     const data = localStorage.getItem(this.LAST_UPDATED_KEY);
     return data ? parseInt(data, 10) : 0;
@@ -412,6 +460,16 @@ export class MealService {
     const now = Date.now();
     this.lastUpdated.set(now);
     localStorage.setItem(this.LAST_UPDATED_KEY, now.toString());
+  }
+
+  private getTodayTimestamp(): number {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  }
+
+  refreshTodayTimestamp(): void {
+    this.todayTimestamp.set(this.getTodayTimestamp());
   }
 
   private loadFamilySettings(): void {
@@ -616,6 +674,7 @@ export class MealService {
   }
 
   clearOverrides(): void {
+    this.refreshTodayTimestamp();
     const weekKey = this.formatDateKey(this.currentWeekStart());
     this.quantityOverrides.update((o) => {
       const newOverrides = { ...o };
@@ -663,14 +722,14 @@ export class MealService {
     const items: ShoppingItem[] = [];
     const currentSchedule = this.schedule();
     const allMeals = this.meals();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = new Date(this.todayTimestamp());
     const weekStart = this.currentWeekStart();
     const weekKey = this.formatDateKey(weekStart);
     const tagMap = this.ingredientTags();
     const overrides = this.quantityOverrides();
     const weekChecked = this.checkedItems()[weekKey] || [];
     const multiplier = this.isFamilyMode() ? this.familyPortions() : 1;
+    const pantryItems = this.pantry();
 
     currentSchedule.forEach((day, index) => {
       const dayDate = new Date(weekStart);
@@ -740,6 +799,24 @@ export class MealService {
         item.quantityOverride = overrides[overrideKey];
       }
 
+      const pantryEntry = pantryItems.find(
+        (p) => p.name.toLowerCase().trim() === item.name.toLowerCase().trim()
+      );
+      if (pantryEntry) {
+        const effectiveQuantity = item.quantityOverride || item.quantity;
+        const { remaining, covered } = this.subtractPantryFromNeeded(
+          effectiveQuantity,
+          pantryEntry.quantity
+        );
+        item.pantryQuantity = pantryEntry.quantity;
+        item.inPantry = true;
+        if (covered) {
+          item.checked = true;
+        } else {
+          item.quantityOverride = remaining;
+        }
+      }
+
       const group = item.tagId
         ? groups.find((g) => g.tag?.id === item.tagId)
         : null;
@@ -766,6 +843,142 @@ export class MealService {
     this.familyPortions.set(portions);
   }
 
+  addToPantry(name: string, quantity: string, groupId?: string): void {
+    const key = name.toLowerCase().trim();
+    this.pantry.update((items) => {
+      const existing = items.find((i) => i.name.toLowerCase().trim() === key);
+      if (existing) {
+        return items.map((i) =>
+          i.name.toLowerCase().trim() === key
+            ? { ...i, quantity: this.addQuantities(i.quantity, quantity) }
+            : i
+        );
+      }
+      return [...items, { name, quantity, groupId }];
+    });
+  }
+
+  removeFromPantry(name: string): void {
+    const key = name.toLowerCase().trim();
+    this.pantry.update((items) =>
+      items.filter((i) => i.name.toLowerCase().trim() !== key)
+    );
+  }
+
+  updatePantryQuantity(name: string, quantity: string): void {
+    const key = name.toLowerCase().trim();
+    this.pantry.update((items) =>
+      items.map((i) =>
+        i.name.toLowerCase().trim() === key ? { ...i, quantity } : i
+      )
+    );
+  }
+
+  updatePantryGroup(name: string, groupId: string): void {
+    const key = name.toLowerCase().trim();
+    this.pantry.update((items) =>
+      items.map((i) =>
+        i.name.toLowerCase().trim() === key ? { ...i, groupId } : i
+      )
+    );
+  }
+
+  subtractFromPantry(name: string, amount: string): void {
+    const key = name.toLowerCase().trim();
+    this.pantry.update((items) =>
+      items.map((i) => {
+        if (i.name.toLowerCase().trim() !== key) {
+          return i;
+        }
+        const parsed = this.parseNumericQuantity(i.quantity);
+        const parsedAmount = this.parseNumericQuantity(amount);
+        if (parsed && parsedAmount && parsed.unit === parsedAmount.unit) {
+          const remaining = Math.max(0, parsed.value - parsedAmount.value);
+          const unit = parsed.unit;
+          return { ...i, quantity: unit ? `${remaining} ${unit}` : `${remaining}` };
+        }
+        return i;
+      })
+    );
+  }
+
+  clearPantry(): void {
+    this.pantry.set([]);
+  }
+
+  addPantryGroup(name: string, color?: string): void {
+    const newGroup: PantryGroup = { id: this.generateId(), name, color };
+    this.pantryGroups.update((g) => [...g, newGroup]);
+  }
+
+  removePantryGroup(id: string): void {
+    this.pantryGroups.update((g) => g.filter((group) => group.id !== id));
+    this.pantry.update((items) =>
+      items.map((i) => (i.groupId === id ? { ...i, groupId: undefined } : i))
+    );
+  }
+
+  updatePantryGroupColor(id: string, color: string): void {
+    this.pantryGroups.update((groups) =>
+      groups.map((g) => (g.id === id ? { ...g, color } : g))
+    );
+  }
+
+  getCartPantryDiff(): { name: string; needed: string; inPantry: string; remaining: string; covered: boolean }[] {
+    const result: { name: string; needed: string; inPantry: string; remaining: string; covered: boolean }[] = [];
+    const pantryItems = this.pantry();
+    this.shoppingList().forEach((item) => {
+      const pantryEntry = pantryItems.find(
+        (p) => p.name.toLowerCase().trim() === item.name.toLowerCase().trim()
+      );
+      if (pantryEntry) {
+        const needed = item.quantityOverride || item.quantity;
+        const { remaining, covered } = this.subtractPantryFromNeeded(needed, pantryEntry.quantity);
+        result.push({ name: item.name, needed, inPantry: pantryEntry.quantity, remaining, covered });
+      }
+    });
+    return result;
+  }
+
+  applyCartToPantry(): void {
+    const diff = this.getCartPantryDiff();
+    diff.forEach(({ name, needed }) => {
+      this.subtractFromPantry(name, needed);
+    });
+  }
+
+  private parseNumericQuantity(quantity: string): { value: number; unit: string } | null {
+    const match = quantity.trim().match(/^(\d+(\.\d+)?)\s*(.*)$/);
+    if (match) {
+      return { value: parseFloat(match[1]), unit: match[3].trim() };
+    }
+    return null;
+  }
+
+  private addQuantities(existing: string, added: string): string {
+    const parsedExisting = this.parseNumericQuantity(existing);
+    const parsedAdded = this.parseNumericQuantity(added);
+    if (parsedExisting && parsedAdded && parsedExisting.unit === parsedAdded.unit) {
+      const total = parsedExisting.value + parsedAdded.value;
+      return parsedExisting.unit ? `${total} ${parsedExisting.unit}` : `${total}`;
+    }
+    return `${existing} + ${added}`;
+  }
+
+  subtractPantryFromNeeded(needed: string, inPantry: string): { remaining: string; covered: boolean } {
+    const parsedNeeded = this.parseNumericQuantity(needed);
+    const parsedPantry = this.parseNumericQuantity(inPantry);
+    if (parsedNeeded && parsedPantry && parsedNeeded.unit === parsedPantry.unit) {
+      const remaining = parsedNeeded.value - parsedPantry.value;
+      if (remaining <= 0) {
+        return { remaining: '0', covered: true };
+      }
+      const unit = parsedNeeded.unit;
+      return { remaining: unit ? `${remaining} ${unit}` : `${remaining}`, covered: false };
+    }
+    return { remaining: needed, covered: false };
+  }
+
   exportData(): void {
     const data = {
       meals: this.meals(),
@@ -775,6 +988,8 @@ export class MealService {
       extraItems: this.extraItems(),
       extraItemsHistory: this.extraItemsHistory(),
       overrides: this.quantityOverrides(),
+      pantry: this.pantry(),
+      pantryGroups: this.pantryGroups(),
       familySettings: {
         isFamilyMode: this.isFamilyMode(),
         visibleMeals: this.visibleMeals(),
@@ -819,6 +1034,12 @@ export class MealService {
       }
       if (data.overrides) {
         this.quantityOverrides.set(data.overrides);
+      }
+      if (data.pantry) {
+        this.pantry.set(data.pantry as PantryItem[]);
+      }
+      if (data.pantryGroups) {
+        this.pantryGroups.set(data.pantryGroups as PantryGroup[]);
       }
       if (data.familySettings) {
         this.isFamilyMode.set(data.familySettings.isFamilyMode);

@@ -35,10 +35,24 @@ export type ShoppingTag = {
   color: string;
 }
 
+export type PantryGroup = {
+  id: string;
+  name: string;
+  color?: string;
+}
+
+export type PantryItem = {
+  name: string;
+  quantity: string;
+  groupId?: string;
+}
+
 export type ShoppingItem = {
   tagId?: string;
   isExtra?: boolean;
   quantityOverride?: string;
+  inPantry?: boolean;
+  pantryQuantity?: string;
 } & Ingredient
 
 export type ShoppingListGroup = {
