@@ -98,6 +98,10 @@ export class ShoppingListComponent {
     this.mealService.removeExtraItem(index);
   }
 
+  reAddFromHistory(item: { name: string; quantity: string; tagId?: string }): void {
+    this.mealService.addExtraItem(item.name, item.quantity, item.tagId);
+  }
+
   print(): void {
     window.print();
   }

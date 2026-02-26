@@ -30,6 +30,16 @@ export class SettingsComponent {
     this.dialogService.alert('Sincronización', 'Datos subidos a la nube.');
   }
 
+  async logout(): Promise<void> {
+    const confirmed = await this.dialogService.confirm(
+      'Cerrar Sesión',
+      '¿Estás seguro de que querés cerrar la sesión?'
+    );
+    if (confirmed) {
+      await this.authService.logout();
+    }
+  }
+
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
