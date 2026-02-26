@@ -116,14 +116,28 @@
     }
   </div>
 
-  @if (mealService.extraItems().length > 0) {
+  @if (mealService.currentExtraItems().length > 0) {
     <div class="extra-management">
       <h3>Items Manuales</h3>
       <div class="chip-list">
-        @for (item of mealService.extraItems(); track $index) {
+        @for (item of mealService.currentExtraItems(); track $index) {
           <span class="chip">
             {{ item.name }} ({{ item.quantity }})
             <button type="button" (click)="deleteExtraItem($index)">x</button>
+          </span>
+        }
+      </div>
+    </div>
+  }
+
+  @if (mealService.extraItemsHistory().length > 0) {
+    <div class="extra-management">
+      <h3>Historial de Items</h3>
+      <div class="chip-list">
+        @for (item of mealService.extraItemsHistory(); track item.name) {
+          <span class="chip chip-history">
+            {{ item.name }}
+            <button title="Agregar a esta semana" type="button" (click)="reAddFromHistory(item)">+</button>
           </span>
         }
       </div>

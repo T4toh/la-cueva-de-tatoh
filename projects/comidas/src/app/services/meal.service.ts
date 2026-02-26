@@ -23,6 +23,7 @@ export class MealService {
   private readonly TAGS_KEY = 'comidas_tags';
   private readonly INGREDIENT_TAGS_KEY = 'comidas_ingredient_tags';
   private readonly EXTRA_ITEMS_KEY = 'comidas_extra_items';
+  private readonly EXTRA_ITEMS_HISTORY_KEY = 'comidas_extra_items_history';
   private readonly FAMILY_SETTINGS_KEY = 'comidas_family_settings';
   private readonly QUANTITY_OVERRIDES_KEY = 'comidas_quantity_overrides';
   private readonly CHECKED_ITEMS_KEY = 'comidas_checked_items';
@@ -38,7 +39,17 @@ export class MealService {
   readonly ingredientTags = signal<Record<string, string>>(
     this.loadIngredientTags()
   );
-  readonly extraItems = signal<ShoppingItem[]>(this.loadExtraItems());
+  readonly extraItems = signal<Record<string, ShoppingItem[]>>(
+    this.loadExtraItems()
+  );
+  readonly extraItemsHistory = signal<ShoppingItem[]>(
+    this.loadExtraItemsHistory()
+  );
+
+  readonly currentExtraItems = computed(() => {
+    const weekKey = this.formatDateKey(this.currentWeekStart());
+    return this.extraItems()[weekKey] || [];
+  });
 
   // Map of "weekKey_ingredientName" -> newQuantity
   readonly quantityOverrides = signal<Record<string, string>>(
@@ -120,6 +131,13 @@ export class MealService {
       localStorage.setItem(this.EXTRA_ITEMS_KEY, JSON.stringify(data));
       if (!this.isSyncing) {
         this.saveToFirestore('extraItems', data);
+      }
+    });
+    effect(() => {
+      const data = this.extraItemsHistory();
+      localStorage.setItem(this.EXTRA_ITEMS_HISTORY_KEY, JSON.stringify(data));
+      if (!this.isSyncing) {
+        this.saveToFirestore('extraItemsHistory', data);
       }
     });
     effect(() => {
@@ -236,7 +254,13 @@ export class MealService {
           this.ingredientTags.set(data['ingredientTags']);
         }
         if (data['extraItems']) {
-          this.extraItems.set(data['extraItems']);
+          const extraItems = data['extraItems'];
+          this.extraItems.set(
+            Array.isArray(extraItems) ? {} : (extraItems as Record<string, ShoppingItem[]>)
+          );
+        }
+        if (data['extraItemsHistory']) {
+          this.extraItemsHistory.set(data['extraItemsHistory']);
         }
         if (data['overrides']) {
           this.quantityOverrides.set(data['overrides']);
@@ -291,6 +315,7 @@ export class MealService {
         tags: this.tags(),
         ingredientTags: this.ingredientTags(),
         extraItems: this.extraItems(),
+        extraItemsHistory: this.extraItemsHistory(),
         overrides: this.quantityOverrides(),
         checkedItems: this.checkedItems(),
         familySettings: {
@@ -349,9 +374,23 @@ export class MealService {
     return data ? JSON.parse(data) : {};
   }
 
-  private loadExtraItems(): ShoppingItem[] {
+  private loadExtraItems(): Record<string, ShoppingItem[]> {
     const data = localStorage.getItem(this.EXTRA_ITEMS_KEY);
-    return data ? JSON.parse(data) : [];
+    if (!data) {
+      return {};
+    }
+    try {
+      const parsed = JSON.parse(data);
+      // Migrate from old array format (discard stale items)
+      return Array.isArray(parsed) ? {} : (parsed as Record<string, ShoppingItem[]>);
+    } catch {
+      return {};
+    }
+  }
+
+  private loadExtraItemsHistory(): ShoppingItem[] {
+    const data = localStorage.getItem(this.EXTRA_ITEMS_HISTORY_KEY);
+    return data ? (JSON.parse(data) as ShoppingItem[]) : [];
   }
 
   private loadOverrides(): Record<string, string> {
@@ -547,14 +586,27 @@ export class MealService {
 
   addExtraItem(name: string, quantity: string, tagId?: string): void {
     const newItem: ShoppingItem = { name, quantity, tagId, isExtra: true };
-    this.extraItems.update((items) => [...items, newItem]);
+    const weekKey = this.formatDateKey(this.currentWeekStart());
+    this.extraItems.update((items) => ({
+      ...items,
+      [weekKey]: [...(items[weekKey] || []), newItem],
+    }));
+    const nameLower = name.toLowerCase().trim();
+    this.extraItemsHistory.update((history) => {
+      const exists = history.some((h) => h.name.toLowerCase().trim() === nameLower);
+      return exists ? history : [...history, newItem];
+    });
     if (tagId) {
       this.setIngredientTag(name, tagId);
     }
   }
 
   removeExtraItem(index: number): void {
-    this.extraItems.update((items) => items.filter((_, i) => i !== index));
+    const weekKey = this.formatDateKey(this.currentWeekStart());
+    this.extraItems.update((items) => ({
+      ...items,
+      [weekKey]: (items[weekKey] || []).filter((_, i) => i !== index),
+    }));
   }
 
   overrideQuantity(ingredientName: string, newQuantity: string): void {
@@ -653,7 +705,7 @@ export class MealService {
       }
     });
 
-    this.extraItems().forEach((extra) => {
+    this.currentExtraItems().forEach((extra) => {
       const key = extra.name.toLowerCase().trim();
       items.push({
         ...extra,
@@ -721,13 +773,14 @@ export class MealService {
       tags: this.tags(),
       ingredientTags: this.ingredientTags(),
       extraItems: this.extraItems(),
+      extraItemsHistory: this.extraItemsHistory(),
       overrides: this.quantityOverrides(),
       familySettings: {
         isFamilyMode: this.isFamilyMode(),
         visibleMeals: this.visibleMeals(),
         familyPortions: this.familyPortions(),
       },
-      version: '1.2',
+      version: '1.3',
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], {
       type: 'application/json',
@@ -756,7 +809,13 @@ export class MealService {
         this.ingredientTags.set(data.ingredientTags);
       }
       if (data.extraItems) {
-        this.extraItems.set(data.extraItems);
+        const extraItems = data.extraItems;
+        this.extraItems.set(
+          Array.isArray(extraItems) ? {} : (extraItems as Record<string, ShoppingItem[]>)
+        );
+      }
+      if (data.extraItemsHistory) {
+        this.extraItemsHistory.set(data.extraItemsHistory);
       }
       if (data.overrides) {
         this.quantityOverrides.set(data.overrides);
