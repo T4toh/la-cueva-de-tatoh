@@ -62,73 +62,76 @@
                 <div class="items">
 
                   @for (item of group.items; track item.name) {
-
                     <div class="item">
+                      <div class="item-main">
+                        <input
+                          type="checkbox"
+                          [checked]="item.checked"
+                          [id]="item.name + (group.tag?.id || 'untagged')"
+                          (change)="mealService.toggleItemCheck(item.name)"
+                        />
+                        <label class="item-label" [for]="item.name + (group.tag?.id || 'untagged')">
+                          <span class="name">{{ item.name }}</span>
+                        </label>
+                        <div class="tag-chip-container">
+                          <lib-tag
+                            [colorFondo]="getTagColor(item.tagId)"
+                            [colorTexto]="'white'"
+                            [texto]="getTagName(item.tagId)"
+                          />
+                          <select
+                            class="hidden-select"
+                            [value]="item.tagId || ''"
+                            (change)="updateItemTag(item.name, $event)"
+                            (click)="$event.stopPropagation()"
+                          >
+                            <option value="">Sin Tag</option>
+                            @for (tag of mealService.tags(); track tag.id) {
+                              <option [value]="tag.id">{{ tag.name }}</option>
+                            }
+                          </select>
+                        </div>
+                      </div>
 
-                      <input
-
-                        type="checkbox"
-
-                        [checked]="item.checked"
-
-                        [id]="item.name + (group.tag?.id || 'untagged')"
-
-                        (change)="mealService.toggleItemCheck(item.name)"
-
-                      />
-
-                      <label class="item-label" [for]="item.name + (group.tag?.id || 'untagged')">
-                                <span class="name">{{ item.name }}</span>
-                                <div class="quantity-container">
-                                  <input 
-                                      class="quantity-edit-input" 
-                                      type="text" 
-                                      [value]="item.quantityOverride || item.quantity" 
-                                      (change)="editQuantity(item.name, $event)"
-                                      (click)="$event.stopPropagation()">
-                                </div>
-                              </label>
-
-              <div class="tag-chip-container">
-                <lib-tag
-                  [colorFondo]="getTagColor(item.tagId)"
-                  [colorTexto]="'white'"
-                  [texto]="getTagName(item.tagId)"
-                />
-                <select
-                  class="hidden-select"
-                  [value]="item.tagId || ''"
-                  (change)="updateItemTag(item.name, $event)"
-                  (click)="$event.stopPropagation()"
-                >
-                  <option value="">Sin Tag</option>
-                  @for (tag of mealService.tags(); track tag.id) {
-                    <option [value]="tag.id">{{ tag.name }}</option>
+                      <div class="item-actions">
+                        <div class="quantity-container">
+                          <input
+                            class="quantity-edit-input"
+                            type="text"
+                            [value]="item.quantityOverride || item.quantity"
+                            (change)="editQuantity(item.name, $event)"
+                            (click)="$event.stopPropagation()"
+                          />
+                        </div>
+                        <div class="pantry-actions">
+                          <button
+                            class="btn-subtract-pantry"
+                            title="Restar de la despensa"
+                            type="button"
+                            [disabled]="!item.inPantry"
+                            (click)="item.inPantry && subtractFromPantry(item)"
+                          >
+                            −
+                          </button>
+                          <span
+                            class="pantry-qty-chip"
+                            [class.pantry-qty-chip--empty]="!item.inPantry"
+                            [title]="item.inPantry ? 'Tenés ' + item.pantryQuantity + ' en la despensa' : 'No hay en la despensa'"
+                          >
+                            🥫 {{ item.inPantry ? item.pantryQuantity : '—' }}
+                          </span>
+                          <button
+                            class="btn-to-pantry"
+                            title="Mandar a despensa"
+                            type="button"
+                            (click)="sendToPantry(item)"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   }
-                </select>
-              </div>
-              <div class="pantry-actions">
-                <button
-                  class="btn-subtract-pantry"
-                  [disabled]="!item.inPantry"
-                  title="Restar de la despensa"
-                  type="button"
-                  (click)="item.inPantry && subtractFromPantry(item)"
-                >−</button>
-                <span
-                  class="pantry-qty-chip"
-                  [class.pantry-qty-chip--empty]="!item.inPantry"
-                  [title]="item.inPantry ? 'Tenés ' + item.pantryQuantity + ' en la despensa' : 'No hay en la despensa'"
-                >🥫 {{ item.inPantry ? item.pantryQuantity : '—' }}</span>
-                <button
-                  class="btn-to-pantry"
-                  title="Mandar a despensa"
-                  type="button"
-                  (click)="sendToPantry(item)"
-                >+</button>
-              </div>
-            </div>
-          }
         </div>
       </div>
     } @empty {
