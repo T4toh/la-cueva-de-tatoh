@@ -110,6 +110,11 @@ export class ShoppingListComponent implements OnInit {
   subtractFromPantry(item: { name: string; quantity: string; quantityOverride?: string; checked?: boolean }): void {
     const quantity = item.quantityOverride || item.quantity;
     this.mealService.subtractFromPantry(item.name, quantity);
+    // If pantry only partially covers the need, persist the remaining as a stored
+    // override so the cart doesn't revert to the full quantity after pantry is depleted.
+    if (item.quantityOverride) {
+      this.mealService.overrideQuantity(item.name, item.quantityOverride);
+    }
     if (!item.checked) {
       this.mealService.toggleItemCheck(item.name);
     }
