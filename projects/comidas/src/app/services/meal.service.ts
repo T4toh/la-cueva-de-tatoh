@@ -913,6 +913,27 @@ export class MealService {
         return i;
       })
     );
+    this.autoCheckIfCovered(key);
+  }
+
+  private autoCheckIfCovered(key: string): void {
+    const pantryEntry = this.pantry().find(
+      (p) => p.name.toLowerCase().trim() === key
+    );
+    if (!pantryEntry) {
+      return;
+    }
+    const shoppingItem = this.shoppingList().find(
+      (s) => s.name.toLowerCase().trim() === key
+    );
+    if (!shoppingItem || shoppingItem.checked) {
+      return;
+    }
+    const needed = shoppingItem.quantityOverride || shoppingItem.quantity;
+    const { covered } = this.subtractPantryFromNeeded(needed, pantryEntry.quantity);
+    if (covered) {
+      this.toggleItemCheck(shoppingItem.name);
+    }
   }
 
   clearPantry(): void {
