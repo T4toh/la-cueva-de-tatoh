@@ -55,6 +55,19 @@ export class MealService {
     return this.extraItems()[weekKey] || [];
   });
 
+  readonly allIngredientNames = computed(() => {
+    const names = new Set<string>();
+    this.meals().forEach((meal) => {
+      meal.ingredients.forEach((ing) => {
+        const normalized = ing.name.trim().toLowerCase();
+        if (normalized) {
+          names.add(normalized);
+        }
+      });
+    });
+    return Array.from(names).sort();
+  });
+
   // Map of "weekKey_ingredientName" -> newQuantity
   readonly quantityOverrides = signal<Record<string, string>>(
     this.loadOverrides()

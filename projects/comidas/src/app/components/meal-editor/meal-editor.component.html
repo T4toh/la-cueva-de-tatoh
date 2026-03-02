@@ -42,7 +42,28 @@
       <div formArrayName="ingredients">
         @for (ing of ingredients.controls; track $index) {
           <div class="ingredient-row" [formGroupName]="$index">
-            <input formControlName="name" placeholder="Ingrediente (ej: Fideos)" type="text">
+            <div class="ingredient-autocomplete">
+              <input
+                formControlName="name"
+                placeholder="Ingrediente (ej: Fideos)"
+                type="text"
+                (blur)="onIngredientBlur()"
+                (focus)="onIngredientFocus($index, $event)"
+                (input)="onIngredientInput($event)"
+                (keydown)="onIngredientKeydown($event, $index)">
+              @if (showSuggestionsFor($index)) {
+                <div class="suggestions-dropdown">
+                  @for (suggestion of filteredSuggestions(); track $index) {
+                    <div
+                      class="suggestion-item"
+                      [class.highlighted]="highlightedSuggestionIndex() === $index"
+                      (mousedown)="selectSuggestion(suggestion, $index)">
+                      {{ suggestion }}
+                    </div>
+                  }
+                </div>
+              }
+            </div>
             <input formControlName="quantity" min="0" placeholder="Cant." step="any" type="number">
             <button class="btn-remove" type="button" (click)="removeIngredient($index)">X</button>
           </div>

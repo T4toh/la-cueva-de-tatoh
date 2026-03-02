@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 
 import {
   FormArray,
@@ -29,6 +29,79 @@ export class MealEditorComponent implements OnInit {
   mealId: string | null = null;
   form: FormGroup;
   newTagControl = new FormControl('');
+
+  private readonly activeIngredientIndex = signal<number>(-1);
+  private readonly currentInputValue = signal<string>('');
+  readonly highlightedSuggestionIndex = signal<number>(-1);
+
+  readonly filteredSuggestions = computed(() => {
+    const value = this.currentInputValue().toLowerCase().trim();
+    if (value.length < 2) {
+      return [];
+    }
+    return this.mealService
+      .allIngredientNames()
+      .filter((name) => name.includes(value) && name !== value)
+      .slice(0, 8);
+  });
+
+  showSuggestionsFor(index: number): boolean {
+    return (
+      this.activeIngredientIndex() === index &&
+      this.filteredSuggestions().length > 0
+    );
+  }
+
+  onIngredientFocus(index: number, event: FocusEvent): void {
+    this.activeIngredientIndex.set(index);
+    this.currentInputValue.set(
+      (event.target as HTMLInputElement).value ?? ''
+    );
+    this.highlightedSuggestionIndex.set(-1);
+  }
+
+  onIngredientBlur(): void {
+    setTimeout(() => {
+      this.activeIngredientIndex.set(-1);
+    }, 150);
+  }
+
+  onIngredientInput(event: Event): void {
+    this.currentInputValue.set((event.target as HTMLInputElement).value ?? '');
+    this.highlightedSuggestionIndex.set(-1);
+  }
+
+  onIngredientKeydown(event: KeyboardEvent, index: number): void {
+    const suggestions = this.filteredSuggestions();
+    if (!suggestions.length) {
+      return;
+    }
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      this.highlightedSuggestionIndex.update((i) =>
+        Math.min(i + 1, suggestions.length - 1)
+      );
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      this.highlightedSuggestionIndex.update((i) => Math.max(i - 1, -1));
+    } else if (event.key === 'Enter') {
+      const highlighted = this.highlightedSuggestionIndex();
+      if (highlighted >= 0) {
+        event.preventDefault();
+        this.selectSuggestion(suggestions[highlighted], index);
+      }
+    } else if (event.key === 'Escape') {
+      this.activeIngredientIndex.set(-1);
+    }
+  }
+
+  selectSuggestion(name: string, ingredientIndex: number): void {
+    const control = (this.ingredients.at(ingredientIndex) as FormGroup).get(
+      'name'
+    );
+    control?.setValue(name);
+    this.activeIngredientIndex.set(-1);
+  }
 
   constructor() {
     this.form = this.fb.group({
