@@ -307,6 +307,11 @@ input:checked + .slider:before {
     background: rgba(255, 255, 255, 0.1);
     transition: background 0.2s;
     text-align: center;
+    min-height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
 
     &:hover {
       background: rgba(255, 255, 255, 0.2);
