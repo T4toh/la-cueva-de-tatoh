@@ -20,7 +20,7 @@
   @if (showAddForm) {
     <form class="inline-form" [formGroup]="addForm" (ngSubmit)="addItem()">
       <input autoFocus formControlName="name" placeholder="Nombre (ej: Zanahorias)" />
-      <input formControlName="quantity" placeholder="Cantidad (ej: 3)" />
+      <input formControlName="quantity" min="0" placeholder="Cantidad" step="any" type="number" />
       <select formControlName="groupId">
         <option value="">Sin grupo</option>
         @for (group of mealService.pantryGroups(); track group.id) {
@@ -109,7 +109,9 @@
       <div class="action-row">
         <input
           class="qty-input"
-          type="text"
+          min="0"
+          step="any"
+          type="number"
           [value]="editingQuantity"
           (input)="editingQuantity = $any($event.target).value"
         />
@@ -121,8 +123,10 @@
         <span class="hint">Tenés {{ item.quantity }}. ¿Cuánto restás?</span>
         <input
           class="qty-input"
+          min="0"
           placeholder="Cantidad"
-          type="text"
+          step="any"
+          type="number"
           [value]="subtractingAmount"
           (input)="subtractingAmount = $any($event.target).value"
         />

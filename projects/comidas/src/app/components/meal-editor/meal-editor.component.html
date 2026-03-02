@@ -43,7 +43,7 @@
         @for (ing of ingredients.controls; track $index) {
           <div class="ingredient-row" [formGroupName]="$index">
             <input formControlName="name" placeholder="Ingrediente (ej: Fideos)" type="text">
-            <input formControlName="quantity" placeholder="Cant. (ej: 500g)" type="text">
+            <input formControlName="quantity" min="0" placeholder="Cant." step="any" type="number">
             <button class="btn-remove" type="button" (click)="removeIngredient($index)">X</button>
           </div>
         }
