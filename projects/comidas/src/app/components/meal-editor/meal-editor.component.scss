@@ -65,10 +65,16 @@ h1, h2 {
     min-width: 0; // Allows flex items to shrink below content size
   }
 
-  input:first-child {
+  .ingredient-autocomplete {
     flex: 2;
+    position: relative;
+    min-width: 0;
+
+    input {
+      width: 100%;
+    }
   }
-  
+
   input:nth-child(2) {
     flex: 1;
   }
@@ -83,6 +89,33 @@ h1, h2 {
     &:hover {
       background: #d32f2f;
     }
+  }
+}
+
+.suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--color-bg, #1e1e2e);
+  border: 1px solid var(--color-3);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  margin-top: 2px;
+}
+
+.suggestion-item {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--color-5);
+
+  &:hover,
+  &.highlighted {
+    background: rgba(91, 92, 154, 0.3);
+    color: white;
   }
 }
 

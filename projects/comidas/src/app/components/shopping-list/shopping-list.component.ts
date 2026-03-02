@@ -120,6 +120,30 @@ export class ShoppingListComponent implements OnInit {
     }
   }
 
+  async applyCartToPantry(): Promise<void> {
+    const diff = this.mealService.getCartPantryDiff();
+    if (diff.length === 0) {
+      this.dialogService.alert(
+        'Sin cambios',
+        'No hay ítems del carrito que coincidan con la despensa.'
+      );
+      return;
+    }
+    const lines = diff.map(({ name, needed, inPantry, remaining, covered }) => {
+      if (covered) {
+        return `• ${name}: tenés ${inPantry}, necesitás ${needed} → ya lo cubrís`;
+      }
+      return `• ${name}: tenés ${inPantry}, necesitás ${needed} → comprás ${remaining}`;
+    });
+    const confirmed = await this.dialogService.confirm(
+      'Restar del carrito',
+      'Se van a restar las siguientes cantidades de la despensa:\n\n' + lines.join('\n')
+    );
+    if (confirmed) {
+      this.mealService.applyCartToPantry();
+    }
+  }
+
   reAddFromHistory(item: { name: string; quantity: string; tagId?: string }): void {
     this.mealService.addExtraItem(item.name, item.quantity, item.tagId);
   }

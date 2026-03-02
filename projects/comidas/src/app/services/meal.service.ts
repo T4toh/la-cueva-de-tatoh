@@ -55,6 +55,19 @@ export class MealService {
     return this.extraItems()[weekKey] || [];
   });
 
+  readonly allIngredientNames = computed(() => {
+    const names = new Set<string>();
+    this.meals().forEach((meal) => {
+      meal.ingredients.forEach((ing) => {
+        const normalized = ing.name.trim().toLowerCase();
+        if (normalized) {
+          names.add(normalized);
+        }
+      });
+    });
+    return Array.from(names).sort();
+  });
+
   // Map of "weekKey_ingredientName" -> newQuantity
   readonly quantityOverrides = signal<Record<string, string>>(
     this.loadOverrides()
@@ -900,6 +913,27 @@ export class MealService {
         return i;
       })
     );
+    this.autoCheckIfCovered(key);
+  }
+
+  private autoCheckIfCovered(key: string): void {
+    const pantryEntry = this.pantry().find(
+      (p) => p.name.toLowerCase().trim() === key
+    );
+    if (!pantryEntry) {
+      return;
+    }
+    const shoppingItem = this.shoppingList().find(
+      (s) => s.name.toLowerCase().trim() === key
+    );
+    if (!shoppingItem || shoppingItem.checked) {
+      return;
+    }
+    const needed = shoppingItem.quantityOverride || shoppingItem.quantity;
+    const { covered } = this.subtractPantryFromNeeded(needed, pantryEntry.quantity);
+    if (covered) {
+      this.toggleItemCheck(shoppingItem.name);
+    }
   }
 
   clearPantry(): void {
