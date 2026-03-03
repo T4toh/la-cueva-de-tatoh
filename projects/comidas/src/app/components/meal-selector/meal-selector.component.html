@@ -1,39 +1,65 @@
 <div class="selector-container">
-  <h1>Seleccionar {{ type }} para el {{ dayName }}</h1>
+  <h1>{{ type }} del {{ dayName }}</h1>
 
-  <div class="actions">
-    <button class="btn-back" routerLink="/" type="button">
-      Volver sin cambios
-    </button>
-    <button class="btn-clear" type="button" (click)="clearSelection()">
-      Borrar y dejar vacío
-    </button>
-  </div>
+  @if (showingList()) {
+    <div class="actions">
+      <button class="btn-back" routerLink="/" type="button">
+        Volver sin cambios
+      </button>
+      <button class="btn-clear" type="button" (click)="clearSelection()">
+        Borrar y dejar vacío
+      </button>
+    </div>
 
-  @if (uniqueTags().length > 0) {
-    <div class="filters">
-      <button type="button" [class.active]="selectedTag() === null" (click)="selectTag(null)">Todos</button>
-      @for (tag of uniqueTags(); track tag) {
-        <button type="button" [class.active]="selectedTag() === tag" (click)="selectTag(tag)">{{ tag }}</button>
+    @if (uniqueTags().length > 0) {
+      <div class="filters">
+        <button type="button" [class.active]="selectedTag() === null" (click)="selectTag(null)">Todos</button>
+        @for (tag of uniqueTags(); track tag) {
+          <button type="button" [class.active]="selectedTag() === tag" (click)="selectTag(tag)">{{ tag }}</button>
+        }
+      </div>
+    }
+
+    <div class="grid">
+      @for (meal of filteredMeals(); track meal.id) {
+        <app-meal-card
+          [meal]="meal"
+          [showDuplicate]="true"
+          [showEdit]="true"
+          (cardClick)="selectMeal(meal.id)"
+          (duplicate)="duplicateMeal($event)"
+          (edit)="editMeal($event)"
+        />
+      } @empty {
+        <p class="empty-state">
+          No hay comidas creadas.
+          <a routerLink="/meals/new">Crear una nueva</a>
+        </p>
       }
     </div>
-  }
+  } @else {
+    <div class="actions">
+      <button class="btn-back" routerLink="/" type="button">Volver</button>
+      <button class="btn-change" type="button" (click)="showList()">Cambiar comida</button>
+      <button class="btn-clear" type="button" (click)="clearSelection()">Borrar</button>
+    </div>
 
-  <div class="grid">
-    @for (meal of filteredMeals(); track meal.id) {
-      <app-meal-card
-        [meal]="meal"
-        [showDuplicate]="true"
-        [showEdit]="true"
-        (cardClick)="selectMeal(meal.id)"
-        (duplicate)="duplicateMeal($event)"
-        (edit)="editMeal($event)"
-      />
-    } @empty {
-      <p class="empty-state">
-        No hay comidas creadas.
-        <a routerLink="/meals/new">Crear una nueva</a>
-      </p>
+    @if (currentMeal(); as meal) {
+      <div class="recipe-view">
+        <h2>{{ meal.name }}</h2>
+        @if (meal.ingredients.length > 0) {
+          <ul class="ingredient-list">
+            @for (ing of meal.ingredients; track ing.name) {
+              <li><span class="ing-name">{{ ing.name }}</span> <span class="ing-qty">{{ ing.quantity }}</span></li>
+            }
+          </ul>
+        } @else {
+          <p class="no-ingredients">Sin ingredientes</p>
+        }
+        @if (meal.description) {
+          <p class="description">{{ meal.description }}</p>
+        }
+      </div>
     }
-  </div>
+  }
 </div>

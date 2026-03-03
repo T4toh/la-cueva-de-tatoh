@@ -17,7 +17,7 @@ h1 {
   gap: 1rem;
   margin-bottom: 2rem;
   
-  .btn-clear, .btn-back {
+  .btn-clear, .btn-back, .btn-change {
     background-color: transparent;
     border: 1px solid var(--color-4);
     color: var(--color-5);
@@ -34,9 +34,72 @@ h1 {
   }
 
   .btn-clear:hover {
-      color: #ff5252;
-      border-color: #ff5252;
-      background: rgba(255, 82, 82, 0.1);
+    color: #ff5252;
+    border-color: #ff5252;
+    background: rgba(255, 82, 82, 0.1);
+  }
+
+  .btn-change:hover {
+    border-color: var(--color-2);
+    color: var(--color-2);
+    background: rgba(var(--color-2-rgb, 100, 180, 255), 0.1);
+  }
+}
+
+.recipe-view {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  h2 {
+    color: var(--color-2);
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    text-align: center;
+  }
+
+  .ingredient-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem;
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .ing-name {
+        color: var(--color-5);
+      }
+
+      .ing-qty {
+        color: var(--color-4);
+        font-size: 0.9rem;
+      }
+    }
+  }
+
+  .no-ingredients {
+    color: var(--color-4);
+    font-style: italic;
+    text-align: center;
+  }
+
+  .description {
+    color: var(--color-5);
+    font-style: italic;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    line-height: 1.6;
   }
 }
 
