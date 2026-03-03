@@ -2,7 +2,7 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MealService } from '../../services/meal.service';
-import { MealType } from '../../models/meal.model';
+import { Meal, MealType } from '../../models/meal.model';
 import { MealCardComponent } from '../meal-card/meal-card.component';
 
 @Component({
@@ -19,7 +19,9 @@ export class MealSelectorComponent implements OnInit {
 
   dayName = '';
   type: MealType = 'almuerzo';
-  
+
+  readonly currentMeal = signal<Meal | undefined>(undefined);
+  readonly showingList = signal(false);
   readonly selectedTag = signal<string | null>(null);
 
   readonly uniqueTags = computed(() => {
@@ -39,6 +41,19 @@ export class MealSelectorComponent implements OnInit {
     this.dayName = this.route.snapshot.paramMap.get('day') || '';
     this.type =
       (this.route.snapshot.paramMap.get('type') as MealType) || 'almuerzo';
+
+    const day = this.mealService.schedule().find((d) => d.dayName === this.dayName);
+    const mealId = day ? (day[this.type as keyof typeof day] as string | null) : null;
+    const meal = this.mealService.getMeal(mealId);
+    this.currentMeal.set(meal);
+
+    if (!meal) {
+      this.showingList.set(true);
+    }
+  }
+
+  showList(): void {
+    this.showingList.set(true);
   }
 
   selectTag(tag: string | null): void {
