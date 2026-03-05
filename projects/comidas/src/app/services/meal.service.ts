@@ -797,7 +797,7 @@ export class MealService {
     items.forEach((item) => {
       const key = item.name.toLowerCase().trim();
       if (aggregated[key]) {
-        aggregated[key].quantity += ` + ${item.quantity}`;
+        aggregated[key].quantity = this.addQuantities(aggregated[key].quantity, item.quantity);
         if (!aggregated[key].tagId && item.tagId) {
           aggregated[key].tagId = item.tagId;
         }
