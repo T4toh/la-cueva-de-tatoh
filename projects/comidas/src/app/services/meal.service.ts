@@ -32,6 +32,7 @@ export class MealService {
   private readonly LAST_UPDATED_KEY = 'comidas_last_updated';
   private readonly PANTRY_KEY = 'comidas_pantry';
   private readonly PANTRY_GROUPS_KEY = 'comidas_pantry_groups';
+  private readonly MIGRATION_NUMERIC_QTY_KEY = 'comidas_migration_numeric_qty';
 
   // State
   readonly meals = signal<Meal[]>(this.loadMeals());
@@ -200,6 +201,7 @@ export class MealService {
         this.saveToFirestore('familySettings', settings);
       }
     });
+    this.migrateQuantitiesToNumeric();
   }
 
   private async saveToFirestore(key: string, data: unknown): Promise<void> {
@@ -277,7 +279,7 @@ export class MealService {
         // Remote is newer or same, download from Firebase
         console.log('[Sync] Remote data is newer or same, downloading');
         if (data['meals']) {
-          this.meals.set(data['meals']);
+          this.meals.set(this.normalizeMealQuantities(data['meals']));
         }
         if (data['schedules']) {
           this.schedules.set(data['schedules']);
@@ -304,7 +306,7 @@ export class MealService {
           this.checkedItems.set(data['checkedItems']);
         }
         if (data['pantry']) {
-          this.pantry.set(data['pantry'] as PantryItem[]);
+          this.pantry.set(this.normalizePantryQuantities(data['pantry'] as PantryItem[]));
         }
         if (data['pantryGroups']) {
           this.pantryGroups.set(data['pantryGroups'] as PantryGroup[]);
@@ -698,6 +700,11 @@ export class MealService {
       });
       return newOverrides;
     });
+    this.checkedItems.update((prev) => {
+      const updated = { ...prev };
+      delete updated[weekKey];
+      return updated;
+    });
   }
 
   toggleItemCheck(name: string): void {
@@ -816,17 +823,20 @@ export class MealService {
         (p) => p.name.toLowerCase().trim() === item.name.toLowerCase().trim()
       );
       if (pantryEntry) {
-        const effectiveQuantity = item.quantityOverride || item.quantity;
-        const { remaining, covered } = this.subtractPantryFromNeeded(
-          effectiveQuantity,
-          pantryEntry.quantity
-        );
-        item.pantryQuantity = pantryEntry.quantity;
-        item.inPantry = true;
-        if (covered) {
-          item.checked = true;
-        } else {
-          item.quantityOverride = remaining;
+        const parsedPantry = this.parseNumericQuantity(pantryEntry.quantity);
+        if (parsedPantry?.value !== 0) {
+          const effectiveQuantity = item.quantityOverride || item.quantity;
+          const { remaining, covered } = this.subtractPantryFromNeeded(
+            effectiveQuantity,
+            pantryEntry.quantity
+          );
+          item.pantryQuantity = pantryEntry.quantity;
+          item.inPantry = true;
+          if (covered) {
+            item.checked = true;
+          } else {
+            item.quantityOverride = remaining;
+          }
         }
       }
 
@@ -923,6 +933,10 @@ export class MealService {
     if (!pantryEntry) {
       return;
     }
+    const parsedPantry = this.parseNumericQuantity(pantryEntry.quantity);
+    if (parsedPantry?.value === 0) {
+      return;
+    }
     const shoppingItem = this.shoppingList().find(
       (s) => s.name.toLowerCase().trim() === key
     );
@@ -966,6 +980,10 @@ export class MealService {
         (p) => p.name.toLowerCase().trim() === item.name.toLowerCase().trim()
       );
       if (pantryEntry) {
+        const parsedPantry = this.parseNumericQuantity(pantryEntry.quantity);
+        if (parsedPantry?.value === 0) {
+          return;
+        }
         const needed = item.quantityOverride || item.quantity;
         const { remaining, covered } = this.subtractPantryFromNeeded(needed, pantryEntry.quantity);
         result.push({ name: item.name, needed, inPantry: pantryEntry.quantity, remaining, covered });
@@ -987,6 +1005,37 @@ export class MealService {
       return { value: parseFloat(match[1]), unit: match[3].trim() };
     }
     return null;
+  }
+
+  private normalizeQuantityToNumeric(q: string): string {
+    const match = q.trim().match(/^(\d+(\.\d+)?)/);
+    return match ? match[1] : q;
+  }
+
+  private normalizeMealQuantities(meals: Meal[]): Meal[] {
+    return meals.map((meal) => ({
+      ...meal,
+      ingredients: meal.ingredients.map((ing) => ({
+        ...ing,
+        quantity: this.normalizeQuantityToNumeric(ing.quantity),
+      })),
+    }));
+  }
+
+  private normalizePantryQuantities(items: PantryItem[]): PantryItem[] {
+    return items.map((item) => ({
+      ...item,
+      quantity: this.normalizeQuantityToNumeric(item.quantity),
+    }));
+  }
+
+  private migrateQuantitiesToNumeric(): void {
+    if (localStorage.getItem(this.MIGRATION_NUMERIC_QTY_KEY)) {
+      return;
+    }
+    this.meals.update((meals) => this.normalizeMealQuantities(meals));
+    this.pantry.update((items) => this.normalizePantryQuantities(items));
+    localStorage.setItem(this.MIGRATION_NUMERIC_QTY_KEY, '1');
   }
 
   private addQuantities(existing: string, added: string): string {
@@ -1046,7 +1095,7 @@ export class MealService {
     try {
       const data = JSON.parse(jsonContent);
       if (data.meals) {
-        this.meals.set(data.meals);
+        this.meals.set(this.normalizeMealQuantities(data.meals));
       }
       if (data.schedules) {
         this.schedules.set(data.schedules);
@@ -1070,7 +1119,7 @@ export class MealService {
         this.quantityOverrides.set(data.overrides);
       }
       if (data.pantry) {
-        this.pantry.set(data.pantry as PantryItem[]);
+        this.pantry.set(this.normalizePantryQuantities(data.pantry as PantryItem[]));
       }
       if (data.pantryGroups) {
         this.pantryGroups.set(data.pantryGroups as PantryGroup[]);

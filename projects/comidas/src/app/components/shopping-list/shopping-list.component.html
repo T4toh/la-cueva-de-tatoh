@@ -33,7 +33,7 @@
       (ngSubmit)="addExtraItem()"
     >
       <input autoFocus formControlName="name" placeholder="Item (ej: Jabón)" />
-      <input formControlName="quantity" min="0" placeholder="Cant." step="any" type="number" />
+      <input formControlName="quantity" placeholder="Cant." type="text" />
       <select formControlName="tagId">
         <option value="">Sin categoría</option>
         @for (tag of mealService.tags(); track tag.id) {
@@ -100,9 +100,7 @@
                         <div class="quantity-container">
                           <input
                             class="quantity-edit-input"
-                            min="0"
-                            step="any"
-                            type="number"
+                            type="text"
                             [value]="item.quantityOverride || item.quantity"
                             (change)="editQuantity(item.name, $event)"
                             (click)="$event.stopPropagation()"

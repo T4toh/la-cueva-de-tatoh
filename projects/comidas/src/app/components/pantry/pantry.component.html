@@ -21,6 +21,7 @@
     <form class="inline-form" [formGroup]="addForm" (ngSubmit)="addItem()">
       <input autoFocus formControlName="name" placeholder="Nombre (ej: Zanahorias)" />
       <input formControlName="quantity" min="0" placeholder="Cantidad" step="any" type="number" />
+      <input formControlName="unit" placeholder="Unidad (g, kg...)" type="text" />
       <select formControlName="groupId">
         <option value="">Sin grupo</option>
         @for (group of mealService.pantryGroups(); track group.id) {
@@ -115,6 +116,13 @@
           [value]="editingQuantity"
           (input)="editingQuantity = $any($event.target).value"
         />
+        <input
+          class="unit-input"
+          placeholder="unidad"
+          type="text"
+          [value]="editingUnit"
+          (input)="editingUnit = $any($event.target).value"
+        />
         <button class="btn-icon btn-ok" title="Guardar" type="button" (click)="saveEdit()">✓</button>
         <button class="btn-icon" title="Cancelar" type="button" (click)="cancelEdit()">✗</button>
       </div>
@@ -129,6 +137,13 @@
           type="number"
           [value]="subtractingAmount"
           (input)="subtractingAmount = $any($event.target).value"
+        />
+        <input
+          class="unit-input"
+          placeholder="unidad"
+          type="text"
+          [value]="subtractingUnit"
+          (input)="subtractingUnit = $any($event.target).value"
         />
         <button class="btn-icon btn-ok" title="Restar" type="button" (click)="saveSubtract()">✓</button>
         <button class="btn-icon" title="Cancelar" type="button" (click)="cancelSubtract()">✗</button>

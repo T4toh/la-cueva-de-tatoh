@@ -10,7 +10,7 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MealService } from '../../services/meal.service';
-import { Ingredient, Meal } from '../../models/meal.model';
+import { Meal } from '../../models/meal.model';
 import { Tag } from 'componentes';
 
 @Component({
@@ -132,7 +132,8 @@ export class MealEditorComponent implements OnInit {
           includeInShoppingList: meal.includeInShoppingList ?? true,
         });
         meal.ingredients.forEach((ing) => {
-          this.addIngredient(ing.name, ing.quantity);
+          const { value, unit } = this.splitQuantity(ing.quantity);
+          this.addIngredient(ing.name, value, unit);
         });
         if (meal.tags) {
           meal.tags.forEach((tag) => {
@@ -145,10 +146,19 @@ export class MealEditorComponent implements OnInit {
     }
   }
 
-  addIngredient(name = '', quantity = ''): void {
+  private splitQuantity(quantity: string): { value: string; unit: string } {
+    const match = quantity.trim().match(/^(\d+(\.\d+)?)\s*(.*)$/);
+    if (match) {
+      return { value: match[1], unit: match[3].trim() };
+    }
+    return { value: quantity, unit: '' };
+  }
+
+  addIngredient(name = '', quantity = '', unit = ''): void {
     const ingredientGroup = this.fb.group({
       name: [name], // Removed Validators.required to allow saving even if an empty row exists (we'll filter it)
       quantity: [quantity],
+      unit: [unit],
     });
     this.ingredients.push(ingredientGroup);
   }
@@ -176,10 +186,14 @@ export class MealEditorComponent implements OnInit {
     if (this.form.valid) {
       const formValue = this.form.value;
 
-      // Filter out ingredients with no name
-      const validIngredients = formValue.ingredients.filter(
-        (ing: Ingredient) => ing.name && ing.name.trim() !== ''
-      );
+      type IngredientFormValue = { name: string; quantity: string; unit: string };
+      // Filter out ingredients with no name and combine quantity + unit
+      const validIngredients = (formValue.ingredients as IngredientFormValue[])
+        .filter((ing) => ing.name && ing.name.trim() !== '')
+        .map((ing) => ({
+          name: ing.name.trim(),
+          quantity: [ing.quantity?.trim(), ing.unit?.trim()].filter(Boolean).join(' '),
+        }));
 
       const mealData: Omit<Meal, 'id'> = {
         name: formValue.name,

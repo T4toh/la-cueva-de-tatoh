@@ -23,13 +23,16 @@ export class PantryComponent {
   showGroupForm = false;
   editingName: string | null = null;
   editingQuantity = '';
+  editingUnit = '';
   subtractingName: string | null = null;
   subtractingAmount = '';
+  subtractingUnit = '';
 
   constructor() {
     this.addForm = this.fb.group({
       name: ['', Validators.required],
       quantity: ['', Validators.required],
+      unit: [''],
       groupId: [''],
     });
     this.groupForm = this.fb.group({
@@ -40,13 +43,15 @@ export class PantryComponent {
 
   addItem(): void {
     if (this.addForm.valid) {
-      const { name, quantity, groupId } = this.addForm.value as {
+      const { name, quantity, unit, groupId } = this.addForm.value as {
         name: string;
         quantity: string;
+        unit: string | null;
         groupId: string;
       };
-      this.mealService.addToPantry(name, quantity, groupId || undefined);
-      this.addForm.reset({ groupId: '' });
+      const combined = unit?.trim() ? `${quantity} ${unit.trim()}` : quantity;
+      this.mealService.addToPantry(name, combined, groupId || undefined);
+      this.addForm.reset({ groupId: '', unit: '' });
       this.showAddForm = false;
     }
   }
@@ -63,39 +68,61 @@ export class PantryComponent {
   startEdit(name: string, quantity: string): void {
     this.cancelSubtract();
     this.editingName = name;
-    this.editingQuantity = quantity;
+    const { value, unit } = this.splitQuantity(quantity);
+    this.editingQuantity = value;
+    this.editingUnit = unit;
   }
 
   saveEdit(): void {
     if (this.editingName !== null && this.editingQuantity.trim()) {
-      this.mealService.updatePantryQuantity(this.editingName, this.editingQuantity.trim());
+      const combined = this.editingUnit.trim()
+        ? `${this.editingQuantity.trim()} ${this.editingUnit.trim()}`
+        : this.editingQuantity.trim();
+      this.mealService.updatePantryQuantity(this.editingName, combined);
     }
     this.editingName = null;
     this.editingQuantity = '';
+    this.editingUnit = '';
   }
 
   cancelEdit(): void {
     this.editingName = null;
     this.editingQuantity = '';
+    this.editingUnit = '';
   }
 
   startSubtract(name: string): void {
     this.cancelEdit();
     this.subtractingName = name;
     this.subtractingAmount = '';
+    const item = this.mealService.pantry().find((i) => i.name === name);
+    this.subtractingUnit = item ? this.splitQuantity(item.quantity).unit : '';
   }
 
   saveSubtract(): void {
     if (this.subtractingName !== null && this.subtractingAmount.trim()) {
-      this.mealService.subtractFromPantry(this.subtractingName, this.subtractingAmount.trim());
+      const combined = this.subtractingUnit.trim()
+        ? `${this.subtractingAmount.trim()} ${this.subtractingUnit.trim()}`
+        : this.subtractingAmount.trim();
+      this.mealService.subtractFromPantry(this.subtractingName, combined);
     }
     this.subtractingName = null;
     this.subtractingAmount = '';
+    this.subtractingUnit = '';
   }
 
   cancelSubtract(): void {
     this.subtractingName = null;
     this.subtractingAmount = '';
+    this.subtractingUnit = '';
+  }
+
+  private splitQuantity(quantity: string): { value: string; unit: string } {
+    const match = quantity.trim().match(/^(\d+(\.\d+)?)\s*(.*)$/);
+    if (match) {
+      return { value: match[1], unit: match[3].trim() };
+    }
+    return { value: quantity, unit: '' };
   }
 
   removeItem(name: string): void {
