@@ -725,10 +725,10 @@ export class MealService {
   }
 
   private multiplyQuantity(quantity: string, factor: number): string {
-    if (factor <= 1) {
-      return quantity;
-    }
     const qStr = String(quantity ?? '').trim();
+    if (factor <= 1) {
+      return qStr;
+    }
     const match = qStr.match(/^(\d+(\.\d+)?)\s*(.*)$/);
     if (match) {
       const value = parseFloat(match[1]);
@@ -1048,7 +1048,9 @@ export class MealService {
       const total = parsedExisting.value + parsedAdded.value;
       return parsedExisting.unit ? `${total} ${parsedExisting.unit}` : `${total}`;
     }
-    return `${existing} + ${added}`;
+    const a = String(existing ?? '');
+    const b = String(added ?? '');
+    return `${a} + ${b}`;
   }
 
   subtractPantryFromNeeded(needed: string, inPantry: string): { remaining: string; covered: boolean } {
