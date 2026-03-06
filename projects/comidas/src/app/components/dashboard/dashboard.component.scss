@@ -371,20 +371,12 @@ input:checked + .slider:before {
   background: rgba(255, 193, 7, 0.2);
   border: 1px solid #ffc107;
   border-radius: 8px;
-  padding: 0.75rem 1rem;
+  padding: 0.6rem 1rem;
   margin-bottom: 1rem;
   color: white;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 
-  button {
-    background: transparent;
-    border: none;
-    color: white;
-    font-size: 1.2rem;
-    cursor: pointer;
-    padding: 0 0.25rem;
-    line-height: 1;
-  }
+  button { background: transparent; border: none; color: white; font-size: 1.1rem; cursor: pointer; }
 }
 
 .dish-list {
@@ -396,11 +388,17 @@ input:checked + .slider:before {
 
 .dish-row {
   display: flex;
-  align-items: flex-start;
-  gap: 0.4rem;
+  flex-direction: column;
+  gap: 0.25rem;
   background: rgba(255, 255, 255, 0.07);
   border-radius: 6px;
   padding: 0.3rem 0.5rem;
+
+  .dish-row-top {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
 
   .meal-link {
     flex: 1;
@@ -430,6 +428,20 @@ input:checked + .slider:before {
     background: rgba(255, 255, 255, 0.1);
     color: white;
     font-size: 0.8rem;
+  }
+
+  .dish-label-input {
+    width: 100%;
+    padding: 1px 0;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.7rem;
+    font-style: italic;
+
+    &::placeholder { color: rgba(255, 255, 255, 0.25); }
+    &:focus { outline: none; border-bottom-color: rgba(255, 255, 255, 0.5); }
   }
 }
 
@@ -573,6 +585,12 @@ input:checked + .slider:before {
         .print-portions {
             font-size: 8pt;
             color: #666 !important;
+        }
+
+        .print-label {
+            font-size: 8pt;
+            color: #444 !important;
+            font-style: italic;
         }
 
         .print-sub {

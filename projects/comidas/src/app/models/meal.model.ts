@@ -23,6 +23,7 @@ export type Dish = {
   mealId: string;
   portions: number;
   excluded?: boolean;
+  label?: string;
 }
 
 export type DaySchedule = {

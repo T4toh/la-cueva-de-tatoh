@@ -113,6 +113,11 @@ export class DashboardComponent {
     this.mealService.toggleDishExclusion(dayName, type, index);
   }
 
+  updateDishLabel(dayName: string, type: DishMealType, index: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.mealService.updateDishLabel(dayName, type, index, input.value);
+  }
+
   dismissMigrationBanner(): void {
     this.mealService.migrationOccurred.set(false);
   }

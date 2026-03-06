@@ -73,15 +73,18 @@
                 <div class="dish-list">
                   @for (dish of getDishes(day, 'desayuno'); track $index) {
                     <div class="dish-row">
-                      <a class="meal-link" [routerLink]="['/schedule', day.dayName, 'desayuno']" [queryParams]="{action: 'replace', index: $index}">
-                        {{ getMealName(dish.mealId) }}
-                      </a>
-                      <div class="dish-actions">
-                        <span class="portions-label">x</span>
-                        <input class="dish-portions-input" min="1" type="number" [value]="dish.portions" (change)="updateDishPortions(day.dayName, 'desayuno', $index, $event)">
-                        <input class="exclude-check" title="Sumar a compras" type="checkbox" [checked]="!dish.excluded" (change)="toggleDishExclusion(day.dayName, 'desayuno', $index)">
-                        <button class="btn-clear-slot" title="Quitar plato" type="button" (click)="removeDish(day.dayName, 'desayuno', $index)">×</button>
+                      <div class="dish-row-top">
+                        <a class="meal-link" [routerLink]="['/schedule', day.dayName, 'desayuno']" [queryParams]="{action: 'replace', index: $index}">
+                          {{ getMealName(dish.mealId) }}
+                        </a>
+                        <div class="dish-actions">
+                          <span class="portions-label">x</span>
+                          <input class="dish-portions-input" min="1" type="number" [value]="dish.portions" (change)="updateDishPortions(day.dayName, 'desayuno', $index, $event)">
+                          <input class="exclude-check" title="Sumar a compras" type="checkbox" [checked]="!dish.excluded" (change)="toggleDishExclusion(day.dayName, 'desayuno', $index)">
+                          <button class="btn-clear-slot" title="Quitar plato" type="button" (click)="removeDish(day.dayName, 'desayuno', $index)">×</button>
+                        </div>
                       </div>
+                      <input class="dish-label-input" placeholder="Para quién..." type="text" [value]="dish.label || ''" (change)="updateDishLabel(day.dayName, 'desayuno', $index, $event)">
                     </div>
                   }
                   <a class="btn-add-dish" [routerLink]="['/schedule', day.dayName, 'desayuno']" [queryParams]="{action: 'add'}">+ Agregar plato</a>
@@ -115,15 +118,18 @@
                 <div class="dish-list">
                   @for (dish of getDishes(day, 'almuerzo'); track $index) {
                     <div class="dish-row">
-                      <a class="meal-link" [routerLink]="['/schedule', day.dayName, 'almuerzo']" [queryParams]="{action: 'replace', index: $index}">
-                        {{ getMealName(dish.mealId) }}
-                      </a>
-                      <div class="dish-actions">
-                        <span class="portions-label">x</span>
-                        <input class="dish-portions-input" min="1" type="number" [value]="dish.portions" (change)="updateDishPortions(day.dayName, 'almuerzo', $index, $event)">
-                        <input class="exclude-check" title="Sumar a compras" type="checkbox" [checked]="!dish.excluded" (change)="toggleDishExclusion(day.dayName, 'almuerzo', $index)">
-                        <button class="btn-clear-slot" title="Quitar plato" type="button" (click)="removeDish(day.dayName, 'almuerzo', $index)">×</button>
+                      <div class="dish-row-top">
+                        <a class="meal-link" [routerLink]="['/schedule', day.dayName, 'almuerzo']" [queryParams]="{action: 'replace', index: $index}">
+                          {{ getMealName(dish.mealId) }}
+                        </a>
+                        <div class="dish-actions">
+                          <span class="portions-label">x</span>
+                          <input class="dish-portions-input" min="1" type="number" [value]="dish.portions" (change)="updateDishPortions(day.dayName, 'almuerzo', $index, $event)">
+                          <input class="exclude-check" title="Sumar a compras" type="checkbox" [checked]="!dish.excluded" (change)="toggleDishExclusion(day.dayName, 'almuerzo', $index)">
+                          <button class="btn-clear-slot" title="Quitar plato" type="button" (click)="removeDish(day.dayName, 'almuerzo', $index)">×</button>
+                        </div>
                       </div>
+                      <input class="dish-label-input" placeholder="Para quién..." type="text" [value]="dish.label || ''" (change)="updateDishLabel(day.dayName, 'almuerzo', $index, $event)">
                     </div>
                   }
                   <a class="btn-add-dish" [routerLink]="['/schedule', day.dayName, 'almuerzo']" [queryParams]="{action: 'add'}">+ Agregar plato</a>
@@ -170,15 +176,18 @@
                 <div class="dish-list">
                   @for (dish of getDishes(day, 'cena'); track $index) {
                     <div class="dish-row">
-                      <a class="meal-link" [routerLink]="['/schedule', day.dayName, 'cena']" [queryParams]="{action: 'replace', index: $index}">
-                        {{ getMealName(dish.mealId) }}
-                      </a>
-                      <div class="dish-actions">
-                        <span class="portions-label">x</span>
-                        <input class="dish-portions-input" min="1" type="number" [value]="dish.portions" (change)="updateDishPortions(day.dayName, 'cena', $index, $event)">
-                        <input class="exclude-check" title="Sumar a compras" type="checkbox" [checked]="!dish.excluded" (change)="toggleDishExclusion(day.dayName, 'cena', $index)">
-                        <button class="btn-clear-slot" title="Quitar plato" type="button" (click)="removeDish(day.dayName, 'cena', $index)">×</button>
+                      <div class="dish-row-top">
+                        <a class="meal-link" [routerLink]="['/schedule', day.dayName, 'cena']" [queryParams]="{action: 'replace', index: $index}">
+                          {{ getMealName(dish.mealId) }}
+                        </a>
+                        <div class="dish-actions">
+                          <span class="portions-label">x</span>
+                          <input class="dish-portions-input" min="1" type="number" [value]="dish.portions" (change)="updateDishPortions(day.dayName, 'cena', $index, $event)">
+                          <input class="exclude-check" title="Sumar a compras" type="checkbox" [checked]="!dish.excluded" (change)="toggleDishExclusion(day.dayName, 'cena', $index)">
+                          <button class="btn-clear-slot" title="Quitar plato" type="button" (click)="removeDish(day.dayName, 'cena', $index)">×</button>
+                        </div>
                       </div>
+                      <input class="dish-label-input" placeholder="Para quién..." type="text" [value]="dish.label || ''" (change)="updateDishLabel(day.dayName, 'cena', $index, $event)">
                     </div>
                   }
                   <a class="btn-add-dish" [routerLink]="['/schedule', day.dayName, 'cena']" [queryParams]="{action: 'add'}">+ Agregar plato</a>
@@ -230,7 +239,7 @@
               <div class="print-slot">
                 <strong>Desayuno:</strong>
                 @for (dish of getDishes(day, 'desayuno'); track $index) {
-                  <div class="print-dish">{{ getMealName(dish.mealId) }}@if (dish.portions > 1) {<span class="print-portions"> (x{{ dish.portions }})</span>}</div>
+                  <div class="print-dish">{{ getMealName(dish.mealId) }}@if (dish.portions > 1) {<span class="print-portions"> (x{{ dish.portions }})</span>}@if (dish.label) {<span class="print-label"> – {{ dish.label }}</span>}</div>
                 }
               </div>
             }
@@ -238,7 +247,7 @@
               <div class="print-slot">
                 <strong>Almuerzo:</strong>
                 @for (dish of getDishes(day, 'almuerzo'); track $index) {
-                  <div class="print-dish">{{ getMealName(dish.mealId) }}@if (dish.portions > 1) {<span class="print-portions"> (x{{ dish.portions }})</span>}</div>
+                  <div class="print-dish">{{ getMealName(dish.mealId) }}@if (dish.portions > 1) {<span class="print-portions"> (x{{ dish.portions }})</span>}@if (dish.label) {<span class="print-label"> – {{ dish.label }}</span>}</div>
                 }
                 @if (day.postreAlmuerzo) {
                   <div class="print-sub">Postre: {{ day.postreAlmuerzo }}</div>
@@ -254,7 +263,7 @@
               <div class="print-slot">
                 <strong>Cena:</strong>
                 @for (dish of getDishes(day, 'cena'); track $index) {
-                  <div class="print-dish">{{ getMealName(dish.mealId) }}@if (dish.portions > 1) {<span class="print-portions"> (x{{ dish.portions }})</span>}</div>
+                  <div class="print-dish">{{ getMealName(dish.mealId) }}@if (dish.portions > 1) {<span class="print-portions"> (x{{ dish.portions }})</span>}@if (dish.label) {<span class="print-label"> – {{ dish.label }}</span>}</div>
                 }
                 @if (day.postreCena) {
                   <div class="print-sub">Postre: {{ day.postreCena }}</div>

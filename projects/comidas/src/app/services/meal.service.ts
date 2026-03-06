@@ -737,6 +737,24 @@ export class MealService {
     this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
   }
 
+  updateDishLabel(dayName: string, type: DishMealType, index: number, label: string): void {
+    const key = this.formatDateKey(this.currentWeekStart());
+    const currentWeekSchedule = this.schedule();
+    const updatedWeek = currentWeekSchedule.map((day) => {
+      if (day.dayName !== dayName) {
+        return day;
+      }
+      const current = day[type] as Dish[];
+      return {
+        ...day,
+        [type]: current.map((d, i) =>
+          i === index ? { ...d, label: label.trim() || undefined } : d
+        ),
+      };
+    });
+    this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
+  }
+
   toggleDishExclusion(dayName: string, type: DishMealType, index: number): void {
     const key = this.formatDateKey(this.currentWeekStart());
     const currentWeekSchedule = this.schedule();
