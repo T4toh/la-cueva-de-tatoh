@@ -364,6 +364,106 @@ input:checked + .slider:before {
     display: none;
 }
 
+.migration-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 193, 7, 0.2);
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  margin-bottom: 1rem;
+  color: white;
+  font-size: 0.85rem;
+
+  button { background: transparent; border: none; color: white; font-size: 1.1rem; cursor: pointer; }
+}
+
+.dish-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+}
+
+.dish-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 6px;
+  padding: 0.3rem 0.5rem;
+
+  .dish-row-top {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .meal-link {
+    flex: 1;
+    font-size: 0.85rem;
+    word-break: break-word;
+    min-width: 0;
+  }
+
+  .dish-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+  }
+
+  .portions-label {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.75rem;
+  }
+
+  .dish-portions-input {
+    width: 36px;
+    padding: 2px 3px;
+    text-align: center;
+    border-radius: 4px;
+    border: 1px solid var(--color-4);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 0.8rem;
+  }
+
+  .dish-label-input {
+    width: 100%;
+    padding: 1px 0;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.7rem;
+    font-style: italic;
+
+    &::placeholder { color: rgba(255, 255, 255, 0.25); }
+    &:focus { outline: none; border-bottom-color: rgba(255, 255, 255, 0.5); }
+  }
+}
+
+.btn-add-dish {
+  display: inline-block;
+  margin-top: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  text-decoration: none;
+  cursor: pointer;
+  text-align: center;
+
+  &:hover {
+    color: white;
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
 @media print {
     @page {
         size: A4;
@@ -442,5 +542,62 @@ input:checked + .slider:before {
         color: black !important;
         border-top: 1px solid black;
         padding-top: 10pt;
+    }
+
+    .print-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8pt;
+        margin-bottom: 20pt;
+    }
+
+    .print-day-card {
+        border: 1px solid black;
+        padding: 8pt;
+        break-inside: avoid;
+
+        .print-day-header {
+            font-weight: bold;
+            font-size: 11pt;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 6pt;
+            padding-bottom: 3pt;
+        }
+
+        .print-slot {
+            margin-bottom: 5pt;
+            font-size: 9pt;
+
+            strong {
+                display: block;
+                font-size: 8pt;
+                text-transform: uppercase;
+                color: #555 !important;
+            }
+        }
+
+        .print-dish {
+            font-size: 9pt;
+            color: black !important;
+            padding-left: 4pt;
+        }
+
+        .print-portions {
+            font-size: 8pt;
+            color: #666 !important;
+        }
+
+        .print-label {
+            font-size: 8pt;
+            color: #444 !important;
+            font-style: italic;
+        }
+
+        .print-sub {
+            font-size: 8pt;
+            color: black !important;
+            font-style: italic;
+            padding-left: 4pt;
+        }
     }
 }

@@ -4,12 +4,15 @@ import { AuthService } from './auth.service';
 import { DialogService } from './dialog.service';
 import {
   DaySchedule,
+  Dish,
+  DishMealType,
   Meal,
   PantryGroup,
   PantryItem,
   ShoppingItem,
   ShoppingListGroup,
   ShoppingTag,
+  TextScheduleField,
 } from '../models/meal.model';
 
 @Injectable({
@@ -33,6 +36,9 @@ export class MealService {
   private readonly PANTRY_KEY = 'comidas_pantry';
   private readonly PANTRY_GROUPS_KEY = 'comidas_pantry_groups';
   private readonly MIGRATION_NUMERIC_QTY_KEY = 'comidas_migration_numeric_qty';
+  private readonly MIGRATION_DISH_FORMAT_KEY = 'comidas_migration_dish_format';
+  private scheduleMigrationOccurred = false;
+  readonly migrationOccurred = signal<boolean>(false);
 
   // State
   readonly meals = signal<Meal[]>(this.loadMeals());
@@ -110,6 +116,10 @@ export class MealService {
 
   constructor() {
     this.loadFamilySettings();
+
+    if (this.scheduleMigrationOccurred) {
+      this.migrationOccurred.set(true);
+    }
 
     // Sync with Firestore on login
     effect(() => {
@@ -282,7 +292,8 @@ export class MealService {
           this.meals.set(this.normalizeMealQuantities(data['meals']));
         }
         if (data['schedules']) {
-          this.schedules.set(data['schedules']);
+          const raw = data['schedules'] as Record<string, unknown[]>;
+          this.schedules.set(this.migrateSchedulesRecord(raw));
         }
         if (data['tags']) {
           this.tags.set(data['tags']);
@@ -399,7 +410,58 @@ export class MealService {
 
   private loadSchedules(): Record<string, DaySchedule[]> {
     const data = localStorage.getItem(this.SCHEDULES_KEY);
-    return data ? JSON.parse(data) : {};
+    if (!data) {
+      return {};
+    }
+    try {
+      const parsed = JSON.parse(data) as Record<string, unknown[]>;
+      return this.migrateSchedulesRecord(parsed);
+    } catch {
+      return {};
+    }
+  }
+
+  private migrateSchedulesRecord(raw: Record<string, unknown[]>): Record<string, DaySchedule[]> {
+    const result: Record<string, DaySchedule[]> = {};
+    for (const [key, week] of Object.entries(raw)) {
+      result[key] = (week as Record<string, unknown>[]).map((day) =>
+        this.migrateDaySchedule(day)
+      );
+    }
+    return result;
+  }
+
+  private migrateDaySchedule(day: Record<string, unknown>): DaySchedule {
+    const isOldFormat =
+      typeof day['almuerzo'] === 'string' ||
+      day['almuerzo'] === null ||
+      typeof day['desayuno'] === 'string' ||
+      day['desayuno'] === null ||
+      typeof day['cena'] === 'string' ||
+      day['cena'] === null;
+    if (isOldFormat) {
+      this.scheduleMigrationOccurred = true;
+    }
+    return {
+      dayName: day['dayName'] as string,
+      date: day['date'] as string | undefined,
+      desayuno: this.toDishArray(day['desayuno'], day['desayunoExcluded'] as boolean | undefined),
+      almuerzo: this.toDishArray(day['almuerzo'], day['almuerzoExcluded'] as boolean | undefined),
+      postreAlmuerzo: (day['postreAlmuerzo'] as string | null) ?? null,
+      colacion: (day['colacion'] as string | null) ?? null,
+      cena: this.toDishArray(day['cena'], day['cenaExcluded'] as boolean | undefined),
+      postreCena: (day['postreCena'] as string | null) ?? null,
+    };
+  }
+
+  private toDishArray(value: unknown, excluded?: boolean): Dish[] {
+    if (Array.isArray(value)) {
+      return value as Dish[];
+    }
+    if (typeof value === 'string') {
+      return [{ mealId: value, portions: 1, excluded: excluded ?? false }];
+    }
+    return [];
   }
 
   private loadTags(): ShoppingTag[] {
@@ -521,11 +583,11 @@ export class MealService {
     ];
     return days.map((day) => ({
       dayName: day,
-      desayuno: null,
-      almuerzo: null,
+      desayuno: [],
+      almuerzo: [],
       postreAlmuerzo: null,
       colacion: null,
-      cena: null,
+      cena: [],
       postreCena: null,
     }));
   }
@@ -570,9 +632,9 @@ export class MealService {
       for (const [key, week] of Object.entries(schedules)) {
         newSchedules[key] = week.map((day) => ({
           ...day,
-          almuerzo: day.almuerzo === id ? null : day.almuerzo,
-          desayuno: day.desayuno === id ? null : day.desayuno,
-          cena: day.cena === id ? null : day.cena,
+          almuerzo: day.almuerzo.filter((d) => d.mealId !== id),
+          desayuno: day.desayuno.filter((d) => d.mealId !== id),
+          cena: day.cena.filter((d) => d.mealId !== id),
         }));
       }
       return newSchedules;
@@ -592,7 +654,7 @@ export class MealService {
     }
   }
 
-  getMeal(id: string | null): Meal | undefined {
+  getMeal(id: string): Meal | undefined {
     if (!id) {
       return undefined;
     }
@@ -601,14 +663,127 @@ export class MealService {
 
   updateSchedule(
     dayName: string,
-    type: keyof DaySchedule,
-    value: string | null | boolean
+    type: TextScheduleField,
+    value: string | null
   ): void {
     const key = this.formatDateKey(this.currentWeekStart());
     const currentWeekSchedule = this.schedule();
     const updatedWeek = currentWeekSchedule.map((day) =>
       day.dayName === dayName ? { ...day, [type]: value } : day
     );
+    this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
+  }
+
+  setMeal(dayName: string, type: DishMealType, mealId: string): void {
+    const key = this.formatDateKey(this.currentWeekStart());
+    const currentWeekSchedule = this.schedule();
+    const updatedWeek = currentWeekSchedule.map((day) => {
+      if (day.dayName !== dayName) {
+        return day;
+      }
+      return { ...day, [type]: [{ mealId, portions: 1, excluded: false }] };
+    });
+    this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
+  }
+
+  clearMeal(dayName: string, type: DishMealType): void {
+    const key = this.formatDateKey(this.currentWeekStart());
+    const currentWeekSchedule = this.schedule();
+    const updatedWeek = currentWeekSchedule.map((day) =>
+      day.dayName === dayName ? { ...day, [type]: [] } : day
+    );
+    this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
+  }
+
+  addDish(dayName: string, type: DishMealType, mealId: string, portions: number): void {
+    const key = this.formatDateKey(this.currentWeekStart());
+    const currentWeekSchedule = this.schedule();
+    const updatedWeek = currentWeekSchedule.map((day) => {
+      if (day.dayName !== dayName) {
+        return day;
+      }
+      const current = day[type] as Dish[];
+      return { ...day, [type]: [...current, { mealId, portions, excluded: false }] };
+    });
+    this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
+  }
+
+  removeDish(dayName: string, type: DishMealType, index: number): void {
+    const key = this.formatDateKey(this.currentWeekStart());
+    const currentWeekSchedule = this.schedule();
+    const updatedWeek = currentWeekSchedule.map((day) => {
+      if (day.dayName !== dayName) {
+        return day;
+      }
+      const current = day[type] as Dish[];
+      return { ...day, [type]: current.filter((_, i) => i !== index) };
+    });
+    this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
+  }
+
+  updateDishPortions(dayName: string, type: DishMealType, index: number, portions: number): void {
+    const key = this.formatDateKey(this.currentWeekStart());
+    const currentWeekSchedule = this.schedule();
+    const updatedWeek = currentWeekSchedule.map((day) => {
+      if (day.dayName !== dayName) {
+        return day;
+      }
+      const current = day[type] as Dish[];
+      return {
+        ...day,
+        [type]: current.map((d, i) => (i === index ? { ...d, portions } : d)),
+      };
+    });
+    this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
+  }
+
+  updateDishLabel(dayName: string, type: DishMealType, index: number, label: string): void {
+    const key = this.formatDateKey(this.currentWeekStart());
+    const currentWeekSchedule = this.schedule();
+    const updatedWeek = currentWeekSchedule.map((day) => {
+      if (day.dayName !== dayName) {
+        return day;
+      }
+      const current = day[type] as Dish[];
+      return {
+        ...day,
+        [type]: current.map((d, i) =>
+          i === index ? { ...d, label: label.trim() || undefined } : d
+        ),
+      };
+    });
+    this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
+  }
+
+  toggleDishExclusion(dayName: string, type: DishMealType, index: number): void {
+    const key = this.formatDateKey(this.currentWeekStart());
+    const currentWeekSchedule = this.schedule();
+    const updatedWeek = currentWeekSchedule.map((day) => {
+      if (day.dayName !== dayName) {
+        return day;
+      }
+      const current = day[type] as Dish[];
+      return {
+        ...day,
+        [type]: current.map((d, i) => (i === index ? { ...d, excluded: !d.excluded } : d)),
+      };
+    });
+    this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
+  }
+
+  replaceDishMeal(dayName: string, type: DishMealType, index: number, mealId: string): void {
+    const key = this.formatDateKey(this.currentWeekStart());
+    const currentWeekSchedule = this.schedule();
+    const updatedWeek = currentWeekSchedule.map((day) => {
+      if (day.dayName !== dayName) {
+        return day;
+      }
+      const current = day[type] as Dish[];
+      return {
+        ...day,
+        [type]: current.map((d, i) => (i === index ? { ...d, mealId } : d)),
+      };
+    });
     this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
   }
 
@@ -725,10 +900,10 @@ export class MealService {
   }
 
   private multiplyQuantity(quantity: string, factor: number): string {
-    if (factor <= 1) {
-      return quantity;
-    }
     const qStr = String(quantity ?? '').trim();
+    if (factor <= 1) {
+      return qStr;
+    }
     const match = qStr.match(/^(\d+(\.\d+)?)\s*(.*)$/);
     if (match) {
       const value = parseFloat(match[1]);
@@ -749,7 +924,6 @@ export class MealService {
     const tagMap = this.ingredientTags();
     const overrides = this.quantityOverrides();
     const weekChecked = this.checkedItems()[weekKey] || [];
-    const multiplier = this.isFamilyMode() ? this.familyPortions() : 1;
     const pantryItems = this.pantry();
 
     currentSchedule.forEach((day, index) => {
@@ -757,18 +931,15 @@ export class MealService {
       dayDate.setDate(weekStart.getDate() + index);
 
       if (dayDate >= today) {
-        const processMeal = (
-          mealId: string | null,
-          excluded?: boolean
-        ): void => {
-          if (!mealId || excluded) {
+        const processDish = (dish: Dish): void => {
+          if (dish.excluded) {
             return;
           }
-          const meal = allMeals.find((m) => m.id === mealId);
+          const meal = allMeals.find((m) => m.id === dish.mealId);
           if (meal && meal.includeInShoppingList !== false) {
             meal.ingredients.forEach((ing) => {
               const key = ing.name.toLowerCase().trim();
-              const quantity = this.multiplyQuantity(ing.quantity, multiplier);
+              const quantity = this.multiplyQuantity(ing.quantity, dish.portions);
               items.push({
                 ...ing,
                 quantity,
@@ -779,9 +950,10 @@ export class MealService {
             });
           }
         };
-        processMeal(day.almuerzo, day.almuerzoExcluded);
-        processMeal(day.desayuno, day.desayunoExcluded);
-        processMeal(day.cena, day.cenaExcluded);
+
+        day.almuerzo.forEach(processDish);
+        day.desayuno.forEach(processDish);
+        day.cena.forEach(processDish);
       }
     });
 
@@ -1048,7 +1220,9 @@ export class MealService {
       const total = parsedExisting.value + parsedAdded.value;
       return parsedExisting.unit ? `${total} ${parsedExisting.unit}` : `${total}`;
     }
-    return `${existing} + ${added}`;
+    const a = String(existing ?? '');
+    const b = String(added ?? '');
+    return `${a} + ${b}`;
   }
 
   subtractPantryFromNeeded(needed: string, inPantry: string): { remaining: string; covered: boolean } {
@@ -1101,7 +1275,8 @@ export class MealService {
         this.meals.set(this.normalizeMealQuantities(data.meals));
       }
       if (data.schedules) {
-        this.schedules.set(data.schedules);
+        const raw = data.schedules as Record<string, unknown[]>;
+        this.schedules.set(this.migrateSchedulesRecord(raw));
       }
       if (data.tags) {
         this.tags.set(data.tags);

@@ -15,17 +15,25 @@ export type Meal = {
 
 export type MealType = 'almuerzo' | 'desayuno' | 'cena' | 'colacion' | 'postreAlmuerzo' | 'postreCena';
 
+export type DishMealType = 'almuerzo' | 'desayuno' | 'cena';
+
+export type TextScheduleField = 'postreAlmuerzo' | 'colacion' | 'postreCena';
+
+export type Dish = {
+  mealId: string;
+  portions: number;
+  excluded?: boolean;
+  label?: string;
+}
+
 export type DaySchedule = {
-  dayName: string; 
-  date?: string; 
-  desayuno: string | null;
-  desayunoExcluded?: boolean;
-  almuerzo: string | null; 
-  almuerzoExcluded?: boolean;
+  dayName: string;
+  date?: string;
+  desayuno: Dish[];
+  almuerzo: Dish[];
   postreAlmuerzo: string | null;
   colacion: string | null;
-  cena: string | null;
-  cenaExcluded?: boolean;
+  cena: Dish[];
   postreCena: string | null;
 }
 

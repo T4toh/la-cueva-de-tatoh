@@ -1,4 +1,11 @@
 <div class="dashboard-container">
+  @if (mealService.migrationOccurred()) {
+    <div class="migration-banner">
+      <span>⚠️ Tus datos fueron actualizados al nuevo formato. Si algo falla, exportá un backup desde Configuración.</span>
+      <button type="button" (click)="dismissMigrationBanner()">×</button>
+    </div>
+  }
+
   <div class="header-controls">
     <div class="week-controls">
       <button class="btn-nav" type="button" (click)="mealService.previousWeek()">&lt;</button>
@@ -20,29 +27,22 @@
 
       <div class="meals-config">
         <label class="checkbox-label">
-            <input type="checkbox" [checked]="mealService.visibleMeals().breakfast" (change)="mealService.toggleMealVisibility('breakfast')">
-            Desayuno
+          <input type="checkbox" [checked]="mealService.visibleMeals().breakfast" (change)="mealService.toggleMealVisibility('breakfast')">
+          Desayuno
         </label>
         <label class="checkbox-label">
-            <input type="checkbox" [checked]="mealService.visibleMeals().lunch" (change)="mealService.toggleMealVisibility('lunch')">
-            Almuerzo
+          <input type="checkbox" [checked]="mealService.visibleMeals().lunch" (change)="mealService.toggleMealVisibility('lunch')">
+          Almuerzo
         </label>
         <label class="checkbox-label">
-            <input type="checkbox" [checked]="mealService.visibleMeals().snack" (change)="mealService.toggleMealVisibility('snack')">
-            Merienda
+          <input type="checkbox" [checked]="mealService.visibleMeals().snack" (change)="mealService.toggleMealVisibility('snack')">
+          Merienda
         </label>
         <label class="checkbox-label">
-            <input type="checkbox" [checked]="mealService.visibleMeals().dinner" (change)="mealService.toggleMealVisibility('dinner')">
-            Cena
+          <input type="checkbox" [checked]="mealService.visibleMeals().dinner" (change)="mealService.toggleMealVisibility('dinner')">
+          Cena
         </label>
       </div>
-
-      @if (mealService.isFamilyMode()) {
-        <div class="portions-input">
-          <span>x</span>
-          <input min="1" type="number" [value]="mealService.familyPortions()" (change)="updatePortions($event)">
-        </div>
-      }
     </div>
   </div>
 
@@ -62,52 +62,99 @@
         [colorTexto]="'white'"
         [sombreado]="true"
         [texto]="day.dayName + (isToday(day.dayName) ? ' (Hoy)' : '')"
-        >
+      >
         <div class="meal-slots">
+
           <!-- Desayuno -->
           @if (mealService.visibleMeals().breakfast) {
             <div class="slot">
-              <div class="slot-top">
+              @if (mealService.isFamilyMode()) {
                 <span class="label">Desayuno:</span>
-                <div class="slot-actions">
-                  @if (day.desayuno) {
-                    <button class="btn-clear-slot" title="Quitar comida" type="button" (click)="clearMeal(day.dayName, 'desayuno')">×</button>
+                <div class="dish-list">
+                  @for (dish of getDishes(day, 'desayuno'); track $index) {
+                    <div class="dish-row">
+                      <div class="dish-row-top">
+                        <a class="meal-link" [routerLink]="['/schedule', day.dayName, 'desayuno']" [queryParams]="{action: 'replace', index: $index}">
+                          {{ getMealName(dish.mealId) }}
+                        </a>
+                        <div class="dish-actions">
+                          <span class="portions-label">x</span>
+                          <input class="dish-portions-input" min="1" type="number" [value]="dish.portions" (change)="updateDishPortions(day.dayName, 'desayuno', $index, $event)">
+                          <input class="exclude-check" title="Sumar a compras" type="checkbox" [checked]="!dish.excluded" (change)="toggleDishExclusion(day.dayName, 'desayuno', $index)">
+                          <button class="btn-clear-slot" title="Quitar plato" type="button" (click)="removeDish(day.dayName, 'desayuno', $index)">×</button>
+                        </div>
+                      </div>
+                      <input class="dish-label-input" placeholder="Para quién..." type="text" [value]="dish.label || ''" (change)="updateDishLabel(day.dayName, 'desayuno', $index, $event)">
+                    </div>
                   }
-                  @if (day.desayuno && !isPlaceholder(day.desayuno)) {
-                    <input class="exclude-check" title="Sumar a compras" type="checkbox"
-                      [checked]="!day.desayunoExcluded"
-                      (change)="toggleExclusion(day.dayName, 'desayuno', $event)">
-                  }
+                  <a class="btn-add-dish" [routerLink]="['/schedule', day.dayName, 'desayuno']" [queryParams]="{action: 'add'}">+ Agregar plato</a>
                 </div>
-              </div>
-              <a class="meal-link" [class.is-placeholder]="isPlaceholder(day.desayuno)" [routerLink]="['/schedule', day.dayName, 'desayuno']">
-                {{ getMealName(day.desayuno) }}
-              </a>
+              } @else {
+                <div class="slot-top">
+                  <span class="label">Desayuno:</span>
+                  <div class="slot-actions">
+                    @if (getDishes(day, 'desayuno').length > 0) {
+                      <button class="btn-clear-slot" title="Quitar comida" type="button" (click)="clearMeal(day.dayName, 'desayuno')">×</button>
+                    }
+                    @if (getDishes(day, 'desayuno').length > 0 && !isFirstDishPlaceholder(day, 'desayuno')) {
+                      <input class="exclude-check" title="Sumar a compras" type="checkbox"
+                        [checked]="!getDishes(day, 'desayuno')[0].excluded"
+                        (change)="toggleDishExclusion(day.dayName, 'desayuno', 0)">
+                    }
+                  </div>
+                </div>
+                <a class="meal-link" [class.is-placeholder]="isFirstDishPlaceholder(day, 'desayuno')" [routerLink]="['/schedule', day.dayName, 'desayuno']">
+                  {{ getFirstMealName(day, 'desayuno') }}
+                </a>
+              }
             </div>
           }
 
           <!-- Almuerzo -->
           @if (mealService.visibleMeals().lunch) {
             <div class="slot">
-              <div class="slot-top">
+              @if (mealService.isFamilyMode()) {
                 <span class="label">Almuerzo:</span>
-                <div class="slot-actions">
-                  @if (day.almuerzo) {
-                    <button class="btn-clear-slot" title="Quitar comida" type="button" (click)="clearMeal(day.dayName, 'almuerzo')">×</button>
+                <div class="dish-list">
+                  @for (dish of getDishes(day, 'almuerzo'); track $index) {
+                    <div class="dish-row">
+                      <div class="dish-row-top">
+                        <a class="meal-link" [routerLink]="['/schedule', day.dayName, 'almuerzo']" [queryParams]="{action: 'replace', index: $index}">
+                          {{ getMealName(dish.mealId) }}
+                        </a>
+                        <div class="dish-actions">
+                          <span class="portions-label">x</span>
+                          <input class="dish-portions-input" min="1" type="number" [value]="dish.portions" (change)="updateDishPortions(day.dayName, 'almuerzo', $index, $event)">
+                          <input class="exclude-check" title="Sumar a compras" type="checkbox" [checked]="!dish.excluded" (change)="toggleDishExclusion(day.dayName, 'almuerzo', $index)">
+                          <button class="btn-clear-slot" title="Quitar plato" type="button" (click)="removeDish(day.dayName, 'almuerzo', $index)">×</button>
+                        </div>
+                      </div>
+                      <input class="dish-label-input" placeholder="Para quién..." type="text" [value]="dish.label || ''" (change)="updateDishLabel(day.dayName, 'almuerzo', $index, $event)">
+                    </div>
                   }
-                  @if (day.almuerzo && !isPlaceholder(day.almuerzo)) {
-                    <input class="exclude-check" title="Sumar a compras" type="checkbox"
-                      [checked]="!day.almuerzoExcluded"
-                      (change)="toggleExclusion(day.dayName, 'almuerzo', $event)">
-                  }
+                  <a class="btn-add-dish" [routerLink]="['/schedule', day.dayName, 'almuerzo']" [queryParams]="{action: 'add'}">+ Agregar plato</a>
                 </div>
-              </div>
-              <a class="meal-link" [class.is-placeholder]="isPlaceholder(day.almuerzo)" [routerLink]="['/schedule', day.dayName, 'almuerzo']">
-                {{ getMealName(day.almuerzo) }}
-              </a>
+              } @else {
+                <div class="slot-top">
+                  <span class="label">Almuerzo:</span>
+                  <div class="slot-actions">
+                    @if (getDishes(day, 'almuerzo').length > 0) {
+                      <button class="btn-clear-slot" title="Quitar comida" type="button" (click)="clearMeal(day.dayName, 'almuerzo')">×</button>
+                    }
+                    @if (getDishes(day, 'almuerzo').length > 0 && !isFirstDishPlaceholder(day, 'almuerzo')) {
+                      <input class="exclude-check" title="Sumar a compras" type="checkbox"
+                        [checked]="!getDishes(day, 'almuerzo')[0].excluded"
+                        (change)="toggleDishExclusion(day.dayName, 'almuerzo', 0)">
+                    }
+                  </div>
+                </div>
+                <a class="meal-link" [class.is-placeholder]="isFirstDishPlaceholder(day, 'almuerzo')" [routerLink]="['/schedule', day.dayName, 'almuerzo']">
+                  {{ getFirstMealName(day, 'almuerzo') }}
+                </a>
+              }
               <div class="embedded-postre">
                 <input class="postre-input" placeholder="Postre..." type="text"
-                [value]="day.postreAlmuerzo || ''" (change)="updateField(day.dayName, 'postreAlmuerzo', $event)">
+                  [value]="day.postreAlmuerzo || ''" (change)="updateField(day.dayName, 'postreAlmuerzo', $event)">
               </div>
             </div>
           }
@@ -124,25 +171,48 @@
           <!-- Cena -->
           @if (mealService.visibleMeals().dinner) {
             <div class="slot">
-              <div class="slot-top">
+              @if (mealService.isFamilyMode()) {
                 <span class="label">Cena:</span>
-                <div class="slot-actions">
-                  @if (day.cena) {
-                    <button class="btn-clear-slot" title="Quitar comida" type="button" (click)="clearMeal(day.dayName, 'cena')">×</button>
+                <div class="dish-list">
+                  @for (dish of getDishes(day, 'cena'); track $index) {
+                    <div class="dish-row">
+                      <div class="dish-row-top">
+                        <a class="meal-link" [routerLink]="['/schedule', day.dayName, 'cena']" [queryParams]="{action: 'replace', index: $index}">
+                          {{ getMealName(dish.mealId) }}
+                        </a>
+                        <div class="dish-actions">
+                          <span class="portions-label">x</span>
+                          <input class="dish-portions-input" min="1" type="number" [value]="dish.portions" (change)="updateDishPortions(day.dayName, 'cena', $index, $event)">
+                          <input class="exclude-check" title="Sumar a compras" type="checkbox" [checked]="!dish.excluded" (change)="toggleDishExclusion(day.dayName, 'cena', $index)">
+                          <button class="btn-clear-slot" title="Quitar plato" type="button" (click)="removeDish(day.dayName, 'cena', $index)">×</button>
+                        </div>
+                      </div>
+                      <input class="dish-label-input" placeholder="Para quién..." type="text" [value]="dish.label || ''" (change)="updateDishLabel(day.dayName, 'cena', $index, $event)">
+                    </div>
                   }
-                  @if (day.cena && !isPlaceholder(day.cena)) {
-                    <input class="exclude-check" title="Sumar a compras" type="checkbox"
-                      [checked]="!day.cenaExcluded"
-                      (change)="toggleExclusion(day.dayName, 'cena', $event)">
-                  }
+                  <a class="btn-add-dish" [routerLink]="['/schedule', day.dayName, 'cena']" [queryParams]="{action: 'add'}">+ Agregar plato</a>
                 </div>
-              </div>
-              <a class="meal-link" [class.is-placeholder]="isPlaceholder(day.cena)" [routerLink]="['/schedule', day.dayName, 'cena']">
-                {{ getMealName(day.cena) }}
-              </a>
+              } @else {
+                <div class="slot-top">
+                  <span class="label">Cena:</span>
+                  <div class="slot-actions">
+                    @if (getDishes(day, 'cena').length > 0) {
+                      <button class="btn-clear-slot" title="Quitar comida" type="button" (click)="clearMeal(day.dayName, 'cena')">×</button>
+                    }
+                    @if (getDishes(day, 'cena').length > 0 && !isFirstDishPlaceholder(day, 'cena')) {
+                      <input class="exclude-check" title="Sumar a compras" type="checkbox"
+                        [checked]="!getDishes(day, 'cena')[0].excluded"
+                        (change)="toggleDishExclusion(day.dayName, 'cena', 0)">
+                    }
+                  </div>
+                </div>
+                <a class="meal-link" [class.is-placeholder]="isFirstDishPlaceholder(day, 'cena')" [routerLink]="['/schedule', day.dayName, 'cena']">
+                  {{ getFirstMealName(day, 'cena') }}
+                </a>
+              }
               <div class="embedded-postre">
                 <input class="postre-input" placeholder="Postre..." type="text"
-                [value]="day.postreCena || ''" (change)="updateField(day.dayName, 'postreCena', $event)">
+                  [value]="day.postreCena || ''" (change)="updateField(day.dayName, 'postreCena', $event)">
               </div>
             </div>
           }
@@ -160,54 +230,99 @@
     <h1>Menú Semanal</h1>
     <h2 class="print-date-range">{{ mealService.weekRangeDisplay() }}</h2>
 
-    <table class="print-table">
-      <thead>
-        <tr>
-          <th>Día</th>
-          @if (mealService.visibleMeals().breakfast) {
-            <th>Desayuno</th>
-          }
-          @if (mealService.visibleMeals().lunch) {
-            <th>Almuerzo</th>
-          }
-          @if (mealService.visibleMeals().snack) {
-            <th>Merienda</th>
-          }
-          @if (mealService.visibleMeals().dinner) {
-            <th>Cena</th>
-          }
-        </tr>
-      </thead>
-      <tbody>
+    @if (mealService.isFamilyMode()) {
+      <div class="print-cards-grid">
         @for (day of mealService.schedule(); track day.dayName) {
-          <tr>
-            <td class="day-name"><strong>{{ day.dayName }}</strong></td>
-            @if (mealService.visibleMeals().breakfast) {
-              <td>{{ getMealName(day.desayuno) }}</td>
+          <div class="print-day-card">
+            <div class="print-day-header">{{ day.dayName }}</div>
+            @if (mealService.visibleMeals().breakfast && getDishes(day, 'desayuno').length > 0) {
+              <div class="print-slot">
+                <strong>Desayuno:</strong>
+                @for (dish of getDishes(day, 'desayuno'); track $index) {
+                  <div class="print-dish">{{ getMealName(dish.mealId) }}@if (dish.portions > 1) {<span class="print-portions"> (x{{ dish.portions }})</span>}@if (dish.label) {<span class="print-label"> – {{ dish.label }}</span>}</div>
+                }
+              </div>
             }
-            @if (mealService.visibleMeals().lunch) {
-              <td>
-                {{ getMealName(day.almuerzo) }}
+            @if (mealService.visibleMeals().lunch && (getDishes(day, 'almuerzo').length > 0 || day.postreAlmuerzo)) {
+              <div class="print-slot">
+                <strong>Almuerzo:</strong>
+                @for (dish of getDishes(day, 'almuerzo'); track $index) {
+                  <div class="print-dish">{{ getMealName(dish.mealId) }}@if (dish.portions > 1) {<span class="print-portions"> (x{{ dish.portions }})</span>}@if (dish.label) {<span class="print-label"> – {{ dish.label }}</span>}</div>
+                }
                 @if (day.postreAlmuerzo) {
                   <div class="print-sub">Postre: {{ day.postreAlmuerzo }}</div>
                 }
-              </td>
+              </div>
             }
-            @if (mealService.visibleMeals().snack) {
-              <td>{{ day.colacion || '-' }}</td>
+            @if (mealService.visibleMeals().snack && day.colacion) {
+              <div class="print-slot">
+                <strong>Merienda:</strong> {{ day.colacion }}
+              </div>
             }
-            @if (mealService.visibleMeals().dinner) {
-              <td>
-                {{ getMealName(day.cena) }}
+            @if (mealService.visibleMeals().dinner && (getDishes(day, 'cena').length > 0 || day.postreCena)) {
+              <div class="print-slot">
+                <strong>Cena:</strong>
+                @for (dish of getDishes(day, 'cena'); track $index) {
+                  <div class="print-dish">{{ getMealName(dish.mealId) }}@if (dish.portions > 1) {<span class="print-portions"> (x{{ dish.portions }})</span>}@if (dish.label) {<span class="print-label"> – {{ dish.label }}</span>}</div>
+                }
                 @if (day.postreCena) {
                   <div class="print-sub">Postre: {{ day.postreCena }}</div>
                 }
-              </td>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    } @else {
+      <table class="print-table">
+        <thead>
+          <tr>
+            <th>Día</th>
+            @if (mealService.visibleMeals().breakfast) {
+              <th>Desayuno</th>
+            }
+            @if (mealService.visibleMeals().lunch) {
+              <th>Almuerzo</th>
+            }
+            @if (mealService.visibleMeals().snack) {
+              <th>Merienda</th>
+            }
+            @if (mealService.visibleMeals().dinner) {
+              <th>Cena</th>
             }
           </tr>
-        }
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          @for (day of mealService.schedule(); track day.dayName) {
+            <tr>
+              <td class="day-name"><strong>{{ day.dayName }}</strong></td>
+              @if (mealService.visibleMeals().breakfast) {
+                <td>{{ getFirstMealName(day, 'desayuno') }}</td>
+              }
+              @if (mealService.visibleMeals().lunch) {
+                <td>
+                  {{ getFirstMealName(day, 'almuerzo') }}
+                  @if (day.postreAlmuerzo) {
+                    <div class="print-sub">Postre: {{ day.postreAlmuerzo }}</div>
+                  }
+                </td>
+              }
+              @if (mealService.visibleMeals().snack) {
+                <td>{{ day.colacion || '-' }}</td>
+              }
+              @if (mealService.visibleMeals().dinner) {
+                <td>
+                  {{ getFirstMealName(day, 'cena') }}
+                  @if (day.postreCena) {
+                    <div class="print-sub">Postre: {{ day.postreCena }}</div>
+                  }
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
 
     <div class="print-footer">
       <p>Generado con La Cueva de Tatoh - Comidas</p>
