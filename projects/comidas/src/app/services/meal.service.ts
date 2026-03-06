@@ -728,14 +728,15 @@ export class MealService {
     if (factor <= 1) {
       return quantity;
     }
-    const match = quantity.trim().match(/^(\d+(\.\d+)?)\s*(.*)$/);
+    const qStr = String(quantity ?? '').trim();
+    const match = qStr.match(/^(\d+(\.\d+)?)\s*(.*)$/);
     if (match) {
       const value = parseFloat(match[1]);
-      const unit = match[3];
+      const unit = match[3].trim();
       const newValue = value * factor;
       return unit ? `${newValue} ${unit}` : `${newValue}`;
     }
-    return `${quantity} (x${factor})`;
+    return `${qStr} (x${factor})`;
   }
 
   readonly shoppingListGrouped = computed(() => {
@@ -1000,7 +1001,8 @@ export class MealService {
   }
 
   private parseNumericQuantity(quantity: string): { value: number; unit: string } | null {
-    const match = quantity.trim().match(/^(\d+(\.\d+)?)\s*(.*)$/);
+    const qStr = String(quantity ?? '').trim();
+    const match = qStr.match(/^(\d+(\.\d+)?)\s*(.*)$/);
     if (match) {
       return { value: parseFloat(match[1]), unit: match[3].trim() };
     }
@@ -1008,8 +1010,9 @@ export class MealService {
   }
 
   private normalizeQuantityToNumeric(q: string): string {
-    const match = q.trim().match(/^(\d+(\.\d+)?)/);
-    return match ? match[1] : q;
+    const qStr = String(q ?? '').trim();
+    const match = qStr.match(/^(\d+(\.\d+)?)/);
+    return match ? match[1] : qStr;
   }
 
   private normalizeMealQuantities(meals: Meal[]): Meal[] {

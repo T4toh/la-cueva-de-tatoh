@@ -49,7 +49,9 @@ export class PantryComponent {
         unit: string | null;
         groupId: string;
       };
-      const combined = unit?.trim() ? `${quantity} ${unit.trim()}` : quantity;
+      const qStr = String(quantity ?? '').trim();
+      const uStr = String(unit ?? '').trim();
+      const combined = uStr ? `${qStr} ${uStr}` : qStr;
       this.mealService.addToPantry(name, combined, groupId || undefined);
       this.addForm.reset({ groupId: '', unit: '' });
       this.showAddForm = false;
@@ -74,10 +76,10 @@ export class PantryComponent {
   }
 
   saveEdit(): void {
-    if (this.editingName !== null && this.editingQuantity.trim()) {
-      const combined = this.editingUnit.trim()
-        ? `${this.editingQuantity.trim()} ${this.editingUnit.trim()}`
-        : this.editingQuantity.trim();
+    const qStr = String(this.editingQuantity ?? '').trim();
+    const uStr = String(this.editingUnit ?? '').trim();
+    if (this.editingName !== null && qStr) {
+      const combined = uStr ? `${qStr} ${uStr}` : qStr;
       this.mealService.updatePantryQuantity(this.editingName, combined);
     }
     this.editingName = null;
@@ -100,10 +102,10 @@ export class PantryComponent {
   }
 
   saveSubtract(): void {
-    if (this.subtractingName !== null && this.subtractingAmount.trim()) {
-      const combined = this.subtractingUnit.trim()
-        ? `${this.subtractingAmount.trim()} ${this.subtractingUnit.trim()}`
-        : this.subtractingAmount.trim();
+    const aStr = String(this.subtractingAmount ?? '').trim();
+    const uStr = String(this.subtractingUnit ?? '').trim();
+    if (this.subtractingName !== null && aStr) {
+      const combined = uStr ? `${aStr} ${uStr}` : aStr;
       this.mealService.subtractFromPantry(this.subtractingName, combined);
     }
     this.subtractingName = null;
@@ -118,11 +120,12 @@ export class PantryComponent {
   }
 
   private splitQuantity(quantity: string): { value: string; unit: string } {
-    const match = quantity.trim().match(/^(\d+(\.\d+)?)\s*(.*)$/);
+    const qStr = String(quantity ?? '').trim();
+    const match = qStr.match(/^(\d+(\.\d+)?)\s*(.*)$/);
     if (match) {
       return { value: match[1], unit: match[3].trim() };
     }
-    return { value: quantity, unit: '' };
+    return { value: qStr, unit: '' };
   }
 
   removeItem(name: string): void {

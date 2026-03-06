@@ -147,11 +147,12 @@ export class MealEditorComponent implements OnInit {
   }
 
   private splitQuantity(quantity: string): { value: string; unit: string } {
-    const match = quantity.trim().match(/^(\d+(\.\d+)?)\s*(.*)$/);
+    const qStr = String(quantity ?? '').trim();
+    const match = qStr.match(/^(\d+(\.\d+)?)\s*(.*)$/);
     if (match) {
       return { value: match[1], unit: match[3].trim() };
     }
-    return { value: quantity, unit: '' };
+    return { value: qStr, unit: '' };
   }
 
   addIngredient(name = '', quantity = '', unit = ''): void {
@@ -192,7 +193,12 @@ export class MealEditorComponent implements OnInit {
         .filter((ing) => ing.name && ing.name.trim() !== '')
         .map((ing) => ({
           name: ing.name.trim(),
-          quantity: [ing.quantity?.trim(), ing.unit?.trim()].filter(Boolean).join(' '),
+          quantity: [
+            String(ing.quantity ?? '').trim(),
+            String(ing.unit ?? '').trim(),
+          ]
+            .filter(Boolean)
+            .join(' '),
         }));
 
       const mealData: Omit<Meal, 'id'> = {
