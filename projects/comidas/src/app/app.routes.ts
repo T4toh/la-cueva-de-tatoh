@@ -16,5 +16,5 @@ export const routes: Routes = [
   { path: 'despensa', component: PantryComponent },
   { path: 'schedule/:day/:type', component: MealSelectorComponent },
   { path: 'settings', component: SettingsComponent },
-  { path: '**', redirectTo: '' }
+  { path: '**', redirectTo: '' },
 ];

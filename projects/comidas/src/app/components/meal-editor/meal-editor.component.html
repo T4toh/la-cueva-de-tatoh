@@ -4,30 +4,59 @@
   <form [formGroup]="form" (ngSubmit)="save()">
     <div class="form-group">
       <label for="name">Nombre</label>
-      <input formControlName="name" id="name" placeholder="Ej: Fideos con tuco" type="text">
+      <input
+        formControlName="name"
+        id="name"
+        placeholder="Ej: Fideos con tuco"
+        type="text"
+      />
     </div>
 
     <div class="form-group">
       <label for="description">Descripción (Opcional)</label>
-      <textarea formControlName="description" id="description" rows="3"></textarea>
+      <textarea
+        formControlName="description"
+        id="description"
+        rows="3"
+      ></textarea>
     </div>
 
     <div class="form-group checkbox-group">
-      <input formControlName="includeInShoppingList" id="includeInShoppingList" type="checkbox">
-      <label for="includeInShoppingList">Sumar ingredientes a la lista de compras</label>
+      <input
+        formControlName="includeInShoppingList"
+        id="includeInShoppingList"
+        type="checkbox"
+      />
+      <label for="includeInShoppingList">
+        Sumar ingredientes a la lista de compras
+      </label>
     </div>
 
     <div class="form-group">
       <label for="tag-input">Etiquetas</label>
       <div class="tags-input-container">
-        <input id="tag-input" placeholder="Ej: Vegetariano, Rápido" type="text" [formControl]="newTagControl" (keydown.enter)="addTag($event)">
-        <button class="btn-secondary" type="button" (click)="addTag()">+</button>
+        <input
+          id="tag-input"
+          placeholder="Ej: Vegetariano, Rápido"
+          type="text"
+          [formControl]="newTagControl"
+          (keydown.enter)="addTag($event)"
+        />
+        <button class="btn-secondary" type="button" (click)="addTag()">
+          +
+        </button>
       </div>
       <div class="tags-list">
         @for (tag of tags.controls; track $index) {
           <div class="tag-item">
             <lib-tag [colorFondo]="'var(--color-3)'" [texto]="tag.value" />
-            <button class="btn-remove-tag" type="button" (click)="removeTag($index)">×</button>
+            <button
+              class="btn-remove-tag"
+              type="button"
+              (click)="removeTag($index)"
+            >
+              ×
+            </button>
           </div>
         }
       </div>
@@ -36,7 +65,9 @@
     <div class="ingredients-section">
       <div class="header">
         <h2>Ingredientes</h2>
-        <button class="btn-secondary" type="button" (click)="addIngredient()">+ Agregar</button>
+        <button class="btn-secondary" type="button" (click)="addIngredient()">
+          + Agregar
+        </button>
       </div>
 
       <div formArrayName="ingredients">
@@ -50,23 +81,39 @@
                 (blur)="onIngredientBlur()"
                 (focus)="onIngredientFocus($index, $event)"
                 (input)="onIngredientInput($event)"
-                (keydown)="onIngredientKeydown($event, $index)">
+                (keydown)="onIngredientKeydown($event, $index)"
+              />
               @if (showSuggestionsFor($index)) {
                 <div class="suggestions-dropdown">
                   @for (suggestion of filteredSuggestions(); track $index) {
                     <div
                       class="suggestion-item"
-                      [class.highlighted]="highlightedSuggestionIndex() === $index"
-                      (mousedown)="selectSuggestion(suggestion, $index)">
+                      [class.highlighted]="
+                        highlightedSuggestionIndex() === $index
+                      "
+                      (mousedown)="selectSuggestion(suggestion, $index)"
+                    >
                       {{ suggestion }}
                     </div>
                   }
                 </div>
               }
             </div>
-            <input formControlName="quantity" min="0" placeholder="Cant." step="any" type="number">
-            <input formControlName="unit" placeholder="Unidad" type="text">
-            <button class="btn-remove" type="button" (click)="removeIngredient($index)">X</button>
+            <input
+              formControlName="quantity"
+              min="0"
+              placeholder="Cant."
+              step="any"
+              type="number"
+            />
+            <input formControlName="unit" placeholder="Unidad" type="text" />
+            <button
+              class="btn-remove"
+              type="button"
+              (click)="removeIngredient($index)"
+            >
+              X
+            </button>
           </div>
         }
       </div>
@@ -74,7 +121,9 @@
 
     <div class="actions">
       <a class="btn-cancel" routerLink="/meals">Cancelar</a>
-      <button class="btn-primary" type="submit" [disabled]="form.invalid">Guardar</button>
+      <button class="btn-primary" type="submit" [disabled]="form.invalid">
+        Guardar
+      </button>
     </div>
   </form>
 </div>

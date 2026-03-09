@@ -21,8 +21,13 @@ export class GeneradorQr {
   qrColor = '#000000';
   qrSize = 300;
   imageMargin = 20;
-  dotType: 'square' | 'dots' | 'rounded' | 'classy' | 'classy-rounded' | 'extra-rounded' =
-    'rounded';
+  dotType:
+    | 'square'
+    | 'dots'
+    | 'rounded'
+    | 'classy'
+    | 'classy-rounded'
+    | 'extra-rounded' = 'rounded';
   cornerSquareType: 'square' | 'dot' | 'extra-rounded' = 'square';
   cornerSquareColor = '#000000';
   cornerDotType: 'square' | 'dot' = 'dot';

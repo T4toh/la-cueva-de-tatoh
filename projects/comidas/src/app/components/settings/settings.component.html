@@ -12,7 +12,10 @@
       @if (authService.user$ | async; as user) {
         <div class="settings-content">
           <div class="actions">
-            <p>Conectado como: <strong>{{ user.email }}</strong></p>
+            <p>
+              Conectado como:
+              <strong>{{ user.email }}</strong>
+            </p>
 
             <div class="sync-status">
               @switch (mealService.syncStatus()) {
@@ -23,16 +26,22 @@
                   <span class="status-badge loading">⏳ Sincronizando...</span>
                 }
                 @case ('local-newer') {
-                  <span class="status-badge local-newer">📤 Subiendo datos locales...</span>
+                  <span class="status-badge local-newer">
+                    📤 Subiendo datos locales...
+                  </span>
                 }
                 @case ('error') {
-                  <span class="status-badge error">⚠️ Error de sincronización</span>
+                  <span class="status-badge error">
+                    ⚠️ Error de sincronización
+                  </span>
                 }
                 @case ('offline') {
                   <span class="status-badge offline">📴 Sin conexión</span>
                 }
               }
-              <p class="last-updated">Última actualización: {{ mealService.getLastUpdatedDisplay() }}</p>
+              <p class="last-updated">
+                Última actualización: {{ mealService.getLastUpdatedDisplay() }}
+              </p>
             </div>
 
             <button class="btn-secondary" type="button" (click)="refreshData()">
@@ -49,8 +58,15 @@
       } @else {
         <div class="settings-content">
           <div class="actions">
-            <p>Inicia sesión con Google para guardar y sincronizar tus comidas en la nube de forma gratuita.</p>
-            <button class="btn-google" type="button" (click)="authService.loginWithGoogle()">
+            <p>
+              Inicia sesión con Google para guardar y sincronizar tus comidas en
+              la nube de forma gratuita.
+            </p>
+            <button
+              class="btn-google"
+              type="button"
+              (click)="authService.loginWithGoogle()"
+            >
               Iniciar sesión con Google
             </button>
           </div>
@@ -59,23 +75,35 @@
     </lib-panel>
   }
 
-  <lib-panel 
-    [colorFondo]="'var(--color-3)'" 
+  <lib-panel
+    [colorFondo]="'var(--color-3)'"
     [colorTexto]="'white'"
     [sombreado]="true"
     [texto]="'Gestión de Datos Local'"
   >
     <div class="settings-content">
-      <p>Exporta tus comidas y planificación para usarlas en otro dispositivo o guardarlas como copia de seguridad.</p>
-      
+      <p>
+        Exporta tus comidas y planificación para usarlas en otro dispositivo o
+        guardarlas como copia de seguridad.
+      </p>
+
       <div class="actions">
-        <button class="btn-primary" type="button" (click)="mealService.exportData()">
+        <button
+          class="btn-primary"
+          type="button"
+          (click)="mealService.exportData()"
+        >
           📤 Exportar JSON
         </button>
-        
+
         <label class="btn-secondary">
           📥 Importar JSON
-          <input accept=".json" style="display: none;" type="file" (change)="onFileSelected($event)">
+          <input
+            accept=".json"
+            style="display: none"
+            type="file"
+            (change)="onFileSelected($event)"
+          />
         </label>
       </div>
     </div>

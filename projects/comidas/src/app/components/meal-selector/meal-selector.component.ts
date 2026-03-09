@@ -1,7 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MealService } from '../../services/meal.service';
-import { Meal, MealType, DishMealType } from '../../models/meal.model';
+import { DishMealType, Meal, MealType } from '../../models/meal.model';
 import { MealCardComponent } from '../meal-card/meal-card.component';
 
 @Component({
@@ -27,7 +27,9 @@ export class MealSelectorComponent implements OnInit {
 
   readonly uniqueTags = computed(() => {
     const tags = new Set<string>();
-    this.mealService.meals().forEach((m) => m.tags?.forEach((t) => tags.add(t)));
+    this.mealService
+      .meals()
+      .forEach((m) => m.tags?.forEach((t) => tags.add(t)));
     return Array.from(tags).sort();
   });
 
@@ -42,10 +44,14 @@ export class MealSelectorComponent implements OnInit {
 
   ngOnInit(): void {
     this.dayName = this.route.snapshot.paramMap.get('day') || '';
-    this.type = (this.route.snapshot.paramMap.get('type') as MealType) || 'almuerzo';
+    this.type =
+      (this.route.snapshot.paramMap.get('type') as MealType) || 'almuerzo';
     const actionParam = this.route.snapshot.queryParamMap.get('action');
-    this.action = actionParam === 'add' || actionParam === 'replace' ? actionParam : null;
-    this.replaceIndex = Number(this.route.snapshot.queryParamMap.get('index') ?? 0);
+    this.action =
+      actionParam === 'add' || actionParam === 'replace' ? actionParam : null;
+    this.replaceIndex = Number(
+      this.route.snapshot.queryParamMap.get('index') ?? 0
+    );
 
     const dishMealTypes: DishMealType[] = ['almuerzo', 'desayuno', 'cena'];
     const isDishType = dishMealTypes.includes(this.type as DishMealType);
@@ -55,7 +61,9 @@ export class MealSelectorComponent implements OnInit {
       return;
     }
 
-    const day = this.mealService.schedule().find((d) => d.dayName === this.dayName);
+    const day = this.mealService
+      .schedule()
+      .find((d) => d.dayName === this.dayName);
     if (isDishType && day) {
       const dishes = day[this.type as DishMealType];
       if (this.action === 'replace' && dishes[this.replaceIndex]) {
@@ -65,7 +73,9 @@ export class MealSelectorComponent implements OnInit {
           this.showingList.set(true);
         }
       } else if (!this.action) {
-        const meal = dishes[0] ? this.mealService.getMeal(dishes[0].mealId) : undefined;
+        const meal = dishes[0]
+          ? this.mealService.getMeal(dishes[0].mealId)
+          : undefined;
         this.currentMeal.set(meal);
         if (!meal) {
           this.showingList.set(true);
@@ -100,7 +110,12 @@ export class MealSelectorComponent implements OnInit {
     if (this.action === 'add' && this.mealService.isFamilyMode()) {
       this.mealService.addDish(this.dayName, type, mealId, 4);
     } else if (this.action === 'replace') {
-      this.mealService.replaceDishMeal(this.dayName, type, this.replaceIndex, mealId);
+      this.mealService.replaceDishMeal(
+        this.dayName,
+        type,
+        this.replaceIndex,
+        mealId
+      );
     } else {
       this.mealService.setMeal(this.dayName, type, mealId);
     }
@@ -120,7 +135,11 @@ export class MealSelectorComponent implements OnInit {
     const isDishType = dishMealTypes.includes(this.type as DishMealType);
     if (isDishType) {
       if (this.action === 'replace') {
-        this.mealService.removeDish(this.dayName, this.type as DishMealType, this.replaceIndex);
+        this.mealService.removeDish(
+          this.dayName,
+          this.type as DishMealType,
+          this.replaceIndex
+        );
       } else {
         this.mealService.clearMeal(this.dayName, this.type as DishMealType);
       }

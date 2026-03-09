@@ -1,6 +1,11 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 
 import { DialogService } from '../../services/dialog.service';
 import { MealService } from '../../services/meal.service';
@@ -60,7 +65,10 @@ export class PantryComponent {
 
   addGroup(): void {
     if (this.groupForm.valid) {
-      const { name, color } = this.groupForm.value as { name: string; color: string };
+      const { name, color } = this.groupForm.value as {
+        name: string;
+        color: string;
+      };
       this.mealService.addPantryGroup(name, color || undefined);
       this.groupForm.reset({ color: '#888888' });
       this.showGroupForm = false;
@@ -165,7 +173,10 @@ export class PantryComponent {
   async applyCartToPantry(): Promise<void> {
     const diff = this.mealService.getCartPantryDiff();
     if (diff.length === 0) {
-      this.dialogService.alert('Sin cambios', 'No hay ítems del carrito que coincidan con la despensa.');
+      this.dialogService.alert(
+        'Sin cambios',
+        'No hay ítems del carrito que coincidan con la despensa.'
+      );
       return;
     }
 
@@ -180,18 +191,25 @@ export class PantryComponent {
       'Revisá las cuentas antes de confirmar (las cantidades pueden tener unidades distintas):\n\n' +
       lines.join('\n');
 
-    const confirmed = await this.dialogService.confirm('Restar del carrito', message);
+    const confirmed = await this.dialogService.confirm(
+      'Restar del carrito',
+      message
+    );
     if (confirmed) {
       this.mealService.applyCartToPantry();
     }
   }
 
-  itemsByGroup(groupId: string | undefined): ReturnType<typeof this.mealService.pantry> {
+  itemsByGroup(
+    groupId: string | undefined
+  ): ReturnType<typeof this.mealService.pantry> {
     return this.mealService.pantry().filter((i) => i.groupId === groupId);
   }
 
   ungroupedItems(): ReturnType<typeof this.mealService.pantry> {
     const groupIds = new Set(this.mealService.pantryGroups().map((g) => g.id));
-    return this.mealService.pantry().filter((i) => !i.groupId || !groupIds.has(i.groupId));
+    return this.mealService
+      .pantry()
+      .filter((i) => !i.groupId || !groupIds.has(i.groupId));
   }
 }

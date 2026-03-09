@@ -1,8 +1,11 @@
-<div class="tag" [style.background-color]="colorFondo()" [style.color]="colorTexto()">
+<div
+  class="tag"
+  [style.background-color]="colorFondo()"
+  [style.color]="colorTexto()"
+>
   @if (icono()) {
-    <span class="icon">{{ icono() }}</span>
-  }
-  @if (texto()) {
-    <span class="text">{{ texto() }}</span>
+  <span class="icon">{{ icono() }}</span>
+  } @if (texto()) {
+  <span class="text">{{ texto() }}</span>
   }
 </div>

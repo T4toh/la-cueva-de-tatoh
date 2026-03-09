@@ -52,15 +52,17 @@ export class UpdateService {
           console.log(
             `New app version ready for use: ${evt.latestVersion.hash}`
           );
-          
-          this.dialogService.confirm(
-            'Actualización Disponible',
-            'Nueva versión disponible. ¿Recargar ahora?'
-          ).then(confirmed => {
-            if (confirmed) {
-              document.location.reload();
-            }
-          });
+
+          this.dialogService
+            .confirm(
+              'Actualización Disponible',
+              'Nueva versión disponible. ¿Recargar ahora?'
+            )
+            .then((confirmed) => {
+              if (confirmed) {
+                document.location.reload();
+              }
+            });
           break;
         case 'VERSION_INSTALLATION_FAILED':
           console.log(

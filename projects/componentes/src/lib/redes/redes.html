@@ -1,12 +1,12 @@
 <div class="redes-grid">
   @for (red of redes(); track red.nombre) {
-    <a
-      class="red-link"
-      rel="noopener noreferrer"
-      target="_blank"
-      [href]="getProfileUrl(red.nombre, red.usuario)"
-    >
-      <div class="red-icon" [innerHTML]="getSvg(red.nombre)"></div>
-    </a>
+  <a
+    class="red-link"
+    rel="noopener noreferrer"
+    target="_blank"
+    [href]="getProfileUrl(red.nombre, red.usuario)"
+  >
+    <div class="red-icon" [innerHTML]="getSvg(red.nombre)"></div>
+  </a>
   }
 </div>

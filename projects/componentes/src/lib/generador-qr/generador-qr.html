@@ -4,56 +4,64 @@
   <!-- Modo WiFi Toggle -->
   <div class="form-group">
     <label class="checkbox-label">
-      <input type="checkbox" [(ngModel)]="isWifiMode" (change)="onWifiModeChange()" />
+      <input
+        type="checkbox"
+        [(ngModel)]="isWifiMode"
+        (change)="onWifiModeChange()"
+      />
       Modo WiFi
     </label>
   </div>
 
   <!-- Campos normales o WiFi -->
   @if (!isWifiMode) {
+  <div class="form-group">
+    <label for="data">Datos del QR:</label>
+    <input
+      id="data"
+      placeholder="Ingresa URL o texto"
+      type="text"
+      [(ngModel)]="data"
+      (input)="onDataChange()"
+    />
+  </div>
+  } @else {
+  <div class="wifi-fields">
     <div class="form-group">
-      <label for="data">Datos del QR:</label>
+      <label for="wifiSSID">Nombre de la red (SSID):</label>
       <input
-        id="data"
-        placeholder="Ingresa URL o texto"
+        id="wifiSSID"
+        placeholder="Nombre de tu red WiFi"
         type="text"
-        [(ngModel)]="data"
-        (input)="onDataChange()"
+        [(ngModel)]="wifiSSID"
+        (input)="onWifiChange()"
       />
     </div>
-  } @else {
-    <div class="wifi-fields">
-      <div class="form-group">
-        <label for="wifiSSID">Nombre de la red (SSID):</label>
-        <input
-          id="wifiSSID"
-          placeholder="Nombre de tu red WiFi"
-          type="text"
-          [(ngModel)]="wifiSSID"
-          (input)="onWifiChange()"
-        />
-      </div>
 
-      <div class="form-group">
-        <label for="wifiPassword">Contraseña:</label>
-        <input
-          id="wifiPassword"
-          placeholder="Contraseña de la red"
-          type="password"
-          [(ngModel)]="wifiPassword"
-          (input)="onWifiChange()"
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="wifiSecurity">Tipo de seguridad:</label>
-        <select id="wifiSecurity" [(ngModel)]="wifiSecurity" (change)="onWifiChange()">
-          <option value="WPA">WPA/WPA2</option>
-          <option value="WEP">WEP</option>
-          <option value="nopass">Sin contraseña</option>
-        </select>
-      </div>
+    <div class="form-group">
+      <label for="wifiPassword">Contraseña:</label>
+      <input
+        id="wifiPassword"
+        placeholder="Contraseña de la red"
+        type="password"
+        [(ngModel)]="wifiPassword"
+        (input)="onWifiChange()"
+      />
     </div>
+
+    <div class="form-group">
+      <label for="wifiSecurity">Tipo de seguridad:</label>
+      <select
+        id="wifiSecurity"
+        [(ngModel)]="wifiSecurity"
+        (change)="onWifiChange()"
+      >
+        <option value="WPA">WPA/WPA2</option>
+        <option value="WEP">WEP</option>
+        <option value="nopass">Sin contraseña</option>
+      </select>
+    </div>
+  </div>
   }
 
   <!-- Imagen central -->
@@ -68,10 +76,9 @@
       (input)="onImageChange()"
     />
     @if (isLoadingImage) {
-      <div class="loading-indicator">Validando imagen...</div>
-    }
-    @if (imageError) {
-      <div class="error-message">{{ imageError }}</div>
+    <div class="loading-indicator">Validando imagen...</div>
+    } @if (imageError) {
+    <div class="error-message">{{ imageError }}</div>
     }
   </div>
 
@@ -83,7 +90,12 @@
       <!-- Color del QR -->
       <div class="form-group">
         <label for="qrColor">Color del QR:</label>
-        <input id="qrColor" type="color" [(ngModel)]="qrColor" (input)="onColorChange()" />
+        <input
+          id="qrColor"
+          type="color"
+          [(ngModel)]="qrColor"
+          (input)="onColorChange()"
+        />
       </div>
 
       <!-- Tamaño del QR -->
@@ -154,7 +166,11 @@
       <!-- Esquinas de puntos -->
       <div class="form-group">
         <label for="cornerDotType">Tipo de esquina de punto:</label>
-        <select id="cornerDotType" [(ngModel)]="cornerDotType" (change)="onCornerDotChange()">
+        <select
+          id="cornerDotType"
+          [(ngModel)]="cornerDotType"
+          (change)="onCornerDotChange()"
+        >
           <option value="square">Cuadrado</option>
           <option value="dot">Punto</option>
         </select>
@@ -178,5 +194,7 @@
     <div #qrCanvas class="qr-canvas"></div>
   </div>
 
-  <button class="download-btn" [disabled]="!qrCode" (click)="downloadQR()">Descargar QR</button>
+  <button class="download-btn" [disabled]="!qrCode" (click)="downloadQR()">
+    Descargar QR
+  </button>
 </div>

@@ -1,4 +1,11 @@
-import { AfterViewInit, Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  inject,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { AsyncPipe } from '@angular/common';
 import { filter } from 'rxjs';
@@ -39,13 +46,20 @@ export class AppComponent implements OnInit, AfterViewInit {
   private scrollActiveNavItemIntoView(): void {
     setTimeout(() => {
       const nav = this.mainNav?.nativeElement;
-      if (!nav) { return; }
+      if (!nav) {
+        return;
+      }
       const activeEl = nav.querySelector<HTMLElement>('.active');
-      if (!activeEl) { return; }
+      if (!activeEl) {
+        return;
+      }
       const navWidth = nav.offsetWidth;
       const itemLeft = activeEl.offsetLeft;
       const itemWidth = activeEl.offsetWidth;
-      nav.scrollTo({ left: itemLeft - navWidth / 2 + itemWidth / 2, behavior: 'smooth' });
+      nav.scrollTo({
+        left: itemLeft - navWidth / 2 + itemWidth / 2,
+        behavior: 'smooth',
+      });
     }, 0);
   }
 

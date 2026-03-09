@@ -112,7 +112,9 @@ export class MealService {
 
   // Sync state
   readonly lastUpdated = signal<number>(this.loadLastUpdated());
-  readonly syncStatus = signal<'synced' | 'local-newer' | 'loading' | 'error' | 'offline'>('loading');
+  readonly syncStatus = signal<
+    'synced' | 'local-newer' | 'loading' | 'error' | 'offline'
+  >('loading');
 
   constructor() {
     this.loadFamilySettings();
@@ -304,7 +306,9 @@ export class MealService {
         if (data['extraItems']) {
           const extraItems = data['extraItems'];
           this.extraItems.set(
-            Array.isArray(extraItems) ? {} : (extraItems as Record<string, ShoppingItem[]>)
+            Array.isArray(extraItems)
+              ? {}
+              : (extraItems as Record<string, ShoppingItem[]>)
           );
         }
         if (data['extraItemsHistory']) {
@@ -317,7 +321,9 @@ export class MealService {
           this.checkedItems.set(data['checkedItems']);
         }
         if (data['pantry']) {
-          this.pantry.set(this.normalizePantryQuantities(data['pantry'] as PantryItem[]));
+          this.pantry.set(
+            this.normalizePantryQuantities(data['pantry'] as PantryItem[])
+          );
         }
         if (data['pantryGroups']) {
           this.pantryGroups.set(data['pantryGroups'] as PantryGroup[]);
@@ -421,7 +427,9 @@ export class MealService {
     }
   }
 
-  private migrateSchedulesRecord(raw: Record<string, unknown[]>): Record<string, DaySchedule[]> {
+  private migrateSchedulesRecord(
+    raw: Record<string, unknown[]>
+  ): Record<string, DaySchedule[]> {
     const result: Record<string, DaySchedule[]> = {};
     for (const [key, week] of Object.entries(raw)) {
       result[key] = (week as Record<string, unknown>[]).map((day) =>
@@ -445,11 +453,20 @@ export class MealService {
     return {
       dayName: day['dayName'] as string,
       date: day['date'] as string | undefined,
-      desayuno: this.toDishArray(day['desayuno'], day['desayunoExcluded'] as boolean | undefined),
-      almuerzo: this.toDishArray(day['almuerzo'], day['almuerzoExcluded'] as boolean | undefined),
+      desayuno: this.toDishArray(
+        day['desayuno'],
+        day['desayunoExcluded'] as boolean | undefined
+      ),
+      almuerzo: this.toDishArray(
+        day['almuerzo'],
+        day['almuerzoExcluded'] as boolean | undefined
+      ),
       postreAlmuerzo: (day['postreAlmuerzo'] as string | null) ?? null,
       colacion: (day['colacion'] as string | null) ?? null,
-      cena: this.toDishArray(day['cena'], day['cenaExcluded'] as boolean | undefined),
+      cena: this.toDishArray(
+        day['cena'],
+        day['cenaExcluded'] as boolean | undefined
+      ),
       postreCena: (day['postreCena'] as string | null) ?? null,
     };
   }
@@ -489,7 +506,9 @@ export class MealService {
     try {
       const parsed = JSON.parse(data);
       // Migrate from old array format (discard stale items)
-      return Array.isArray(parsed) ? {} : (parsed as Record<string, ShoppingItem[]>);
+      return Array.isArray(parsed)
+        ? {}
+        : (parsed as Record<string, ShoppingItem[]>);
     } catch {
       return {};
     }
@@ -695,7 +714,12 @@ export class MealService {
     this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
   }
 
-  addDish(dayName: string, type: DishMealType, mealId: string, portions: number): void {
+  addDish(
+    dayName: string,
+    type: DishMealType,
+    mealId: string,
+    portions: number
+  ): void {
     const key = this.formatDateKey(this.currentWeekStart());
     const currentWeekSchedule = this.schedule();
     const updatedWeek = currentWeekSchedule.map((day) => {
@@ -703,7 +727,10 @@ export class MealService {
         return day;
       }
       const current = day[type] as Dish[];
-      return { ...day, [type]: [...current, { mealId, portions, excluded: false }] };
+      return {
+        ...day,
+        [type]: [...current, { mealId, portions, excluded: false }],
+      };
     });
     this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
   }
@@ -721,7 +748,12 @@ export class MealService {
     this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
   }
 
-  updateDishPortions(dayName: string, type: DishMealType, index: number, portions: number): void {
+  updateDishPortions(
+    dayName: string,
+    type: DishMealType,
+    index: number,
+    portions: number
+  ): void {
     const key = this.formatDateKey(this.currentWeekStart());
     const currentWeekSchedule = this.schedule();
     const updatedWeek = currentWeekSchedule.map((day) => {
@@ -737,7 +769,12 @@ export class MealService {
     this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
   }
 
-  updateDishLabel(dayName: string, type: DishMealType, index: number, label: string): void {
+  updateDishLabel(
+    dayName: string,
+    type: DishMealType,
+    index: number,
+    label: string
+  ): void {
     const key = this.formatDateKey(this.currentWeekStart());
     const currentWeekSchedule = this.schedule();
     const updatedWeek = currentWeekSchedule.map((day) => {
@@ -755,7 +792,11 @@ export class MealService {
     this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
   }
 
-  toggleDishExclusion(dayName: string, type: DishMealType, index: number): void {
+  toggleDishExclusion(
+    dayName: string,
+    type: DishMealType,
+    index: number
+  ): void {
     const key = this.formatDateKey(this.currentWeekStart());
     const currentWeekSchedule = this.schedule();
     const updatedWeek = currentWeekSchedule.map((day) => {
@@ -765,13 +806,20 @@ export class MealService {
       const current = day[type] as Dish[];
       return {
         ...day,
-        [type]: current.map((d, i) => (i === index ? { ...d, excluded: !d.excluded } : d)),
+        [type]: current.map((d, i) =>
+          i === index ? { ...d, excluded: !d.excluded } : d
+        ),
       };
     });
     this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
   }
 
-  replaceDishMeal(dayName: string, type: DishMealType, index: number, mealId: string): void {
+  replaceDishMeal(
+    dayName: string,
+    type: DishMealType,
+    index: number,
+    mealId: string
+  ): void {
     const key = this.formatDateKey(this.currentWeekStart());
     const currentWeekSchedule = this.schedule();
     const updatedWeek = currentWeekSchedule.map((day) => {
@@ -818,7 +866,10 @@ export class MealService {
       const copy = JSON.parse(JSON.stringify(prevSchedule));
       this.schedules.update((s) => ({ ...s, [currentKey]: copy }));
     } else {
-      this.dialogService.alert('Sin datos', 'No hay datos de la semana anterior para copiar.');
+      this.dialogService.alert(
+        'Sin datos',
+        'No hay datos de la semana anterior para copiar.'
+      );
     }
   }
 
@@ -841,7 +892,9 @@ export class MealService {
     }));
     const nameLower = name.toLowerCase().trim();
     this.extraItemsHistory.update((history) => {
-      const exists = history.some((h) => h.name.toLowerCase().trim() === nameLower);
+      const exists = history.some(
+        (h) => h.name.toLowerCase().trim() === nameLower
+      );
       return exists ? history : [...history, newItem];
     });
     if (tagId) {
@@ -939,7 +992,10 @@ export class MealService {
           if (meal && meal.includeInShoppingList !== false) {
             meal.ingredients.forEach((ing) => {
               const key = ing.name.toLowerCase().trim();
-              const quantity = this.multiplyQuantity(ing.quantity, dish.portions);
+              const quantity = this.multiplyQuantity(
+                ing.quantity,
+                dish.portions
+              );
               items.push({
                 ...ing,
                 quantity,
@@ -970,7 +1026,10 @@ export class MealService {
     items.forEach((item) => {
       const key = item.name.toLowerCase().trim();
       if (aggregated[key]) {
-        aggregated[key].quantity = this.addQuantities(aggregated[key].quantity, item.quantity);
+        aggregated[key].quantity = this.addQuantities(
+          aggregated[key].quantity,
+          item.quantity
+        );
         if (!aggregated[key].tagId && item.tagId) {
           aggregated[key].tagId = item.tagId;
         }
@@ -1091,7 +1150,10 @@ export class MealService {
         if (parsed && parsedAmount && parsed.unit === parsedAmount.unit) {
           const remaining = Math.max(0, parsed.value - parsedAmount.value);
           const unit = parsed.unit;
-          return { ...i, quantity: unit ? `${remaining} ${unit}` : `${remaining}` };
+          return {
+            ...i,
+            quantity: unit ? `${remaining} ${unit}` : `${remaining}`,
+          };
         }
         return i;
       })
@@ -1117,7 +1179,10 @@ export class MealService {
       return;
     }
     const needed = shoppingItem.quantityOverride || shoppingItem.quantity;
-    const { covered } = this.subtractPantryFromNeeded(needed, pantryEntry.quantity);
+    const { covered } = this.subtractPantryFromNeeded(
+      needed,
+      pantryEntry.quantity
+    );
     if (covered) {
       this.toggleItemCheck(shoppingItem.name);
     }
@@ -1145,8 +1210,20 @@ export class MealService {
     );
   }
 
-  getCartPantryDiff(): { name: string; needed: string; inPantry: string; remaining: string; covered: boolean }[] {
-    const result: { name: string; needed: string; inPantry: string; remaining: string; covered: boolean }[] = [];
+  getCartPantryDiff(): {
+    name: string;
+    needed: string;
+    inPantry: string;
+    remaining: string;
+    covered: boolean;
+  }[] {
+    const result: {
+      name: string;
+      needed: string;
+      inPantry: string;
+      remaining: string;
+      covered: boolean;
+    }[] = [];
     const pantryItems = this.pantry();
     this.shoppingList().forEach((item) => {
       const pantryEntry = pantryItems.find(
@@ -1158,8 +1235,17 @@ export class MealService {
           return;
         }
         const needed = item.quantityOverride || item.quantity;
-        const { remaining, covered } = this.subtractPantryFromNeeded(needed, pantryEntry.quantity);
-        result.push({ name: item.name, needed, inPantry: pantryEntry.quantity, remaining, covered });
+        const { remaining, covered } = this.subtractPantryFromNeeded(
+          needed,
+          pantryEntry.quantity
+        );
+        result.push({
+          name: item.name,
+          needed,
+          inPantry: pantryEntry.quantity,
+          remaining,
+          covered,
+        });
       }
     });
     return result;
@@ -1172,7 +1258,9 @@ export class MealService {
     });
   }
 
-  private parseNumericQuantity(quantity: string): { value: number; unit: string } | null {
+  private parseNumericQuantity(
+    quantity: string
+  ): { value: number; unit: string } | null {
     const qStr = String(quantity ?? '').trim();
     const match = qStr.match(/^(\d+(\.\d+)?)\s*(.*)$/);
     if (match) {
@@ -1216,25 +1304,41 @@ export class MealService {
   private addQuantities(existing: string, added: string): string {
     const parsedExisting = this.parseNumericQuantity(existing);
     const parsedAdded = this.parseNumericQuantity(added);
-    if (parsedExisting && parsedAdded && parsedExisting.unit === parsedAdded.unit) {
+    if (
+      parsedExisting &&
+      parsedAdded &&
+      parsedExisting.unit === parsedAdded.unit
+    ) {
       const total = parsedExisting.value + parsedAdded.value;
-      return parsedExisting.unit ? `${total} ${parsedExisting.unit}` : `${total}`;
+      return parsedExisting.unit
+        ? `${total} ${parsedExisting.unit}`
+        : `${total}`;
     }
     const a = String(existing ?? '');
     const b = String(added ?? '');
     return `${a} + ${b}`;
   }
 
-  subtractPantryFromNeeded(needed: string, inPantry: string): { remaining: string; covered: boolean } {
+  subtractPantryFromNeeded(
+    needed: string,
+    inPantry: string
+  ): { remaining: string; covered: boolean } {
     const parsedNeeded = this.parseNumericQuantity(needed);
     const parsedPantry = this.parseNumericQuantity(inPantry);
-    if (parsedNeeded && parsedPantry && parsedNeeded.unit === parsedPantry.unit) {
+    if (
+      parsedNeeded &&
+      parsedPantry &&
+      parsedNeeded.unit === parsedPantry.unit
+    ) {
       const remaining = parsedNeeded.value - parsedPantry.value;
       if (remaining <= 0) {
         return { remaining: '0', covered: true };
       }
       const unit = parsedNeeded.unit;
-      return { remaining: unit ? `${remaining} ${unit}` : `${remaining}`, covered: false };
+      return {
+        remaining: unit ? `${remaining} ${unit}` : `${remaining}`,
+        covered: false,
+      };
     }
     return { remaining: needed, covered: false };
   }
@@ -1287,7 +1391,9 @@ export class MealService {
       if (data.extraItems) {
         const extraItems = data.extraItems;
         this.extraItems.set(
-          Array.isArray(extraItems) ? {} : (extraItems as Record<string, ShoppingItem[]>)
+          Array.isArray(extraItems)
+            ? {}
+            : (extraItems as Record<string, ShoppingItem[]>)
         );
       }
       if (data.extraItemsHistory) {
@@ -1297,7 +1403,9 @@ export class MealService {
         this.quantityOverrides.set(data.overrides);
       }
       if (data.pantry) {
-        this.pantry.set(this.normalizePantryQuantities(data.pantry as PantryItem[]));
+        this.pantry.set(
+          this.normalizePantryQuantities(data.pantry as PantryItem[])
+        );
       }
       if (data.pantryGroups) {
         this.pantryGroups.set(data.pantryGroups as PantryGroup[]);
@@ -1319,7 +1427,10 @@ export class MealService {
       this.dialogService.alert('Importación', '¡Datos importados con éxito!');
     } catch (error) {
       console.error('Error al importar:', error);
-      this.dialogService.alert('Error', 'El archivo no tiene un formato válido.');
+      this.dialogService.alert(
+        'Error',
+        'El archivo no tiene un formato válido.'
+      );
     }
   }
 }

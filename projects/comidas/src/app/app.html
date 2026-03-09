@@ -1,6 +1,11 @@
 <div class="app-container">
   <nav #mainNav class="main-nav">
-    <a routerLink="/" routerLinkActive="active" title="Plan Semanal" [routerLinkActiveOptions]="{exact: true}">
+    <a
+      routerLink="/"
+      routerLinkActive="active"
+      title="Plan Semanal"
+      [routerLinkActiveOptions]="{exact: true}"
+    >
       <span class="icon">📅</span>
       <span class="text">Plan</span>
     </a>
@@ -8,7 +13,11 @@
       <span class="icon">🍲</span>
       <span class="text">Comidas</span>
     </a>
-    <a routerLink="/shopping-list" routerLinkActive="active" title="Lista de Compras">
+    <a
+      routerLink="/shopping-list"
+      routerLinkActive="active"
+      title="Lista de Compras"
+    >
       <span class="icon">🛒</span>
       <span class="text">Compras</span>
     </a>
@@ -16,34 +25,48 @@
       <span class="icon">🥫</span>
       <span class="text">Despensa</span>
     </a>
-    
-    <!-- Auth & Config Logic -->
-    @if (!isAndroid) {
-      @if (authService.user$ | async; as user) {
-        <!-- Logged in: Avatar replaces the config button -->
-        <a class="auth-link" routerLink="/settings" routerLinkActive="active" title="Configuración">
-          <img alt="User" class="user-avatar" height="32" referrerpolicy="no-referrer" width="32" [src]="user.photoURL">
-          <span class="text">Config</span>
-        </a>
-      } @else {
-        <!-- Guest: Standard config button + login button -->
-        <a routerLink="/settings" routerLinkActive="active" title="Configuración">
-          <span class="icon">⚙️</span>
-          <span class="text">Config</span>
-        </a>
-        <button class="auth-link clickable" title="Iniciar Sesión" type="button" (click)="login()">
-          <span class="icon">👤</span>
-          <span class="text">Entrar</span>
-        </button>
-      }
-    } @else {
-      <!-- Android: Solo mostrar config sin login -->
-      <a routerLink="/settings" routerLinkActive="active" title="Configuración">
-        <span class="icon">⚙️</span>
-        <span class="text">Config</span>
-      </a>
-    }
 
+    <!-- Auth & Config Logic -->
+    @if (!isAndroid) { @if (authService.user$ | async; as user) {
+    <!-- Logged in: Avatar replaces the config button -->
+    <a
+      class="auth-link"
+      routerLink="/settings"
+      routerLinkActive="active"
+      title="Configuración"
+    >
+      <img
+        alt="User"
+        class="user-avatar"
+        height="32"
+        referrerpolicy="no-referrer"
+        width="32"
+        [src]="user.photoURL"
+      />
+      <span class="text">Config</span>
+    </a>
+    } @else {
+    <!-- Guest: Standard config button + login button -->
+    <a routerLink="/settings" routerLinkActive="active" title="Configuración">
+      <span class="icon">⚙️</span>
+      <span class="text">Config</span>
+    </a>
+    <button
+      class="auth-link clickable"
+      title="Iniciar Sesión"
+      type="button"
+      (click)="login()"
+    >
+      <span class="icon">👤</span>
+      <span class="text">Entrar</span>
+    </button>
+    } } @else {
+    <!-- Android: Solo mostrar config sin login -->
+    <a routerLink="/settings" routerLinkActive="active" title="Configuración">
+      <span class="icon">⚙️</span>
+      <span class="text">Config</span>
+    </a>
+    }
   </nav>
 
   <main>

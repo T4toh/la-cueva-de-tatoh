@@ -16,8 +16,10 @@ h1 {
   justify-content: center;
   gap: 1rem;
   margin-bottom: 2rem;
-  
-  .btn-clear, .btn-back, .btn-change {
+
+  .btn-clear,
+  .btn-back,
+  .btn-change {
     background-color: transparent;
     border: 1px solid var(--color-4);
     color: var(--color-5);
@@ -25,7 +27,7 @@ h1 {
     border-radius: 8px;
     font-weight: bold;
     transition: all 0.2s;
-    
+
     &:hover {
       border-color: white;
       color: white;
@@ -120,13 +122,16 @@ h1 {
 
 .meal-content {
   padding-top: 0.5rem;
-  p { margin: 0; font-size: 0.9rem; }
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+  }
 }
 
 .empty-state {
   grid-column: 1 / -1;
   text-align: center;
-  
+
   a {
     color: var(--color-3);
     font-weight: bold;

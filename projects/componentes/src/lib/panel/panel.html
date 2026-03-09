@@ -1,31 +1,35 @@
-<div class="panel" [style.background-color]="backgroundColor()" [style.color]="colorTexto()">
+<div
+  class="panel"
+  [style.background-color]="backgroundColor()"
+  [style.color]="colorTexto()"
+>
   @if (colapsable()) {
-    <div class="panel-header">
-      <span
-        [style.font-size]="tamanoFuente()"
-        [style.font-weight]="negrita() ? 'bold' : 'normal'"
-        >{{ textoMostrado() }}</span
-      >
-      <button class="toggle-btn" (click)="toggleColapsar()">
-        @if (isUrl(iconoColapsar())) {
-          <img alt="icon" [src]="iconoColapsar()" />
-        } @else {
-          @if (!isCollapsed()) {
-            <span [style.color]="colorTexto()">{{ iconoColapsar() || '+' }}</span>
-          } @else {
-            <span [style.color]="colorTexto()">{{ iconoColapsar() || '-' }}</span>
-          }
-        }
-      </button>
-    </div>
+  <div class="panel-header">
+    <span
+      [style.font-size]="tamanoFuente()"
+      [style.font-weight]="negrita() ? 'bold' : 'normal'"
+    >
+      {{ textoMostrado() }}
+    </span>
+    <button class="toggle-btn" (click)="toggleColapsar()">
+      @if (isUrl(iconoColapsar())) {
+      <img alt="icon" [src]="iconoColapsar()" />
+      } @else { @if (!isCollapsed()) {
+      <span [style.color]="colorTexto()">{{ iconoColapsar() || '+' }}</span>
+      } @else {
+      <span [style.color]="colorTexto()">{{ iconoColapsar() || '-' }}</span>
+      } }
+    </button>
+  </div>
   }
   <div class="panel-content" [class.collapsed]="isCollapsed()">
     @if (!colapsable()) {
-      <span
-        [style.font-size]="tamanoFuente()"
-        [style.font-weight]="negrita() ? 'bold' : 'normal'"
-        >{{ textoMostrado() }}</span
-      >
+    <span
+      [style.font-size]="tamanoFuente()"
+      [style.font-weight]="negrita() ? 'bold' : 'normal'"
+    >
+      {{ textoMostrado() }}
+    </span>
     }
     <ng-content />
   </div>

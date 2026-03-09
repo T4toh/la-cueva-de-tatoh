@@ -1,6 +1,5 @@
 import { Component, computed, effect, input, signal } from '@angular/core';
 
-
 @Component({
   selector: 'lib-panel',
   imports: [],
@@ -36,7 +35,9 @@ export class Panel {
   });
 
   isUrl = (str: string | undefined): boolean => {
-    return str ? str.startsWith('http') || str.startsWith('https') || str.startsWith('/') : false;
+    return str
+      ? str.startsWith('http') || str.startsWith('https') || str.startsWith('/')
+      : false;
   };
 
   private hexToRgb(hex: string): { r: number; g: number; b: number } | null {

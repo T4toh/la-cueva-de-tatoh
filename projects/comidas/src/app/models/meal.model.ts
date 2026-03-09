@@ -2,7 +2,7 @@ export type Ingredient = {
   name: string;
   quantity: string;
   checked?: boolean;
-}
+};
 
 export type Meal = {
   id: string;
@@ -11,9 +11,15 @@ export type Meal = {
   description?: string;
   tags?: string[];
   includeInShoppingList?: boolean;
-}
+};
 
-export type MealType = 'almuerzo' | 'desayuno' | 'cena' | 'colacion' | 'postreAlmuerzo' | 'postreCena';
+export type MealType =
+  | 'almuerzo'
+  | 'desayuno'
+  | 'cena'
+  | 'colacion'
+  | 'postreAlmuerzo'
+  | 'postreCena';
 
 export type DishMealType = 'almuerzo' | 'desayuno' | 'cena';
 
@@ -24,7 +30,7 @@ export type Dish = {
   portions: number;
   excluded?: boolean;
   label?: string;
-}
+};
 
 export type DaySchedule = {
   dayName: string;
@@ -35,25 +41,25 @@ export type DaySchedule = {
   colacion: string | null;
   cena: Dish[];
   postreCena: string | null;
-}
+};
 
 export type ShoppingTag = {
   id: string;
   name: string;
   color: string;
-}
+};
 
 export type PantryGroup = {
   id: string;
   name: string;
   color?: string;
-}
+};
 
 export type PantryItem = {
   name: string;
   quantity: string;
   groupId?: string;
-}
+};
 
 export type ShoppingItem = {
   tagId?: string;
@@ -61,9 +67,9 @@ export type ShoppingItem = {
   quantityOverride?: string;
   inPantry?: boolean;
   pantryQuantity?: string;
-} & Ingredient
+} & Ingredient;
 
 export type ShoppingListGroup = {
-  tag: ShoppingTag | null; 
+  tag: ShoppingTag | null;
   items: ShoppingItem[];
-}
+};

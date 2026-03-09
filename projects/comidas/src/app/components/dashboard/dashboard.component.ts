@@ -2,7 +2,12 @@ import { Component, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MealService } from '../../services/meal.service';
 import { DialogService } from '../../services/dialog.service';
-import { Dish, DaySchedule, DishMealType, TextScheduleField } from '../../models/meal.model';
+import {
+  DaySchedule,
+  Dish,
+  DishMealType,
+  TextScheduleField,
+} from '../../models/meal.model';
 import { Panel } from 'componentes';
 import { FormsModule } from '@angular/forms';
 
@@ -59,17 +64,36 @@ export class DashboardComponent {
 
   isToday(dayName: string): boolean {
     const today = new Date();
-    const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const dayNames = [
+      'Domingo',
+      'Lunes',
+      'Martes',
+      'Miércoles',
+      'Jueves',
+      'Viernes',
+      'Sábado',
+    ];
     const todayName = dayNames[today.getDay()];
     const startOfCurrentWeek = this.getStartOfWeek(new Date());
     const startOfDisplayWeek = this.mealService.currentWeekStart();
-    return todayName === dayName && startOfCurrentWeek.getTime() === startOfDisplayWeek.getTime();
+    return (
+      todayName === dayName &&
+      startOfCurrentWeek.getTime() === startOfDisplayWeek.getTime()
+    );
   }
 
   isPast(dayName: string): boolean {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    const dayNames = [
+      'Lunes',
+      'Martes',
+      'Miércoles',
+      'Jueves',
+      'Viernes',
+      'Sábado',
+      'Domingo',
+    ];
     const dayIndex = dayNames.indexOf(dayName);
     const displayWeekStart = new Date(this.mealService.currentWeekStart());
     const dayDate = new Date(displayWeekStart);
@@ -103,17 +127,31 @@ export class DashboardComponent {
     this.mealService.removeDish(dayName, type, index);
   }
 
-  updateDishPortions(dayName: string, type: DishMealType, index: number, event: Event): void {
+  updateDishPortions(
+    dayName: string,
+    type: DishMealType,
+    index: number,
+    event: Event
+  ): void {
     const input = event.target as HTMLInputElement;
     const portions = Math.max(1, Number(input.value));
     this.mealService.updateDishPortions(dayName, type, index, portions);
   }
 
-  toggleDishExclusion(dayName: string, type: DishMealType, index: number): void {
+  toggleDishExclusion(
+    dayName: string,
+    type: DishMealType,
+    index: number
+  ): void {
     this.mealService.toggleDishExclusion(dayName, type, index);
   }
 
-  updateDishLabel(dayName: string, type: DishMealType, index: number, event: Event): void {
+  updateDishLabel(
+    dayName: string,
+    type: DishMealType,
+    index: number,
+    event: Event
+  ): void {
     const input = event.target as HTMLInputElement;
     this.mealService.updateDishLabel(dayName, type, index, input.value);
   }

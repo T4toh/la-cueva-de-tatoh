@@ -102,12 +102,21 @@ export class ShoppingListComponent implements OnInit {
     this.mealService.removeExtraItem(index);
   }
 
-  sendToPantry(item: { name: string; quantity: string; quantityOverride?: string }): void {
+  sendToPantry(item: {
+    name: string;
+    quantity: string;
+    quantityOverride?: string;
+  }): void {
     const quantity = item.quantityOverride || item.quantity;
     this.mealService.addToPantry(item.name, quantity);
   }
 
-  subtractFromPantry(item: { name: string; quantity: string; quantityOverride?: string; checked?: boolean }): void {
+  subtractFromPantry(item: {
+    name: string;
+    quantity: string;
+    quantityOverride?: string;
+    checked?: boolean;
+  }): void {
     const quantity = item.quantityOverride || item.quantity;
     this.mealService.subtractFromPantry(item.name, quantity);
     // If pantry only partially covers the need, persist the remaining as a stored
@@ -137,14 +146,19 @@ export class ShoppingListComponent implements OnInit {
     });
     const confirmed = await this.dialogService.confirm(
       'Restar del carrito',
-      'Se van a restar las siguientes cantidades de la despensa:\n\n' + lines.join('\n')
+      'Se van a restar las siguientes cantidades de la despensa:\n\n' +
+        lines.join('\n')
     );
     if (confirmed) {
       this.mealService.applyCartToPantry();
     }
   }
 
-  reAddFromHistory(item: { name: string; quantity: string; tagId?: string }): void {
+  reAddFromHistory(item: {
+    name: string;
+    quantity: string;
+    tagId?: string;
+  }): void {
     this.mealService.addExtraItem(item.name, item.quantity, item.tagId);
   }
 
@@ -181,7 +195,10 @@ export class ShoppingListComponent implements OnInit {
     });
 
     if (!hasItems) {
-      this.dialogService.alert('Lista vacía', 'No hay items pendientes para copiar.');
+      this.dialogService.alert(
+        'Lista vacía',
+        'No hay items pendientes para copiar.'
+      );
       return;
     }
 
@@ -189,6 +206,8 @@ export class ShoppingListComponent implements OnInit {
 
     navigator.clipboard
       .writeText(text)
-      .then(() => this.dialogService.alert('Copiado', '¡Lista copiada al portapapeles!'));
+      .then(() =>
+        this.dialogService.alert('Copiado', '¡Lista copiada al portapapeles!')
+      );
   }
 }

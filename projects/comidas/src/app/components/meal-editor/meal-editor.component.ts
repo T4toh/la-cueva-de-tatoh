@@ -54,9 +54,7 @@ export class MealEditorComponent implements OnInit {
 
   onIngredientFocus(index: number, event: FocusEvent): void {
     this.activeIngredientIndex.set(index);
-    this.currentInputValue.set(
-      (event.target as HTMLInputElement).value ?? ''
-    );
+    this.currentInputValue.set((event.target as HTMLInputElement).value ?? '');
     this.highlightedSuggestionIndex.set(-1);
   }
 
@@ -187,7 +185,11 @@ export class MealEditorComponent implements OnInit {
     if (this.form.valid) {
       const formValue = this.form.value;
 
-      type IngredientFormValue = { name: string; quantity: string; unit: string };
+      type IngredientFormValue = {
+        name: string;
+        quantity: string;
+        unit: string;
+      };
       // Filter out ingredients with no name and combine quantity + unit
       const validIngredients = (formValue.ingredients as IngredientFormValue[])
         .filter((ing) => ing.name && ing.name.trim() !== '')

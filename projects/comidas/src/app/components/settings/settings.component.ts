@@ -12,7 +12,7 @@ import { Panel } from 'componentes';
   standalone: true,
   imports: [Panel, AsyncPipe],
   templateUrl: './settings.component.html',
-  styleUrls: ['./settings.component.scss']
+  styleUrls: ['./settings.component.scss'],
 })
 export class SettingsComponent {
   private dialogService = inject(DialogService);

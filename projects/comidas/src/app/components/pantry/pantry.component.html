@@ -5,23 +5,61 @@
       <p class="subtitle">Lo que tenés en casa ahora mismo</p>
     </div>
     <div class="header-actions">
-      <button class="btn-danger" title="Vaciar despensa" type="button" (click)="clearPantry()">🗑️ Vaciar</button>
-      <button class="btn-primary" title="Restar ítems del carrito a la despensa" type="button" (click)="applyCartToPantry()">
+      <button
+        class="btn-danger"
+        title="Vaciar despensa"
+        type="button"
+        (click)="clearPantry()"
+      >
+        🗑️ Vaciar
+      </button>
+      <button
+        class="btn-primary"
+        title="Restar ítems del carrito a la despensa"
+        type="button"
+        (click)="applyCartToPantry()"
+      >
         🛒→🥫 Restar carrito
       </button>
     </div>
   </div>
 
   <div class="controls">
-    <button class="btn-secondary" type="button" (click)="showAddForm = !showAddForm">+ Agregar Ítem</button>
-    <button class="btn-secondary" type="button" (click)="showGroupForm = !showGroupForm">+ Nuevo Grupo</button>
+    <button
+      class="btn-secondary"
+      type="button"
+      (click)="showAddForm = !showAddForm"
+    >
+      + Agregar Ítem
+    </button>
+    <button
+      class="btn-secondary"
+      type="button"
+      (click)="showGroupForm = !showGroupForm"
+    >
+      + Nuevo Grupo
+    </button>
   </div>
 
   @if (showAddForm) {
     <form class="inline-form" [formGroup]="addForm" (ngSubmit)="addItem()">
-      <input autoFocus formControlName="name" placeholder="Nombre (ej: Zanahorias)" />
-      <input formControlName="quantity" min="0" placeholder="Cantidad" step="any" type="number" />
-      <input formControlName="unit" placeholder="Unidad (g, kg...)" type="text" />
+      <input
+        autoFocus
+        formControlName="name"
+        placeholder="Nombre (ej: Zanahorias)"
+      />
+      <input
+        formControlName="quantity"
+        min="0"
+        placeholder="Cantidad"
+        step="any"
+        type="number"
+      />
+      <input
+        formControlName="unit"
+        placeholder="Unidad (g, kg...)"
+        type="text"
+      />
       <select formControlName="groupId">
         <option value="">Sin grupo</option>
         @for (group of mealService.pantryGroups(); track group.id) {
@@ -34,7 +72,11 @@
 
   @if (showGroupForm) {
     <form class="inline-form" [formGroup]="groupForm" (ngSubmit)="addGroup()">
-      <input autoFocus formControlName="name" placeholder="Nombre del grupo (ej: Freezer)" />
+      <input
+        autoFocus
+        formControlName="name"
+        placeholder="Nombre del grupo (ej: Freezer)"
+      />
       <input
         class="color-picker"
         formControlName="color"
@@ -48,9 +90,14 @@
   <div class="pantry-groups">
     @for (group of mealService.pantryGroups(); track group.id) {
       @if (itemsByGroup(group.id).length > 0) {
-        <div class="group-section" [style.border-left-color]="group.color || 'var(--color-5)'">
+        <div
+          class="group-section"
+          [style.border-left-color]="group.color || 'var(--color-5)'"
+        >
           <div class="group-header">
-            <h3 [style.color]="group.color || 'var(--color-5)'">{{ group.name }}</h3>
+            <h3 [style.color]="group.color || 'var(--color-5)'">
+              {{ group.name }}
+            </h3>
             <div class="group-header-actions">
               <input
                 class="color-picker-inline"
@@ -59,12 +106,21 @@
                 [value]="group.color || '#888888'"
                 (change)="updateGroupColor(group.id, $event)"
               />
-              <button class="btn-icon" title="Eliminar grupo" type="button" (click)="removeGroup(group.id, group.name)">✕</button>
+              <button
+                class="btn-icon"
+                title="Eliminar grupo"
+                type="button"
+                (click)="removeGroup(group.id, group.name)"
+              >
+                ✕
+              </button>
             </div>
           </div>
           <div class="pantry-list">
             @for (item of itemsByGroup(group.id); track item.name) {
-              <ng-container *ngTemplateOutlet="itemRow; context: { $implicit: item }" />
+              <ng-container
+                *ngTemplateOutlet="itemRow; context: { $implicit: item }"
+              />
             }
           </div>
         </div>
@@ -78,14 +134,18 @@
         </div>
         <div class="pantry-list">
           @for (item of ungroupedItems(); track item.name) {
-            <ng-container *ngTemplateOutlet="itemRow; context: { $implicit: item }" />
+            <ng-container
+              *ngTemplateOutlet="itemRow; context: { $implicit: item }"
+            />
           }
         </div>
       </div>
     }
 
     @if (mealService.pantry().length === 0) {
-      <p class="empty">La despensa está vacía. Agregá ítems o mandálos desde el carrito.</p>
+      <p class="empty">
+        La despensa está vacía. Agregá ítems o mandálos desde el carrito.
+      </p>
     }
   </div>
 </div>
@@ -101,7 +161,9 @@
       >
         <option value="">Sin grupo</option>
         @for (group of mealService.pantryGroups(); track group.id) {
-          <option [selected]="item.groupId === group.id" [value]="group.id">{{ group.name }}</option>
+          <option [selected]="item.groupId === group.id" [value]="group.id">
+            {{ group.name }}
+          </option>
         }
       </select>
     </div>
@@ -123,8 +185,22 @@
           [value]="editingUnit"
           (input)="editingUnit = $any($event.target).value"
         />
-        <button class="btn-icon btn-ok" title="Guardar" type="button" (click)="saveEdit()">✓</button>
-        <button class="btn-icon" title="Cancelar" type="button" (click)="cancelEdit()">✗</button>
+        <button
+          class="btn-icon btn-ok"
+          title="Guardar"
+          type="button"
+          (click)="saveEdit()"
+        >
+          ✓
+        </button>
+        <button
+          class="btn-icon"
+          title="Cancelar"
+          type="button"
+          (click)="cancelEdit()"
+        >
+          ✗
+        </button>
       </div>
     } @else if (subtractingName === item.name) {
       <div class="action-row subtract-row">
@@ -145,15 +221,50 @@
           [value]="subtractingUnit"
           (input)="subtractingUnit = $any($event.target).value"
         />
-        <button class="btn-icon btn-ok" title="Restar" type="button" (click)="saveSubtract()">✓</button>
-        <button class="btn-icon" title="Cancelar" type="button" (click)="cancelSubtract()">✗</button>
+        <button
+          class="btn-icon btn-ok"
+          title="Restar"
+          type="button"
+          (click)="saveSubtract()"
+        >
+          ✓
+        </button>
+        <button
+          class="btn-icon"
+          title="Cancelar"
+          type="button"
+          (click)="cancelSubtract()"
+        >
+          ✗
+        </button>
       </div>
     } @else {
       <div class="item-actions">
         <span class="item-quantity">{{ item.quantity }}</span>
-        <button class="btn-icon" title="Restar cantidad" type="button" (click)="startSubtract(item.name)">−</button>
-        <button class="btn-icon" title="Editar cantidad" type="button" (click)="startEdit(item.name, item.quantity)">✏️</button>
-        <button class="btn-icon btn-delete" title="Eliminar" type="button" (click)="removeItem(item.name)">🗑️</button>
+        <button
+          class="btn-icon"
+          title="Restar cantidad"
+          type="button"
+          (click)="startSubtract(item.name)"
+        >
+          −
+        </button>
+        <button
+          class="btn-icon"
+          title="Editar cantidad"
+          type="button"
+          (click)="startEdit(item.name, item.quantity)"
+        >
+          ✏️
+        </button>
+        <button
+          class="btn-icon btn-delete"
+          title="Eliminar"
+          type="button"
+          (click)="removeItem(item.name)"
+        >
+          🗑️
+        </button>
       </div>
     }
   </div>

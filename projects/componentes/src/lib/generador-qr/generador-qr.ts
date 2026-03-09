@@ -21,8 +21,13 @@ export class GeneradorQr {
   qrColor = '#000000';
   qrSize = 200;
   imageMargin = 20;
-  dotType: 'square' | 'dots' | 'rounded' | 'classy' | 'classy-rounded' | 'extra-rounded' =
-    'rounded';
+  dotType:
+    | 'square'
+    | 'dots'
+    | 'rounded'
+    | 'classy'
+    | 'classy-rounded'
+    | 'extra-rounded' = 'rounded';
   cornerSquareType: 'square' | 'dot' | 'extra-rounded' = 'square';
   cornerSquareColor = '#000000';
   cornerDotType: 'square' | 'dot' = 'dot';
@@ -108,7 +113,8 @@ export class GeneradorQr {
 
       return true;
     } catch (error) {
-      this.imageError = error instanceof Error ? error.message : 'Error al cargar la imagen';
+      this.imageError =
+        error instanceof Error ? error.message : 'Error al cargar la imagen';
       console.error('Error validating image:', error);
       return false;
     } finally {

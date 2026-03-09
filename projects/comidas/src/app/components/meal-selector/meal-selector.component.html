@@ -13,9 +13,21 @@
 
     @if (uniqueTags().length > 0) {
       <div class="filters">
-        <button type="button" [class.active]="selectedTag() === null" (click)="selectTag(null)">Todos</button>
+        <button
+          type="button"
+          [class.active]="selectedTag() === null"
+          (click)="selectTag(null)"
+        >
+          Todos
+        </button>
         @for (tag of uniqueTags(); track tag) {
-          <button type="button" [class.active]="selectedTag() === tag" (click)="selectTag(tag)">{{ tag }}</button>
+          <button
+            type="button"
+            [class.active]="selectedTag() === tag"
+            (click)="selectTag(tag)"
+          >
+            {{ tag }}
+          </button>
         }
       </div>
     }
@@ -40,8 +52,12 @@
   } @else {
     <div class="actions">
       <button class="btn-back" routerLink="/" type="button">Volver</button>
-      <button class="btn-change" type="button" (click)="showList()">Cambiar comida</button>
-      <button class="btn-clear" type="button" (click)="clearSelection()">Borrar</button>
+      <button class="btn-change" type="button" (click)="showList()">
+        Cambiar comida
+      </button>
+      <button class="btn-clear" type="button" (click)="clearSelection()">
+        Borrar
+      </button>
     </div>
 
     @if (currentMeal(); as meal) {
@@ -50,7 +66,10 @@
         @if (meal.ingredients.length > 0) {
           <ul class="ingredient-list">
             @for (ing of meal.ingredients; track ing.name) {
-              <li><span class="ing-name">{{ ing.name }}</span> <span class="ing-qty">{{ ing.quantity }}</span></li>
+              <li>
+                <span class="ing-name">{{ ing.name }}</span>
+                <span class="ing-qty">{{ ing.quantity }}</span>
+              </li>
             }
           </ul>
         } @else {

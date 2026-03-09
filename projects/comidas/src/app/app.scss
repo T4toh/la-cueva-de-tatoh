@@ -15,9 +15,10 @@
   z-index: 100;
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 
-  a, button {
+  a,
+  button {
     color: var(--color-5);
     text-decoration: none;
     font-weight: bold;
@@ -85,7 +86,8 @@ main {
       display: none;
     }
 
-    a, button {
+    a,
+    button {
       padding: 0.7rem 0.9rem;
       flex-direction: column;
       gap: 0.2rem;

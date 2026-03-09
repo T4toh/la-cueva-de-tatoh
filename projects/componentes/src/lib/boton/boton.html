@@ -1,44 +1,40 @@
 @if (!enlace()) {
-  <button
-    [class]="clase() || ''"
-    [disabled]="deshabilitado() || loading()"
-    [ngClass]="getClasses()"
-    [style.background-color]="color() && estilo() === 'normal' ? color() : null"
-    [style.border-color]="color() && estilo() === 'outline' ? color() : null"
-    [style.color]="color() && estilo() === 'text' ? color() : null"
-    [type]="tipo()"
-    (click)="handleClick()"
-  >
-    @if (icono() && !loading()) {
-      <span class="icon">
-        <img alt="icon" [src]="icono()" />
-      </span>
-    }
-    @if (loading()) {
-      <span class="spinner"></span>
-    }
-    <span class="text">{{ texto() }}</span>
-  </button>
-}
-
-@if (enlace()) {
-  <a
-    [class]="clase() || ''"
-    [href]="enlace()"
-    [ngClass]="getClasses()"
-    [style.background-color]="color() && estilo() === 'normal' ? color() : null"
-    [style.border-color]="color() && estilo() === 'outline' ? color() : null"
-    [style.color]="color() && estilo() === 'text' ? color() : null"
-    (click)="handleClick()"
-  >
-    @if (icono() && !loading()) {
-      <span class="icon">
-        <img alt="icon" [src]="icono()" />
-      </span>
-    }
-    @if (loading()) {
-      <span class="spinner"></span>
-    }
-    <span class="text">{{ texto() }}</span>
-  </a>
+<button
+  [class]="clase() || ''"
+  [disabled]="deshabilitado() || loading()"
+  [ngClass]="getClasses()"
+  [style.background-color]="color() && estilo() === 'normal' ? color() : null"
+  [style.border-color]="color() && estilo() === 'outline' ? color() : null"
+  [style.color]="color() && estilo() === 'text' ? color() : null"
+  [type]="tipo()"
+  (click)="handleClick()"
+>
+  @if (icono() && !loading()) {
+  <span class="icon">
+    <img alt="icon" [src]="icono()" />
+  </span>
+  } @if (loading()) {
+  <span class="spinner"></span>
+  }
+  <span class="text">{{ texto() }}</span>
+</button>
+} @if (enlace()) {
+<a
+  [class]="clase() || ''"
+  [href]="enlace()"
+  [ngClass]="getClasses()"
+  [style.background-color]="color() && estilo() === 'normal' ? color() : null"
+  [style.border-color]="color() && estilo() === 'outline' ? color() : null"
+  [style.color]="color() && estilo() === 'text' ? color() : null"
+  (click)="handleClick()"
+>
+  @if (icono() && !loading()) {
+  <span class="icon">
+    <img alt="icon" [src]="icono()" />
+  </span>
+  } @if (loading()) {
+  <span class="spinner"></span>
+  }
+  <span class="text">{{ texto() }}</span>
+</a>
 }

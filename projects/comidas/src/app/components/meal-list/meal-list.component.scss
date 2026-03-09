@@ -27,7 +27,7 @@
       padding: 0.5rem 1rem;
       border-radius: 4px;
       cursor: pointer;
-      
+
       &:hover {
         border-color: white;
         color: white;
@@ -42,7 +42,7 @@
     padding: 0.5rem 1rem;
     border-radius: 4px;
     font-weight: bold;
-    
+
     &:hover {
       background-color: var(--color-2);
     }
@@ -66,7 +66,7 @@
 
 .meal-content {
   padding-top: 0.5rem;
-  
+
   p {
     margin: 0.5rem 0;
     font-size: 0.9rem;
@@ -79,10 +79,10 @@
     font-size: 0.85rem;
     max-height: 80px;
     overflow-y: auto;
-    
+
     li {
       padding: 2px 5px;
-      background: rgba(0,0,0,0.2);
+      background: rgba(0, 0, 0, 0.2);
       border-radius: 3px;
       margin-bottom: 3px;
     }
@@ -116,31 +116,53 @@
 }
 
 .print-only-section {
-    display: none;
+  display: none;
 }
 
 @media print {
-    body { background: white !important; color: black !important; }
-    .meal-list-container > *:not(.print-only-section) { display: none !important; }
-    
-    .print-only-section {
-        display: block !important;
-        h1 { text-align: center; border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 20px; color: black !important; }
-    }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .meal-list-container > *:not(.print-only-section) {
+    display: none !important;
+  }
 
-    .print-meals {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
+  .print-only-section {
+    display: block !important;
+    h1 {
+      text-align: center;
+      border-bottom: 2px solid black;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+      color: black !important;
     }
+  }
 
-    .print-meal-card {
-        border: 1px solid black;
-        padding: 10px;
-        page-break-inside: avoid;
-        
-        h3 { margin-top: 0; border-bottom: 1px solid black; color: black !important; }
-        .print-desc { font-size: 0.9rem; color: black !important; }
-        .print-ingredients { font-size: 0.9rem; padding-left: 20px; color: black !important; }
+  .print-meals {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .print-meal-card {
+    border: 1px solid black;
+    padding: 10px;
+    page-break-inside: avoid;
+
+    h3 {
+      margin-top: 0;
+      border-bottom: 1px solid black;
+      color: black !important;
     }
+    .print-desc {
+      font-size: 0.9rem;
+      color: black !important;
+    }
+    .print-ingredients {
+      font-size: 0.9rem;
+      padding-left: 20px;
+      color: black !important;
+    }
+  }
 }
