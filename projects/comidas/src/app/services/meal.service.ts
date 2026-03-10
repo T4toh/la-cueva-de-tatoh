@@ -216,6 +216,10 @@ export class MealService {
     this.migrateQuantitiesToNumeric();
   }
 
+  private sanitizeForFirestore<T>(data: T): T {
+    return JSON.parse(JSON.stringify(data)) as T;
+  }
+
   private async saveToFirestore(key: string, data: unknown): Promise<void> {
     const user = this.authService.currentUser();
     if (!user) {
@@ -227,7 +231,7 @@ export class MealService {
       const docRef = doc(this.firestore, 'users', user.uid);
       await setDoc(
         docRef,
-        { [key]: data, lastUpdated: this.lastUpdated() },
+        this.sanitizeForFirestore({ [key]: data, lastUpdated: this.lastUpdated() }),
         { merge: true }
       );
       this.syncStatus.set('synced');
@@ -369,7 +373,7 @@ export class MealService {
     this.updateTimestamp();
     try {
       const docRef = doc(this.firestore, 'users', user.uid);
-      await setDoc(docRef, {
+      await setDoc(docRef, this.sanitizeForFirestore({
         meals: this.meals(),
         schedules: this.schedules(),
         tags: this.tags(),
@@ -386,7 +390,7 @@ export class MealService {
           familyPortions: this.familyPortions(),
         },
         lastUpdated: this.lastUpdated(),
-      });
+      }));
       this.syncStatus.set('synced');
       console.log('[Sync] All data uploaded to Firebase');
     } catch (e) {
@@ -665,7 +669,7 @@ export class MealService {
     if (original) {
       const copy: Omit<Meal, 'id'> = {
         name: `${original.name} (Copia)`,
-        description: original.description,
+        ...(original.description ? { description: original.description } : {}),
         ingredients: original.ingredients.map((i) => ({ ...i })),
         tags: original.tags ? [...original.tags] : [],
       };
@@ -1118,7 +1122,7 @@ export class MealService {
             : i
         );
       }
-      return [...items, { name, quantity, groupId }];
+      return [...items, { name, quantity, ...(groupId ? { groupId } : {}) }];
     });
   }
 
@@ -1202,7 +1206,7 @@ export class MealService {
   }
 
   addPantryGroup(name: string, color?: string): void {
-    const newGroup: PantryGroup = { id: this.generateId(), name, color };
+    const newGroup: PantryGroup = { id: this.generateId(), name, ...(color ? { color } : {}) };
     this.pantryGroups.update((g) => [...g, newGroup]);
   }
 
