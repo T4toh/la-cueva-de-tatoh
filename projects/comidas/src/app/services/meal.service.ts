@@ -784,9 +784,18 @@ export class MealService {
       const current = day[type] as Dish[];
       return {
         ...day,
-        [type]: current.map((d, i) =>
-          i === index ? { ...d, label: label.trim() || undefined } : d
-        ),
+        [type]: current.map((d, i) => {
+          if (i !== index) {
+            return d;
+          }
+          const dish: Dish = { ...d };
+          if (label.trim()) {
+            dish.label = label.trim();
+          } else {
+            delete dish.label;
+          }
+          return dish;
+        }),
       };
     });
     this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
