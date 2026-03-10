@@ -452,7 +452,7 @@ export class MealService {
     }
     return {
       dayName: day['dayName'] as string,
-      date: day['date'] as string | undefined,
+      ...(day['date'] ? { date: day['date'] as string } : {}),
       desayuno: this.toDishArray(
         day['desayuno'],
         day['desayunoExcluded'] as boolean | undefined
@@ -1209,7 +1209,14 @@ export class MealService {
   removePantryGroup(id: string): void {
     this.pantryGroups.update((g) => g.filter((group) => group.id !== id));
     this.pantry.update((items) =>
-      items.map((i) => (i.groupId === id ? { ...i, groupId: undefined } : i))
+      items.map((i) => {
+        if (i.groupId !== id) {
+          return i;
+        }
+        const item = { ...i };
+        delete item.groupId;
+        return item;
+      })
     );
   }
 
