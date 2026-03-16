@@ -1153,6 +1153,7 @@ export class MealService {
 
   subtractFromPantry(name: string, amount: string): void {
     const key = name.toLowerCase().trim();
+    let didSubtract = false;
     this.pantry.update((items) =>
       items.map((i) => {
         if (i.name.toLowerCase().trim() !== key) {
@@ -1160,9 +1161,14 @@ export class MealService {
         }
         const parsed = this.parseNumericQuantity(i.quantity);
         const parsedAmount = this.parseNumericQuantity(amount);
-        if (parsed && parsedAmount && parsed.unit === parsedAmount.unit) {
+        const unitsCompatible =
+          parsed &&
+          parsedAmount &&
+          (parsed.unit === parsedAmount.unit || !parsed.unit || !parsedAmount.unit);
+        if (unitsCompatible && parsed && parsedAmount) {
+          didSubtract = true;
           const remaining = Math.max(0, parsed.value - parsedAmount.value);
-          const unit = parsed.unit;
+          const unit = parsed.unit || parsedAmount.unit;
           return {
             ...i,
             quantity: unit ? `${remaining} ${unit}` : `${remaining}`,
@@ -1171,7 +1177,9 @@ export class MealService {
         return i;
       })
     );
-    this.autoCheckIfCovered(key);
+    if (didSubtract) {
+      this.autoCheckIfCovered(key);
+    }
   }
 
   private autoCheckIfCovered(key: string): void {
@@ -1327,16 +1335,13 @@ export class MealService {
     if (
       parsedExisting &&
       parsedAdded &&
-      parsedExisting.unit === parsedAdded.unit
+      (parsedExisting.unit === parsedAdded.unit || !parsedExisting.unit || !parsedAdded.unit)
     ) {
       const total = parsedExisting.value + parsedAdded.value;
-      return parsedExisting.unit
-        ? `${total} ${parsedExisting.unit}`
-        : `${total}`;
+      const unit = parsedExisting.unit || parsedAdded.unit;
+      return unit ? `${total} ${unit}` : `${total}`;
     }
-    const a = String(existing ?? '');
-    const b = String(added ?? '');
-    return `${a} + ${b}`;
+    return `${existing} + ${added}`;
   }
 
   subtractPantryFromNeeded(

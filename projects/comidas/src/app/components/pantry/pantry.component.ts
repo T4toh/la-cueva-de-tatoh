@@ -111,8 +111,11 @@ export class PantryComponent {
 
   saveSubtract(): void {
     const aStr = String(this.subtractingAmount ?? '').trim();
+    if (!aStr) {
+      return;
+    }
     const uStr = String(this.subtractingUnit ?? '').trim();
-    if (this.subtractingName !== null && aStr) {
+    if (this.subtractingName !== null) {
       const combined = uStr ? `${aStr} ${uStr}` : aStr;
       this.mealService.subtractFromPantry(this.subtractingName, combined);
     }
