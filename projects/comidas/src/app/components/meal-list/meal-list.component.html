@@ -39,7 +39,7 @@
           }
           <ul class="print-ingredients">
             @for (ing of meal.ingredients; track ing.name) {
-              <li>{{ ing.name }} - {{ ing.quantity }}</li>
+              <li>{{ ing.name }} - {{ ing.quantity }}{{ ing.unit ? ' ' + ing.unit : '' }}</li>
             }
           </ul>
         </div>

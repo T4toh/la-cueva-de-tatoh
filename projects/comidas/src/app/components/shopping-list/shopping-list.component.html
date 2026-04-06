@@ -123,7 +123,7 @@
                   <input
                     class="quantity-edit-input"
                     type="text"
-                    [value]="item.quantityOverride || item.quantity"
+                    [value]="displayQty(item)"
                     (change)="editQuantity(item.name, $event)"
                     (click)="$event.stopPropagation()"
                   />
@@ -174,7 +174,7 @@
       <div class="chip-list">
         @for (item of mealService.currentExtraItems(); track $index) {
           <span class="chip">
-            {{ item.name }} ({{ item.quantity }})
+            {{ item.name }} ({{ displayQty(item) }})
             <button type="button" (click)="deleteExtraItem($index)">x</button>
           </span>
         }
@@ -215,7 +215,7 @@
         <h3>{{ group.tag ? group.tag.name : 'Otros' }}</h3>
         <ul>
           @for (item of group.items; track item.name) {
-            <li>[ ] {{ item.name }}: {{ item.quantity }}</li>
+            <li>[ ] {{ item.name }}: {{ displayQty(item) }}</li>
           }
         </ul>
       </div>

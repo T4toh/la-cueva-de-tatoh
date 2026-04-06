@@ -130,8 +130,7 @@ export class MealEditorComponent implements OnInit {
           includeInShoppingList: meal.includeInShoppingList ?? true,
         });
         meal.ingredients.forEach((ing) => {
-          const { value, unit } = this.splitQuantity(ing.quantity);
-          this.addIngredient(ing.name, value, unit);
+          this.addIngredient(ing.name, ing.quantity, ing.unit ?? '');
         });
         if (meal.tags) {
           meal.tags.forEach((tag) => {
@@ -142,15 +141,6 @@ export class MealEditorComponent implements OnInit {
         this.router.navigate(['/meals']);
       }
     }
-  }
-
-  private splitQuantity(quantity: string): { value: string; unit: string } {
-    const qStr = String(quantity ?? '').trim();
-    const match = qStr.match(/^(\d+(\.\d+)?)\s*(.*)$/);
-    if (match) {
-      return { value: match[1], unit: match[3].trim() };
-    }
-    return { value: qStr, unit: '' };
   }
 
   addIngredient(name = '', quantity = '', unit = ''): void {
@@ -190,17 +180,13 @@ export class MealEditorComponent implements OnInit {
         quantity: string;
         unit: string;
       };
-      // Filter out ingredients with no name and combine quantity + unit
+      // Filter out ingredients with no name
       const validIngredients = (formValue.ingredients as IngredientFormValue[])
         .filter((ing) => ing.name && ing.name.trim() !== '')
         .map((ing) => ({
           name: ing.name.trim(),
-          quantity: [
-            String(ing.quantity ?? '').trim(),
-            String(ing.unit ?? '').trim(),
-          ]
-            .filter(Boolean)
-            .join(' '),
+          quantity: String(ing.quantity ?? '').trim(),
+          unit: String(ing.unit ?? '').trim(),
         }));
 
       const mealData: Omit<Meal, 'id'> = {

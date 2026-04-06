@@ -68,7 +68,7 @@
             @for (ing of meal.ingredients; track ing.name) {
               <li>
                 <span class="ing-name">{{ ing.name }}</span>
-                <span class="ing-qty">{{ ing.quantity }}</span>
+                <span class="ing-qty">{{ ing.quantity }}{{ ing.unit ? ' ' + ing.unit : '' }}</span>
               </li>
             }
           </ul>
