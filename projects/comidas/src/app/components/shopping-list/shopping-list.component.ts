@@ -105,19 +105,20 @@ export class ShoppingListComponent implements OnInit {
   sendToPantry(item: {
     name: string;
     quantity: string;
+    unit?: string;
     quantityOverride?: string;
   }): void {
-    const quantity = item.quantityOverride || item.quantity;
-    this.mealService.addToPantry(item.name, quantity);
+    this.mealService.addToPantry(item.name, this.displayQty(item));
   }
 
   subtractFromPantry(item: {
     name: string;
     quantity: string;
+    unit?: string;
     quantityOverride?: string;
     checked?: boolean;
   }): void {
-    const quantity = item.quantityOverride || item.quantity;
+    const quantity = this.displayQty(item);
     this.mealService.subtractFromPantry(item.name, quantity);
     // If pantry only partially covers the need, persist the remaining as a stored
     // override so the cart doesn't revert to the full quantity after pantry is depleted.
@@ -154,12 +155,15 @@ export class ShoppingListComponent implements OnInit {
     }
   }
 
-  reAddFromHistory(item: {
-    name: string;
-    quantity: string;
-    tagId?: string;
-  }): void {
-    this.mealService.addExtraItem(item.name, item.quantity, item.tagId);
+  displayQty(item: { quantity: string; unit?: string; quantityOverride?: string }): string {
+    if (item.quantityOverride) {
+      return item.quantityOverride;
+    }
+    return [item.quantity, item.unit].filter(Boolean).join(' ');
+  }
+
+  reAddFromHistory(item: { name: string; quantity: string; unit?: string; tagId?: string }): void {
+    this.mealService.addExtraItem(item.name, item.quantity, item.tagId, item.unit);
   }
 
   print(): void {
@@ -187,7 +191,7 @@ export class ShoppingListComponent implements OnInit {
         const groupName = group.tag ? group.tag.name.toUpperCase() : 'OTROS';
         text += `*${groupName}*\n`;
         remainingItems.forEach((item) => {
-          const quantity = item.quantityOverride || item.quantity;
+          const quantity = this.displayQty(item);
           text += `• ${item.name}: ${quantity}\n`;
         });
         text += '\n';

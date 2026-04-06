@@ -16,7 +16,7 @@
       <div class="meal-info">
         <ul class="ingredient-list">
           @for (ing of meal().ingredients; track ing.name) {
-            <li>{{ ing.name }} ({{ ing.quantity }})</li>
+            <li>{{ ing.name }} ({{ ing.quantity }}{{ ing.unit ? ' ' + ing.unit : '' }})</li>
           } @empty {
             <li>Sin ingredientes</li>
           }

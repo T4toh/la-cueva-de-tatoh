@@ -130,6 +130,21 @@ h1 {
   }
 }
 
+.btn-copied {
+  background-color: #4caf50 !important;
+  border-color: #4caf50 !important;
+  color: white !important;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: #ccc;
+  text-align: center;
+  margin-top: -0.5rem !important;
+  margin-bottom: 0 !important;
+  max-width: 300px;
+}
+
 .version {
   margin-top: 3rem;
   text-align: center;

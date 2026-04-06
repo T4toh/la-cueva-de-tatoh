@@ -37,6 +37,7 @@ export class MealService {
   private readonly PANTRY_GROUPS_KEY = 'comidas_pantry_groups';
   private readonly MIGRATION_NUMERIC_QTY_KEY = 'comidas_migration_numeric_qty';
   private readonly MIGRATION_DISH_FORMAT_KEY = 'comidas_migration_dish_format';
+  private readonly MIGRATION_SPLIT_UNIT_KEY = 'comidas_migration_split_unit';
   private scheduleMigrationOccurred = false;
   readonly migrationOccurred = signal<boolean>(false);
 
@@ -214,6 +215,7 @@ export class MealService {
       }
     });
     this.migrateQuantitiesToNumeric();
+    this.migrateQuantitiesToSplitUnit();
   }
 
   private sanitizeForFirestore<T>(data: T): T {
@@ -896,8 +898,8 @@ export class MealService {
     this.ingredientTags.update((map) => ({ ...map, [key]: tagId }));
   }
 
-  addExtraItem(name: string, quantity: string, tagId?: string): void {
-    const newItem: ShoppingItem = { name, quantity, tagId, isExtra: true };
+  addExtraItem(name: string, quantity: string, tagId?: string, unit?: string): void {
+    const newItem: ShoppingItem = { name, quantity, unit, tagId, isExtra: true };
     const weekKey = this.formatDateKey(this.currentWeekStart());
     this.extraItems.update((items) => ({
       ...items,
@@ -966,18 +968,15 @@ export class MealService {
   }
 
   private multiplyQuantity(quantity: string, factor: number): string {
-    const qStr = String(quantity ?? '').trim();
     if (factor <= 1) {
-      return qStr;
+      return quantity;
     }
-    const match = qStr.match(/^(\d+(\.\d+)?)\s*(.*)$/);
-    if (match) {
-      const value = parseFloat(match[1]);
-      const unit = match[3].trim();
-      const newValue = value * factor;
-      return unit ? `${newValue} ${unit}` : `${newValue}`;
+    const value = parseFloat(String(quantity ?? ''));
+    if (isNaN(value)) {
+      return quantity;
     }
-    return `${qStr} (x${factor})`;
+    const result = value * factor;
+    return `${parseFloat(result.toFixed(2))}`;
   }
 
   readonly shoppingListGrouped = computed(() => {
@@ -1306,10 +1305,16 @@ export class MealService {
   private normalizeMealQuantities(meals: Meal[]): Meal[] {
     return meals.map((meal) => ({
       ...meal,
-      ingredients: meal.ingredients.map((ing) => ({
-        ...ing,
-        quantity: this.normalizeQuantityToNumeric(ing.quantity),
-      })),
+      ingredients: meal.ingredients.map((ing) => {
+        if (ing.unit !== undefined) {
+          return { ...ing, quantity: this.normalizeQuantityToNumeric(ing.quantity) };
+        }
+        // Old format: try to split "500 g" → { quantity: "500", unit: "g" }
+        const parsed = this.parseNumericQuantity(ing.quantity);
+        return parsed
+          ? { ...ing, quantity: `${parsed.value}`, unit: parsed.unit }
+          : { ...ing, unit: '' };
+      }),
     }));
   }
 
@@ -1327,6 +1332,14 @@ export class MealService {
     this.meals.update((meals) => this.normalizeMealQuantities(meals));
     this.pantry.update((items) => this.normalizePantryQuantities(items));
     localStorage.setItem(this.MIGRATION_NUMERIC_QTY_KEY, '1');
+  }
+
+  private migrateQuantitiesToSplitUnit(): void {
+    if (localStorage.getItem(this.MIGRATION_SPLIT_UNIT_KEY)) {
+      return;
+    }
+    this.meals.update((meals) => this.normalizeMealQuantities(meals));
+    localStorage.setItem(this.MIGRATION_SPLIT_UNIT_KEY, '1');
   }
 
   private addQuantities(existing: string, added: string): string {
@@ -1353,13 +1366,13 @@ export class MealService {
     if (
       parsedNeeded &&
       parsedPantry &&
-      parsedNeeded.unit === parsedPantry.unit
+      (parsedNeeded.unit === parsedPantry.unit || !parsedNeeded.unit || !parsedPantry.unit)
     ) {
       const remaining = parsedNeeded.value - parsedPantry.value;
       if (remaining <= 0) {
         return { remaining: '0', covered: true };
       }
-      const unit = parsedNeeded.unit;
+      const unit = parsedNeeded.unit || parsedPantry.unit;
       return {
         remaining: unit ? `${remaining} ${unit}` : `${remaining}`,
         covered: false,
@@ -1395,6 +1408,74 @@ export class MealService {
     link.download = `comidas-backup-${new Date().toISOString().split('T')[0]}.json`;
     link.click();
     window.URL.revokeObjectURL(url);
+  }
+
+  exportMeals(): void {
+    const data = { meals: this.meals(), version: '1.0' };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: 'application/json',
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `comidas-meals-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  importMeals(jsonContent: string): void {
+    try {
+      const data = JSON.parse(jsonContent);
+      const raw: Meal[] =
+        Array.isArray(data) ? data : Array.isArray(data.meals) ? data.meals : null;
+      if (!raw) {
+        this.dialogService.alert('Error', 'El archivo no contiene comidas válidas.');
+        return;
+      }
+      const normalized = this.normalizeMealQuantities(raw);
+      const existing = this.meals();
+      const existingMap = new Map(existing.map((m) => [m.id, m]));
+      normalized.forEach((m) => existingMap.set(m.id, m));
+      this.meals.set(Array.from(existingMap.values()));
+      this.dialogService.alert(
+        'Importación',
+        `Se importaron ${normalized.length} comida(s) correctamente.`
+      );
+    } catch (error) {
+      console.error('Error al importar comidas:', error);
+      this.dialogService.alert('Error', 'El archivo no tiene un formato válido.');
+    }
+  }
+
+  generateLLMPrompt(): string {
+    const meals = this.meals();
+    const mealsForPrompt = meals.map((m) => ({
+      id: m.id,
+      name: m.name,
+      description: m.description ?? '',
+      tags: m.tags ?? [],
+      ingredients: m.ingredients.map((ing) => ({
+        name: ing.name,
+        quantity: ing.quantity,
+        unit: ing.unit ?? '',
+      })),
+    }));
+    const jsonBlock = JSON.stringify(mealsForPrompt, null, 2);
+    return (
+      `Completá las siguientes comidas en formato JSON.\n` +
+      `Para cada comida:\n` +
+      `1. Completá o mejorá la descripción corta en español (campo "description").\n` +
+      `2. Para cada ingrediente:\n` +
+      `   - "quantity": solo el número o cantidad (ej: "500", "2", "1"). No cambies este valor.\n` +
+      `   - "unit": la unidad de medida (ej: "g", "kg", "tazas", "cdita", "unidades", "filetes", ` +
+      `"al gusto"). Si ya tiene unidad, dejala. Si no tiene, completala.\n` +
+      `3. El campo "tags" es un array de strings. Si ya tiene tags, conservalos y agregá los ` +
+      `que falten. Si está vacío, generá entre 1 y 4 tags en español que describan la comida ` +
+      `(ej: "pollo", "pasta", "sin gluten", "rápido", "horno", "vegano", "desayuno").\n\n` +
+      `Devolvé SOLO el JSON con el array de comidas (sin texto previo, sin explicaciones, ` +
+      `sin bloques de código markdown).\n\n` +
+      `${jsonBlock}`
+    );
   }
 
   importData(jsonContent: string): void {

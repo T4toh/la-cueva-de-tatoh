@@ -109,6 +109,54 @@
     </div>
   </lib-panel>
 
+  <lib-panel
+    [colorFondo]="'var(--color-2)'"
+    [colorTexto]="'white'"
+    [sombreado]="true"
+    [texto]="'Comidas'"
+  >
+    <div class="settings-content">
+      <p>
+        Exportá o importá solo la lista de comidas. Al importar, las comidas
+        existentes con el mismo ID serán reemplazadas y las nuevas serán
+        agregadas.
+      </p>
+
+      <div class="actions">
+        <button
+          class="btn-primary"
+          type="button"
+          (click)="mealService.exportMeals()"
+        >
+          📤 Exportar comidas
+        </button>
+
+        <label class="btn-secondary">
+          📥 Importar comidas
+          <input
+            accept=".json"
+            style="display: none"
+            type="file"
+            (change)="onMealsFileSelected($event)"
+          />
+        </label>
+
+        <button
+          class="btn-secondary"
+          type="button"
+          [class.btn-copied]="promptCopied()"
+          (click)="copyLLMPrompt()"
+        >
+          {{ promptCopied() ? '✅ ¡Copiado!' : '🤖 Generar prompt para IA' }}
+        </button>
+        <p class="hint">
+          Copiá el prompt, pegalo en tu IA favorita y pedile que complete las
+          unidades y descripciones. Luego importá el JSON que te devuelva.
+        </p>
+      </div>
+    </div>
+  </lib-panel>
+
   <div class="version">
     <p>Comidas v1.2.0</p>
   </div>
