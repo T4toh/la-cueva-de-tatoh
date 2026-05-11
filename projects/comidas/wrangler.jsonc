@@ -1,9 +1,9 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
-  "name": "la-cueva-de-tatoh",
+  "name": "comidas",
   "compatibility_date": "2025-05-11",
   "assets": {
-    "directory": "../../dist/perfil-personal/browser",
+    "directory": "../../dist/comidas/browser",
     "not_found_handling": "single-page-application"
   }
 }

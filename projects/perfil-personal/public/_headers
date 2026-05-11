@@ -1,13 +1,2 @@
-/comidas/ngsw-worker.js
-  Cache-Control: no-cache, no-store, must-revalidate
-  Service-Worker-Allowed: /comidas/
-
-/comidas/ngsw.json
-  Cache-Control: no-cache, no-store, must-revalidate
-
-/comidas/manifest.webmanifest
-  Content-Type: application/manifest+json
-  Cache-Control: no-cache
-
 /manifest.webmanifest
   Content-Type: application/manifest+json
