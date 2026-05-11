@@ -85,6 +85,8 @@ export type Apk = {
   url: string;
   icono?: string;
   color: string;
+  tipo?: 'android' | 'desktop';
+  nota?: string;
 };
 
 export const APKS: Apk[] = [
@@ -103,6 +105,17 @@ export const APKS: Apk[] = [
     url: 'https://github.com/T4toh/contador-de-truco/releases/download/v0.0.1/contador_de_truco.apk',
     icono: '⚔️',
     color: 'midnightblue',
+  },
+  {
+    nombre: 'tWriter',
+    descripcion:
+      'Editor de novelas con conversor de diálogos RAE y export a EPUB. Tauri 2 + Angular.',
+    version: 'alpha',
+    url: 'https://github.com/T4toh/tWriter',
+    icono: '✒️',
+    color: '#4a3a8e',
+    tipo: 'desktop',
+    nota: 'Pronto en AUR',
   },
   // Agrega más APKs aquí
 ];
@@ -187,6 +200,12 @@ export const POSTS: Post[] = [
     src: 'posts/japones-10.md',
     fecha: '29/12/25',
     tags: ['japonés', 'lenguaje'],
+  },
+  {
+    title: 'tWriter - Escribiendo como un gordo barbudo',
+    src: 'posts/twriter.md',
+    fecha: '11/5/26',
+    tags: ['linux', 'rust', 'angular', 'tauri', 'escritura'],
   },
 ];
 
