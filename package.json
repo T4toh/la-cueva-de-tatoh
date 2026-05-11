@@ -1,11 +1,12 @@
 {
   "name": "la-cueva-de-tatoh",
   "version": "0.0.0",
+  "packageManager": "pnpm@10.33.2",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build componentes && ng build perfil-personal && ng build comidas --configuration=production",
+    "build": "ng build componentes && ng build perfil-personal --configuration=production && ng build comidas --configuration=production --base-href=/comidas/ && mkdir -p dist/perfil-personal/browser/comidas && cp -r dist/comidas/browser/. dist/perfil-personal/browser/comidas/",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
