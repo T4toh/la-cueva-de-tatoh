@@ -202,7 +202,7 @@ export const POSTS: Post[] = [
     tags: ['japonés', 'lenguaje'],
   },
   {
-    title: 'tWriter: escribir novelas como un gordo',
+    title: 'tWriter - Escribiendo como un gordo barbudo',
     src: 'posts/twriter.md',
     fecha: '11/5/26',
     tags: ['linux', 'rust', 'angular', 'tauri', 'escritura'],
