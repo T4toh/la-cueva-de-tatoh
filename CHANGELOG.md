@@ -39,7 +39,10 @@ Primer release público. La Cueva de Tatoh (`tatoh.ar`) y Comidas (`comidas.tato
 - Botón de impresión para meal-list y shopping-list.
 
 #### Compartido
-- Componente `Dialogo` reutilizable con backdrop, header, body con `<ng-content />`, footer de acciones y configuración de cierre por click afuera.
+- Componente `Dialogo` reutilizable con backdrop, header, body con `<ng-content />`, footer de acciones y configuración de cierre por click afuera. Tema oscuro para integrarse con la estética general.
+- Componente `Footer` (lib `componentes`) con versión y botón "Changelog" que abre `CHANGELOG.md` renderizado en modal nativo `<dialog>` (top layer del browser, ignora stacking contexts del padre).
+- Lock de scroll global vía clase `modal-open` mientras el modal está abierto.
+- `SkillBar` rediseñado como chip pill compacto con relleno de progreso detrás del texto: varias skills por línea, menos scroll.
 - PWA: service worker habilitado con auto-update en ambas apps.
 - Workspace pnpm con tres proyectos (`componentes`, `perfil-personal`, `comidas`).
 

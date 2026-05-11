@@ -4,10 +4,25 @@
   <button class="link" type="button" (click)="abrir()">Changelog</button>
 </footer>
 
-<lib-dialogo
-  ancho="720px"
-  titulo="Changelog"
-  [(visible)]="mostrarChangelog"
+<dialog
+  #dialogEl
+  class="changelog-dialog"
+  (click)="onDialogClick($event)"
 >
-  <markdown class="changelog-md" [src]="changelogUrl()" />
-</lib-dialogo>
+  <div class="dialog-content">
+    <header class="dialog-header">
+      <h3>Changelog</h3>
+      <button
+        class="btn-close"
+        type="button"
+        aria-label="Cerrar"
+        (click)="cerrar()"
+      >×</button>
+    </header>
+    <div class="dialog-body">
+      @if (cargado()) {
+        <markdown class="changelog-md" [src]="changelogUrl()" />
+      }
+    </div>
+  </div>
+</dialog>

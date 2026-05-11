@@ -1,10 +1,8 @@
-<div class="skill-bar-container">
-  <div class="skill-text" [style.color]="textColor()">{{ skill() }}</div>
-  <div class="skill-bar-background">
-    <div
-      class="skill-bar-fill"
-      [style.background-color]="color()"
-      [style.width.%]="nivel()"
-    ></div>
-  </div>
-</div>
+<span class="skill-chip" [style.color]="textColor()">
+  <span
+    class="fill"
+    [style.background-color]="color()"
+    [style.width.%]="nivel()"
+  ></span>
+  <span class="label">{{ skill() }}</span>
+</span>
