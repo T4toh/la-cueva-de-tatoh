@@ -12,7 +12,7 @@
 
 .header {
   grid-area: header;
-  max-width: 250px;
+  max-width: 180px;
   margin: 0 auto;
 }
 
@@ -33,7 +33,6 @@
 
 .posts-recientes-section {
   flex: 0 0 auto;
-  margin: 10px 0;
 
   .section-title {
     color: white;
@@ -92,9 +91,10 @@
 .skills-section {
   flex: 0 0 auto;
   display: flex;
-  flex-direction: column;
-  gap: 1px;
-  margin-bottom: 5px;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 5px;
+  padding: 0 5px;
 }
 
 .tags-section {
@@ -108,8 +108,27 @@
   grid-area: footer;
   width: 100%;
   display: flex;
-  justify-content: space-evenly;
-  align-items: center;
-  flex-direction: row;
-  padding: 10px 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 6px 0 2px;
+
+  lib-redes {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+  }
+
+  .divisor {
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    margin: 4px 12px 0;
+    width: auto;
+  }
+
+  lib-footer ::ng-deep .footer {
+    margin-top: 0;
+    padding: 0.25rem 0 0;
+    border-top: none;
+  }
 }

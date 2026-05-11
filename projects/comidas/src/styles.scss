@@ -19,6 +19,12 @@ html {
   padding-right: calc(env(safe-area-inset-right) * 0.75);
 }
 
+body.modal-open,
+body.modal-open main,
+body.modal-open .app-container {
+  overflow: hidden !important;
+}
+
 /* CSS Variables */
 :root {
   --color-1: #1e1e48;

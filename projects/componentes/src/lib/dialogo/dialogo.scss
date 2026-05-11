@@ -4,69 +4,68 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(3px);
   animation: fadeIn 0.2s ease-out;
 }
 
 .dialogo-container {
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  background-color: #1e1e48;
+  color: #e8e8f0;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
   width: 90%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   animation: slideIn 0.3s ease-out;
-  border: 1px solid #e5e7eb;
+  border: 1px solid rgba(125, 126, 170, 0.4);
 }
 
 .dialogo-header {
-  padding: 16px 24px;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   justify-content: space-between;
   align-items: center;
 
   h3 {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     font-weight: 600;
-    color: #111827;
+    color: #fff;
   }
 
   .btn-close {
     background: none;
     border: none;
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     line-height: 1;
     cursor: pointer;
-    color: #6b7280;
-    padding: 4px;
-    border-radius: 4px;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 4px 10px;
+    border-radius: 6px;
     transition:
-      color 0.2s,
-      background-color 0.2s;
+      color 0.15s,
+      background-color 0.15s;
 
     &:hover {
-      color: #111827;
-      background-color: #f3f4f6;
+      color: #fff;
+      background-color: rgba(255, 255, 255, 0.08);
     }
   }
 }
 
 .dialogo-body {
-  padding: 24px;
+  padding: 20px 22px;
   overflow-y: auto;
-  color: #374151;
-  font-size: 1rem;
+  color: #cfd0e0;
+  font-size: 0.95rem;
   line-height: 1.5;
 
   p {
@@ -75,9 +74,9 @@
 }
 
 .dialogo-footer {
-  padding: 16px 24px;
-  background-color: #f9fafb;
-  border-top: 1px solid #e5e7eb;
+  padding: 14px 20px;
+  background-color: rgba(0, 0, 0, 0.18);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   justify-content: flex-end;
   gap: 12px;

@@ -1,0 +1,28 @@
+<footer class="footer">
+  <span class="version">v{{ version }}</span>
+  <span class="separator">·</span>
+  <button class="link" type="button" (click)="abrir()">Changelog</button>
+</footer>
+
+<dialog
+  #dialogEl
+  class="changelog-dialog"
+  (click)="onDialogClick($event)"
+>
+  <div class="dialog-content">
+    <header class="dialog-header">
+      <h3>Changelog</h3>
+      <button
+        class="btn-close"
+        type="button"
+        aria-label="Cerrar"
+        (click)="cerrar()"
+      >×</button>
+    </header>
+    <div class="dialog-body">
+      @if (cargado()) {
+        <markdown class="changelog-md" [src]="changelogUrl()" />
+      }
+    </div>
+  </div>
+</dialog>

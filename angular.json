@@ -27,6 +27,11 @@
               {
                 "glob": "**/*",
                 "input": "projects/perfil-personal/public"
+              },
+              {
+                "glob": "CHANGELOG.md",
+                "input": ".",
+                "output": "/"
               }
             ],
             "styles": [
@@ -207,6 +212,11 @@
               {
                 "glob": "**/*",
                 "input": "projects/comidas/public"
+              },
+              {
+                "glob": "CHANGELOG.md",
+                "input": ".",
+                "output": "/"
               }
             ],
             "styles": [

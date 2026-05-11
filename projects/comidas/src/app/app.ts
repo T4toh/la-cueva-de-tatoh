@@ -12,13 +12,13 @@ import { filter } from 'rxjs';
 import { Capacitor } from '@capacitor/core';
 import { UpdateService } from './services/update.service';
 import { AuthService } from './services/auth.service';
-import { Dialogo } from 'componentes';
+import { Dialogo, Footer } from 'componentes';
 import { DialogService } from './services/dialog.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterModule, AsyncPipe, Dialogo],
+  imports: [RouterModule, AsyncPipe, Dialogo, Footer],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

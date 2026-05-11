@@ -20,3 +20,7 @@ export * from './lib/generador-qr/generador-qr';
 export * from './lib/libro/libro';
 // Dialogo
 export * from './lib/dialogo/dialogo';
+// Footer
+export * from './lib/footer/footer';
+// Version
+export * from './lib/version';

@@ -32,6 +32,12 @@ html {
   color: white;
 }
 
+body.modal-open,
+body.modal-open .body,
+body.modal-open .main {
+  overflow: hidden !important;
+}
+
 /* Custom Scrollbar Styles */
 ::-webkit-scrollbar {
   width: 8px;

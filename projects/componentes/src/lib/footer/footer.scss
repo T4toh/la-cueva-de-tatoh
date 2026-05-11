@@ -1,0 +1,192 @@
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.55);
+
+  .version {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  .separator {
+    opacity: 0.5;
+  }
+
+  .link {
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    font: inherit;
+    transition: color 0.15s ease;
+
+    &:hover,
+    &:focus-visible {
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    &:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.4);
+      outline-offset: 3px;
+      border-radius: 2px;
+    }
+  }
+}
+
+.changelog-dialog {
+  padding: 0;
+  border: 1px solid rgba(125, 126, 170, 0.4);
+  border-radius: 12px;
+  background: #1e1e48;
+  color: #e8e8f0;
+  max-width: 720px;
+  width: 90vw;
+  max-height: 85vh;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(3px);
+  }
+
+  &[open] {
+    animation: dialogIn 0.2s ease-out;
+  }
+}
+
+@keyframes dialogIn {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dialog-content {
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+  h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .btn-close {
+    background: none;
+    border: none;
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 4px 10px;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+
+    &:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+  }
+}
+
+.dialog-body {
+  padding: 20px 22px;
+  overflow-y: auto;
+}
+
+::ng-deep markdown.changelog-md {
+  display: block;
+  color: #cfd0e0;
+  font-family: inherit;
+  font-size: 0.92rem;
+  line-height: 1.55;
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: #f3f3f8;
+    font-weight: 600;
+    border: none;
+    background: none;
+  }
+
+  h1 {
+    display: none;
+  }
+
+  h2 {
+    font-size: 1.15rem;
+    margin: 1.4rem 0 0.6rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  h3 {
+    font-size: 1rem;
+    margin: 1.1rem 0 0.4rem;
+    color: #b2b3d7;
+  }
+
+  h4 {
+    font-size: 0.85rem;
+    margin: 0.9rem 0 0.35rem;
+    color: #8d8eb8;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  p {
+    margin: 0.4rem 0;
+    color: inherit;
+  }
+
+  ul {
+    margin: 0.25rem 0 0.9rem;
+    padding-left: 1.2rem;
+    list-style-type: disc;
+  }
+
+  li {
+    margin-bottom: 0.25rem;
+    color: inherit;
+  }
+
+  code {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e3e3f5;
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  a {
+    color: #7ad7ff;
+    text-decoration: underline;
+
+    &:hover {
+      color: #a9e8ff;
+    }
+  }
+}
