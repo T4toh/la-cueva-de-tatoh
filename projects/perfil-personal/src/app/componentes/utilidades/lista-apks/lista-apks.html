@@ -19,6 +19,9 @@
           <span class="version-label">Versión:</span>
           <span class="version-numero">{{ apk.version }}</span>
         </div>
+        @if (apk.nota) {
+        <span class="apk-nota">{{ apk.nota }}</span>
+        }
       </div>
       <div class="apk-footer">
         <a
@@ -28,8 +31,13 @@
           [href]="apk.url"
           [style.background-color]="apk.color"
         >
+          @if (apk.tipo === 'desktop') {
+          <span class="download-icon">↗</span>
+          Ver en GitHub
+          } @else {
           <span class="download-icon">⬇</span>
           Descargar APK
+          }
         </a>
       </div>
     </div>
