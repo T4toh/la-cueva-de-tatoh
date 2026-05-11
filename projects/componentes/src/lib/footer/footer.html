@@ -1,0 +1,13 @@
+<footer class="footer">
+  <span class="version">v{{ version }}</span>
+  <span class="separator">·</span>
+  <button class="link" type="button" (click)="abrir()">Changelog</button>
+</footer>
+
+<lib-dialogo
+  ancho="720px"
+  titulo="Changelog"
+  [(visible)]="mostrarChangelog"
+>
+  <markdown class="changelog-md" [src]="changelogUrl()" />
+</lib-dialogo>
