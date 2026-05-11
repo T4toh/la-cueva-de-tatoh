@@ -78,7 +78,7 @@
 @media (max-width: 768px) {
   .navigator
     a:not([routerLink='/blog']):not([routerLink='/utilidades']):not(
-      [href='/comidas/']
+      [href*='comidas.tatoh.ar']
     ) {
     display: none;
   }
