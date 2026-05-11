@@ -2,8 +2,9 @@
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "la-cueva-de-tatoh",
   "compatibility_date": "2025-05-11",
+  "main": "worker.js",
   "assets": {
     "directory": "../../dist/perfil-personal/browser",
-    "not_found_handling": "single-page-application"
+    "binding": "ASSETS"
   }
 }
