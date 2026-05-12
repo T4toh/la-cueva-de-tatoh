@@ -10,9 +10,12 @@ import { MarkdownModule } from 'ngx-markdown';
 
 import { routes } from './app.routes';
 import { provideServiceWorker } from '@angular/service-worker';
-import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
+import { getApp, initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { getAuth, provideAuth } from '@angular/fire/auth';
-import { getFirestore, provideFirestore } from '@angular/fire/firestore';
+import {
+  initializeFirestore,
+  provideFirestore,
+} from '@angular/fire/firestore';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyAcnGibMP9J5tdak-XsFcdZAXDSXKZN3tM',
@@ -36,6 +39,10 @@ export const appConfig: ApplicationConfig = {
     }),
     provideFirebaseApp(() => initializeApp(firebaseConfig)),
     provideAuth(() => getAuth()),
-    provideFirestore(() => getFirestore()),
+    provideFirestore(() =>
+      initializeFirestore(getApp(), {
+        experimentalAutoDetectLongPolling: true,
+      }),
+    ),
   ],
 };
