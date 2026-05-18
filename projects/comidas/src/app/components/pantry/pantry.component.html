@@ -1,7 +1,10 @@
 <div class="pantry-container">
   <div class="header">
     <div>
-      <h1>🥫 Despensa</h1>
+      <h1>
+        <lib-icon name="package" [size]="24" />
+        <span>Despensa</span>
+      </h1>
       <p class="subtitle">Lo que tenés en casa ahora mismo</p>
     </div>
     <div class="header-actions">
@@ -11,7 +14,8 @@
         type="button"
         (click)="clearPantry()"
       >
-        🗑️ Vaciar
+        <lib-icon name="trash-2" [size]="16" />
+        <span>Vaciar</span>
       </button>
       <button
         class="btn-primary"
@@ -19,7 +23,10 @@
         type="button"
         (click)="applyCartToPantry()"
       >
-        🛒→🥫 Restar carrito
+        <lib-icon name="shopping-cart" [size]="16" />
+        <lib-icon name="arrow-right" [size]="14" />
+        <lib-icon name="package" [size]="16" />
+        <span>Restar carrito</span>
       </button>
     </div>
   </div>
@@ -92,10 +99,10 @@
       @if (itemsByGroup(group.id).length > 0) {
         <div
           class="group-section"
-          [style.border-left-color]="group.color || 'var(--color-5)'"
+          [style.border-left-color]="group.color || 'var(--fg-secondary)'"
         >
           <div class="group-header">
-            <h3 [style.color]="group.color || 'var(--color-5)'">
+            <h3 [style.color]="group.color || 'var(--fg-secondary)'">
               {{ group.name }}
             </h3>
             <div class="group-header-actions">

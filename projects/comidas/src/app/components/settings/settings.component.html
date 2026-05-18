@@ -4,7 +4,7 @@
   <!-- Auth Panel - Oculto en Android -->
   @if (!isAndroid) {
     <lib-panel
-      [colorFondo]="'var(--color-1)'"
+      [colorFondo]="'var(--bg-surface)'"
       [colorTexto]="'white'"
       [sombreado]="true"
       [texto]="'Sincronización en la Nube'"
@@ -20,23 +20,34 @@
             <div class="sync-status">
               @switch (mealService.syncStatus()) {
                 @case ('synced') {
-                  <span class="status-badge synced">✓ Sincronizado</span>
+                  <span class="status-badge synced">
+                    <lib-icon name="check" [size]="14" />
+                    <span>Sincronizado</span>
+                  </span>
                 }
                 @case ('loading') {
-                  <span class="status-badge loading">⏳ Sincronizando...</span>
+                  <span class="status-badge loading">
+                    <lib-icon name="refresh-cw" [size]="14" />
+                    <span>Sincronizando...</span>
+                  </span>
                 }
                 @case ('local-newer') {
                   <span class="status-badge local-newer">
-                    📤 Subiendo datos locales...
+                    <lib-icon name="upload" [size]="14" />
+                    <span>Subiendo datos locales...</span>
                   </span>
                 }
                 @case ('error') {
                   <span class="status-badge error">
-                    ⚠️ Error de sincronización
+                    <lib-icon name="triangle-alert" [size]="14" />
+                    <span>Error de sincronización</span>
                   </span>
                 }
                 @case ('offline') {
-                  <span class="status-badge offline">📴 Sin conexión</span>
+                  <span class="status-badge offline">
+                    <lib-icon name="wifi-off" [size]="14" />
+                    <span>Sin conexión</span>
+                  </span>
                 }
               }
               <p class="last-updated">
@@ -45,10 +56,12 @@
             </div>
 
             <button class="btn-secondary" type="button" (click)="refreshData()">
-              🔄 Descargar de la Nube
+              <lib-icon name="refresh-cw" [size]="16" />
+              <span>Descargar de la Nube</span>
             </button>
             <button class="btn-secondary" type="button" (click)="forceUpload()">
-              📤 Subir a la Nube
+              <lib-icon name="upload" [size]="16" />
+              <span>Subir a la Nube</span>
             </button>
             <button class="btn-danger" type="button" (click)="logout()">
               Cerrar Sesión
@@ -76,9 +89,9 @@
   }
 
   <lib-panel
-    [colorFondo]="'var(--color-3)'"
-    [colorTexto]="'white'"
-    [sombreado]="true"
+    [colorFondo]="'var(--bg-surface)'"
+    [colorTexto]="'var(--fg-primary)'"
+    [sombreado]="false"
     [texto]="'Gestión de Datos Local'"
   >
     <div class="settings-content">
@@ -93,11 +106,13 @@
           type="button"
           (click)="mealService.exportData()"
         >
-          📤 Exportar JSON
+          <lib-icon name="upload" [size]="16" />
+          <span>Exportar JSON</span>
         </button>
 
         <label class="btn-secondary">
-          📥 Importar JSON
+          <lib-icon name="download" [size]="16" />
+          <span>Importar JSON</span>
           <input
             accept=".json"
             style="display: none"
@@ -110,9 +125,9 @@
   </lib-panel>
 
   <lib-panel
-    [colorFondo]="'var(--color-2)'"
-    [colorTexto]="'white'"
-    [sombreado]="true"
+    [colorFondo]="'var(--bg-surface)'"
+    [colorTexto]="'var(--fg-primary)'"
+    [sombreado]="false"
     [texto]="'Comidas'"
   >
     <div class="settings-content">
@@ -128,11 +143,13 @@
           type="button"
           (click)="mealService.exportMeals()"
         >
-          📤 Exportar comidas
+          <lib-icon name="upload" [size]="16" />
+          <span>Exportar comidas</span>
         </button>
 
         <label class="btn-secondary">
-          📥 Importar comidas
+          <lib-icon name="download" [size]="16" />
+          <span>Importar comidas</span>
           <input
             accept=".json"
             style="display: none"
@@ -147,7 +164,13 @@
           [class.btn-copied]="promptCopied()"
           (click)="copyLLMPrompt()"
         >
-          {{ promptCopied() ? '✅ ¡Copiado!' : '🤖 Generar prompt para IA' }}
+          @if (promptCopied()) {
+            <lib-icon name="check" [size]="16" />
+            <span>¡Copiado!</span>
+          } @else {
+            <lib-icon name="sparkles" [size]="16" />
+            <span>Generar prompt para IA</span>
+          }
         </button>
         <p class="hint">
           Copiá el prompt, pegalo en tu IA favorita y pedile que complete las

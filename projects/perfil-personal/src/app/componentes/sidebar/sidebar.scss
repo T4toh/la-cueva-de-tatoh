@@ -7,101 +7,106 @@
     'main' 1fr
     'footer' auto
     / auto;
-  gap: 5px;
+  gap: 0;
+  padding: 1.5rem 1.25rem;
+  box-sizing: border-box;
 }
 
 .header {
   grid-area: header;
-  max-width: 180px;
-  margin: 0 auto;
+  max-width: 160px;
+  margin: 0 auto 1.5rem;
 }
 
 .main {
   grid-area: main;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  gap: 10px;
+  gap: 2rem;
   overflow-y: auto;
   overflow-x: hidden;
   min-height: 0;
 }
 
-.panel-section {
-  flex: 0 0 auto;
+.section-title {
+  margin: 0 0 0.75rem 0;
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+}
+
+.bio-section {
+  .bio {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: var(--fg-secondary);
+    font-size: 0.95rem;
+    line-height: var(--lh-snug);
+  }
 }
 
 .posts-recientes-section {
-  flex: 0 0 auto;
-
-  .section-title {
-    color: white;
-    font-size: 1.2rem;
-    font-weight: 600;
-    margin: 0 0 10px 0;
-    padding: 0 10px;
-  }
-
   .posts-list {
     display: flex;
     flex-direction: column;
-    gap: 5px;
   }
 
   .post-link {
     text-decoration: none;
     color: inherit;
-    transition: transform 0.2s ease;
-
-    &:hover {
-      transform: translateX(5px);
-    }
   }
 
   .post-item {
-    background: rgba(30, 30, 72, 0.4);
-    padding: 10px 12px;
-    border-radius: 8px;
-    border-left: 3px solid var(--color-4);
-    transition: all 0.3s ease;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-subtle);
     display: flex;
     flex-direction: column;
-    gap: 5px;
-
-    &:hover {
-      background: rgba(30, 30, 72, 0.6);
-      border-left-color: var(--color-5);
-    }
+    gap: 0.2rem;
+    transition: color 0.2s ease;
 
     .post-title {
-      color: white;
-      font-size: 0.9rem;
+      color: var(--fg-primary);
+      font-family: var(--font-serif);
+      font-size: 0.95rem;
       font-weight: 500;
       line-height: 1.3;
+      transition: color 0.2s ease;
     }
 
     .post-date {
-      color: var(--color-5);
-      font-size: 0.75rem;
-      font-style: italic;
+      color: var(--fg-muted);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
     }
+  }
+
+  .post-link:hover .post-title {
+    color: var(--accent);
+  }
+
+  .posts-list .post-link:last-child .post-item {
+    border-bottom: none;
   }
 }
 
 .skills-section {
-  flex: 0 0 auto;
-  display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  gap: 5px;
-  padding: 0 5px;
+  .skills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
 }
 
 .tags-section {
-  flex: 0 0 auto;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
+  .tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
 }
 
 .footer {
@@ -110,8 +115,8 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 6px;
-  padding: 6px 0 2px;
+  gap: 0.75rem;
+  padding-top: 1.5rem;
 
   lib-redes {
     display: flex;
@@ -121,9 +126,9 @@
 
   .divisor {
     border: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
-    margin: 4px 12px 0;
-    width: auto;
+    border-top: 1px solid var(--border-subtle);
+    margin: 0;
+    width: 100%;
   }
 
   lib-footer ::ng-deep .footer {

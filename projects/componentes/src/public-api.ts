@@ -22,5 +22,7 @@ export * from './lib/libro/libro';
 export * from './lib/dialogo/dialogo';
 // Footer
 export * from './lib/footer/footer';
+// Icon
+export * from './lib/icon/icon';
 // Version
 export * from './lib/version';

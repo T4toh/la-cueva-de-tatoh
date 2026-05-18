@@ -3,18 +3,9 @@
     <lib-avatar imagenUrl="LSK-A.jpg" nombre="Ignacio Martín Arano" />
   </div>
   <div class="main">
-    <!-- Breve descripción de mi persona  -->
-    <div class="panel-section">
-      <lib-panel
-        [colapsable]="true"
-        [colapsado]="true"
-        [colorFondo]="'#5b5c9a'"
-        [colorTexto]="'white'"
-        [negrita]="false"
-        [sombreado]="true"
-        [texto]="descripcion()"
-        [transparente]="true"
-      />
+    <!-- Breve descripción -->
+    <div class="bio-section">
+      <p class="bio">{{ descripcion() }}</p>
     </div>
 
     <!-- Posts recientes -->
@@ -32,27 +23,28 @@
       </div>
     </div>
 
-    <!-- skills  -->
+    <!-- skills -->
     <div class="skills-section">
-      @for (s of skills(); track $index) {
-      <lib-skill-bar
-        [color]="s.color"
-        [nivel]="s.nivel"
-        [skill]="s.skill"
-        [textColor]="s.textColor"
-      />
-      }
+      <h3 class="section-title">Stack</h3>
+      <div class="skills-list">
+        @for (s of skills(); track $index) {
+        <lib-skill-bar
+          [color]="s.color"
+          [nivel]="s.nivel"
+          [skill]="s.skill"
+          [textColor]="s.textColor"
+        />
+        }
+      </div>
     </div>
-    <!-- intereses / tags -->
+    <!-- intereses -->
     <div class="tags-section">
-      @for (i of intereses(); track $index) {
-      <lib-tag
-        [colorFondo]="i.color"
-        [colorTexto]="i.textColor"
-        [icono]="i.icono"
-        [texto]="i.nombre"
-      />
-      }
+      <h3 class="section-title">Intereses</h3>
+      <div class="tags-list">
+        @for (i of intereses(); track $index) {
+        <lib-tag [texto]="i.nombre" />
+        }
+      </div>
     </div>
   </div>
   <div class="footer">

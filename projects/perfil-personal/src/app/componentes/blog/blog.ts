@@ -1,4 +1,5 @@
 import { Component, computed, signal } from '@angular/core';
+import { Icon } from 'componentes';
 import { PostCard } from '../post-card/post-card';
 import { Post, POSTS } from 'projects/perfil-personal/src/variables';
 
@@ -19,7 +20,7 @@ type SortOrder = 'asc' | 'desc';
 
 @Component({
   selector: 'app-blog',
-  imports: [PostCard],
+  imports: [PostCard, Icon],
   templateUrl: './blog.html',
   styleUrl: './blog.scss',
 })

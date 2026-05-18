@@ -7,13 +7,13 @@ import {
   Validators,
 } from '@angular/forms';
 import { MealService } from '../../services/meal.service';
-import { Tag } from 'componentes';
+import { Icon, Tag } from 'componentes';
 import { DialogService } from '../../services/dialog.service';
 
 @Component({
   selector: 'app-shopping-list',
   standalone: true,
-  imports: [ReactiveFormsModule, Tag],
+  imports: [ReactiveFormsModule, Tag, Icon],
   templateUrl: './shopping-list.component.html',
   styleUrls: ['./shopping-list.component.scss'],
 })

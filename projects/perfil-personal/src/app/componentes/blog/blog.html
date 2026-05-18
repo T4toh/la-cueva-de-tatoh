@@ -16,7 +16,9 @@
           [class.active]="sortBy() === 'date'"
           (click)="sortByDate()"
         >
-          📅 Fecha @if (sortBy() === 'date') {
+          <lib-icon name="calendar" [size]="14" />
+          <span>Fecha</span>
+          @if (sortBy() === 'date') {
           <span class="sort-indicator">
             {{ sortOrder() === 'desc' ? '↓' : '↑' }}
           </span>
@@ -28,7 +30,9 @@
           [class.active]="sortBy() === 'name'"
           (click)="sortByName()"
         >
-          🔤 Nombre @if (sortBy() === 'name') {
+          <lib-icon name="arrow-down-a-z" [size]="14" />
+          <span>Nombre</span>
+          @if (sortBy() === 'name') {
           <span class="sort-indicator">
             {{ sortOrder() === 'desc' ? '↓' : '↑' }}
           </span>
@@ -36,7 +40,10 @@
         </button>
 
         @if (sortBy() !== 'none' || selectedTag()) {
-        <button class="clear-btn" (click)="clearFilters()">✕ Limpiar</button>
+        <button class="clear-btn" (click)="clearFilters()">
+          <lib-icon name="x" [size]="14" />
+          <span>Limpiar</span>
+        </button>
         }
       </div>
 

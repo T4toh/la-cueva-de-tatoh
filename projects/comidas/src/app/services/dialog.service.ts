@@ -43,7 +43,7 @@ export class DialogService {
           {
             texto: 'Confirmar',
             estilo: 'normal',
-            color: 'var(--color-3)',
+            color: 'var(--accent)',
             accion: (): void => {
               this.close();
               resolve(true);
@@ -62,7 +62,7 @@ export class DialogService {
         {
           texto: 'Aceptar',
           estilo: 'normal',
-          color: 'var(--color-3)',
+          color: 'var(--accent)',
           accion: (): void => {
             this.close();
           },

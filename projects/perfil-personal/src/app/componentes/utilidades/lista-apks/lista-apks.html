@@ -7,9 +7,9 @@
   <div class="apks-grid">
     @for (apk of apks(); track apk.nombre) {
     <div class="apk-card">
-      <div class="apk-header" [style.background-color]="apk.color">
+      <div class="apk-header" [style.border-left-color]="apk.color">
         @if (apk.icono) {
-        <span class="apk-icono">{{ apk.icono }}</span>
+        <span class="apk-icono"><lib-icon [name]="apk.icono" [size]="20" /></span>
         }
         <h3 class="apk-nombre">{{ apk.nombre }}</h3>
       </div>
@@ -29,14 +29,13 @@
           rel="noopener noreferrer"
           target="_blank"
           [href]="apk.url"
-          [style.background-color]="apk.color"
         >
           @if (apk.tipo === 'desktop') {
-          <span class="download-icon">↗</span>
-          Ver en GitHub
+          <lib-icon name="external-link" [size]="16" />
+          <span>Ver en GitHub</span>
           } @else {
-          <span class="download-icon">⬇</span>
-          Descargar APK
+          <lib-icon name="download" [size]="16" />
+          <span>Descargar APK</span>
           }
         </a>
       </div>

@@ -1,12 +1,12 @@
 import { Component, input, output } from '@angular/core';
 
 import { Meal } from '../../models/meal.model';
-import { Panel, Tag } from 'componentes';
+import { Icon, Panel, Tag } from 'componentes';
 
 @Component({
   selector: 'app-meal-card',
   standalone: true,
-  imports: [Panel, Tag],
+  imports: [Panel, Tag, Icon],
   templateUrl: './meal-card.component.html',
   styleUrls: ['./meal-card.component.scss'],
 })

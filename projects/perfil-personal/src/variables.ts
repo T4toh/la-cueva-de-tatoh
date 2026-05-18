@@ -78,12 +78,14 @@ export const REDES: Red[] = [
   { nombre: 'linkedin', usuario: 'in/ignacio-martín-arano-ba787353' },
 ];
 
+import type { IconName } from 'componentes';
+
 export type Apk = {
   nombre: string;
   descripcion: string;
   version: string;
   url: string;
-  icono?: string;
+  icono?: IconName;
   color: string;
   tipo?: 'android' | 'desktop';
   nota?: string;
@@ -95,7 +97,7 @@ export const APKS: Apk[] = [
     descripcion: 'OCR orientado al Japonés',
     version: 'v0.0.4',
     url: 'https://github.com/T4toh/Kanji-no-Ryoushi/releases/download/v0.0.4/kanji_no_ryoushi.apk',
-    icono: '🎣 🗾',
+    icono: 'languages',
     color: 'indigo',
   },
   {
@@ -103,7 +105,7 @@ export const APKS: Apk[] = [
     descripcion: 'Nombre autodescriptivo',
     version: 'v0.0.1',
     url: 'https://github.com/T4toh/contador-de-truco/releases/download/v0.0.1/contador_de_truco.apk',
-    icono: '⚔️',
+    icono: 'swords',
     color: 'midnightblue',
   },
   {
@@ -112,7 +114,7 @@ export const APKS: Apk[] = [
       'Editor de novelas con conversor de diálogos RAE y export a EPUB. Tauri 2 + Angular.',
     version: 'alpha',
     url: 'https://github.com/T4toh/tWriter',
-    icono: '✒️',
+    icono: 'pen-tool',
     color: '#4a3a8e',
     tipo: 'desktop',
     nota: 'Pronto en AUR',

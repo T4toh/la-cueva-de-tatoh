@@ -1,14 +1,14 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MarkdownComponent } from 'ngx-markdown';
-import { Boton } from 'componentes';
+import { Icon } from 'componentes';
 
 import { HttpClient } from '@angular/common/http';
 import { type Post, POSTS } from 'projects/perfil-personal/src/variables';
 
 @Component({
   selector: 'app-post-view',
-  imports: [MarkdownComponent, Boton],
+  imports: [MarkdownComponent, RouterLink, Icon],
   templateUrl: './post-view.html',
   styleUrl: './post-view.scss',
 })
@@ -39,27 +39,19 @@ export class PostView implements OnInit {
   private extractTitleFromMarkdown(src: string): void {
     this.http.get(src, { responseType: 'text' }).subscribe({
       next: (markdownContent) => {
-        // Buscar la primera línea que comience con #
         const lines = markdownContent.split('\n');
         const titleLine = lines.find((line) => line.trim().startsWith('# '));
 
         if (titleLine) {
-          // Remover el # y espacios
           const title = titleLine.replace(/^#\s+/, '').trim();
           this.extractedTitle.set(title);
         } else {
-          // Fallback al título hardcodeado si no se encuentra H1
           this.extractedTitle.set(this.currentPost()?.title || '');
         }
       },
       error: () => {
-        // Fallback al título hardcodeado en caso de error
         this.extractedTitle.set(this.currentPost()?.title || '');
       },
     });
-  }
-
-  volverABlog(): void {
-    this.router.navigate(['/blog']);
   }
 }

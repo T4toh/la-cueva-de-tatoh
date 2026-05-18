@@ -4,31 +4,27 @@
   display: grid;
   grid:
     'sidebar body' 1fr
-    / 0.2fr 0.8fr;
-  gap: 8px;
+    / 280px 1fr;
+  gap: 0;
   overflow: hidden;
-  padding: 5px;
   box-sizing: border-box;
 }
 
 .sidebar {
   grid-area: sidebar;
-  border-radius: 15px;
-  overflow: hidden;
-  backdrop-filter: blur(2px);
   height: 100%;
+  overflow-y: auto;
+  border-right: 1px solid var(--border-subtle);
+  background: var(--bg-base);
 }
 
 .body {
   grid-area: body;
-  border-radius: 15px;
   overflow-y: auto;
   overflow-x: hidden;
-  backdrop-filter: blur(2px);
   height: 100%;
 }
 
-// Responsivo: ocultar sidebar en pantallas pequeñas
 @media (max-width: 768px) {
   .layout {
     grid:

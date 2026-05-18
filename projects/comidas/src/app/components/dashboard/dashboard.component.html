@@ -1,9 +1,10 @@
 <div class="dashboard-container">
   @if (mealService.migrationOccurred()) {
     <div class="migration-banner">
-      <span>
-        ⚠️ Tus datos fueron actualizados al nuevo formato. Si algo falla,
-        exportá un backup desde Configuración.
+      <span class="banner-content">
+        <lib-icon name="triangle-alert" [size]="18" />
+        <span>Tus datos fueron actualizados al nuevo formato. Si algo falla,
+        exportá un backup desde Configuración.</span>
       </span>
       <button type="button" (click)="dismissMigrationBanner()">×</button>
     </div>
@@ -106,10 +107,10 @@
         [class.is-past]="isPast(day.dayName)"
         [class.is-today]="isToday(day.dayName)"
         [colorFondo]="
-          isToday(day.dayName) ? 'var(--color-2)' : 'var(--color-3)'
+          isToday(day.dayName) ? 'var(--bg-surface-raised)' : 'var(--bg-surface)'
         "
-        [colorTexto]="'white'"
-        [sombreado]="true"
+        [colorTexto]="'var(--fg-primary)'"
+        [sombreado]="false"
         [texto]="day.dayName + (isToday(day.dayName) ? ' (Hoy)' : '')"
       >
         <div class="meal-slots">
