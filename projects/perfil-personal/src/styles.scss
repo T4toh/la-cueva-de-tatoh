@@ -2,40 +2,89 @@
 
 body,
 html {
-  font-family: 'Libre Franklin', sans-serif;
+  font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
   font-optical-sizing: auto;
-  // Toda la pantalla
   min-height: 100vh;
   width: 100%;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   overflow-x: hidden;
-  // Imagen de fondo
-  background: url('../public/fondos/fondo.webp') no-repeat center center fixed;
-  background-size: cover;
+  background-color: var(--bg-base, #14151a);
+  color: var(--fg-primary, #ecebe7);
 }
 
-/* CSS Variables */
+/* CSS Variables — tema editorial dark sobrio */
 :root {
-  --color-1: #1e1e48;
-  --color-2: #3e3f7e;
-  --color-3: #5b5c9a;
-  --color-4: #7d7eaa;
-  --color-5: #b2b3d7;
+  /* Surfaces (grafito) */
+  --bg-base: #14151a;
+  --bg-surface: #1c1d23;
+  --bg-surface-raised: #24262e;
+  --bg-overlay: rgba(20, 21, 26, 0.72);
 
-  --gris-copado: #fafafa;
-}
+  /* Foreground (off-white cálido) */
+  --fg-primary: #ecebe7;
+  --fg-secondary: #c4c2bb;
+  --fg-muted: #8a887f;
+  --fg-on-accent: #14151a;
 
-.bg-30 {
-  background-color: rgba(30, 30, 72, 0.3);
-  color: white;
+  /* Borders */
+  --border-subtle: rgba(236, 235, 231, 0.08);
+  --border-default: rgba(236, 235, 231, 0.14);
+  --border-strong: rgba(236, 235, 231, 0.22);
+
+  /* Accent (violeta apagado) */
+  --accent: #8b8bd6;
+  --accent-hover: #a0a0e0;
+  --accent-muted: rgba(139, 139, 214, 0.14);
+  --accent-strong: #6f6fbf;
+
+  /* Feedback */
+  --danger: #d97a7a;
+  --success: #7aa886;
+  --warning: #d9b06a;
+
+  /* Focus */
+  --focus-ring: 0 0 0 2px var(--accent);
+
+  /* Tipografía */
+  --font-serif: 'EB Garamond', Georgia, serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  --fs-display: clamp(2.25rem, 4vw + 0.5rem, 3.25rem);
+  --fs-h1: clamp(1.75rem, 2.5vw + 0.5rem, 2.5rem);
+  --fs-h2: 1.5rem;
+  --fs-h3: 1.25rem;
+  --fs-body: 1rem;
+  --fs-meta: 0.875rem;
+  --fs-caption: 0.75rem;
+  --lh-tight: 1.2;
+  --lh-snug: 1.45;
+  --lh-prose: 1.7;
+  --tracking-caps: 0.08em;
+  --tracking-meta: 0.02em;
+
+  /* Layout */
+  --measure: 68ch;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
 }
 
 body.modal-open,
 body.modal-open .body,
 body.modal-open .main {
   overflow: hidden !important;
+}
+
+/* Cualquier botón / link / label con lib-icon adentro: centrar verticalmente */
+button:has(lib-icon),
+a:has(lib-icon),
+label:has(lib-icon) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 /* Custom Scrollbar Styles */
@@ -48,117 +97,172 @@ body.modal-open .main {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-2);
+  background: var(--accent-strong);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-3);
+  background: var(--accent);
 }
 
-/* Aplica estilos solo dentro del componente markdown */
+/* Markdown — tipografía editorial */
 markdown {
   display: block;
-  color: #fff; /* blanco para que contraste con el fondo oscuro */
-  font-family: system-ui, sans-serif;
-  line-height: 1.6;
+  color: var(--fg-primary);
+  font-family: var(--font-serif);
+  font-size: 1.0625rem;
+  line-height: var(--lh-prose);
   max-width: 100%;
   margin: 0;
   padding: 0;
 }
 
-/* Ocultar el primer H1 para evitar duplicación con el título del header */
+markdown p {
+  margin: 0 0 1.1rem;
+}
+
+/* Ocultar el primer H1 (ya mostrado en el header del post) */
 markdown h1:first-child {
   display: none;
 }
 
-/* Titulos */
 markdown h1,
 markdown h2,
-markdown h3 {
-  margin-top: 1.5rem;
-  margin-bottom: 0.5rem;
-  font-weight: bold;
+markdown h3,
+markdown h4 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--fg-primary);
 }
 
 markdown h1 {
-  font-size: 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  padding-bottom: 0.3rem;
+  font-size: 1.9rem;
+  margin-top: 2.5rem;
+  margin-bottom: 0.6rem;
 }
 
 markdown h2 {
-  font-size: 1.5rem;
+  font-size: 1.55rem;
+  margin-top: 2.5rem;
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 markdown h3 {
-  font-size: 1.3rem;
-  font-weight: 600;
+  font-size: 1.25rem;
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+markdown h4 {
+  font-size: 1.05rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.4rem;
 }
 
 /* Código inline */
 markdown code {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 2px 4px;
-  border-radius: 4px;
-  font-family: monospace;
-  font-size: 0.9rem;
+  background: var(--bg-surface-raised);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  color: var(--fg-secondary);
 }
 
 /* Bloques de código */
 markdown pre {
-  background: rgba(0, 0, 0, 0.6);
-  padding: 1rem;
-  border-radius: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  padding: 1.25rem;
+  border-radius: var(--radius-md);
   overflow-x: auto;
-  margin: 1rem 0;
+  margin: 1.25rem 0;
 }
 
 markdown pre code {
   background: none;
-  color: #e3e3e3;
-  font-size: 0.9rem;
+  padding: 0;
+  border-radius: 0;
+  color: var(--fg-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
 }
 
-/* Bloques de código personalizados */
-markdown pre.language-estructura code,
-markdown pre.language-estructura {
-  background: var(--color-2);
-  color: #ffffff;
+/* Bloques personalizados */
+markdown pre.language-estructura,
+markdown pre.language-estructura code {
+  background: var(--accent-muted);
+  border-left: 3px solid var(--accent);
+  color: var(--fg-primary);
   font-weight: 500;
+  font-family: var(--font-mono);
 }
 
-markdown pre.language-traduccion code,
-markdown pre.language-traduccion {
+markdown pre.language-traduccion,
+markdown pre.language-traduccion code {
+  font-family: var(--font-serif);
   font-style: italic;
+  color: var(--fg-secondary);
 }
 
 /* Listas */
+markdown ul,
+markdown ol {
+  padding-left: 1.5rem;
+  margin: 0 0 1.1rem;
+}
+
 markdown ul {
   list-style-type: disc;
-  padding-left: 1.5rem;
 }
 
 markdown li {
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.35rem;
+}
+
+markdown li::marker {
+  color: var(--fg-muted);
 }
 
 /* Links */
 markdown a {
-  color: #7ad7ff;
+  color: var(--accent);
   text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease;
 }
 
 markdown a:hover {
-  color: #a9e8ff;
+  color: var(--accent-hover);
+}
+
+/* Quotes */
+markdown blockquote {
+  border-left: 3px solid var(--border-strong);
+  padding: 0.25rem 0 0.25rem 1.25rem;
+  margin: 1.25rem 0;
+  color: var(--fg-secondary);
+  font-style: italic;
+}
+
+markdown hr {
+  border: none;
+  border-top: 1px solid var(--border-subtle);
+  margin: 2.5rem 0;
 }
 
 /* Images in Markdown */
 markdown img {
-  max-width: 100%; /* Las imágenes no crecen más que el contenedor */
-  height: auto; /* Mantiene la proporción */
-  display: block; /* Evita espacios extra */
-  margin: 0 auto; /* Centra las imágenes */
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.5rem auto;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* Clases de utilidad para controlar tamaños de imágenes específicas */
@@ -194,63 +298,68 @@ markdown .book-showcase {
   align-items: flex-start;
   margin: 2rem 0;
   padding: 1.5rem;
-  background: rgba(30, 30, 72, 0.3);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
 }
 
 markdown .book-showcase .book-cover {
   flex-shrink: 0;
-  width: 250px;
+  width: 220px;
 }
 
 markdown .book-showcase .book-cover img {
   width: 100%;
   height: auto;
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  transition: transform 0.3s ease;
+  margin: 0;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s ease;
 }
 
 markdown .book-showcase .book-cover img:hover {
-  transform: scale(1.05);
+  transform: translateY(-2px);
 }
 
 markdown .book-showcase .book-info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 markdown .book-showcase .book-info h2 {
   margin-top: 0;
-  color: #fff;
+  margin-bottom: 0.25rem;
+  color: var(--fg-primary);
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 markdown .book-showcase .book-info p {
-  margin: 0.5rem 0;
-  line-height: 1.7;
+  margin: 0.4rem 0;
+  line-height: var(--lh-prose);
+  color: var(--fg-secondary);
 }
 
 markdown .book-showcase .book-info a {
   display: inline-block;
-  padding: 0.75rem 1.5rem;
-  background: var(--color-3);
-  color: white;
+  padding: 0.65rem 1.25rem;
+  background: var(--accent-strong);
+  color: var(--fg-primary);
   text-decoration: none;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 0.3s ease;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
   text-align: center;
-  margin-top: 1rem;
+  margin-top: 0.75rem;
   width: fit-content;
 }
 
 markdown .book-showcase .book-info a:hover {
-  background: var(--color-2);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(91, 92, 154, 0.4);
+  background: var(--accent);
 }
 
 /* Responsive: en móviles, cambiar a layout vertical */
@@ -276,34 +385,36 @@ markdown table {
   border-collapse: separate;
   border-spacing: 0;
   margin: 1.5rem 0;
-  background: rgba(30, 30, 72, 0.4);
-  border-radius: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 markdown th,
 markdown td {
-  padding: 12px 16px;
+  padding: 10px 14px;
   text-align: left;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-subtle);
   vertical-align: top;
 }
 
 markdown th {
-  background: rgba(30, 30, 72, 0.7);
-  font-weight: bold;
-  color: #ffffff;
-  font-size: 0.95rem;
+  background: var(--bg-surface-raised);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: var(--fg-primary);
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  letter-spacing: var(--tracking-caps);
+  border-bottom: 1px solid var(--border-default);
 }
 
 markdown td {
-  color: #e8e8e8;
+  font-family: var(--font-sans);
+  color: var(--fg-secondary);
   font-size: 0.9rem;
-  line-height: 1.4;
+  line-height: var(--lh-snug);
 }
 
 markdown tr:last-child td {
@@ -311,18 +422,18 @@ markdown tr:last-child td {
 }
 
 markdown tr:hover td {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-surface-raised);
 }
 
 /* Código dentro de tablas */
 markdown td code,
 markdown th code {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--bg-surface-raised);
   padding: 2px 6px;
-  border-radius: 4px;
-  font-family: monospace;
-  font-size: 0.85rem;
-  color: #f0f0f0;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--fg-primary);
 }
 
 /* Responsive: Convertir tablas en cards en móviles */
@@ -330,41 +441,40 @@ markdown th code {
   markdown table {
     border-spacing: 8px;
     background: transparent;
-    box-shadow: none;
+    border: none;
   }
 
   markdown thead {
-    display: none; /* Ocultar headers en móvil */
+    display: none;
   }
 
   markdown tr {
     display: block;
-    background: rgba(30, 30, 72, 0.4);
-    border-radius: 12px;
-    margin-bottom: 16px;
-    padding: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: 12px;
+    padding: 14px;
   }
 
   markdown td {
     display: block;
     border: none;
-    padding: 8px 0;
+    padding: 6px 0;
     position: relative;
     padding-left: 40%;
   }
 
-  /* Agregar labels a las celdas usando data attributes */
   markdown td:before {
     content: attr(data-label) ': ';
     position: absolute;
     left: 0;
     width: 35%;
-    font-weight: bold;
-    color: #b2b3d7;
-    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--fg-muted);
+    font-size: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: var(--tracking-caps);
   }
 
   /* Para tablas sin data-label, usar nth-child como fallback */
@@ -401,22 +511,22 @@ markdown th code {
 /* Global form elements styling */
 select,
 input[type='color'] {
-  border-radius: 8px;
-  border: 1px solid var(--color-4);
-  background-color: var(--gris-copado);
-  color: var(--color-1);
-  font-family: inherit;
-  transition: all 0.3s ease;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background-color: var(--bg-surface-raised);
+  color: var(--fg-primary);
+  font-family: var(--font-sans);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:focus {
     outline: none;
-    border-color: var(--color-2);
-    box-shadow: 0 0 8px rgba(62, 63, 126, 0.3);
+    border-color: var(--accent);
+    box-shadow: var(--focus-ring);
   }
 
   option {
-    background-color: var(--gris-copado);
-    color: var(--color-1);
+    background-color: var(--bg-surface);
+    color: var(--fg-primary);
     padding: 8px;
   }
 }

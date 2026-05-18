@@ -5,12 +5,12 @@ import { Capacitor } from '@capacitor/core';
 import { MealService } from '../../services/meal.service';
 import { AuthService } from '../../services/auth.service';
 import { DialogService } from '../../services/dialog.service';
-import { Panel } from 'componentes';
+import { Icon, Panel } from 'componentes';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [Panel, AsyncPipe],
+  imports: [Panel, AsyncPipe, Icon],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
 })

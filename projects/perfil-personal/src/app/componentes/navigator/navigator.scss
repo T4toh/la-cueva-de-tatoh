@@ -1,11 +1,11 @@
 .navigator {
-  background-color: rgba(255, 255, 255, 0.1);
-  padding: 10px;
-  border-radius: 5px;
-  position: relative;
+  background: transparent;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-family: var(--font-sans);
 }
 
 .navigator ul {
@@ -13,88 +13,114 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  justify-content: flex-start;
+  gap: 1.5rem;
 }
 
 .navigator li {
-  margin: 0 15px;
+  margin: 0;
 }
 
 .navigator a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   text-decoration: none;
-  color: #fafafa;
-  padding: 10px 15px;
-  border-radius: 5px;
-  transition:
-    background-color 0.3s,
-    color 0.3s;
-  font-weight: 500;
+  color: var(--fg-secondary);
+  padding: 8px 2px;
+  font-size: 0.875rem;
+  letter-spacing: var(--tracking-meta);
+  position: relative;
+  transition: color 0.2s ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transition: transform 0.2s ease;
+    transform-origin: left center;
+  }
+
+  &:hover {
+    color: var(--fg-primary);
+
+    &::after {
+      transform: scaleX(1);
+    }
+  }
+
+  &.active {
+    color: var(--fg-primary);
+
+    &::after {
+      transform: scaleX(1);
+    }
+  }
 }
 
-.navigator a:hover {
-  background-color: #007bff;
-}
-
-.navigator a.active {
-  background-color: #007bff;
-  color: white;
+.navigator a.home-link {
+  padding: 8px;
 }
 
 .amazon-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  /* match outer link shape but avoid increasing nav height */
-  padding: 0 12px;
-  height: 36px;
+  padding: 0;
+  width: 32px;
+  height: 32px;
   box-sizing: border-box;
-  border-radius: 5px;
-  background-color: transparent !important;
-  overflow: hidden;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: transparent;
+  transition: border-color 0.2s ease;
 
-  /* wrapper span that receives the SVG (from innerHTML) */
+  &:hover {
+    border-color: var(--border-strong);
+
+    &::after {
+      transform: scaleX(0);
+    }
+  }
+
+  &::after {
+    display: none;
+  }
+
   > span {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background-color: #ffffff;
-    border-radius: 4px;
-    padding: 4px; /* white space around the icon */
-    height: 28px;
-    box-sizing: border-box;
     line-height: 0;
   }
 
   ::ng-deep svg {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     display: block;
     background: none;
     padding: 0;
   }
 }
 
-// Responsivo: mostrar solo emojis en pantallas pequeñas
 @media (max-width: 768px) {
-  .navigator
-    a:not([routerLink='/blog']):not([routerLink='/utilidades']):not(
-      [href*='comidas.tatoh.ar']
-    ) {
+  .navigator {
+    padding: 0.75rem 1rem;
+  }
+
+  .navigator ul {
+    gap: 1rem;
+  }
+
+  .navigator a span:not(.sort-indicator) {
     display: none;
   }
 
-  .navigator a {
-    width: 40px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-align: center;
-    padding: 10px 5px;
-  }
-
-  .amazon-link {
-    ::ng-deep svg {
-      width: 28px;
-      height: 28px;
-    }
+  .navigator a.home-link {
+    padding: 8px;
   }
 }

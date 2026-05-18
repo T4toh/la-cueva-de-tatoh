@@ -49,7 +49,7 @@
       <div class="tags-list">
         @for (tag of tags.controls; track $index) {
           <div class="tag-item">
-            <lib-tag [colorFondo]="'var(--color-3)'" [texto]="tag.value" />
+            <lib-tag [texto]="tag.value" />
             <button
               class="btn-remove-tag"
               type="button"

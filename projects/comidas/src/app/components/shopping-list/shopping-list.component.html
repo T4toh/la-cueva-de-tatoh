@@ -13,7 +13,7 @@
         type="button"
         (click)="resetQuantities()"
       >
-        🔄
+        <lib-icon name="refresh-cw" [size]="16" />
       </button>
       <button type="button" (click)="copyToClipboard()">Copiar</button>
       <button type="button" (click)="print()">Imprimir</button>
@@ -41,7 +41,8 @@
       type="button"
       (click)="applyCartToPantry()"
     >
-      🥫 Restar de despensa
+      <lib-icon name="package" [size]="16" />
+      <span>Restar de despensa</span>
     </button>
   </div>
 
@@ -78,7 +79,7 @@
       track group.tag?.id || 'untagged'
     ) {
       <div class="group">
-        <h3 [style.color]="group.tag ? group.tag.color : 'var(--color-5)'">
+        <h3 [style.color]="group.tag ? group.tag.color : 'var(--fg-secondary)'">
           {{ group.tag ? group.tag.name : 'Sin Categoría' }}
         </h3>
 
@@ -147,7 +148,8 @@
                         : 'No hay en la despensa'
                     "
                   >
-                    🥫 {{ item.inPantry ? item.pantryQuantity : '—' }}
+                    <lib-icon name="package" [size]="14" />
+                    {{ item.inPantry ? item.pantryQuantity : '—' }}
                   </span>
                   <button
                     class="btn-to-pantry"

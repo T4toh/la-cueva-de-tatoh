@@ -5,7 +5,7 @@
 }
 
 h1 {
-  color: var(--color-5);
+  color: var(--fg-secondary);
   text-align: center;
 }
 
@@ -46,17 +46,17 @@ h1 {
 }
 
 .btn-primary {
-  background-color: var(--color-3);
+  background-color: var(--accent);
   color: white;
 
   &:hover {
-    background-color: var(--color-2);
+    background-color: var(--accent-strong);
   }
 }
 
 .btn-secondary {
   background-color: transparent;
-  border: 1px solid var(--color-4);
+  border: 1px solid var(--accent-hover);
   color: white;
 
   &:hover {

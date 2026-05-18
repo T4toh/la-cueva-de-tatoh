@@ -6,7 +6,7 @@
 
 h1 {
   text-align: center;
-  color: var(--color-5);
+  color: var(--fg-secondary);
   margin-bottom: 2rem;
   text-transform: capitalize;
 }
@@ -21,8 +21,8 @@ h1 {
   .btn-back,
   .btn-change {
     background-color: transparent;
-    border: 1px solid var(--color-4);
-    color: var(--color-5);
+    border: 1px solid var(--accent-hover);
+    color: var(--fg-secondary);
     padding: 0.6rem 1.2rem;
     border-radius: 8px;
     font-weight: bold;
@@ -42,8 +42,8 @@ h1 {
   }
 
   .btn-change:hover {
-    border-color: var(--color-2);
-    color: var(--color-2);
+    border-color: var(--accent-strong);
+    color: var(--accent-strong);
     background: rgba(var(--color-2-rgb, 100, 180, 255), 0.1);
   }
 }
@@ -57,7 +57,7 @@ h1 {
   border: 1px solid rgba(255, 255, 255, 0.1);
 
   h2 {
-    color: var(--color-2);
+    color: var(--accent-strong);
     margin-bottom: 1.5rem;
     font-size: 1.5rem;
     text-align: center;
@@ -79,24 +79,24 @@ h1 {
       }
 
       .ing-name {
-        color: var(--color-5);
+        color: var(--fg-secondary);
       }
 
       .ing-qty {
-        color: var(--color-4);
+        color: var(--accent-hover);
         font-size: 0.9rem;
       }
     }
   }
 
   .no-ingredients {
-    color: var(--color-4);
+    color: var(--accent-hover);
     font-style: italic;
     text-align: center;
   }
 
   .description {
-    color: var(--color-5);
+    color: var(--fg-secondary);
     font-style: italic;
     margin-top: 1rem;
     padding-top: 1rem;
@@ -133,7 +133,7 @@ h1 {
   text-align: center;
 
   a {
-    color: var(--color-3);
+    color: var(--accent);
     font-weight: bold;
   }
 }
@@ -147,22 +147,24 @@ h1 {
 
   button {
     background: transparent;
-    border: 1px solid var(--color-4);
-    color: var(--color-5);
-    padding: 0.4rem 0.8rem;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    transition: all 0.2s;
+    border: 1px solid var(--border-default);
+    color: var(--fg-muted);
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+    cursor: pointer;
 
     &:hover {
-      border-color: white;
-      color: white;
+      border-color: var(--border-strong);
+      color: var(--fg-secondary);
     }
 
     &.active {
-      background: var(--color-3);
-      color: white;
-      border-color: var(--color-3);
+      background: var(--accent-muted);
+      color: var(--fg-primary);
+      border-color: var(--accent);
     }
   }
 }

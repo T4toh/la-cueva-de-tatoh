@@ -6,11 +6,11 @@
       title="Plan Semanal"
       [routerLinkActiveOptions]="{exact: true}"
     >
-      <span class="icon">📅</span>
+      <span class="icon"><lib-icon name="calendar-days" [size]="18" /></span>
       <span class="text">Plan</span>
     </a>
     <a routerLink="/meals" routerLinkActive="active" title="Mis Comidas">
-      <span class="icon">🍲</span>
+      <span class="icon"><lib-icon name="utensils" [size]="18" /></span>
       <span class="text">Comidas</span>
     </a>
     <a
@@ -18,11 +18,11 @@
       routerLinkActive="active"
       title="Lista de Compras"
     >
-      <span class="icon">🛒</span>
+      <span class="icon"><lib-icon name="shopping-cart" [size]="18" /></span>
       <span class="text">Compras</span>
     </a>
     <a routerLink="/despensa" routerLinkActive="active" title="Despensa">
-      <span class="icon">🥫</span>
+      <span class="icon"><lib-icon name="package" [size]="18" /></span>
       <span class="text">Despensa</span>
     </a>
 
@@ -48,7 +48,7 @@
     } @else {
     <!-- Guest: Standard config button + login button -->
     <a routerLink="/settings" routerLinkActive="active" title="Configuración">
-      <span class="icon">⚙️</span>
+      <span class="icon"><lib-icon name="settings" [size]="18" /></span>
       <span class="text">Config</span>
     </a>
     <button
@@ -57,13 +57,13 @@
       type="button"
       (click)="login()"
     >
-      <span class="icon">👤</span>
+      <span class="icon"><lib-icon name="user" [size]="18" /></span>
       <span class="text">Entrar</span>
     </button>
     } } @else {
     <!-- Android: Solo mostrar config sin login -->
     <a routerLink="/settings" routerLinkActive="active" title="Configuración">
-      <span class="icon">⚙️</span>
+      <span class="icon"><lib-icon name="settings" [size]="18" /></span>
       <span class="text">Config</span>
     </a>
     }

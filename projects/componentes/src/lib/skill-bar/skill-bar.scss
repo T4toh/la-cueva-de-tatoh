@@ -8,9 +8,10 @@
   align-items: center;
   padding: 3px 10px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--bg-surface-raised, rgba(0, 0, 0, 0.3));
+  font-family: var(--font-sans, Inter, sans-serif);
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.1;
   overflow: hidden;
   isolation: isolate;
@@ -23,7 +24,7 @@
   bottom: 0;
   border-radius: 999px;
   z-index: 0;
-  opacity: 0.85;
+  opacity: 0.8;
   transition: width 0.3s ease;
 }
 

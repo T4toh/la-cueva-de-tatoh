@@ -1,6 +1,6 @@
 import { Component, computed, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Avatar, Footer, Panel, Redes, SkillBar, Tag } from 'componentes';
+import { Avatar, Footer, Redes, SkillBar, Tag } from 'componentes';
 import {
   INTERESES,
   POSTS,
@@ -10,7 +10,7 @@ import {
 
 @Component({
   selector: 'app-sidebar',
-  imports: [Avatar, Panel, SkillBar, Tag, Redes, Footer, RouterLink],
+  imports: [Avatar, SkillBar, Tag, Redes, Footer, RouterLink],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
 })

@@ -8,13 +8,13 @@ import {
   DishMealType,
   TextScheduleField,
 } from '../../models/meal.model';
-import { Panel } from 'componentes';
+import { Icon, Panel } from 'componentes';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterModule, Panel, FormsModule],
+  imports: [RouterModule, Panel, FormsModule, Icon],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })

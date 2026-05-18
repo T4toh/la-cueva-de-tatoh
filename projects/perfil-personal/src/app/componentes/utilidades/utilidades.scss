@@ -1,62 +1,58 @@
 .utilidades-container {
   width: 100%;
-  padding: 20px;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
   box-sizing: border-box;
   overflow-x: hidden;
 
   .tabs {
     display: flex;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    margin-bottom: 20px;
-    width: 100%;
+    gap: 1.5rem;
+    border-bottom: 1px solid var(--border-default);
+    margin-bottom: 1.5rem;
 
     .tab-button {
-      flex: 1;
-      padding: 12px 20px;
-      background: none;
+      padding: 8px 2px;
+      background: transparent;
       border: none;
-      border-bottom: 2px solid transparent;
+      border-bottom: 1px solid transparent;
       cursor: pointer;
-      font-size: 16px;
+      font-family: var(--font-sans);
+      font-size: 0.8125rem;
       font-weight: 500;
-      color: var(--gris-copado);
-      transition: all 0.3s ease;
+      color: var(--fg-muted);
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-caps);
+      transition: color 0.2s ease, border-color 0.2s ease;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      margin-bottom: -1px;
 
       &:hover {
-        color: #007bff;
-        backdrop-filter: blur(10px);
-        background-color: rgba(255, 255, 255, 0.1);
+        color: var(--fg-secondary);
       }
 
       &.active {
-        color: #007bff;
-        border-bottom-color: #007bff;
-        backdrop-filter: blur(20px);
-        background-color: rgba(255, 255, 255, 0.15);
+        color: var(--fg-primary);
+        border-bottom-color: var(--accent);
       }
 
-      &:focus {
+      &:focus-visible {
         outline: none;
-        box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+        box-shadow: var(--focus-ring);
       }
     }
   }
 
   .tab-content {
     width: 100%;
-    max-height: calc(100vh - 200px); /* Adjust based on header/tabs height */
-    overflow-y: auto;
     overflow-x: hidden;
 
     .tab-panel {
-      padding: 20px 0;
-      animation: fadeIn 0.3s ease-in-out;
+      padding: 1rem 0;
+      animation: fadeIn 0.25s ease-out;
       width: 100%;
       box-sizing: border-box;
-      min-height: 100%; /* Ensure it takes full height for scrolling */
     }
   }
 }
@@ -64,7 +60,7 @@
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;

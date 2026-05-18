@@ -1,51 +1,49 @@
 .libros-container {
-  padding: 2rem;
-  max-width: 1400px;
+  padding: 2rem 1.5rem 4rem;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 .libros-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 2rem;
-  color: var(--color-5);
-  text-align: center;
+  font-family: var(--font-serif);
+  font-size: var(--fs-display);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  margin: 1rem 0 2rem;
+  color: var(--fg-primary);
+  text-align: left;
 }
 
 .libros-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 3rem;
   margin-top: 2rem;
 }
 
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;
-  color: var(--color-5);
-  font-size: 1.2rem;
-  opacity: 0.7;
+  color: var(--fg-muted);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.05rem;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .libros-container {
-    padding: 1rem;
-  }
-
-  .libros-title {
-    font-size: 2rem;
+    padding: 1.5rem 1rem 3rem;
   }
 
   .libros-grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 2rem;
   }
 }
 
 @media (max-width: 480px) {
   .libros-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1.5rem;
   }
 }

@@ -1,10 +1,11 @@
 import { Component, signal } from '@angular/core';
+import { Icon } from 'componentes';
 
 import { type Apk, APKS } from '../../../../variables';
 
 @Component({
   selector: 'app-lista-apks',
-  imports: [],
+  imports: [Icon],
   templateUrl: './lista-apks.html',
   styleUrl: './lista-apks.scss',
 })

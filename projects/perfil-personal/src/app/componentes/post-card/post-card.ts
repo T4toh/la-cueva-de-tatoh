@@ -1,11 +1,9 @@
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { Tag } from 'componentes';
-
 @Component({
   selector: 'app-post-card',
-  imports: [RouterLink, Tag],
+  imports: [RouterLink],
   templateUrl: './post-card.html',
   styleUrl: './post-card.scss',
 })

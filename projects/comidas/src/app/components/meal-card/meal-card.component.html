@@ -7,9 +7,9 @@
   (keydown.space)="$event.preventDefault(); onCardClick()"
 >
   <lib-panel
-    [colorFondo]="'var(--color-2)'"
-    [colorTexto]="'white'"
-    [sombreado]="true"
+    [colorFondo]="'var(--bg-surface)'"
+    [colorTexto]="'var(--fg-primary)'"
+    [sombreado]="false"
     [texto]="meal().name"
   >
     <div class="meal-content-wrapper">
@@ -28,11 +28,7 @@
         @if (meal().tags && meal().tags!.length > 0) {
           <div class="tags-list">
             @for (tag of meal().tags; track tag) {
-              <lib-tag
-                style="transform: scale(0.9)"
-                [colorFondo]="'var(--color-3)'"
-                [texto]="tag"
-              />
+              <lib-tag [texto]="tag" />
             }
           </div>
         }
@@ -47,7 +43,7 @@
               type="button"
               (click)="onDuplicate($event)"
             >
-              📑
+              <lib-icon name="copy" [size]="16" />
             </button>
           }
           @if (showEdit()) {
@@ -57,7 +53,7 @@
               type="button"
               (click)="onEdit($event)"
             >
-              ✏️
+              <lib-icon name="pencil" [size]="16" />
             </button>
           }
           @if (showDelete()) {
@@ -67,7 +63,7 @@
               type="button"
               (click)="onDelete($event)"
             >
-              🗑️
+              <lib-icon name="trash-2" [size]="16" />
             </button>
           }
         </div>

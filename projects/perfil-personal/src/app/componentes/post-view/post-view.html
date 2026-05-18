@@ -1,20 +1,18 @@
 <div class="post-view-container">
   @if (currentPost()) {
-  <div class="post-view">
-    <div class="post-header">
-      <lib-boton
-        [onClick]="volverABlog.bind(this)"
-        [texto]="'← Volver al Blog'"
-      />
+    <div class="post-view">
+      <a class="back-link" routerLink="/blog">
+        <lib-icon name="arrow-right" [size]="14" />
+        <span>Volver al blog</span>
+      </a>
       <div class="post-meta">
         <h1>{{ extractedTitle() || currentPost()!.title }}</h1>
         <span class="post-fecha">{{ currentPost()!.fecha }}</span>
       </div>
-    </div>
 
-    <div class="post-content">
-      <markdown [src]="currentPost()!.src" />
+      <div class="post-content">
+        <markdown [src]="currentPost()!.src" />
+      </div>
     </div>
-  </div>
   }
 </div>

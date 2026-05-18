@@ -7,13 +7,14 @@ import {
   Validators,
 } from '@angular/forms';
 
+import { Icon } from 'componentes';
 import { DialogService } from '../../services/dialog.service';
 import { MealService } from '../../services/meal.service';
 
 @Component({
   selector: 'app-pantry',
   standalone: true,
-  imports: [ReactiveFormsModule, NgTemplateOutlet],
+  imports: [ReactiveFormsModule, NgTemplateOutlet, Icon],
   templateUrl: './pantry.component.html',
   styleUrls: ['./pantry.component.scss'],
 })

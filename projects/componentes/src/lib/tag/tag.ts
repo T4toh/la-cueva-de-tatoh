@@ -9,6 +9,6 @@ import { Component, input } from '@angular/core';
 export class Tag {
   readonly texto = input<string>();
   readonly icono = input<string>();
-  readonly colorFondo = input<string>('blue');
-  readonly colorTexto = input<string>('#fff');
+  readonly colorFondo = input<string>();
+  readonly colorTexto = input<string>();
 }

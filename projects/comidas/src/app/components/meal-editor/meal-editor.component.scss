@@ -5,7 +5,7 @@
 }
 
 h1, h2 {
-  color: var(--color-5);
+  color: var(--fg-secondary);
 }
 
 .form-group {
@@ -15,7 +15,7 @@ h1, h2 {
 
   label {
     margin-bottom: 0.5rem;
-    color: var(--color-5);
+    color: var(--fg-secondary);
   }
   
   input, textarea {
@@ -101,7 +101,7 @@ h1, h2 {
   right: 0;
   z-index: 100;
   background: var(--color-bg, #1e1e2e);
-  border: 1px solid var(--color-3);
+  border: 1px solid var(--accent);
   border-radius: 4px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   overflow: hidden;
@@ -112,7 +112,7 @@ h1, h2 {
   padding: 0.5rem 0.75rem;
   cursor: pointer;
   font-size: 0.9rem;
-  color: var(--color-5);
+  color: var(--fg-secondary);
 
   &:hover,
   &.highlighted {
@@ -128,7 +128,7 @@ h1, h2 {
 }
 
 .btn-primary {
-  background-color: var(--color-3);
+  background-color: var(--accent);
   color: white;
   border: none;
   padding: 0.8rem 1.5rem;
@@ -141,14 +141,14 @@ h1, h2 {
   }
   
   &:not(:disabled):hover {
-    background-color: var(--color-2);
+    background-color: var(--accent-strong);
   }
 }
 
 .btn-secondary {
   background-color: transparent;
-  border: 1px solid var(--color-3);
-  color: var(--color-3);
+  border: 1px solid var(--accent);
+  color: var(--accent);
   padding: 0.5rem 1rem;
   border-radius: 4px;
   

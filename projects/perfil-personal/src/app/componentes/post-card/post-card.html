@@ -3,23 +3,21 @@
   [class.reciente]="esReciente()"
   [routerLink]="['/blog', id()]"
 >
-  <div class="post-card-header">
-    <h3>{{ titulo() }}</h3>
+  <span class="meta">
+    <time>{{ fecha() }}</time>
     @if (esReciente()) {
-    <span class="badge-reciente">Nuevo</span>
+      <span class="badge">Nuevo</span>
     }
-  </div>
+  </span>
+
+  <h2>{{ titulo() }}</h2>
 
   @if (tags().length > 0) {
-  <div class="post-card-tags">
-    @for (tag of tags(); track tag) {
-    <lib-tag [colorFondo]="'#5b5c9a'" [colorTexto]="'white'" [texto]="tag" />
-    }
-  </div>
+    <span class="tags">
+      @for (tag of tags(); track tag; let last = $last) {
+        <span class="tag">{{ tag }}</span>
+        @if (!last) { <span class="sep">·</span> }
+      }
+    </span>
   }
-
-  <div class="post-card-footer">
-    <span class="fecha">{{ fecha() }}</span>
-    <span class="leer-mas">Leer más →</span>
-  </div>
 </a>
