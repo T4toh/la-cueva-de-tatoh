@@ -41,7 +41,10 @@ export const appConfig: ApplicationConfig = {
     provideAuth(() => getAuth()),
     provideFirestore(() =>
       initializeFirestore(getApp(), {
-        experimentalAutoDetectLongPolling: true,
+        // Forzar long-polling (XHR) en lugar de fetch streams.
+        // Angular Service Worker intercepta fetch event y rompe el streaming
+        // del Listen/channel de Firestore; XHR no sufre ese problema.
+        experimentalForceLongPolling: true,
       }),
     ),
   ],

@@ -15,19 +15,14 @@
     <link href="https://fonts.googleapis.com" rel="preconnect" />
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
 
-    <!-- Preload de fuentes editorial: EB Garamond + Inter + JetBrains Mono -->
+    <!-- Preload + carga asíncrona de fuentes editorial.
+         Un solo <link> que se promueve a stylesheet en onload — evita
+         "preloaded but not used" cuando preload y stylesheet difieren. -->
     <link
       as="style"
       href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..700;1,400..700&amp;family=Inter:wght@400..600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
       rel="preload"
-    />
-
-    <!-- Carga asíncrona con font-display:swap -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..700;1,400..700&amp;family=Inter:wght@400..600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap"
-      media="print"
-      onload="this.media = 'all'"
-      rel="stylesheet"
     />
     <noscript>
       <link
