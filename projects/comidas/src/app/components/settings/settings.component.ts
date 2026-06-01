@@ -6,11 +6,15 @@ import { MealService } from '../../services/meal.service';
 import { AuthService } from '../../services/auth.service';
 import { DialogService } from '../../services/dialog.service';
 import { Icon, Panel } from 'componentes';
+import {
+  ImportMode,
+  ImportPreviewComponent,
+} from '../import-preview/import-preview.component';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [Panel, AsyncPipe, Icon],
+  imports: [Panel, AsyncPipe, Icon, ImportPreviewComponent],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
 })
@@ -20,6 +24,13 @@ export class SettingsComponent {
   authService = inject(AuthService);
   isAndroid = Capacitor.getPlatform() === 'android';
   readonly promptCopied = signal(false);
+  readonly importOpen = signal(false);
+  readonly importMode = signal<ImportMode>('meals');
+
+  openPaste(mode: ImportMode): void {
+    this.importMode.set(mode);
+    this.importOpen.set(true);
+  }
 
   async refreshData(): Promise<void> {
     await this.mealService.refreshData();
