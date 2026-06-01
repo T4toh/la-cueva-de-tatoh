@@ -33,7 +33,9 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(),
     importProvidersFrom(MarkdownModule.forRoot()),
-    provideServiceWorker('ngsw-worker.js', {
+    // Registramos el SW custom (ngsw-custom.js) que hace bypass de Firestore
+    // antes de importar el ngsw-worker.js generado por el CLI.
+    provideServiceWorker('ngsw-custom.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',
     }),

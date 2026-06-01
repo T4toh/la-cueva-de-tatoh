@@ -78,7 +78,28 @@
 
 main {
   flex: 1;
-  padding-bottom: 2rem;
+  // Reserva para el footer fijo (~33px) + safe-area inferior en iOS.
+  padding-bottom: calc(2.75rem + env(safe-area-inset-bottom));
+}
+
+// Footer fijo al fondo de la ventana: siempre visible y fuera del flujo, así
+// no genera scroll muerto cuando el contenido entra justo.
+lib-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 90;
+  display: block;
+  background: var(--bg-base);
+  border-top: 1px solid var(--border-subtle);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media print {
+  lib-footer {
+    display: none !important;
+  }
 }
 
 @media (max-width: 600px) {

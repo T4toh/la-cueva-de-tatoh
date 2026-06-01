@@ -52,7 +52,11 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  // Todas las filas con la misma altura (la del contenido más alto) para que
+  // las tarjetas queden uniformes en todo el grid.
+  grid-auto-rows: 1fr;
   gap: 1rem;
+  align-items: stretch;
 }
 
 .meal-card {
