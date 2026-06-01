@@ -24,4 +24,13 @@ self.addEventListener('fetch', (event) => {
   }
 });
 
+// Activación inmediata: sin esto, el Angular SW espera a que se cierren TODAS
+// las pestañas del sitio antes de tomar control, así que un deploy nuevo no
+// aplica con un simple reload (queda corriendo el worker viejo). skipWaiting +
+// clients.claim hacen que el worker nuevo controle en la siguiente carga.
+// Seguro en comidas: no hay rutas lazy, todo va en el bundle main (no hay
+// chunks hasheados que se desincronicen a mitad de sesión).
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+
 importScripts('./ngsw-worker.js');
