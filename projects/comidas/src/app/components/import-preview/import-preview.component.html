@@ -1,0 +1,159 @@
+@if (open()) {
+  <div class="import-backdrop" (click)="close()">
+    <div class="import-container" (click)="$event.stopPropagation()">
+      <div class="import-header">
+        <h3>
+          @if (mode() === 'data') {
+            Pegar backup completo
+          } @else {
+            Pegar comidas (JSON)
+          }
+        </h3>
+        <button class="btn-close" type="button" aria-label="Cerrar" (click)="close()">
+          <lib-icon name="x" [size]="20" />
+        </button>
+      </div>
+
+      <div class="import-body">
+        @if (!parsed()) {
+          <p class="intro">
+            @if (mode() === 'data') {
+              Pegá el contenido de un backup (formato con
+              <code>meals</code>, <code>schedules</code>, etc.). Vas a ver un
+              resumen antes de restaurar.
+            } @else {
+              Pegá un array de comidas o un objeto <code>{{ '{' }} "meals": [...] {{ '}' }}</code>.
+              Vas a poder revisar, editar y marcar repetidos antes de importar.
+            }
+          </p>
+          <textarea
+            class="json-input"
+            rows="10"
+            placeholder='[ { "name": "...", "ingredients": [...] } ]'
+            [value]="rawText()"
+            (input)="onTextInput($event)"
+          ></textarea>
+          @if (parseError(); as err) {
+            <p class="error">
+              <lib-icon name="triangle-alert" [size]="16" />
+              <span>{{ err }}</span>
+            </p>
+          }
+        } @else if (mode() === 'data') {
+          <p class="intro">Esto vas a restaurar (reemplaza tus datos actuales):</p>
+          <ul class="summary">
+            @for (item of backupSummary(); track item.label) {
+              <li>
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value }}</strong>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="intro">
+            {{ rows().length }} comida(s) · {{ dupCount() }} repetida(s) ·
+            {{ selectedCount() }} seleccionada(s) para importar.
+          </p>
+
+          @for (row of rows(); track row.original.id) {
+            <div class="preview-row" [class.unselected]="!row.selected()" [formGroup]="row.form">
+              <div class="row-head">
+                <label class="row-select">
+                  <input
+                    type="checkbox"
+                    [checked]="row.selected()"
+                    (change)="toggleSelected(row)"
+                  />
+                </label>
+                <input class="row-name" type="text" formControlName="name" (blur)="onNameBlur(row)" />
+                @if (row.dup()) {
+                  <lib-tag texto="repetido" colorFondo="#ff9800" colorTexto="#1c1d23" />
+                }
+              </div>
+
+              @if (row.dup() && row.selected()) {
+                <div class="dup-actions">
+                  <button
+                    type="button"
+                    [class.active]="row.action() === 'replace'"
+                    (click)="setAction(row, 'replace')"
+                  >
+                    Reemplazar
+                  </button>
+                  <button
+                    type="button"
+                    [class.active]="row.action() === 'new'"
+                    (click)="setAction(row, 'new')"
+                  >
+                    Importar como nuevo
+                  </button>
+                  <button
+                    type="button"
+                    [class.active]="row.action() === 'skip'"
+                    (click)="setAction(row, 'skip')"
+                  >
+                    Omitir
+                  </button>
+                </div>
+              }
+
+              <textarea class="row-desc" rows="2" formControlName="description" placeholder="Descripción"></textarea>
+
+              <div class="tags-list" formArrayName="tags">
+                @for (tag of tagsOf(row).controls; track $index) {
+                  <span class="tag-item">
+                    {{ tag.value }}
+                    <button type="button" class="btn-remove-tag" (click)="removeTag(row, $index)">×</button>
+                  </span>
+                }
+                <span class="tag-add">
+                  <input
+                    type="text"
+                    placeholder="+ tag"
+                    [formControl]="row.newTag"
+                    (keydown.enter)="addTag(row, $event)"
+                  />
+                </span>
+              </div>
+
+              <div class="ingredients" formArrayName="ingredients">
+                @for (ing of ingredientsOf(row).controls; track $index) {
+                  <div class="ingredient-row" [formGroupName]="$index">
+                    <input type="text" placeholder="Ingrediente" formControlName="name" />
+                    <input type="text" placeholder="Cant." formControlName="quantity" />
+                    <input type="text" placeholder="Unidad" formControlName="unit" />
+                    <button type="button" class="btn-remove" (click)="removeIngredient(row, $index)">
+                      <lib-icon name="trash-2" [size]="14" />
+                    </button>
+                  </div>
+                }
+                <button type="button" class="btn-add-ing" (click)="addIngredient(row)">
+                  <lib-icon name="plus" [size]="14" />
+                  <span>Ingrediente</span>
+                </button>
+              </div>
+            </div>
+          }
+        }
+      </div>
+
+      <div class="import-footer">
+        <button class="btn-cancel" type="button" (click)="close()">Cancelar</button>
+        @if (!parsed()) {
+          <button class="btn-primary" type="button" (click)="parse()">Parsear</button>
+        } @else if (mode() === 'data') {
+          <button class="btn-primary" type="button" (click)="confirm()">Restaurar backup</button>
+        } @else {
+          <button
+            class="btn-primary"
+            type="button"
+            [disabled]="selectedCount() === 0"
+            (click)="confirm()"
+          >
+            Importar {{ selectedCount() }} comida(s)
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}

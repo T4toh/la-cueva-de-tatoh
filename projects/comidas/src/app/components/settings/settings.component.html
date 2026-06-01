@@ -120,6 +120,11 @@
             (change)="onFileSelected($event)"
           />
         </label>
+
+        <button class="btn-secondary" type="button" (click)="openPaste('data')">
+          <lib-icon name="clipboard-list" [size]="16" />
+          <span>Pegar JSON</span>
+        </button>
       </div>
     </div>
   </lib-panel>
@@ -158,6 +163,11 @@
           />
         </label>
 
+        <button class="btn-secondary" type="button" (click)="openPaste('meals')">
+          <lib-icon name="clipboard-list" [size]="16" />
+          <span>Pegar JSON</span>
+        </button>
+
         <button
           class="btn-secondary"
           type="button"
@@ -184,3 +194,5 @@
     <p>Comidas v1.2.0</p>
   </div>
 </div>
+
+<app-import-preview [mode]="importMode()" [(open)]="importOpen" />

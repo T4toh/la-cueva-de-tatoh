@@ -1425,14 +1425,11 @@ export class MealService {
 
   importMeals(jsonContent: string): void {
     try {
-      const data = JSON.parse(jsonContent);
-      const raw: Meal[] =
-        Array.isArray(data) ? data : Array.isArray(data.meals) ? data.meals : null;
-      if (!raw) {
+      const normalized = this.parseMealsInput(jsonContent);
+      if (!normalized) {
         this.dialogService.alert('Error', 'El archivo no contiene comidas válidas.');
         return;
       }
-      const normalized = this.normalizeMealQuantities(raw);
       const existing = this.meals();
       const existingMap = new Map(existing.map((m) => [m.id, m]));
       normalized.forEach((m) => existingMap.set(m.id, m));
@@ -1444,6 +1441,106 @@ export class MealService {
     } catch (error) {
       console.error('Error al importar comidas:', error);
       this.dialogService.alert('Error', 'El archivo no tiene un formato válido.');
+    }
+  }
+
+  // Parsea un JSON de comidas (array crudo o { meals: [...] }), normaliza
+  // cantidades y asegura un id en cada comida. Lanza si el JSON es inválido.
+  parseMealsInput(jsonContent: string): Meal[] | null {
+    const data = JSON.parse(jsonContent);
+    const raw: Meal[] | null = Array.isArray(data)
+      ? (data as Meal[])
+      : Array.isArray(data?.meals)
+        ? (data.meals as Meal[])
+        : null;
+    if (!raw) {
+      return null;
+    }
+    return this.normalizeMealQuantities(raw).map((m) =>
+      m.id ? m : { ...m, id: this.generateId() }
+    );
+  }
+
+  // Normaliza un nombre para comparar duplicados: minúsculas, sin acentos, sin
+  // espacios sobrantes.
+  private normalizeName(name: string): string {
+    return (name ?? '')
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .trim()
+      .toLowerCase();
+  }
+
+  // Busca una comida existente por nombre normalizado (los JSON pegados/IA
+  // suelen no traer id).
+  findMealByName(name: string): Meal | undefined {
+    const target = this.normalizeName(name);
+    return this.meals().find((m) => this.normalizeName(m.name) === target);
+  }
+
+  // Aplica una importación ya resuelta por el usuario fila a fila.
+  // - skip: se descarta.
+  // - replace: pisa la comida existente (por id, o por nombre si no hay match
+  //   de id) conservando el id existente.
+  // - new: se agrega como comida nueva con id propio.
+  applyImportedMeals(
+    resolved: { action: 'replace' | 'skip' | 'new'; meal: Meal }[]
+  ): number {
+    const current = [...this.meals()];
+    const byId = new Map(current.map((m, i) => [m.id, i]));
+    let imported = 0;
+
+    for (const { action, meal } of resolved) {
+      if (action === 'skip') {
+        continue;
+      }
+      if (action === 'replace') {
+        const existing =
+          (meal.id && byId.has(meal.id)
+            ? current[byId.get(meal.id)!]
+            : this.findMealByName(meal.name)) ?? null;
+        if (existing) {
+          const idx = byId.get(existing.id)!;
+          current[idx] = { ...meal, id: existing.id };
+          imported++;
+          continue;
+        }
+        // Sin match para reemplazar: cae a "nuevo".
+      }
+      const fresh = { ...meal, id: this.generateId() };
+      current.push(fresh);
+      byId.set(fresh.id, current.length - 1);
+      imported++;
+    }
+
+    this.meals.set(this.normalizeMealQuantities(current));
+    return imported;
+  }
+
+  // Resumen de conteos de un backup completo, para preview antes de restaurar.
+  parseBackupSummary(jsonContent: string): {
+    valid: boolean;
+    counts?: Record<string, number>;
+  } {
+    try {
+      const data = JSON.parse(jsonContent);
+      if (!data || typeof data !== 'object') {
+        return { valid: false };
+      }
+      const len = (v: unknown): number =>
+        Array.isArray(v) ? v.length : v && typeof v === 'object' ? Object.keys(v).length : 0;
+      return {
+        valid: true,
+        counts: {
+          Comidas: len(data.meals),
+          Planificaciones: len(data.schedules),
+          Etiquetas: len(data.tags),
+          Despensa: len(data.pantry),
+          Ajustes: data.familySettings ? 1 : 0,
+        },
+      };
+    } catch {
+      return { valid: false };
     }
   }
 
