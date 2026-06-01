@@ -2,6 +2,36 @@
 
 Todos los cambios notables a este proyecto se documentan en este archivo. El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.2.0] - 2026-06-01
+
+Mejoras y correcciones en Comidas tras el deploy a Cloudflare Pages: importador de comidas reforzado, Service Worker que ya no rompe Firestore, y pulido de layout (tarjetas uniformes + footer fijo).
+
+### Added
+
+#### Comidas (`comidas.tatoh.ar`)
+- Importador con pegado de JSON: nuevo modal "Pegar JSON" en Configuración (paneles Comidas y Gestión de Datos) que parsea el JSON en vivo y muestra una preview antes de confirmar.
+  - Detección de duplicados por nombre normalizado (sin acentos, case-insensitive).
+  - Acción por fila para repetidos: reemplazar / importar como nuevo / omitir.
+  - Edición inline de nombre, descripción, tags e ingredientes antes de importar.
+  - Aviso con el conteo real de comidas importadas.
+  - Modo backup: preview de conteos antes de restaurar.
+
+### Changed
+
+#### Compartido (lib `componentes`)
+- `VERSION` actualizada a `1.2.0`.
+
+#### Comidas
+- Tarjetas de comidas uniformes en el grid: todas las filas con la misma altura (`grid-auto-rows: 1fr` + cadena `height:100%` hasta el panel).
+- Footer (versión + changelog) fijo al fondo de la ventana, fuera del flujo, para que no genere scroll muerto cuando el contenido entra justo. Se quita la versión duplicada hardcodeada en Configuración.
+
+### Fixed
+
+#### Comidas
+- El importador de comidas descartaba en silencio las comidas sin `id` (las que vienen de JSON pegado o generado por IA): se deduplicaba por `id` y todas colapsaban en la clave `undefined`, importando una sola entrada inválida mientras el aviso decía "todo bien". Ahora se asigna un `id` a las comidas que no lo traen antes del merge.
+- El Service Worker interceptaba el `fetch` de los canales Listen y Write de Firestore y rompía el long-polling ("A ServiceWorker intercepted the request and encountered an unexpected error"). Se fuerza long-polling (XHR) y se agrega un SW custom que hace bypass de `firestore.googleapis.com` / `firebaseio.com` con `stopImmediatePropagation()` antes de importar `ngsw-worker.js`.
+- Warning de preload de fuentes ("preloaded but not used"): se unifica el `<link>` de fuentes a un solo preload promovido a stylesheet en `onload`.
+
 ## [1.1.0] - 2026-05-18
 
 Rediseño visual completo a estética editorial dark sobria. Reemplaza glassmorphism violeta + emojis decorativos por un sistema con serif para titulares (EB Garamond), sans para UI/cuerpo (Inter) y mono para code (JetBrains Mono), sobre paleta grafito + off-white con acento violeta apagado `#8b8bd6`.
