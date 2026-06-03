@@ -15,6 +15,14 @@ import {
   TextScheduleField,
 } from '../models/meal.model';
 
+// Garantiza que cada comida tenga un id. Las comidas que entran por restaurar
+// un backup (importData) o por bajar de Firestore pueden no traerlo, y el
+// calendario las referencia por id: sin id quedan inutilizables (el slot no se
+// llena y no hay error). Es idempotente: no toca ni regenera ids existentes.
+export function ensureMealIds(meals: Meal[], genId: () => string): Meal[] {
+  return meals.map((m) => (m.id ? m : { ...m, id: genId() }));
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -417,7 +425,9 @@ export class MealService {
   // Loaders
   private loadMeals(): Meal[] {
     const data = localStorage.getItem(this.MEALS_KEY);
-    return data ? JSON.parse(data) : [];
+    // Auto-repara comidas guardadas sin id (datos viejos / restaurados) para
+    // que puedan usarse en el calendario.
+    return ensureMealIds(data ? JSON.parse(data) : [], () => this.generateId());
   }
 
   private loadSchedules(): Record<string, DaySchedule[]> {
@@ -1303,7 +1313,7 @@ export class MealService {
   }
 
   private normalizeMealQuantities(meals: Meal[]): Meal[] {
-    return meals.map((meal) => ({
+    return ensureMealIds(meals, () => this.generateId()).map((meal) => ({
       ...meal,
       ingredients: meal.ingredients.map((ing) => {
         if (ing.unit !== undefined) {
