@@ -96,6 +96,47 @@ sudo systemctl restart pihole-FTL
 sudo apt update && sudo apt full-upgrade -y
 ```
 
+## Backup de la SD
+
+Imagen en vivo (sin apagar la Pi → sin cortar DNS), comprimida, tirada a esta PC:
+
+```bash
+printf '%s\n' 'PASS' | ssh tatoh@raspberrypi.local \
+  "sudo -S -p '' bash -c 'dd if=/dev/mmcblk0 bs=4M status=none | gzip -c'" \
+  > /mnt/Datos/raspi-backup-FECHA.img.gz
+# verificar: gzip -t archivo.img.gz  (debe decir OK)
+# restaurar a SD nueva en el lector:
+gunzip -c raspi-backup-FECHA.img.gz | sudo dd of=/dev/sdX bs=4M status=progress
+```
+
+Imagen "crash-consistent" (bootea igual). Última: `raspi-backup-2026-07-23.img.gz` (~3.1GB, verificada).
+
+## Keepalives SSH (evitar sesiones colgadas)
+
+- **Pi** (`/etc/ssh/sshd_config.d/99-keepalive.conf`): `ClientAliveInterval 30` + `ClientAliveCountMax 2` → reapa clientes muertos a los 60s.
+- **Cliente** (`~/.ssh/config`):
+  ```
+  Host raspberrypi raspberrypi.local 100.120.101.24 192.168.68.*
+      ServerAliveInterval 15
+      ServerAliveCountMax 3
+      ConnectTimeout 15
+  ```
+
+## Blocklists (Pi-hole gravity)
+
+~3M dominios únicos. Listas activas:
+
+- **HaGeZi Multi PRO** — `.../hagezi/dns-blocklists/main/domains/pro.txt` (ads+tracking, baja rotura).
+- **OISD Big** — `https://big.oisd.nl` (curada, enorme).
+- **HaGeZi TIF** — `.../domains/tif.txt` (malware/phishing).
+- StevenBlack + Firebog Easylist (las viejas, quedaron).
+
+```bash
+pihole -g                                    # actualizar gravity (bajar listas)
+# si algo se rompe (falso positivo), whitelistear:
+pihole allow dominio.roto.com
+```
+
 ## Remoto: Tailscale (SSH desde afuera + Pi-hole en 4G)
 
 Tailscale corriendo en la Pi (`tailscaled` enabled, nodo autorizado, `--ssh` on).
@@ -116,6 +157,13 @@ tailnet. Sin abrir puertos, sin password expuesto.
 3. Con 4G + Tailscale → DNS pasa por Pi-hole → ads filtrados afuera.
 
 (El túnel Cloudflare NO sirve para esto — lleva HTTP, no DNS.)
+
+> ⚠️ **Gotcha Android**: si el teléfono tiene **DNS privado (Private DNS / DoT)** seteado
+> a un proveedor (ej `dns.adguard-dns.com`), **choca con el override DNS de Tailscale** →
+> "sin internet". Fix: Ajustes → Red e Internet → **DNS privado → Desactivado/Automático**.
+> Con Tailscale, el Pi-hole ya es tu DNS filtrante; no necesitás Private DNS.
+> Verificar que filtra: el query log muestra queries del IP tailscale del tele (`100.95.x`)
+> con dominios variados y varias bloqueadas (ads/tracking).
 
 Comandos: `tailscale status`, `tailscale ip -4`, `sudo tailscale up --ssh` (re-auth).
 
