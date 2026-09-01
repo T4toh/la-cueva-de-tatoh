@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   computed,
   inject,
@@ -25,7 +24,6 @@ import { Tag } from 'componentes';
   standalone: true,
   imports: [ReactiveFormsModule, RouterModule, Tag],
   templateUrl: './meal-editor.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./meal-editor.component.scss'],
 })
 export class MealEditorComponent implements OnInit {

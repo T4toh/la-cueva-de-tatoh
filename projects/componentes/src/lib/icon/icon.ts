@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 export type IconName =
   | 'home'
@@ -45,7 +45,6 @@ export type IconName =
   imports: [],
   templateUrl: './icon.html',
   styleUrl: './icon.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Icon {
   readonly name = input.required<IconName>();

@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   ElementRef,
   HostListener,
@@ -15,7 +14,6 @@ import { VERSION } from '../version';
   standalone: true,
   imports: [MarkdownComponent],
   templateUrl: './footer.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './footer.scss',
 })
 export class Footer {

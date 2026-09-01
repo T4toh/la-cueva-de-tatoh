@@ -1,10 +1,9 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 @Component({
   selector: 'lib-skill-bar',
   imports: [],
   templateUrl: './skill-bar.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './skill-bar.scss',
 })
 export class SkillBar {

@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   computed,
   signal,
@@ -17,7 +16,6 @@ import {
   selector: 'app-sidebar',
   imports: [Avatar, SkillBar, Tag, Redes, Footer, RouterLink],
   templateUrl: './sidebar.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './sidebar.scss',
 })
 export class Sidebar {

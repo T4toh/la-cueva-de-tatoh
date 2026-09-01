@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   computed,
   inject,
@@ -39,7 +38,6 @@ type PreviewRow = {
   standalone: true,
   imports: [ReactiveFormsModule, Icon, Tag],
   templateUrl: './import-preview.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./import-preview.component.scss'],
 })
 export class ImportPreviewComponent {

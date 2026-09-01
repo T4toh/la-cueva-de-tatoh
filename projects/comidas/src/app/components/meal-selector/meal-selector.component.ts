@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   computed,
   inject,
@@ -16,7 +15,6 @@ import { MealCardComponent } from '../meal-card/meal-card.component';
   standalone: true,
   imports: [RouterModule, MealCardComponent],
   templateUrl: './meal-selector.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./meal-selector.component.scss'],
 })
 export class MealSelectorComponent implements OnInit {

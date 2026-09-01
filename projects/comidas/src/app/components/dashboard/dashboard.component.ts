@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MealService } from '../../services/meal.service';
 import { DialogService } from '../../services/dialog.service';
@@ -16,7 +16,6 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [RouterModule, Panel, FormsModule, Icon],
   templateUrl: './dashboard.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent {

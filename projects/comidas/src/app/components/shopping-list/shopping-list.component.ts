@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   inject,
   OnInit,
@@ -20,7 +19,6 @@ import { DialogService } from '../../services/dialog.service';
   standalone: true,
   imports: [ReactiveFormsModule, Tag, Icon],
   templateUrl: './shopping-list.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./shopping-list.component.scss'],
 })
 export class ShoppingListComponent implements OnInit {

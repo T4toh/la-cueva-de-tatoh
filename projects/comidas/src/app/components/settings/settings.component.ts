@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   inject,
   signal,
@@ -21,7 +20,6 @@ import {
   standalone: true,
   imports: [Panel, AsyncPipe, Icon, ImportPreviewComponent],
   templateUrl: './settings.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./settings.component.scss'],
 })
 export class SettingsComponent {

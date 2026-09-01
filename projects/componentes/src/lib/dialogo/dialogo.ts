@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   input,
   model,
@@ -21,7 +20,6 @@ export type DialogoAccion = {
   standalone: true,
   imports: [CommonModule, Boton],
   templateUrl: './dialogo.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './dialogo.scss',
 })
 export class Dialogo {

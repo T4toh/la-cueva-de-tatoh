@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   computed,
   signal,
@@ -27,7 +26,6 @@ type SortOrder = 'asc' | 'desc';
   selector: 'app-blog',
   imports: [PostCard, Icon],
   templateUrl: './blog.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './blog.scss',
 })
 export class Blog {
