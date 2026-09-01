@@ -2,6 +2,38 @@
 
 Todos los cambios notables a este proyecto se documentan en este archivo. El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.4.0] - 2026-09-01
+
+Cada libro pasa a tener su propia página y su propio link, pensado para imprimirlo dentro del EPUB. Para que ese link muestre portada y descripción al compartirlo, `perfil-personal` ahora se prerenderiza en el build.
+
+### Added
+
+#### Perfil Personal
+- **Vista individual de libro en `/libros/<slug>`.** La tarjeta de `/libros` deja de abrir Amazon en una pestaña nueva y pasa a navegar a la ficha del libro, que muestra portada, título, saga, sinopsis y un botón por tienda. El link es estable y está pensado para ir impreso dentro del EPUB, así que el `slug` de un libro publicado no se cambia nunca: rompería las copias ya vendidas.
+- El tipo `Libro` en `variables.ts` incorpora `slug`, `sinopsis` (markdown) y `tiendas: { nombre, url }[]`, y pierde `enlace`. Hoy la única tienda es Amazon; agregar otra es un elemento más en el array. Agregar un libro entero sigue siendo un objeto más: de ahí salen solos la tarjeta, la ruta y el HTML prerenderizado.
+- Meta tags Open Graph y Twitter Card por libro (`og:title`, `og:description`, `og:image` con la portada, `og:url`, `og:type=book`, `twitter:card=summary_large_image`), más el `<title>` del documento.
+- `pnpm check:libros` (`scripts/check-libros.mjs`): tras un build de producción verifica que cada `/libros/<slug>` haya quedado con sus `og:` completos. Sin esto no hay forma de enterarse de que un link salió sin portada hasta que alguien lo comparte.
+
+### Changed
+
+#### Perfil Personal
+- **Prerender (SSG) del sitio.** `outputMode: "static"` en `angular.json` más `src/main.server.ts`, `app.config.server.ts` y `app.routes.server.ts`. El build genera un HTML por ruta: 17 hoy. Hacía falta porque los crawlers de WhatsApp y Twitter no ejecutan JavaScript — sin un HTML servido con los `og:` adentro, un link pegado en un chat sale pelado. Cloudflare sirve el asset estático si existe y sólo cae al fallback SPA cuando no lo encuentra, así que los archivos prerenderizados ganan y no hubo que tocar `wrangler.jsonc` ni el pipeline de deploy.
+- `blog/:id` también se prerenderiza. El cuerpo del post queda vacío en el HTML porque `ngx-markdown` baja el `.md` por HTTP recién en el browser, pero el título y el layout salen servidos. Sin esto, abrir un post directo servía el fallback SPA — el home prerenderizado — y se veía la lista del blog un instante antes de que Angular la reemplazara.
+- `utilidades` queda como `RenderMode.Client`: `generador-qr` instancia `QRCodeStyling` dentro de un `effect` y eso toca `window`, que en Node no existe. Guardarlo con `isPlatformBrowser` la dejaría prerenderizar también.
+- La tarjeta de `/libros` es ahora un `<a routerLink>` de verdad en vez de un `window.open()`, así que el link se puede copiar, abrir en pestaña nueva y recorrer con el teclado. El componente `lib-libro` de la librería no cambió.
+- La sección de deploy de `CLAUDE.md` describía un `netlify.toml` que ya no existe en el repo y un copy step de comidas que no ocurre. Reescrita con lo real: un Worker de Cloudflare por app, un `wrangler.jsonc` cada uno.
+
+### Fixed
+
+#### Perfil Personal
+- **El sitio quedaba clavado en un build viejo.** `perfil-personal` registraba un service worker con `provideServiceWorker(...)` pero no tenía nada que chequeara ni activara versiones nuevas — comidas sí lo tiene, en su `UpdateService`. El service worker de Angular baja el build nuevo en segundo plano y sigue sirviendo el viejo hasta que se cierran *todas* las pestañas del sitio, así que se podía quedar meses en una versión vieja: el footer mostraba `v1.2.0` con el repo en `1.3.0`, y el modal del Changelog abría vacío porque el JS cacheado era anterior. En una ventana de incógnito, sin service worker, el mismo deploy andaba perfecto.
+- Comidas **no** tenía este problema y no se tocó: su `ngsw-custom.js` ya hace `skipWaiting()` + `clients.claim()`, así que el worker nuevo toma control en la carga siguiente. Las dos apps quedan resueltas de forma distinta a propósito y no hay que unificarlas: `skipWaiting()` es seguro en comidas porque no tiene rutas lazy, pero en perfil-personal dejaría a la página ya cargada pidiendo chunks con hashes que el deploy nuevo borró. Queda documentado en `CLAUDE.md`.
+- Ahora `App` escucha `SwUpdate.versionUpdates` y, cuando hay una versión lista, la activa y recarga **en el próximo cambio de ruta** en vez de al instante: recargar en el momento le cortaría la lectura a alguien a la mitad de un post, mientras que esperar a la próxima navegación hace el salto invisible. No se reutilizó el `UpdateService` de comidas porque está acoplado a su `DialogService` y su diálogo de confirmación tiene sentido en una app con estado sin guardar, no en un blog.
+
+### Dependencies
+
+- `@angular/ssr` 22.1.5 y `@angular/platform-server` 22.1.3, ambas pinneadas exactas. Se descartaron las `latest` (22.1.6 y 22.1.4) por tener menos de 7 días publicadas; además 22.1.3 es la que matchea el peer exacto `@angular/core@22.1.3`. Sólo se usan en build: no van al bundle del browser.
+
 ## [1.3.0] - 2026-09-01
 
 Puesta al día del stack: salto a Angular 22 con TypeScript 6, adopción de OnPush como estrategia de detección de cambios, y limpieza del andamiaje de tests que nunca corrió.

@@ -1,18 +1,19 @@
 <div class="libros-container">
   @if (libros().length === 0) {
-  <div class="empty-state">
-    <p>No hay libros para mostrar todavía.</p>
-  </div>
+    <div class="empty-state">
+      <p>No hay libros para mostrar todavía.</p>
+    </div>
   } @else {
-  <div class="libros-grid">
-    @for (libro of libros(); track libro.titulo) {
-    <lib-libro
-      [enlace]="libro.enlace"
-      [imagen]="libro.imagen"
-      [subtitulo]="libro.subtitulo"
-      [titulo]="libro.titulo"
-    />
-    }
-  </div>
+    <div class="libros-grid">
+      @for (libro of libros(); track libro.slug) {
+        <a class="libro-link" [routerLink]="['/libros', libro.slug]">
+          <lib-libro
+            [imagen]="libro.imagen"
+            [subtitulo]="libro.subtitulo"
+            [titulo]="libro.titulo"
+          />
+        </a>
+      }
+    </div>
   }
 </div>

@@ -47,3 +47,21 @@
     gap: 1.5rem;
   }
 }
+
+.libro-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 4px;
+  transition: transform 0.2s ease;
+
+  &:hover,
+  &:focus-visible {
+    transform: translateY(-4px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--fg-primary);
+    outline-offset: 6px;
+  }
+}

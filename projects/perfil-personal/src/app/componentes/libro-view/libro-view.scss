@@ -1,0 +1,137 @@
+.libro-view-container {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-decoration: none;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  margin-bottom: 2.5rem;
+  transition: color 0.2s ease;
+
+  lib-icon {
+    transform: rotate(180deg);
+  }
+
+  &:hover {
+    color: var(--fg-primary);
+  }
+}
+
+.libro-header {
+  display: grid;
+  grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.libro-portada {
+  // NgOptimizedImage con `fill` necesita un contenedor posicionado y con alto.
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1.6;
+  border-radius: 2px;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 35%);
+
+  img {
+    object-fit: cover;
+  }
+}
+
+.libro-datos {
+  h1 {
+    margin: 0 0 0.5rem 0;
+    font-family: var(--font-serif);
+    font-size: var(--fs-display);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: var(--lh-tight);
+    color: var(--fg-primary);
+  }
+}
+
+.libro-serie {
+  margin: 0 0 2rem 0;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+}
+
+.libro-sinopsis {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  line-height: var(--lh-prose);
+  color: var(--fg-secondary);
+
+  p {
+    margin: 0 0 1rem 0;
+  }
+}
+
+.libro-tiendas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.tienda-boton {
+  display: inline-block;
+  padding: 0.7rem 1.4rem;
+  border: 1px solid var(--fg-primary);
+  border-radius: 2px;
+  text-decoration: none;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  color: var(--fg-primary);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+
+  &:hover,
+  &:focus-visible {
+    background-color: var(--fg-primary);
+    color: var(--bg-base);
+  }
+}
+
+@media (max-width: 768px) {
+  .libro-view-container {
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  .libro-header {
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+  }
+
+  .libro-portada {
+    max-width: 220px;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
