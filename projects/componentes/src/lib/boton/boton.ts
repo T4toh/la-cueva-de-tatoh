@@ -1,10 +1,11 @@
-import { Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'lib-boton',
   imports: [CommonModule],
   templateUrl: './boton.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './boton.scss',
 })
 export class Boton {

@@ -1,4 +1,10 @@
-import { Component, input, model, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  input,
+  model,
+  output,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Boton } from '../boton/boton';
 
@@ -15,6 +21,7 @@ export type DialogoAccion = {
   standalone: true,
   imports: [CommonModule, Boton],
   templateUrl: './dialogo.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './dialogo.scss',
 })
 export class Dialogo {

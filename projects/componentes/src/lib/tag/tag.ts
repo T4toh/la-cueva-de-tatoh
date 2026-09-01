@@ -1,9 +1,10 @@
-import { Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 @Component({
   selector: 'lib-tag',
   imports: [],
   templateUrl: './tag.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './tag.scss',
 })
 export class Tag {

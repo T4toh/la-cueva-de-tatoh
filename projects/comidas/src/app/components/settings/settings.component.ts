@@ -1,4 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+} from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { Capacitor } from '@capacitor/core';
 
@@ -16,6 +21,7 @@ import {
   standalone: true,
   imports: [Panel, AsyncPipe, Icon, ImportPreviewComponent],
   templateUrl: './settings.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./settings.component.scss'],
 })
 export class SettingsComponent {

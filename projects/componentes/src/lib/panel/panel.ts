@@ -1,9 +1,17 @@
-import { Component, computed, effect, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  input,
+  signal,
+} from '@angular/core';
 
 @Component({
   selector: 'lib-panel',
   imports: [],
   templateUrl: './panel.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './panel.scss',
 })
 export class Panel {

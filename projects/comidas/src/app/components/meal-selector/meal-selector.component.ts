@@ -1,4 +1,11 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MealService } from '../../services/meal.service';
 import { DishMealType, Meal, MealType } from '../../models/meal.model';
@@ -9,6 +16,7 @@ import { MealCardComponent } from '../meal-card/meal-card.component';
   standalone: true,
   imports: [RouterModule, MealCardComponent],
   templateUrl: './meal-selector.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./meal-selector.component.scss'],
 })
 export class MealSelectorComponent implements OnInit {

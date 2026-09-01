@@ -4,6 +4,8 @@
   <button class="link" type="button" (click)="abrir()">Changelog</button>
 </footer>
 
+<!-- El cierre por teclado lo maneja el <dialog> nativo (Escape) y onEsc() en el TS. -->
+<!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
 <dialog
   #dialogEl
   class="changelog-dialog"
@@ -13,9 +15,9 @@
     <header class="dialog-header">
       <h3>Changelog</h3>
       <button
+        aria-label="Cerrar"
         class="btn-close"
         type="button"
-        aria-label="Cerrar"
         (click)="cerrar()"
       >×</button>
     </header>

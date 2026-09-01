@@ -18,13 +18,12 @@ Because the library is consumed through `dist/componentes`, **`ng build componen
 pnpm install          # use pnpm; npm is blocked
 pnpm start            # ng serve (perfil-personal by default)
 pnpm build            # builds componentes → perfil-personal → comidas (production)
-pnpm test             # ng test (Karma/Jasmine)
+pnpm test             # ng test comidas (Vitest; único proyecto con specs)
 pnpm lint             # ng lint across all three projects
 pnpm watch            # ng build --watch development
 
 ng serve comidas      # serve a specific app (requires componentes built first)
 ng build <project>    # build a specific project
-ng test <project>     # test a specific project
 ng lint <project>     # lint a specific project
 ```
 

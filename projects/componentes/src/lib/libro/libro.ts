@@ -1,10 +1,11 @@
-import { Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 
 @Component({
   selector: 'lib-libro',
   imports: [NgOptimizedImage],
   templateUrl: './libro.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './libro.scss',
 })
 export class Libro {

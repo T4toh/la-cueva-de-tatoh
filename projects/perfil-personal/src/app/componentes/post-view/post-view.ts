@@ -1,15 +1,22 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MarkdownComponent } from 'ngx-markdown';
 import { Icon } from 'componentes';
 
 import { HttpClient } from '@angular/common/http';
-import { type Post, POSTS } from 'projects/perfil-personal/src/variables';
+import { type Post, POSTS } from '../../../variables';
 
 @Component({
   selector: 'app-post-view',
   imports: [MarkdownComponent, RouterLink, Icon],
   templateUrl: './post-view.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './post-view.scss',
 })
 export class PostView implements OnInit {

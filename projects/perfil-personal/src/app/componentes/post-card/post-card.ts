@@ -1,10 +1,11 @@
-import { Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-post-card',
   imports: [RouterLink],
   templateUrl: './post-card.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './post-card.scss',
 })
 export class PostCard {

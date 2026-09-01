@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   HostListener,
@@ -14,13 +15,15 @@ import { VERSION } from '../version';
   standalone: true,
   imports: [MarkdownComponent],
   templateUrl: './footer.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './footer.scss',
 })
 export class Footer {
   readonly changelogUrl = input<string>('/CHANGELOG.md');
   readonly version = VERSION;
   protected readonly cargado = signal(false);
-  protected readonly dialogRef = viewChild<ElementRef<HTMLDialogElement>>('dialogEl');
+  protected readonly dialogRef =
+    viewChild<ElementRef<HTMLDialogElement>>('dialogEl');
 
   abrir(): void {
     this.cargado.set(true);
