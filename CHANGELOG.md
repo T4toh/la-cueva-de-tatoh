@@ -2,6 +2,36 @@
 
 Todos los cambios notables a este proyecto se documentan en este archivo. El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.3.0] - 2026-09-01
+
+Puesta al día del stack: salto a Angular 22 con TypeScript 6, adopción de OnPush como estrategia de detección de cambios, y limpieza del andamiaje de tests que nunca corrió.
+
+### Changed
+
+#### Compartido (lib `componentes`)
+- `VERSION` actualizada a `1.3.0`.
+- Angular 21.2.12 → 22.1.3 en todo el monorepo (core, common, compiler, forms, platform-browser, router, service-worker, compiler-cli); CLI y build 21.2.10 → 22.1.5.
+- TypeScript 5.9.3 → 6.0.3, requerido por `@angular/compiler-cli` 22. Se elimina `compilerOptions.baseUrl` del tsconfig raíz (deprecado y error en TS 6) y las importaciones de perfil-personal que dependían de él pasan a ser relativas.
+- ng-packagr 22.1.1, angular-eslint 22.1.0, ngx-markdown 22.0.0, firebase 12.18.0, `@capacitor/*` 8.5.0, eslint 10.9.1, typescript-eslint 8.68.0, prettier 3.9.6, vitest 4.1.11. `marked` pasa a dependencia explícita en 18.0.11 (ngx-markdown 22 pide `^17 || ^18`).
+- `peerDependencies` de la librería actualizadas a `@angular/{common,core} ^22.0.0`.
+- **OnPush como estrategia de detección de cambios.** Angular 22 la volvió el default; la migración automática había dejado `ChangeDetectionStrategy.Eager` en los 31 componentes para conservar el comportamiento de v21 y ahora se sacan todos. Un componente OnPush sólo se revisa cuando algo lo marca: un evento de su propio template, un signal que lee, un input nuevo, un `@HostListener` propio, el `async` pipe o un `markForCheck()` explícito. Lo que no lo marca es una mutación hecha después de un `await` o dentro de un callback, que es el único patrón que hubo que corregir.
+- `provideHttpClient(withXhr())` en ambas apps: Angular 22 usa `fetch` por defecto y se conserva XHR.
+
+#### Comidas
+- Se elimina el andamiaje de karma/jasmine: `perfil-personal` y `componentes` tenían target de test sin un solo archivo `.spec.ts` ni `tsconfig.spec.json`, o sea que nunca fue ejecutable. Se quitan las 7 dependencias asociadas y `pnpm test` pasa a apuntar a `ng test comidas`, el único proyecto con specs (Vitest).
+- Budget de bundle inicial de comidas: `maximumError` 1MB → 1.2MB. El bundle pasó de 982 kB a 1.01 MB con Angular 22 + firebase 12.18.
+
+### Fixed
+
+#### Comidas
+- El badge de estado de sincronización en Configuración ("Sincronizado", "Sincronizando...", "Error de sincronización" y los demás estados) tenía el ícono desalineado y pegado al texto: el `<span>` era `display: inline-block`, así que el SVG se apoyaba en la línea base en vez de centrarse, y no había separación. La regla global `button/a/label:has(lib-icon)` de `styles.scss` no lo alcanzaba por ser un `<span>`. Ahora es `inline-flex` centrado con `gap`, y un poco más de padding.
+- Mismo defecto en el chip de cantidad en despensa de la lista de compras (`.pantry-qty-chip`), corregido igual.
+- El modal de importación no se podía cerrar con el teclado: el backdrop sólo tenía `(click)`. Adopta el mismo patrón que `lib-dialogo` (`role`/`tabindex` + `keydown.enter`/`keydown.space`).
+- Los dos generadores de QR escribían el estado de carga y el mensaje de error después de un `await fetch(...)` o dentro de los callbacks de `FileReader`, o sea fuera del ciclo de detección que disparó el evento. Bajo OnPush eso dejaba de repintarse: se agrega `markForCheck()` en esas rutas.
+
+#### Compartido
+- `pnpm lint` queda en 0 errores. Venía fallando con 6 errores de accesibilidad (`click-events-have-key-events`, `interactive-supports-focus`) y desorden de atributos en templates.
+
 ## [1.2.0] - 2026-06-01
 
 Mejoras y correcciones en Comidas tras el deploy a Cloudflare Pages: importador de comidas reforzado, Service Worker que ya no rompe Firestore, y pulido de layout (tarjetas uniformes + footer fijo).
