@@ -2,6 +2,17 @@
 
 Todos los cambios notables a este proyecto se documentan en este archivo. El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.4.1] - 2026-09-01
+
+### Changed
+
+#### Perfil Personal
+- **Tapa nueva de *La Caballera Esmeralda*, y ahora servida desde el repo.** Antes `imagen` apuntaba a la URL de la portada en Amazon: esa imagen la controla Amazon, así que si cambia el listado el `og:image` se rompe sin que nos enteremos. La portada pasa a `public/img/portadas/`, convertida a JPEG de 752×1200 y 357 kB — el PNG original de 5,4 MB no sirve como `og:image` porque WhatsApp descarta las imágenes pesadas al armar el preview y no muestra nada.
+- El post del blog *Primer libro en Amazon* usa la misma portada nueva. Servía un PNG de 5,0 MB propio (`posts/img/la-caballera-esmeralda.png`), que se elimina: ahora las dos superficies apuntan al mismo JPEG de 357 kB. De paso deja de usar una ruta relativa (`../posts/img/...`) que sólo funcionaba por cómo resuelve el browser desde `/blog/:id`.
+- `og:image` y `twitter:image` se arman ahora con `SITIO_URL` adelante. Los crawlers no resuelven rutas relativas al dominio, así que una ruta desde la raíz sola habría dejado el preview sin portada.
+- `pnpm check:libros` valida además que `og:image` sea absoluta y que, si la portada la servimos nosotros, el archivo exista en el build. Es un error que de otro modo solo se descubre cuando alguien comparte el link.
+- La sinopsis de *La Caballera Esmeralda* pasa a ser el blurb real del libro, en reemplazo del texto provisorio que se había reciclado del post viejo. El primer párrafo es además el que alimenta `og:description`, o sea el texto que se ve al compartir el link en WhatsApp o Twitter.
+
 ## [1.4.0] - 2026-09-01
 
 Cada libro pasa a tener su propia página y su propio link, pensado para imprimirlo dentro del EPUB. Para que ese link muestre portada y descripción al compartirlo, `perfil-personal` ahora se prerenderiza en el build.
