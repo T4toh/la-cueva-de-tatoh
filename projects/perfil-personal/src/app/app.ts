@@ -25,6 +25,12 @@ export class App {
     // El service worker baja el build nuevo en segundo plano pero sigue
     // sirviendo el viejo hasta que se cierran todas las pestañas del sitio.
     // Sin esto uno queda clavado en una versión vieja por tiempo indefinido.
+    //
+    // Comidas resuelve lo mismo de otra forma: su ngsw-custom.js hace
+    // skipWaiting() + clients.claim(). Acá eso NO sirve. Comidas no tiene
+    // rutas lazy; perfil-personal sí, y si el worker nuevo tomara control a
+    // mitad de sesión, la página ya cargada seguiría pidiendo chunks con
+    // hashes que el deploy nuevo borró. No unificar las dos apps.
     this.updates.versionUpdates
       .pipe(filter((e): e is VersionReadyEvent => e.type === 'VERSION_READY'))
       .subscribe(() => this.aplicarEnLaProximaNavegacion());

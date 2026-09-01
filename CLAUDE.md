@@ -66,6 +66,23 @@ Two consequences worth knowing:
 - Anything running at component init must survive Node. No bare `window` or
   `document` outside an event handler.
 
+### Service worker updates
+
+Both apps are PWAs, and both had to solve "the Angular SW keeps serving the old
+build until every tab closes" — but **they solve it differently on purpose, and
+must not be unified**:
+
+- **comidas** registers `ngsw-custom.js`, which does `skipWaiting()` +
+  `clients.claim()` so the new worker takes control on the next load. Safe there
+  because comidas has no lazy routes: everything ships in the main bundle.
+- **perfil-personal** does it from `App` instead, via `SwUpdate.versionUpdates`:
+  on `VERSION_READY` it activates and reloads on the *next route change*.
+  `skipWaiting()` would be wrong here — this app has lazy routes, so a worker
+  swapping mid-session leaves the loaded page requesting chunk hashes the new
+  deploy already deleted.
+
+If you touch either, keep that difference and the reason for it.
+
 Run `pnpm check:libros` after a production build to confirm every book still
 emits its `og:` tags.
 
