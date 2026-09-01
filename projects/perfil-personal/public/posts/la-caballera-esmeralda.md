@@ -2,7 +2,7 @@
 
 <div class="book-showcase">
   <div class="book-cover">
-    <img src="../posts/img/la-caballera-esmeralda.png" alt="Portada de La Caballera Esmeralda">
+    <img src="/img/portadas/la-caballera-esmeralda.jpg" alt="Portada de La Caballera Esmeralda">
   </div>
   <div class="book-info">
     <h2>La Caballera Esmeralda: Meridian #1</h2>
