@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   inject,
   OnInit,
@@ -16,7 +15,6 @@ import { type Post, POSTS } from '../../../variables';
   selector: 'app-post-view',
   imports: [MarkdownComponent, RouterLink, Icon],
   templateUrl: './post-view.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './post-view.scss',
 })
 export class PostView implements OnInit {

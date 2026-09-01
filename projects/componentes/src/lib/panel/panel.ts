@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   computed,
   effect,
@@ -11,7 +10,6 @@ import {
   selector: 'lib-panel',
   imports: [],
   templateUrl: './panel.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './panel.scss',
 })
 export class Panel {

@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   inject,
   input,
@@ -38,7 +37,6 @@ const LINKEDIN_SVG = `<svg name="linkedin" viewBox="0 0 40 40" fill="none" xmlns
 @Component({
   selector: 'lib-redes',
   templateUrl: './redes.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './redes.scss',
 })
 export class Redes {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 
 import { Libro } from 'componentes';
 import { LIBROS } from '../../../variables';
@@ -7,7 +7,6 @@ import { LIBROS } from '../../../variables';
   selector: 'app-libros',
   imports: [Libro],
   templateUrl: './libros.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './libros.scss',
 })
 export class Libros {

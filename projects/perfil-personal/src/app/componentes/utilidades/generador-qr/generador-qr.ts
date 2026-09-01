@@ -1,8 +1,9 @@
 import {
-  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   effect,
   ElementRef,
+  inject,
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -12,10 +13,11 @@ import QRCodeStyling from 'qr-code-styling';
   selector: 'app-generador-qr',
   imports: [FormsModule],
   templateUrl: './generador-qr.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './generador-qr.scss',
 })
 export class GeneradorQr {
+  private readonly cdr = inject(ChangeDetectorRef);
+
   readonly qrCanvas = viewChild<ElementRef<HTMLDivElement>>('qrCanvas');
 
   qrCode: QRCodeStyling | null = null;
@@ -186,10 +188,13 @@ export class GeneradorQr {
         this.imageData = e.target?.result as string;
         await this.generateQR();
         this.isLoadingImage = false;
+        // FileReader corre fuera del handler, hay que marcar la vista.
+        this.cdr.markForCheck();
       };
       reader.onerror = (): void => {
         this.imageError = 'Error al leer el archivo.';
         this.isLoadingImage = false;
+        this.cdr.markForCheck();
       };
       reader.readAsDataURL(file);
     } catch (error) {

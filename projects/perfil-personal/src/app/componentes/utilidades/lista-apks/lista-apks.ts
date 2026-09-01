@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { Icon } from 'componentes';
 
 import { type Apk, APKS } from '../../../../variables';
@@ -7,7 +7,6 @@ import { type Apk, APKS } from '../../../../variables';
   selector: 'app-lista-apks',
   imports: [Icon],
   templateUrl: './lista-apks.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './lista-apks.scss',
 })
 export class ListaApks {

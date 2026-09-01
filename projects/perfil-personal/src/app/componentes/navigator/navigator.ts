@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { DomSanitizer, SafeHtml, SafeUrl } from '@angular/platform-browser';
 import { Icon } from 'componentes';
@@ -7,7 +7,6 @@ import { Icon } from 'componentes';
   selector: 'app-navigator',
   imports: [RouterLink, RouterLinkActive, Icon],
   templateUrl: './navigator.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './navigator.scss',
 })
 export class Navigator {

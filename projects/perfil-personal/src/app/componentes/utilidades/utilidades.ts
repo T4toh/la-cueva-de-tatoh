@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 
 import { GeneradorQr } from './generador-qr/generador-qr';
 import { ListaApks } from './lista-apks/lista-apks';
@@ -7,7 +7,6 @@ import { ListaApks } from './lista-apks/lista-apks';
   selector: 'app-utilidades',
   imports: [GeneradorQr, ListaApks],
   templateUrl: './utilidades.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './utilidades.scss',
 })
 export class Utilidades {

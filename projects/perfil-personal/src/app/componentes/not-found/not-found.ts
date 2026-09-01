@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Boton } from 'componentes';
 
@@ -6,7 +6,6 @@ import { Boton } from 'componentes';
   selector: 'app-not-found',
   imports: [Boton],
   templateUrl: './not-found.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './not-found.scss',
 })
 export class NotFound {

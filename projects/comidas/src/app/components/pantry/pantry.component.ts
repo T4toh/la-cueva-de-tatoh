@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -16,7 +16,6 @@ import { MealService } from '../../services/meal.service';
   standalone: true,
   imports: [ReactiveFormsModule, NgTemplateOutlet, Icon],
   templateUrl: './pantry.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./pantry.component.scss'],
 })
 export class PantryComponent {

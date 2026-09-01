@@ -1,8 +1,9 @@
 import {
-  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   effect,
   ElementRef,
+  inject,
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -12,10 +13,11 @@ import QRCodeStyling from 'qr-code-styling';
   selector: 'lib-generador-qr',
   imports: [FormsModule],
   templateUrl: './generador-qr.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './generador-qr.scss',
 })
 export class GeneradorQr {
+  private readonly cdr = inject(ChangeDetectorRef);
+
   readonly qrCanvas = viewChild<ElementRef<HTMLDivElement>>('qrCanvas');
 
   qrCode: QRCodeStyling | null = null;
@@ -126,6 +128,8 @@ export class GeneradorQr {
       return false;
     } finally {
       this.isLoadingImage = false;
+      // isLoadingImage/imageError se pintan y se tocan después del await.
+      this.cdr.markForCheck();
     }
   }
 
@@ -167,6 +171,8 @@ export class GeneradorQr {
     } else {
       this.initializeQR();
     }
+
+    this.cdr.markForCheck();
   }
 
   onDataChange(): void {
