@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   inject,
@@ -20,6 +21,7 @@ import { DialogService } from './services/dialog.service';
   standalone: true,
   imports: [RouterModule, AsyncPipe, Dialogo, Footer, Icon],
   templateUrl: './app.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './app.scss',
 })
 export class AppComponent implements OnInit, AfterViewInit {

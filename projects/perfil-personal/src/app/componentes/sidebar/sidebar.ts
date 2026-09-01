@@ -1,4 +1,9 @@
-import { Component, computed, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  signal,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Avatar, Footer, Redes, SkillBar, Tag } from 'componentes';
 import {
@@ -6,12 +11,13 @@ import {
   POSTS,
   REDES,
   SKILLS,
-} from 'projects/perfil-personal/src/variables';
+} from '../../../variables';
 
 @Component({
   selector: 'app-sidebar',
   imports: [Avatar, SkillBar, Tag, Redes, Footer, RouterLink],
   templateUrl: './sidebar.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './sidebar.scss',
 })
 export class Sidebar {

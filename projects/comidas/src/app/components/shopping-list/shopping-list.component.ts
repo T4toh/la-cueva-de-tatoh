@@ -1,4 +1,9 @@
-import { Component, inject, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  OnInit,
+} from '@angular/core';
 
 import {
   FormBuilder,
@@ -15,6 +20,7 @@ import { DialogService } from '../../services/dialog.service';
   standalone: true,
   imports: [ReactiveFormsModule, Tag, Icon],
   templateUrl: './shopping-list.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./shopping-list.component.scss'],
 })
 export class ShoppingListComponent implements OnInit {
@@ -155,15 +161,29 @@ export class ShoppingListComponent implements OnInit {
     }
   }
 
-  displayQty(item: { quantity: string; unit?: string; quantityOverride?: string }): string {
+  displayQty(item: {
+    quantity: string;
+    unit?: string;
+    quantityOverride?: string;
+  }): string {
     if (item.quantityOverride) {
       return item.quantityOverride;
     }
     return [item.quantity, item.unit].filter(Boolean).join(' ');
   }
 
-  reAddFromHistory(item: { name: string; quantity: string; unit?: string; tagId?: string }): void {
-    this.mealService.addExtraItem(item.name, item.quantity, item.tagId, item.unit);
+  reAddFromHistory(item: {
+    name: string;
+    quantity: string;
+    unit?: string;
+    tagId?: string;
+  }): void {
+    this.mealService.addExtraItem(
+      item.name,
+      item.quantity,
+      item.tagId,
+      item.unit
+    );
   }
 
   print(): void {

@@ -5,17 +5,14 @@ import {
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { MarkdownModule } from 'ngx-markdown';
 
 import { routes } from './app.routes';
 import { provideServiceWorker } from '@angular/service-worker';
 import { getApp, initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { getAuth, provideAuth } from '@angular/fire/auth';
-import {
-  initializeFirestore,
-  provideFirestore,
-} from '@angular/fire/firestore';
+import { initializeFirestore, provideFirestore } from '@angular/fire/firestore';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyAcnGibMP9J5tdak-XsFcdZAXDSXKZN3tM',
@@ -31,7 +28,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
-    provideHttpClient(),
+    provideHttpClient(withXhr()),
     importProvidersFrom(MarkdownModule.forRoot()),
     // Registramos el SW custom (ngsw-custom.js) que hace bypass de Firestore
     // antes de importar el ngsw-worker.js generado por el CLI.
@@ -47,7 +44,7 @@ export const appConfig: ApplicationConfig = {
         // Angular Service Worker intercepta fetch event y rompe el streaming
         // del Listen/channel de Firestore; XHR no sufre ese problema.
         experimentalForceLongPolling: true,
-      }),
+      })
     ),
   ],
 };

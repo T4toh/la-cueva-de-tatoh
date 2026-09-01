@@ -1,4 +1,10 @@
-import { Component, effect, ElementRef, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  ElementRef,
+  viewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import QRCodeStyling from 'qr-code-styling';
 
@@ -6,6 +12,7 @@ import QRCodeStyling from 'qr-code-styling';
   selector: 'app-generador-qr',
   imports: [FormsModule],
   templateUrl: './generador-qr.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './generador-qr.scss',
 })
 export class GeneradorQr {

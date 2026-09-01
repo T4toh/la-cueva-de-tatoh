@@ -2,8 +2,8 @@
   "name": "componentes",
   "version": "0.0.1",
   "peerDependencies": {
-    "@angular/common": "^20.2.0",
-    "@angular/core": "^20.2.0",
+    "@angular/common": "^22.0.0",
+    "@angular/core": "^22.0.0",
     "qr-code-styling": "^1.6.0-rc.1"
   },
   "dependencies": {

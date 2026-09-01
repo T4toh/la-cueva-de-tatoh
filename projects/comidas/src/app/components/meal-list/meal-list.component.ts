@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 
 import { Router, RouterModule } from '@angular/router';
 import { MealService } from '../../services/meal.service';
@@ -10,6 +10,7 @@ import { DialogService } from '../../services/dialog.service';
   standalone: true,
   imports: [RouterModule, MealCardComponent],
   templateUrl: './meal-list.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./meal-list.component.scss'],
 })
 export class MealListComponent {

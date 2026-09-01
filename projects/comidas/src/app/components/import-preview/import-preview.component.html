@@ -1,6 +1,13 @@
 @if (open()) {
-  <div class="import-backdrop" (click)="close()">
-    <div class="import-container" (click)="$event.stopPropagation()">
+  <div
+    class="import-backdrop"
+    role="button"
+    tabindex="0"
+    (click)="onBackdropClick($event)"
+    (keydown.enter)="onBackdropClick($event)"
+    (keydown.space)="onBackdropClick($event)"
+  >
+    <div class="import-container">
       <div class="import-header">
         <h3>
           @if (mode() === 'data') {
@@ -9,7 +16,7 @@
             Pegar comidas (JSON)
           }
         </h3>
-        <button class="btn-close" type="button" aria-label="Cerrar" (click)="close()">
+        <button aria-label="Cerrar" class="btn-close" type="button" (click)="close()">
           <lib-icon name="x" [size]="20" />
         </button>
       </div>
@@ -28,8 +35,8 @@
           </p>
           <textarea
             class="json-input"
-            rows="10"
             placeholder='[ { "name": "...", "ingredients": [...] } ]'
+            rows="10"
             [value]="rawText()"
             (input)="onTextInput($event)"
           ></textarea>
@@ -65,9 +72,9 @@
                     (change)="toggleSelected(row)"
                   />
                 </label>
-                <input class="row-name" type="text" formControlName="name" (blur)="onNameBlur(row)" />
+                <input class="row-name" formControlName="name" type="text" (blur)="onNameBlur(row)" />
                 @if (row.dup()) {
-                  <lib-tag texto="repetido" colorFondo="#ff9800" colorTexto="#1c1d23" />
+                  <lib-tag colorFondo="#ff9800" colorTexto="#1c1d23" texto="repetido" />
                 }
               </div>
 
@@ -97,19 +104,19 @@
                 </div>
               }
 
-              <textarea class="row-desc" rows="2" formControlName="description" placeholder="Descripción"></textarea>
+              <textarea class="row-desc" formControlName="description" placeholder="Descripción" rows="2"></textarea>
 
               <div class="tags-list" formArrayName="tags">
                 @for (tag of tagsOf(row).controls; track $index) {
                   <span class="tag-item">
                     {{ tag.value }}
-                    <button type="button" class="btn-remove-tag" (click)="removeTag(row, $index)">×</button>
+                    <button class="btn-remove-tag" type="button" (click)="removeTag(row, $index)">×</button>
                   </span>
                 }
                 <span class="tag-add">
                   <input
-                    type="text"
                     placeholder="+ tag"
+                    type="text"
                     [formControl]="row.newTag"
                     (keydown.enter)="addTag(row, $event)"
                   />
@@ -119,15 +126,15 @@
               <div class="ingredients" formArrayName="ingredients">
                 @for (ing of ingredientsOf(row).controls; track $index) {
                   <div class="ingredient-row" [formGroupName]="$index">
-                    <input type="text" placeholder="Ingrediente" formControlName="name" />
-                    <input type="text" placeholder="Cant." formControlName="quantity" />
-                    <input type="text" placeholder="Unidad" formControlName="unit" />
-                    <button type="button" class="btn-remove" (click)="removeIngredient(row, $index)">
+                    <input formControlName="name" placeholder="Ingrediente" type="text" />
+                    <input formControlName="quantity" placeholder="Cant." type="text" />
+                    <input formControlName="unit" placeholder="Unidad" type="text" />
+                    <button class="btn-remove" type="button" (click)="removeIngredient(row, $index)">
                       <lib-icon name="trash-2" [size]="14" />
                     </button>
                   </div>
                 }
-                <button type="button" class="btn-add-ing" (click)="addIngredient(row)">
+                <button class="btn-add-ing" type="button" (click)="addIngredient(row)">
                   <lib-icon name="plus" [size]="14" />
                   <span>Ingrediente</span>
                 </button>

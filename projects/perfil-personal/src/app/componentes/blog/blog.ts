@@ -1,7 +1,12 @@
-import { Component, computed, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  signal,
+} from '@angular/core';
 import { Icon } from 'componentes';
 import { PostCard } from '../post-card/post-card';
-import { Post, POSTS } from 'projects/perfil-personal/src/variables';
+import { Post, POSTS } from '../../../variables';
 
 // Temas disponibles de Prism.js (cambiar en angular.json > styles):
 // - prism-okaidia.css (tema oscuro actual)
@@ -22,6 +27,7 @@ type SortOrder = 'asc' | 'desc';
   selector: 'app-blog',
   imports: [PostCard, Icon],
   templateUrl: './blog.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './blog.scss',
 })
 export class Blog {

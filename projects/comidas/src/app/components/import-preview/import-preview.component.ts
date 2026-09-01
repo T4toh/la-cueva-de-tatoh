@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   computed,
   inject,
@@ -24,7 +25,7 @@ import { Icon, Tag } from 'componentes';
 export type ImportMode = 'meals' | 'data';
 type RowAction = 'replace' | 'skip' | 'new';
 
-interface PreviewRow {
+type PreviewRow = {
   original: Meal;
   form: FormGroup;
   newTag: FormControl<string>;
@@ -38,6 +39,7 @@ interface PreviewRow {
   standalone: true,
   imports: [ReactiveFormsModule, Icon, Tag],
   templateUrl: './import-preview.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./import-preview.component.scss'],
 })
 export class ImportPreviewComponent {
@@ -53,7 +55,9 @@ export class ImportPreviewComponent {
   readonly parseError = signal<string | null>(null);
   readonly parsed = signal(false);
   readonly rows = signal<PreviewRow[]>([]);
-  readonly backupSummary = signal<{ label: string; value: number }[] | null>(null);
+  readonly backupSummary = signal<{ label: string; value: number }[] | null>(
+    null
+  );
 
   readonly selectedCount = computed(
     () => this.rows().filter((r) => r.selected()).length
@@ -84,7 +88,10 @@ export class ImportPreviewComponent {
         return;
       }
       this.backupSummary.set(
-        Object.entries(summary.counts).map(([label, value]) => ({ label, value }))
+        Object.entries(summary.counts).map(([label, value]) => ({
+          label,
+          value,
+        }))
       );
       this.parsed.set(true);
       return;
@@ -116,7 +123,9 @@ export class ImportPreviewComponent {
         })
       )
     );
-    const tags = this.fb.array((meal.tags ?? []).map((t) => this.fb.control(t)));
+    const tags = this.fb.array(
+      (meal.tags ?? []).map((t) => this.fb.control(t))
+    );
     const form = this.fb.group({
       name: [meal.name ?? ''],
       description: [meal.description ?? ''],
@@ -227,6 +236,12 @@ export class ImportPreviewComponent {
       'Importación',
       `Se importaron ${imported} comida(s) correctamente.`
     );
+  }
+
+  onBackdropClick(event: Event): void {
+    if ((event.target as HTMLElement).classList.contains("import-backdrop")) {
+      this.close();
+    }
   }
 
   close(): void {

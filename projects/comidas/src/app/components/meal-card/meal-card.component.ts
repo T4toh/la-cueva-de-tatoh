@@ -1,4 +1,9 @@
-import { Component, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  input,
+  output,
+} from '@angular/core';
 
 import { Meal } from '../../models/meal.model';
 import { Icon, Panel, Tag } from 'componentes';
@@ -8,6 +13,7 @@ import { Icon, Panel, Tag } from 'componentes';
   standalone: true,
   imports: [Panel, Tag, Icon],
   templateUrl: './meal-card.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./meal-card.component.scss'],
 })
 export class MealCardComponent {
