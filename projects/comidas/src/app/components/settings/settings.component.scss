@@ -94,8 +94,12 @@ h1 {
   margin-bottom: 1rem;
 
   .status-badge {
-    display: inline-block;
-    padding: 0.5rem 1rem;
+    // Lleva lib-icon adentro y es un <span>, así que la regla global
+    // button/a/label:has(lib-icon) de styles.scss no lo alcanza.
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1.1rem;
     border-radius: 20px;
     font-size: 0.9rem;
     font-weight: bold;
