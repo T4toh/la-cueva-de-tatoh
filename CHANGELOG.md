@@ -2,6 +2,13 @@
 
 Todos los cambios notables a este proyecto se documentan en este archivo. El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.4.1] - 2026-09-01
+
+### Changed
+
+#### Perfil Personal
+- La sinopsis de *La Caballera Esmeralda* pasa a ser el blurb real del libro, en reemplazo del texto provisorio que se había reciclado del post viejo. El primer párrafo es además el que alimenta `og:description`, o sea el texto que se ve al compartir el link en WhatsApp o Twitter.
+
 ## [1.4.0] - 2026-09-01
 
 Cada libro pasa a tener su propia página y su propio link, pensado para imprimirlo dentro del EPUB. Para que ese link muestre portada y descripción al compartirlo, `perfil-personal` ahora se prerenderiza en el build.
