@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository shape
 
-Angular 21 monorepo (single `angular.json`) managed with **pnpm**. The `preinstall` script enforces pnpm — using `npm install` will fail. Source lives under `projects/`:
+Angular 22 monorepo (single `angular.json`) managed with **pnpm**. The `preinstall` script enforces pnpm — using `npm install` will fail. Source lives under `projects/`:
 
 - `projects/perfil-personal` — application. Personal portfolio + blog. Uses `ngx-markdown` + `prismjs` for rendered posts. PWA. Selector prefix `app`.
 - `projects/comidas` — application. Meal planning app, Firebase-backed (Auth + Firestore, project id `la-cueva-comidas`). PWA. Also wrapped as an Android app via Capacitor (`appId: com.tatoh.comidas`). Selector prefix `app`.
@@ -20,6 +20,7 @@ pnpm start            # ng serve (perfil-personal by default)
 pnpm build            # builds componentes → perfil-personal → comidas (production)
 pnpm test             # ng test comidas (Vitest; único proyecto con specs)
 pnpm lint             # ng lint across all three projects
+pnpm check:libros     # tras un build de prod: valida los og: de cada /libros/<slug>
 pnpm watch            # ng build --watch development
 
 ng serve comidas      # serve a specific app (requires componentes built first)
@@ -35,14 +36,38 @@ pnpm build:comidas:android     # build + cap sync android
 pnpm open:android              # build + sync + open Android Studio
 ```
 
-## Deployment layout (Netlify)
+## Deployment layout (Cloudflare Workers)
 
-`netlify.toml` builds all three projects, then **copies `dist/comidas/browser/*` into `dist/perfil-personal/browser/comidas/`** so the published site serves:
+Each app deploys as its **own** Worker serving static assets — there is no shared
+site and no copy step between them. One `wrangler.jsonc` per app:
 
-- `/` → perfil-personal
-- `/comidas/*` → comidas (built with `--base-href=/comidas/`)
+| App | Config | Worker | Assets |
+|-----|--------|--------|--------|
+| perfil-personal | `projects/perfil-personal/wrangler.jsonc` | `la-cueva-de-tatoh` | `dist/perfil-personal/browser` |
+| comidas | `projects/comidas/wrangler.jsonc` | `comidas` | `dist/comidas/browser` |
 
-Both routes have SPA fallbacks. When changing routing or base-href in either app, keep the Netlify copy step in mind — comidas assumes it's mounted at `/comidas/` in production.
+Both set `not_found_handling: "single-page-application"`. Cloudflare serves a
+matching static asset first and only falls back to `index.html` on a miss, so
+prerendered files win over the SPA fallback. Deploy happens on merge to `main`.
+
+**perfil-personal is prerendered (SSG).** `outputMode: "static"` plus
+`src/main.server.ts` + `app.config.server.ts`; the per-route rules live in
+`src/app/app.routes.server.ts`. Adding a book or a post to `src/variables.ts`
+generates its static HTML automatically — that is what gives `/libros/<slug>`
+real `og:` tags, since the WhatsApp/Twitter crawlers do not run JS.
+
+Two consequences worth knowing:
+
+- Any route left as `RenderMode.Client` has no file of its own, so opening it
+  directly serves the prerendered home for an instant before Angular swaps it.
+  `utilidades` is in that bucket: `generador-qr` builds a `QRCodeStyling` inside
+  an `effect`, and that touches `window`, which Node does not have. Guarding it
+  with `isPlatformBrowser` would let it prerender too.
+- Anything running at component init must survive Node. No bare `window` or
+  `document` outside an event handler.
+
+Run `pnpm check:libros` after a production build to confirm every book still
+emits its `og:` tags.
 
 ## ESLint is the source of truth
 

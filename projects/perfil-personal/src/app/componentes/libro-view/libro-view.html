@@ -1,0 +1,40 @@
+<div class="libro-view-container">
+  @if (libro(); as l) {
+    <article class="libro-view">
+      <a class="back-link" routerLink="/libros">
+        <lib-icon name="arrow-right" [size]="14" />
+        <span>Volver a libros</span>
+      </a>
+
+      <div class="libro-header">
+        <div class="libro-portada">
+          <img fill priority [alt]="'Portada de ' + l.titulo" [ngSrc]="l.imagen" />
+        </div>
+
+        <div class="libro-datos">
+          <h1>{{ l.titulo }}</h1>
+          <p class="libro-serie">{{ l.subtitulo }}</p>
+
+          <div class="libro-sinopsis">
+            <markdown [data]="l.sinopsis" />
+          </div>
+
+          @if (l.tiendas.length > 0) {
+            <div class="libro-tiendas">
+              @for (tienda of l.tiendas; track tienda.url) {
+                <a
+                  class="tienda-boton"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  [href]="tienda.url"
+                >
+                  Comprar en {{ tienda.nombre }}
+                </a>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </article>
+  }
+</div>

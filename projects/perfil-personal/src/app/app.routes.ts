@@ -23,6 +23,11 @@ export const routes: Routes = [
       import('./componentes/libros/libros').then((m) => m.Libros),
   },
   {
+    path: 'libros/:slug',
+    loadComponent: () =>
+      import('./componentes/libro-view/libro-view').then((m) => m.LibroView),
+  },
+  {
     path: '**',
     loadComponent: () =>
       import('./componentes/not-found/not-found').then((m) => m.NotFound),

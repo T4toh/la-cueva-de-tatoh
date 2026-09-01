@@ -211,19 +211,41 @@ export const POSTS: Post[] = [
   },
 ];
 
+// Dominio público del sitio. Solo se usa para armar og:url absoluto:
+// los crawlers (WhatsApp, Twitter) no resuelven URLs relativas.
+export const SITIO_URL = 'https://tatoh.ar';
+export const TITULO_SITIO = 'Ignacio Martín Arano';
+
+export type Tienda = {
+  nombre: string;
+  url: string;
+};
+
 export type Libro = {
+  // El slug es la URL del libro (/libros/<slug>) y va impresa dentro del EPUB.
+  // Una vez publicado no se cambia: rompería los links de las copias vendidas.
+  slug: string;
   titulo: string;
   subtitulo: string;
   imagen: string;
-  enlace?: string;
+  sinopsis: string;
+  tiendas: Tienda[];
 };
 
 export const LIBROS: Libro[] = [
   // Agrega tus libros aquí
   {
+    slug: 'la-caballera-esmeralda',
     titulo: 'La Caballera Esmeralda',
     subtitulo: 'Meridian #1',
     imagen: 'https://m.media-amazon.com/images/I/81UbYlDXTQL._SL1500_.jpg',
-    enlace: 'https://www.amazon.com/dp/B0G3JTSR43',
+    sinopsis: [
+      'Fantasía barata, romance y acción. Detesto los blurbs, así que esto es',
+      'lo que hay: es la historia de un mago que por fin sale a caminar los',
+      'caminos del reino.',
+      '',
+      'Primer libro de la saga **Meridian**.',
+    ].join('\n'),
+    tiendas: [{ nombre: 'Amazon', url: 'https://www.amazon.com/dp/B0G3JTSR43' }],
   },
 ];

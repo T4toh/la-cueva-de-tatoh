@@ -18,6 +18,8 @@
           "builder": "@angular/build:application",
           "options": {
             "browser": "projects/perfil-personal/src/main.ts",
+            "server": "projects/perfil-personal/src/main.server.ts",
+            "outputMode": "static",
             "polyfills": [
               "zone.js"
             ],
