@@ -42,12 +42,15 @@ export class LibroView implements OnInit, OnDestroy {
     const titulo = `${libro.titulo} — ${libro.subtitulo}`;
     const descripcion = primerParrafo(libro.sinopsis);
     const url = `${SITIO_URL}/libros/${libro.slug}`;
+    // og:image tiene que ser absoluta: los crawlers no resuelven rutas
+    // relativas al dominio.
+    const portada = `${SITIO_URL}${libro.imagen}`;
 
     this.title.setTitle(`${titulo} | ${TITULO_SITIO}`);
     this.meta.updateTag({ content: descripcion, name: 'description' });
     this.meta.updateTag({ content: titulo, property: 'og:title' });
     this.meta.updateTag({ content: descripcion, property: 'og:description' });
-    this.meta.updateTag({ content: libro.imagen, property: 'og:image' });
+    this.meta.updateTag({ content: portada, property: 'og:image' });
     this.meta.updateTag({ content: url, property: 'og:url' });
     this.meta.updateTag({ content: 'book', property: 'og:type' });
     this.meta.updateTag({ content: TITULO_SITIO, property: 'og:site_name' });
@@ -57,7 +60,7 @@ export class LibroView implements OnInit, OnDestroy {
     });
     this.meta.updateTag({ content: titulo, name: 'twitter:title' });
     this.meta.updateTag({ content: descripcion, name: 'twitter:description' });
-    this.meta.updateTag({ content: libro.imagen, name: 'twitter:image' });
+    this.meta.updateTag({ content: portada, name: 'twitter:image' });
   }
 }
 

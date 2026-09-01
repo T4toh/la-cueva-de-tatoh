@@ -7,6 +7,9 @@ Todos los cambios notables a este proyecto se documentan en este archivo. El for
 ### Changed
 
 #### Perfil Personal
+- **Tapa nueva de *La Caballera Esmeralda*, y ahora servida desde el repo.** Antes `imagen` apuntaba a la URL de la portada en Amazon: esa imagen la controla Amazon, así que si cambia el listado el `og:image` se rompe sin que nos enteremos. La portada pasa a `public/img/portadas/`, convertida a JPEG de 752×1200 y 357 kB — el PNG original de 5,4 MB no sirve como `og:image` porque WhatsApp descarta las imágenes pesadas al armar el preview y no muestra nada.
+- `og:image` y `twitter:image` se arman ahora con `SITIO_URL` adelante. Los crawlers no resuelven rutas relativas al dominio, así que una ruta desde la raíz sola habría dejado el preview sin portada.
+- `pnpm check:libros` valida además que `og:image` sea absoluta y que, si la portada la servimos nosotros, el archivo exista en el build. Es un error que de otro modo solo se descubre cuando alguien comparte el link.
 - La sinopsis de *La Caballera Esmeralda* pasa a ser el blurb real del libro, en reemplazo del texto provisorio que se había reciclado del post viejo. El primer párrafo es además el que alimenta `og:description`, o sea el texto que se ve al compartir el link en WhatsApp o Twitter.
 
 ## [1.4.0] - 2026-09-01

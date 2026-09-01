@@ -227,6 +227,9 @@ export type Libro = {
   slug: string;
   titulo: string;
   subtitulo: string;
+  // Ruta absoluta desde la raíz del sitio (/img/portadas/...). Se sirve
+  // desde el repo a propósito: una URL de Amazon la controla Amazon, y si
+  // cambia el listado se rompe el og:image sin que nos enteremos.
   imagen: string;
   sinopsis: string;
   tiendas: Tienda[];
@@ -238,7 +241,7 @@ export const LIBROS: Libro[] = [
     slug: 'la-caballera-esmeralda',
     titulo: 'La Caballera Esmeralda',
     subtitulo: 'Meridian #1',
-    imagen: 'https://m.media-amazon.com/images/I/81UbYlDXTQL._SL1500_.jpg',
+    imagen: '/img/portadas/la-caballera-esmeralda.jpg',
     sinopsis: [
       'Aedan, por fin, puede dejar atrás la obligada prisión de su hogar y',
       'explorar el reino que hasta ahora solo conocía por historias.',
