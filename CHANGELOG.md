@@ -23,6 +23,12 @@ Cada libro pasa a tener su propia página y su propio link, pensado para imprimi
 - La tarjeta de `/libros` es ahora un `<a routerLink>` de verdad en vez de un `window.open()`, así que el link se puede copiar, abrir en pestaña nueva y recorrer con el teclado. El componente `lib-libro` de la librería no cambió.
 - La sección de deploy de `CLAUDE.md` describía un `netlify.toml` que ya no existe en el repo y un copy step de comidas que no ocurre. Reescrita con lo real: un Worker de Cloudflare por app, un `wrangler.jsonc` cada uno.
 
+### Fixed
+
+#### Perfil Personal
+- **El sitio quedaba clavado en un build viejo.** `perfil-personal` registraba un service worker con `provideServiceWorker(...)` pero no tenía nada que chequeara ni activara versiones nuevas — comidas sí lo tiene, en su `UpdateService`. El service worker de Angular baja el build nuevo en segundo plano y sigue sirviendo el viejo hasta que se cierran *todas* las pestañas del sitio, así que se podía quedar meses en una versión vieja: el footer mostraba `v1.2.0` con el repo en `1.3.0`, y el modal del Changelog abría vacío porque el JS cacheado era anterior. En una ventana de incógnito, sin service worker, el mismo deploy andaba perfecto.
+- Ahora `App` escucha `SwUpdate.versionUpdates` y, cuando hay una versión lista, la activa y recarga **en el próximo cambio de ruta** en vez de al instante: recargar en el momento le cortaría la lectura a alguien a la mitad de un post, mientras que esperar a la próxima navegación hace el salto invisible. No se reutilizó el `UpdateService` de comidas porque está acoplado a su `DialogService` y su diálogo de confirmación tiene sentido en una app con estado sin guardar, no en un blog.
+
 ### Dependencies
 
 - `@angular/ssr` 22.1.5 y `@angular/platform-server` 22.1.3, ambas pinneadas exactas. Se descartaron las `latest` (22.1.6 y 22.1.4) por tener menos de 7 días publicadas; además 22.1.3 es la que matchea el peer exacto `@angular/core@22.1.3`. Sólo se usan en build: no van al bundle del browser.
