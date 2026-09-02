@@ -216,9 +216,15 @@ export const POSTS: Post[] = [
 export const SITIO_URL = 'https://tatoh.ar';
 export const TITULO_SITIO = 'Ignacio Martín Arano';
 
+// Cada tienda dibuja su propio logo en el botón de compra. Sumar una es
+// agregar el nombre acá y su `@case` en logo-tienda; sin `@case` cae en el
+// ícono genérico de libro, que es lo que pasa hoy con 'nook'.
+export type LogoTienda = 'amazon' | 'kobo' | 'apple-books' | 'google-play' | 'nook';
+
 export type Tienda = {
   nombre: string;
   url: string;
+  logo: LogoTienda;
 };
 
 export type Libro = {
@@ -251,6 +257,12 @@ export const LIBROS: Libro[] = [
       '',
       'El mundo está ahí afuera. Es hora de conocerlo.',
     ].join('\n'),
-    tiendas: [{ nombre: 'Amazon', url: 'https://www.amazon.com/dp/B0G3JTSR43' }],
+    tiendas: [
+      {
+        nombre: 'Amazon',
+        url: 'https://www.amazon.com/dp/B0G3JTSR43',
+        logo: 'amazon',
+      },
+    ],
   },
 ];

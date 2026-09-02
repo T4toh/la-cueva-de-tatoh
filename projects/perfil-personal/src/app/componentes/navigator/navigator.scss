@@ -91,20 +91,9 @@
     display: none;
   }
 
-  > span {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 0;
-  }
-
-  ::ng-deep svg {
-    width: 18px;
-    height: 18px;
-    display: block;
-    background: none;
-    padding: 0;
-  }
+  // El logo hereda este color para la letra; el resto de los links del nav
+  // usan --fg-secondary, que sobre el fondo oscuro deja la "a" casi negra.
+  color: var(--fg-primary);
 }
 
 @media (max-width: 768px) {
