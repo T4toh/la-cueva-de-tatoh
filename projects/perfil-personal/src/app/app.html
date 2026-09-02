@@ -1,9 +1,21 @@
-<section class="layout">
-  <aside class="sidebar">
+<section class="layout" [class.sidebar-cerrado]="!sidebarAbierto()">
+  <aside class="sidebar" id="sidebar">
     <app-sidebar />
   </aside>
-  <div class="body">
-    <app-navigator />
+
+  <!-- Solo se ve en mobile, donde el panel tapa el contenido. -->
+  <button
+    aria-label="Cerrar el panel"
+    class="backdrop"
+    type="button"
+    (click)="alternarSidebar()"
+  ></button>
+
+  <div #cuerpo class="body">
+    <app-navigator
+      [sidebarAbierto]="sidebarAbierto()"
+      (alternarSidebar)="alternarSidebar()"
+    />
     <router-outlet />
   </div>
 </section>

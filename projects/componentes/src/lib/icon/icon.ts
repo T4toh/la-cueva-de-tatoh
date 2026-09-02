@@ -38,7 +38,8 @@ export type IconName =
   | 'upload'
   | 'refresh-cw'
   | 'wifi-off'
-  | 'copy';
+  | 'copy'
+  | 'menu';
 
 @Component({
   selector: 'lib-icon',
