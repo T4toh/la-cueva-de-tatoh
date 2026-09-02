@@ -20,7 +20,7 @@ pnpm start            # ng serve (perfil-personal by default)
 pnpm build            # builds componentes → perfil-personal → comidas (production)
 pnpm test             # ng test comidas (Vitest; único proyecto con specs)
 pnpm lint             # ng lint across all three projects
-pnpm check:libros     # tras un build de prod: valida los og: de cada /libros/<slug>
+pnpm check:libros     # tras un build de prod: og: de cada /libros/<slug> + landing prerenderizado
 pnpm watch            # ng build --watch development
 
 ng serve comidas      # serve a specific app (requires componentes built first)
@@ -84,7 +84,10 @@ must not be unified**:
 If you touch either, keep that difference and the reason for it.
 
 Run `pnpm check:libros` after a production build to confirm every book still
-emits its `og:` tags.
+emits its `og:` tags, and that `/` is the real landing rather than a
+meta-refresh stub. A `redirectTo` on the `''` route makes the prerenderer emit
+one of those stubs as `index.html`, which is how a visible "Redirecting" page
+once shipped to production.
 
 ## ESLint is the source of truth
 

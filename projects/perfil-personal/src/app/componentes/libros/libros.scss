@@ -14,13 +14,6 @@
   text-align: left;
 }
 
-.libros-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 3rem;
-  margin-top: 2rem;
-}
-
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;
@@ -33,35 +26,5 @@
 @media (max-width: 768px) {
   .libros-container {
     padding: 1.5rem 1rem 3rem;
-  }
-
-  .libros-grid {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 2rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .libros-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 1.5rem;
-  }
-}
-
-.libro-link {
-  display: block;
-  text-decoration: none;
-  color: inherit;
-  border-radius: 4px;
-  transition: transform 0.2s ease;
-
-  &:hover,
-  &:focus-visible {
-    transform: translateY(-4px);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--fg-primary);
-    outline-offset: 6px;
   }
 }

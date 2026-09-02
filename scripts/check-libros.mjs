@@ -43,4 +43,25 @@ for (const slug of slugs) {
   }
 }
 
+// Un redirect en la ruta '' hace que el prerender emita un meta-refresh como
+// index.html: el visitante ve una pantalla "Redirecting" antes de rebotar.
+const home = readFileSync(`${root}/index.html`, 'utf8');
+if (/http-equiv="refresh"/.test(home)) {
+  throw new Error(
+    'index.html es un stub de redirect, no el home prerenderizado. ' +
+      "La ruta '' tiene que cargar un componente, no usar redirectTo.",
+  );
+}
+
+// El landing tiene que salir servido desde el HTML: si las tarjetas se
+// dibujaran recién en el browser, un crawler vería una página vacía.
+const tarjetas = home.match(/class="proyecto-card"/g)?.length ?? 0;
+if (tarjetas < 4) {
+  throw new Error(
+    `El landing prerenderizado trae ${tarjetas} tarjetas de proyecto, ` +
+      'esperaba al menos 4. Revisá el render de PROYECTOS/APKS.',
+  );
+}
+
 console.log(`og tags OK en ${slugs.length} libro(s): ${slugs.join(', ')}`);
+console.log(`landing OK: sin meta-refresh y ${tarjetas} proyectos en el HTML`);

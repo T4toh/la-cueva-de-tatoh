@@ -5,9 +5,9 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve perfil-personal",
     "build": "ng build componentes && ng build perfil-personal --configuration=production && ng build comidas --configuration=production",
-    "watch": "ng build --watch --configuration development",
+    "watch": "ng build perfil-personal --watch --configuration development",
     "test": "ng test comidas",
     "lint": "ng lint",
     "check:libros": "node scripts/check-libros.mjs",

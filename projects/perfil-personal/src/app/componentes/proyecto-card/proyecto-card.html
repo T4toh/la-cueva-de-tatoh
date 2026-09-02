@@ -1,0 +1,15 @@
+<a
+  class="proyecto-card"
+  rel="noopener noreferrer"
+  target="_blank"
+  [href]="url()"
+  [style.--color-proyecto]="color()"
+>
+  <span class="cabecera">
+    <lib-icon [name]="icono()" [size]="18" />
+    <span class="etiqueta">{{ etiqueta() }}</span>
+  </span>
+
+  <h3>{{ nombre() }}</h3>
+  <p>{{ descripcion() }}</p>
+</a>

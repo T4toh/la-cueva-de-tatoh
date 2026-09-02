@@ -1,19 +1,34 @@
 .layout {
+  // Se angosta con la ventana antes de convertirse en drawer a ≤768px.
+  --ancho-sidebar: clamp(200px, 22vw, 280px);
+
   width: 100%;
   height: 100vh;
   display: grid;
-  grid:
-    'sidebar body' 1fr
-    / 280px 1fr;
+  grid-template-areas: 'sidebar body';
+  grid-template-columns: var(--ancho-sidebar) 1fr;
   gap: 0;
   overflow: hidden;
   box-sizing: border-box;
+  transition: grid-template-columns 0.25s ease;
+}
+
+// Plegar la columna es cosa de desktop. Abajo del corte el panel es un drawer
+// y el layout tiene una sola columna: si esta regla viviera en el bloque base
+// le ganaría por especificidad a la del @media (estar adentro de un @media no
+// suma especificidad) y dejaría a .body con 0px de ancho.
+@media (min-width: 769px) {
+  .layout.sidebar-cerrado {
+    grid-template-columns: 0 1fr;
+  }
 }
 
 .sidebar {
   grid-area: sidebar;
   height: 100%;
   overflow-y: auto;
+  // Sin esto el contenido se derrama mientras la columna se cierra.
+  overflow-x: hidden;
   border-right: 1px solid var(--border-subtle);
   background: var(--bg-base);
 }
@@ -25,14 +40,46 @@
   height: 100%;
 }
 
+.backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  padding: 0;
+  border: none;
+  background: var(--bg-overlay);
+  cursor: pointer;
+}
+
 @media (max-width: 768px) {
   .layout {
-    grid:
-      'body' 1fr
-      / 1fr;
+    grid-template-areas: 'body';
+    grid-template-columns: 1fr;
   }
 
+  // Fuera de flujo: el panel deja de ocupar una columna y pasa a taparlo todo.
   .sidebar {
-    display: none;
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 30;
+    width: min(300px, 85vw);
+    border-right: 1px solid var(--border-default);
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+  }
+
+  .layout:not(.sidebar-cerrado) .sidebar {
+    transform: none;
+  }
+
+  .layout:not(.sidebar-cerrado) .backdrop {
+    display: block;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .layout,
+  .sidebar {
+    transition: none;
   }
 }

@@ -1,8 +1,32 @@
 <nav class="navigator">
   <ul>
     <li>
-      <a aria-label="Inicio" class="home-link" routerLink="/blog" routerLinkActive="active">
+      <button
+        aria-controls="sidebar"
+        class="toggle-sidebar"
+        type="button"
+        [attr.aria-expanded]="sidebarAbierto()"
+        [attr.aria-label]="sidebarAbierto() ? 'Ocultar el panel' : 'Mostrar el panel'"
+        (click)="alternarSidebar.emit()"
+      >
+        <lib-icon name="menu" [size]="18" />
+      </button>
+    </li>
+    <li>
+      <a
+        aria-label="Inicio"
+        class="home-link"
+        routerLink="/"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
         <lib-icon name="home" [size]="18" />
+      </a>
+    </li>
+    <li>
+      <a routerLink="/blog" routerLinkActive="active">
+        <lib-icon name="pen-tool" [size]="16" />
+        <span>Blog</span>
       </a>
     </li>
     <li>

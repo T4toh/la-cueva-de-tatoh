@@ -1,0 +1,11 @@
+<div class="galeria">
+  @for (libro of libros(); track libro.slug) {
+    <a class="libro-link" [routerLink]="['/libros', libro.slug]">
+      <lib-libro
+        [imagen]="libro.imagen"
+        [subtitulo]="libro.subtitulo"
+        [titulo]="libro.titulo"
+      />
+    </a>
+  }
+</div>

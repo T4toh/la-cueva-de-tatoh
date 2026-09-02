@@ -1,12 +1,11 @@
 import { Component, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 
-import { Libro } from 'componentes';
+import { GaleriaLibros } from '../galeria-libros/galeria-libros';
 import { LIBROS } from '../../../variables';
 
 @Component({
   selector: 'app-libros',
-  imports: [Libro, RouterLink],
+  imports: [GaleriaLibros],
   templateUrl: './libros.html',
   styleUrl: './libros.scss',
 })
