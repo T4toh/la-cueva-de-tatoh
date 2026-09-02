@@ -1,8 +1,15 @@
 import { Routes } from '@angular/router';
 
-// Redirects a blog (home) path to the blog component
+// El home carga un componente propio, no un redirect: un redirectTo en ''
+// hace que el prerender escupa un HTML de meta-refresh como index.html, y el
+// visitante ve esa pantalla intermedia antes de rebotar a /blog y de ahí a
+// /blog/.
 export const routes: Routes = [
-  { path: '', redirectTo: 'blog', pathMatch: 'full' },
+  {
+    path: '',
+    loadComponent: () =>
+      import('./componentes/landing/landing').then((m) => m.Landing),
+  },
   {
     path: 'blog',
     loadComponent: () => import('./componentes/blog/blog').then((m) => m.Blog),

@@ -119,7 +119,71 @@ export const APKS: Apk[] = [
     tipo: 'desktop',
     nota: 'Pronto en AUR',
   },
+  {
+    nombre: 'Dokusho Renshuu - 読書練習',
+    descripcion:
+      'Lector de japonés con diccionario de kanji, historias precargadas ' +
+      '(Momotarō, Kintarō) y export de cartas a Anki.',
+    version: 'v0.1.0-beta.3',
+    url: 'https://github.com/T4toh/dokusho-renshuu/releases/download/v0.1.0-beta.3/app-release.apk',
+    icono: 'book-open',
+    color: '#7F52FF',
+  },
   // Agrega más APKs aquí
+];
+
+// Lo que se muestra en el landing y no es ni una APK ni un libro: repos y
+// sitios. Se cura a mano en vez de leer la API de GitHub, así el HTML sale
+// entero del prerender y no hay forks ni experimentos colgados en la vidriera.
+export type Proyecto = {
+  nombre: string;
+  descripcion: string;
+  url: string;
+  icono: IconName;
+  color: string;
+  // Qué te llevás al hacer click: 'repo' abre GitHub, 'web' abre el sitio.
+  tipo: 'repo' | 'web';
+};
+
+export const PROYECTOS: Proyecto[] = [
+  {
+    nombre: 'Cyberpunk 2077 Mod Manager',
+    descripcion:
+      'Gestor de mods de Cyberpunk 2077 para Linux y Steam Deck. Fork de ' +
+      'NexusMods.App, que quedó discontinuado.',
+    url: 'https://github.com/T4toh/cp2077-mm',
+    icono: 'gamepad-2',
+    color: '#fcee0a',
+    tipo: 'repo',
+  },
+  {
+    nombre: 'Comidas',
+    descripcion:
+      'Planificador de comidas semanal con lista de compras. Angular y ' +
+      'Firebase, también como app de Android.',
+    url: 'https://comidas.tatoh.ar',
+    icono: 'utensils',
+    color: '#2E8B57',
+    tipo: 'web',
+  },
+  {
+    nombre: 'Jitendex Parser',
+    descripcion:
+      'Convierte el diccionario Jitendex a SQLite para consultarlo desde ' +
+      'una app Flutter.',
+    url: 'https://github.com/T4toh/jitendex-parser',
+    icono: 'terminal',
+    color: '#3776AB',
+    tipo: 'repo',
+  },
+  {
+    nombre: 'KDE Indigo',
+    descripcion: 'Tema piola para KDE.',
+    url: 'https://github.com/T4toh/kde-indigo',
+    icono: 'laptop',
+    color: '#1d99f3',
+    tipo: 'repo',
+  },
 ];
 
 export type Post = {

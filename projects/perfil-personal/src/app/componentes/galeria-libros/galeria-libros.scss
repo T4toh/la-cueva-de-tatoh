@@ -1,0 +1,55 @@
+.galeria {
+  display: flex;
+  flex-wrap: wrap;
+  // safe center: centra mientras las portadas entren, y cuando desbordan se
+  // comporta como flex-start. Con `center` a secas la primera queda cortada
+  // contra el borde y no hay forma de scrollear hasta ella.
+  justify-content: safe center;
+  gap: 2rem;
+}
+
+.libro-link {
+  display: block;
+  flex: 0 0 220px;
+  border-radius: var(--radius-sm);
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.2s ease;
+
+  &:hover,
+  &:focus-visible {
+    transform: translateY(-4px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--fg-primary);
+    outline-offset: 6px;
+  }
+}
+
+// ponytail: misma presentación para el landing y para /libros. Con más libros
+// la página propia va a querer grilla vertical en vez de carrusel; ahí hay que
+// separarlas.
+@media (max-width: 768px) {
+  .galeria {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    // Absorbe el levantón del hover y el outline-offset del foco, que si no
+    // le sacan una barra vertical al contenedor.
+    padding: 0.5rem 0 0.75rem;
+  }
+
+  .libro-link {
+    // Deja asomar la siguiente portada: es lo que avisa que hay más.
+    flex: 0 0 min(220px, 62vw);
+    scroll-snap-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .libro-link {
+    transition: none;
+  }
+}

@@ -1,0 +1,71 @@
+<div class="landing">
+  <header class="hero">
+    <p class="eyebrow">Desarrollador · Escritor</p>
+    <h1>{{ titulo }}</h1>
+    <p class="bio">
+      Hago apps en Angular, escribo novelas y aprendo japonés. Acá está todo
+      junto: lo que programo, lo que publico y lo que escribo en el blog.
+    </p>
+  </header>
+
+  <section class="seccion">
+    <div class="seccion-cabecera">
+      <h2 class="seccion-titulo">Proyectos</h2>
+    </div>
+    <div class="proyectos-grid">
+      @for (tarjeta of tarjetas; track tarjeta.url) {
+        <app-proyecto-card
+          [color]="tarjeta.color"
+          [descripcion]="tarjeta.descripcion"
+          [etiqueta]="tarjeta.etiqueta"
+          [icono]="tarjeta.icono"
+          [nombre]="tarjeta.nombre"
+          [url]="tarjeta.url"
+        />
+      }
+    </div>
+  </section>
+
+  @if (libros.length > 0) {
+    <section class="seccion">
+      <div class="seccion-cabecera">
+        <h2 class="seccion-titulo">Libros</h2>
+        <a class="seccion-link" routerLink="/libros">Ver todos</a>
+      </div>
+      <app-galeria-libros [libros]="libros" />
+    </section>
+  }
+
+  <section class="seccion">
+    <div class="seccion-cabecera">
+      <h2 class="seccion-titulo">Utilidades</h2>
+    </div>
+    <a class="utilidades" routerLink="/utilidades">
+      <lib-icon name="wrench" [size]="18" />
+      <span class="utilidades-texto">
+        <span class="utilidades-titulo">Generador de QR y descargas</span>
+        <span class="utilidades-desc">
+          Herramientas sueltas y las APKs listas para bajar.
+        </span>
+      </span>
+      <lib-icon name="arrow-right" [size]="16" />
+    </a>
+  </section>
+
+  <section class="seccion">
+    <div class="seccion-cabecera">
+      <h2 class="seccion-titulo">Del blog</h2>
+      <a class="seccion-link" routerLink="/blog">Ver todos</a>
+    </div>
+    <div class="posts">
+      @for (item of ultimosPosts; track item.post.src) {
+        <app-post-card
+          [fecha]="item.post.fecha"
+          [id]="item.indice"
+          [tags]="item.post.tags || []"
+          [titulo]="item.post.title"
+        />
+      }
+    </div>
+  </section>
+</div>

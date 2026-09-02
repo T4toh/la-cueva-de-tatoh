@@ -1,0 +1,95 @@
+:host {
+  display: block;
+}
+
+.proyecto-card {
+  --color-proyecto: var(--accent);
+
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 0.5rem;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 1.25rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  color: inherit;
+  text-decoration: none;
+  overflow: hidden;
+  transition: border-color 0.2s ease, background 0.2s ease;
+
+  // La franja con el color del proyecto es lo único que se prende al pasar por
+  // encima. El resto queda tan sobrio como el blog: sin sombras ni gradientes.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 2px;
+    background: var(--color-proyecto);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.25s ease;
+  }
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--border-default);
+    background: var(--bg-surface-raised);
+  }
+
+  &:hover::before,
+  &:focus-visible::before {
+    transform: scaleX(1);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  &:hover h3,
+  &:focus-visible h3 {
+    color: var(--accent);
+  }
+}
+
+.cabecera {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--fg-muted);
+}
+
+.etiqueta {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+}
+
+h3 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: var(--lh-tight);
+  color: var(--fg-primary);
+  transition: color 0.2s ease;
+}
+
+p {
+  margin: 0;
+  font-size: var(--fs-meta);
+  line-height: var(--lh-snug);
+  color: var(--fg-secondary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .proyecto-card,
+  .proyecto-card::before {
+    transition: none;
+  }
+}
