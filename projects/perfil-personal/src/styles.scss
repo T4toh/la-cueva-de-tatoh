@@ -343,7 +343,10 @@ markdown .book-showcase .book-info p {
 }
 
 markdown .book-showcase .book-info a {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
   padding: 0.65rem 1.25rem;
   background: var(--accent-strong);
   color: var(--fg-primary);
@@ -360,6 +363,17 @@ markdown .book-showcase .book-info a {
 
 markdown .book-showcase .book-info a:hover {
   background: var(--accent);
+}
+
+/* El logo de la tienda es un <img>: el sanitizer de Angular borra el <svg>
+   inline del markdown. Hay que deshacerle los estilos de imagen del post. */
+markdown .book-showcase .book-info a img.logo-tienda {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 /* Responsive: en móviles, cambiar a layout vertical */

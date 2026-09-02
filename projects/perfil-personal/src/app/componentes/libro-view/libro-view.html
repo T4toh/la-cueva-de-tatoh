@@ -28,7 +28,8 @@
                   target="_blank"
                   [href]="tienda.url"
                 >
-                  Comprar en {{ tienda.nombre }}
+                  <app-logo-tienda [size]="20" [tienda]="tienda.logo" />
+                  <span>Comprar en {{ tienda.nombre }}</span>
                 </a>
               }
             </div>

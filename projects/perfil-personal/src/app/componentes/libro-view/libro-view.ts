@@ -5,11 +5,12 @@ import { Meta, Title } from '@angular/platform-browser';
 import { MarkdownComponent } from 'ngx-markdown';
 import { Icon } from 'componentes';
 
+import { LogoTienda } from '../logo-tienda/logo-tienda';
 import { type Libro, LIBROS, SITIO_URL, TITULO_SITIO } from '../../../variables';
 
 @Component({
   selector: 'app-libro-view',
-  imports: [Icon, MarkdownComponent, NgOptimizedImage, RouterLink],
+  imports: [Icon, LogoTienda, MarkdownComponent, NgOptimizedImage, RouterLink],
   templateUrl: './libro-view.html',
   styleUrl: './libro-view.scss',
 })

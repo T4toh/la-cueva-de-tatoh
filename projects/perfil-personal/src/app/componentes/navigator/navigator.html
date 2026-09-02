@@ -30,8 +30,8 @@
     rel="noopener noreferrer"
     target="_blank"
     title="Ver mis libros en Amazon"
-    [href]="getAmazonUrl()"
+    [href]="AMAZON_URL"
   >
-    <span [innerHTML]="getAmazonSvg()"></span>
+    <app-logo-tienda tienda="amazon" [size]="18" />
   </a>
 </nav>
