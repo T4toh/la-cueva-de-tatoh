@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Icon, type IconName } from 'componentes';
 import { GaleriaLibros } from '../galeria-libros/galeria-libros';
 import { PostCard } from '../post-card/post-card';
 import { ProyectoCard } from '../proyecto-card/proyecto-card';
+import { Seo } from '../../seo';
 import {
   APKS,
   LIBROS,
@@ -30,6 +31,10 @@ const ETIQUETA_PROYECTO = { repo: 'Repo', web: 'Web' } as const;
   styleUrl: './landing.scss',
 })
 export class Landing {
+  constructor() {
+    inject(Seo).publicar({ ruta: '' });
+  }
+
   readonly titulo = TITULO_SITIO;
   readonly libros = LIBROS;
 

@@ -1,10 +1,7 @@
-import {
-  Component,
-  computed,
-  signal,
-} from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Icon } from 'componentes';
 import { PostCard } from '../post-card/post-card';
+import { Seo } from '../../seo';
 import { Post, POSTS } from '../../../variables';
 
 // Temas disponibles de Prism.js (cambiar en angular.json > styles):
@@ -29,6 +26,16 @@ type SortOrder = 'asc' | 'desc';
   styleUrl: './blog.scss',
 })
 export class Blog {
+  constructor() {
+    inject(Seo).publicar({
+      titulo: 'Blog',
+      descripcion:
+        'Posts sobre desarrollo, Angular, Linux, japonés y lo que vaya ' +
+        'saliendo.',
+      ruta: '/blog',
+    });
+  }
+
   readonly posts = signal(POSTS);
   readonly sortBy = signal<SortBy>('date');
   readonly sortOrder = signal<SortOrder>('desc');

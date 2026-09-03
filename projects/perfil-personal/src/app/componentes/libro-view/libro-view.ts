@@ -1,12 +1,12 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Meta, Title } from '@angular/platform-browser';
 import { MarkdownComponent } from 'ngx-markdown';
 import { Icon } from 'componentes';
 
 import { LogoTienda } from '../logo-tienda/logo-tienda';
-import { type Libro, LIBROS, SITIO_URL, TITULO_SITIO } from '../../../variables';
+import { Seo } from '../../seo';
+import { type Libro, LIBROS } from '../../../variables';
 
 @Component({
   selector: 'app-libro-view',
@@ -14,11 +14,10 @@ import { type Libro, LIBROS, SITIO_URL, TITULO_SITIO } from '../../../variables'
   templateUrl: './libro-view.html',
   styleUrl: './libro-view.scss',
 })
-export class LibroView implements OnInit, OnDestroy {
+export class LibroView implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly title = inject(Title);
-  private readonly meta = inject(Meta);
+  private readonly seo = inject(Seo);
 
   readonly libro = signal<Libro | null>(null);
 
@@ -34,34 +33,14 @@ export class LibroView implements OnInit, OnDestroy {
     });
   }
 
-  // Sin esto el título del libro queda pegado al navegar a otra ruta del SPA.
-  ngOnDestroy(): void {
-    this.title.setTitle(TITULO_SITIO);
-  }
-
   private publicarMeta(libro: Libro): void {
-    const titulo = `${libro.titulo} — ${libro.subtitulo}`;
-    const descripcion = primerParrafo(libro.sinopsis);
-    const url = `${SITIO_URL}/libros/${libro.slug}`;
-    // og:image tiene que ser absoluta: los crawlers no resuelven rutas
-    // relativas al dominio.
-    const portada = `${SITIO_URL}${libro.imagen}`;
-
-    this.title.setTitle(`${titulo} | ${TITULO_SITIO}`);
-    this.meta.updateTag({ content: descripcion, name: 'description' });
-    this.meta.updateTag({ content: titulo, property: 'og:title' });
-    this.meta.updateTag({ content: descripcion, property: 'og:description' });
-    this.meta.updateTag({ content: portada, property: 'og:image' });
-    this.meta.updateTag({ content: url, property: 'og:url' });
-    this.meta.updateTag({ content: 'book', property: 'og:type' });
-    this.meta.updateTag({ content: TITULO_SITIO, property: 'og:site_name' });
-    this.meta.updateTag({
-      content: 'summary_large_image',
-      name: 'twitter:card',
+    this.seo.publicar({
+      titulo: `${libro.titulo} — ${libro.subtitulo}`,
+      descripcion: primerParrafo(libro.sinopsis),
+      ruta: `/libros/${libro.slug}`,
+      imagen: libro.imagen,
+      tipo: 'book',
     });
-    this.meta.updateTag({ content: titulo, name: 'twitter:title' });
-    this.meta.updateTag({ content: descripcion, name: 'twitter:description' });
-    this.meta.updateTag({ content: portada, name: 'twitter:image' });
   }
 }
 

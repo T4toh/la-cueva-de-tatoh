@@ -21,8 +21,8 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Prerender,
     getPrerenderParams: async () => POSTS.map((_, i) => ({ id: String(i) })),
   },
-  // generador-qr instancia QRCodeStyling en un effect y eso toca `window`,
-  // que no existe en Node. Se queda como estaba: renderizada en el cliente.
-  { path: 'utilidades', renderMode: RenderMode.Client },
+  // /utilidades ya no es RenderMode.Client: generador-qr guarda su
+  // QRCodeStyling detrás de isPlatformBrowser, así que sobrevive a Node y
+  // entra por el catch-all con HTML propio y su og: real.
   { path: '**', renderMode: RenderMode.Prerender },
 ];
