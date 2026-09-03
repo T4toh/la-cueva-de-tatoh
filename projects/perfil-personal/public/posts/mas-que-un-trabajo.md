@@ -12,7 +12,7 @@
       <p>Un nuevo pueblo, nuevas personas y nuevas experiencias esperan a los cuatro.</p>
       <p>Pero para un cazador de monstruos, incluso una visita puede terminar siendo más que un trabajo.</p>
     </blockquote>
-    <p>Todavía no tengo el link de compra. Cuando esté publicado lo actualizo acá y en <a href="/libros/mas-que-un-trabajo">la ficha del libro</a>.</p>
+     <a href="https://www.amazon.com/dp/B0HHKNV1QP" target="_blank" rel="noopener noreferrer"><img class="logo-tienda" src="/img/logos/amazon.svg" alt="" width="20" height="20"><span>Leer en Amazon</span></a>
   </div>
 </div>
 
