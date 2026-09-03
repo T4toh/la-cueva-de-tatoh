@@ -45,6 +45,11 @@ magick tapa-original.png -resize 752x1200 -quality 88 -strip \
   projects/perfil-personal/public/img/portadas/<slug>.jpg
 ```
 
+   `-resize` respeta el aspect ratio del original: solo sale 752x1200 exacto si
+   la tapa ya viene en 1:1.6 (el ratio estándar de KDP). Verificar con
+   `sips -g pixelWidth -g pixelHeight <archivo>` antes de commitear. No forzar
+   con `^` + `-extent`: recorta la tapa en vez de avisar que el original está mal.
+
 2. Agregar la entrada a `LIBROS` en `projects/perfil-personal/src/variables.ts`:
 
 ```ts

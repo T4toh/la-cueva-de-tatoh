@@ -350,9 +350,7 @@ export const LIBROS: Libro[] = [
       'Pero para un cazador de monstruos, incluso una visita puede terminar',
       'siendo más que un trabajo.',
     ].join('\n'),
-    // Sin link de Amazon todavía: con la lista vacía la ficha no dibuja
-    // ningún botón de compra. Agregar la tienda cuando salga el listado.
-        tiendas: [
+    tiendas: [
       {
         nombre: 'Amazon',
         url: 'https://www.amazon.com/dp/B0HHKNV1QP',
