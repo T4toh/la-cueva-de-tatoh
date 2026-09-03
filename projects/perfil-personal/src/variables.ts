@@ -273,6 +273,12 @@ export const POSTS: Post[] = [
     fecha: '11/5/26',
     tags: ['linux', 'rust', 'angular', 'tauri', 'escritura'],
   },
+  {
+    title: 'Más que un Trabajo — Meridian #2',
+    src: 'posts/mas-que-un-trabajo.md',
+    fecha: '3/9/26',
+    tags: ['libros', 'meridian', 'fantasia'],
+  },
 ];
 
 // Dominio público del sitio. Solo se usa para armar og:url absoluto:
@@ -328,5 +334,24 @@ export const LIBROS: Libro[] = [
         logo: 'amazon',
       },
     ],
+  },
+  {
+    slug: 'mas-que-un-trabajo',
+    titulo: 'Más que un Trabajo',
+    subtitulo: 'Meridian #2',
+    imagen: '/img/portadas/mas-que-un-trabajo.jpg',
+    sinopsis: [
+      'Aedan y sus compañeros llegan a Brickwell como invitados, dispuestos a',
+      'pasar unos días lejos de los caminos.',
+      '',
+      'Un nuevo pueblo, nuevas personas y nuevas experiencias esperan a los',
+      'cuatro.',
+      '',
+      'Pero para un cazador de monstruos, incluso una visita puede terminar',
+      'siendo más que un trabajo.',
+    ].join('\n'),
+    // Sin link de Amazon todavía: con la lista vacía la ficha no dibuja
+    // ningún botón de compra. Agregar la tienda cuando salga el listado.
+    tiendas: [],
   },
 ];
