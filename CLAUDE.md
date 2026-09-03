@@ -59,12 +59,23 @@ real `og:` tags, since the WhatsApp/Twitter crawlers do not run JS.
 Two consequences worth knowing:
 
 - Any route left as `RenderMode.Client` has no file of its own, so opening it
-  directly serves the prerendered home for an instant before Angular swaps it.
-  `utilidades` is in that bucket: `generador-qr` builds a `QRCodeStyling` inside
-  an `effect`, and that touches `window`, which Node does not have. Guarding it
-  with `isPlatformBrowser` would let it prerender too.
+  directly serves the prerendered home for an instant before Angular swaps it —
+  and crawlers, which never wait for the swap, read the home's tags instead of
+  the route's. Every route prerenders today; keep it that way.
 - Anything running at component init must survive Node. No bare `window` or
-  `document` outside an event handler.
+  `document` outside an event handler. `generador-qr` is the worked example: it
+  builds a `QRCodeStyling` inside an `effect`, which touches `window`, so it
+  guards on `isPlatformBrowser` — that guard is what lets `/utilidades`
+  prerender at all.
+
+### Meta tags
+
+`src/app/seo.ts` is the only place that writes them. Every routed component
+calls `inject(Seo).publicar({...})` with its own title, description and route;
+`index.html` carries a default set as the floor for anything that doesn't.
+A new route without that call ships with the site's generic preview, so
+`check:libros` fails the build when a prerendered page's `og:url` isn't its own
+path.
 
 ### Service worker updates
 

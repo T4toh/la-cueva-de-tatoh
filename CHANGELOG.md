@@ -2,6 +2,22 @@
 
 Todos los cambios notables a este proyecto se documentan en este archivo. El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [Unreleased]
+
+### Added
+
+#### Perfil Personal
+- **Meta tags en todas las rutas.** Hasta ahora sólo las fichas de libro publicaban `og:`, así que pegar el link de `/utilidades`, del blog o del home en un chat no mostraba nada. Un servicio `Seo` (`src/app/seo.ts`) concentra la escritura de los tags y cada componente ruteado lo llama con su título, descripción y ruta; `index.html` trae un juego por defecto como piso para lo que no pase por ahí. `libro-view` deja de tener su propia copia del código.
+- Cada post de `POSTS` trae su `descripcion`, sacada del comienzo del `.md`. El campo es opcional y el cuerpo del markdown no sirve para esto: lo baja el browser por HTTP y el prerender no lo tiene.
+- `.nvmrc` (24.20.0), `engines` en `package.json` con el rango que declara el Angular CLI, y `engine-strict=true` en `.npmrc`. Con un Node fuera de rango el install ahora corta con un mensaje claro, en vez de dejar que reviente `ng build` mucho después.
+- `TODO.md`, con el trabajo pendiente y las deudas técnicas marcadas con `ponytail:` en el código. Sale del README, que pasa a describir el repo.
+
+### Changed
+
+#### Perfil Personal
+- **`/utilidades` se prerenderiza.** Era `RenderMode.Client` porque `generador-qr` construye un `QRCodeStyling` dentro de un `effect` y eso toca `window`, que en Node no existe. Con el guard de `isPlatformBrowser` sobrevive al prerender, así que la ruta pasa a tener HTML propio: sin eso el crawler recibía el home y el preview era el del sitio, no el suyo.
+- `check:libros` verifica además que cada página prerenderizada publique su propio `og:url`. Chequear que los tags existan no alcanzaba: los heredarían de `index.html`, así que una ruta que se olvida de publicar sus meta pasaría igual.
+
 ## [1.4.1] - 2026-09-01
 
 ### Changed

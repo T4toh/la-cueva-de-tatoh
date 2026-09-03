@@ -7,6 +7,32 @@
     <meta content="width=device-width, initial-scale=1" name="viewport" />
     <link href="LSK-A.jpg" rel="icon" type="image/x-icon" />
 
+    <!-- Piso de los previews en chats y redes. Cada ruta los pisa con los
+         suyos vía el servicio Seo (src/app/seo.ts); esto es lo que queda si
+         alguna no lo hace, y lo que ve el fallback SPA de las rutas sin HTML
+         propio. Duplica DESCRIPCION_SITIO/IMAGEN_SITIO de variables.ts a
+         propósito: un HTML estático no puede importarlas. -->
+    <meta
+      content="Portfolio, blog y libros de Ignacio Martín Arano: desarrollo, Angular, Linux, japonés y fantasía."
+      name="description"
+    />
+    <meta content="Ignacio Martín Arano" property="og:title" />
+    <meta
+      content="Portfolio, blog y libros de Ignacio Martín Arano: desarrollo, Angular, Linux, japonés y fantasía."
+      property="og:description"
+    />
+    <meta content="https://tatoh.ar/LSK-A.jpg" property="og:image" />
+    <meta content="https://tatoh.ar" property="og:url" />
+    <meta content="website" property="og:type" />
+    <meta content="Ignacio Martín Arano" property="og:site_name" />
+    <meta content="summary_large_image" name="twitter:card" />
+    <meta content="Ignacio Martín Arano" name="twitter:title" />
+    <meta
+      content="Portfolio, blog y libros de Ignacio Martín Arano: desarrollo, Angular, Linux, japonés y fantasía."
+      name="twitter:description"
+    />
+    <meta content="https://tatoh.ar/LSK-A.jpg" name="twitter:image" />
+
     <!-- Preconnect para optimizar carga de fuentes -->
     <link href="https://fonts.googleapis.com" rel="preconnect" />
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
@@ -17,7 +43,10 @@
     <link
       as="style"
       href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..700;1,400..700&amp;family=Inter:wght@400..600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap"
-      onload="this.onload=null;this.rel='stylesheet'"
+      onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      "
       rel="preload"
     />
     <noscript>

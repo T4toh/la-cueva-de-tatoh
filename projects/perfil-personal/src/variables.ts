@@ -191,6 +191,10 @@ export type Post = {
   src: string;
   fecha: string;
   tags?: string[];
+  // Lo que sale como og:description del post. Opcional: sin esto cae en
+  // DESCRIPCION_SITIO. No se puede sacar del markdown porque el cuerpo lo baja
+  // el browser por HTTP y el prerender no lo tiene.
+  descripcion?: string;
 };
 
 export const POSTS: Post[] = [
@@ -199,42 +203,63 @@ export const POSTS: Post[] = [
     src: 'posts/japones-1.md',
     fecha: '3/11/25',
     tags: ['japonés', 'lenguaje'],
+    descripcion:
+      'Estoy aprendiendo japonés con el curso de Cure Dolly y quiero respaldar en ' +
+      'texto lo que vengo viendo. Primer paso: meterse los kanas en la cabeza.',
   },
   {
     title: 'Installar Warp en Fedora',
     src: 'posts/instalar-warp-fedora.md',
     fecha: '4/11/25',
     tags: ['linux', 'fedora', 'terminal'],
+    descripcion:
+      'Warp siempre fue un dolor de instalar en Fedora porque no había repo RPM. ' +
+      'Ahora sí lo hay, así que instalarla y actualizarla son dos comandos.',
   },
   {
     title: 'Aprendiendo Japonés con un Gordo Barbudo #2',
     src: 'posts/japones-2.md',
     fecha: '5/11/25',
     tags: ['japonés', 'lenguaje'],
+    descripcion:
+      'Cure Dolly sigue con el sujeto tácito como segunda lección, cosa que suena ' +
+      'rara si venís del español, donde el sujeto tácito es lo normal.',
   },
   {
     title: 'Aprendiendo Japonés con un Gordo Barbudo #3',
     src: 'posts/japones-3.md',
     fecha: '7/11/25',
     tags: ['japonés', 'lenguaje'],
+    descripcion:
+      'Por fin llega 「は」, la partícula que marca el tema de la oración y que se ' +
+      'confunde todo el tiempo con 「が」.',
   },
   {
     title: 'Aprendiendo Japonés con un Gordo Barbudo #3.5',
     src: 'posts/japones-4.md',
     fecha: '7/11/25',
     tags: ['japonés', 'lenguaje'],
+    descripcion:
+      'La comparación entre 「は」 y 「が」 se hizo larga: la otra mitad de la lección ' +
+      'va acá.',
   },
   {
     title: 'Aprendiendo Japonés con un Gordo Barbudo #4',
     src: 'posts/japones-5.md',
     fecha: '10/11/25',
     tags: ['japonés', 'lenguaje'],
+    descripcion:
+      'Teoría antes de la lección: cómo se ordenan las formas del verbo en presente ' +
+      'y en pasado, y qué hace distinto el japonés.',
   },
   {
     title: 'Aprendiendo Japonés con un Gordo Barbudo #5',
     src: 'posts/japones-6.md',
     fecha: '12/11/25',
     tags: ['japonés', 'lenguaje'],
+    descripcion:
+      'Cómo se arman los verbos en japonés: los tres grupos —Ichidan 「一段」, Godan ' +
+      '「五段」 e irregulares 「不規則」— y de dónde sale cada forma.',
   },
 
   {
@@ -242,42 +267,63 @@ export const POSTS: Post[] = [
     src: 'posts/japones-7.md',
     fecha: '12/11/25',
     tags: ['japonés', 'lenguaje'],
+    descripcion:
+      'Segunda parte: cómo armar la forma 「て」. En japonés los verbos no se ' +
+      'conjugan, cambian de forma para engancharles funciones.',
   },
   {
     title: 'Aprendiendo Japonés con un Gordo Barbudo #6',
     src: 'posts/japones-8.md',
     fecha: '20/11/25',
     tags: ['japonés', 'lenguaje'],
+    descripcion:
+      'Los adjetivos y la partícula 「の」, pero al revés que Cure Dolly: primero la ' +
+      'partícula, que ya veníamos usando sin darnos cuenta.',
   },
   {
     title: 'Aprendiendo Japonés con un Gordo Barbudo #7',
     src: 'posts/japones-9.md',
     fecha: '28/11/25',
     tags: ['japonés', 'lenguaje'],
+    descripcion:
+      'Negar con 「ない」: el adjetivo más básico del japonés, y el que sirve para ' +
+      'negar cualquier cosa.',
   },
   {
     title: '¡Primer libro en Amazon!',
     src: 'posts/la-caballera-esmeralda.md',
     fecha: '28/11/25',
     tags: ['libros', 'meridian', 'fantasia'],
+    descripcion:
+      'Publiqué mi primera novela de Meridian en Amazon: fantasía barata, romance ' +
+      'y acción. Detesto los blurbs, así que esto es lo que hay.',
   },
   {
     title: 'Aprendiendo Japonés con un Gordo Barbudo #8',
     src: 'posts/japones-10.md',
     fecha: '29/12/25',
     tags: ['japonés', 'lenguaje'],
+    descripcion:
+      'Lo más jodido según internet: las ramas de los verbos. No son conjugaciones, ' +
+      'el verbo cambia de rama para engancharle funciones.',
   },
   {
     title: 'tWriter - Escribiendo como un gordo barbudo',
     src: 'posts/twriter.md',
     fecha: '11/5/26',
     tags: ['linux', 'rust', 'angular', 'tauri', 'escritura'],
+    descripcion:
+      'Escribir una novela eran cuatro herramientas sin conexión entre ellas. ' +
+      'tWriter es el intento de juntarlas en una sola.',
   },
   {
     title: 'Más que un Trabajo — Meridian #2',
     src: 'posts/mas-que-un-trabajo.md',
     fecha: '3/9/26',
     tags: ['libros', 'meridian', 'fantasia'],
+    descripcion:
+      'Segunda novela de Meridian, ya en Amazon. Aedan y sus compañeros llegan a ' +
+      'Brickwell como invitados, dispuestos a pasar unos días lejos de los caminos.',
   },
 ];
 
@@ -286,10 +332,19 @@ export const POSTS: Post[] = [
 export const SITIO_URL = 'https://tatoh.ar';
 export const TITULO_SITIO = 'Ignacio Martín Arano';
 
+// Piso de los previews: lo que ve un chat cuando la ruta no aporta nada más
+// específico. La imagen tiene que existir en `public/`, porque el checker
+// verifica que el og:image esté de verdad en el build.
+export const DESCRIPCION_SITIO =
+  'Portfolio, blog y libros de Ignacio Martín Arano: desarrollo, Angular, ' +
+  'Linux, japonés y fantasía.';
+export const IMAGEN_SITIO = '/LSK-A.jpg';
+
 // Cada tienda dibuja su propio logo en el botón de compra. Sumar una es
 // agregar el nombre acá y su `@case` en logo-tienda; sin `@case` cae en el
 // ícono genérico de libro, que es lo que pasa hoy con 'nook'.
-export type LogoTienda = 'amazon' | 'kobo' | 'apple-books' | 'google-play' | 'nook';
+export type LogoTienda =
+  'amazon' | 'kobo' | 'apple-books' | 'google-play' | 'nook';
 
 export type Tienda = {
   nombre: string;

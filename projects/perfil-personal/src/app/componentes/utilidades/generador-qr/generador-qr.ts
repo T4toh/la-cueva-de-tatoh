@@ -4,8 +4,10 @@ import {
   effect,
   ElementRef,
   inject,
+  PLATFORM_ID,
   viewChild,
 } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import QRCodeStyling from 'qr-code-styling';
 
@@ -17,6 +19,11 @@ import QRCodeStyling from 'qr-code-styling';
 })
 export class GeneradorQr {
   private readonly cdr = inject(ChangeDetectorRef);
+  // QRCodeStyling toca `window` en su constructor y Node no lo tiene. Sin este
+  // guard la ruta /utilidades no se puede prerenderizar, y sin prerender no
+  // tiene HTML propio: los crawlers reciben el home y su preview es el del
+  // sitio, no el suyo.
+  private readonly esBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   readonly qrCanvas = viewChild<ElementRef<HTMLDivElement>>('qrCanvas');
 
@@ -51,7 +58,7 @@ export class GeneradorQr {
   constructor() {
     effect(() => {
       const canvas = this.qrCanvas();
-      if (canvas && !this.qrCode) {
+      if (this.esBrowser && canvas && !this.qrCode) {
         this.initializeQR();
       }
     });
@@ -59,7 +66,7 @@ export class GeneradorQr {
 
   private initializeQR(): void {
     const canvas = this.qrCanvas();
-    if (!canvas) {
+    if (!this.esBrowser || !canvas) {
       return;
     }
 
