@@ -74,8 +74,8 @@ Two consequences worth knowing:
 calls `inject(Seo).publicar({...})` with its own title, description and route;
 `index.html` carries a default set as the floor for anything that doesn't.
 A new route without that call ships with the site's generic preview, so
-`check:libros` fails the build when a prerendered page's `og:url` isn't its own
-path.
+`check:libros` fails when a prerendered page's `og:url` isn't its own path. It
+is a separate command from `pnpm build` — run it after touching routes.
 
 ### Service worker updates
 

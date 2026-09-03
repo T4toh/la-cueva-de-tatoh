@@ -9,9 +9,6 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
 - [x] Blog
 - [x] Generador de QR
 - [x] Listado de libros
-
-## En curso / pendiente
-
 - [x] **Descripciones y `og:` en todas las rutas.** Un servicio `Seo`
       (`projects/perfil-personal/src/app/seo.ts`) escribe los meta tags y cada
       ruta lo llama con los suyos. `/utilidades` dejó de ser `RenderMode.Client`
@@ -23,6 +20,8 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       del comienzo de cada `.md`. Un post nuevo sin ella cae en
       `DESCRIPCION_SITIO`; el recordatorio está en el README, en *Escribir un
       post*.
+
+## En curso / pendiente
 
 - [ ] **Catálogo de componentes**, al estilo del de Angular Material: una
       entrada por widget con la demo viva y el snippet de uso. Va dentro de

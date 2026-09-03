@@ -171,8 +171,8 @@ crawlers de WhatsApp y Twitter, porque no ejecutan JS.
 **Ruta nueva = `publicar()` nuevo.** Si se olvida, la ruta hereda el juego por
 defecto de `index.html` y su preview queda genérico. No hace falta acordarse a
 mano: `pnpm check:libros` compara el `og:url` de cada página prerenderizada
-contra su propia ruta y falla el build cuando no coinciden. Correlo después de
-tocar rutas.
+contra su propia ruta y falla cuando no coinciden. Es un comando aparte de
+`pnpm build`, así que hay que correrlo a mano después de tocar rutas.
 
 Los posts traen su `descripcion` en `POSTS`. El campo es opcional: si falta,
 el post cae en `DESCRIPCION_SITIO` y comparte el `og:description` con todo el
