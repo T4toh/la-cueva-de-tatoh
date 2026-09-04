@@ -133,7 +133,11 @@
       </p>
 
       <div formArrayName="pasos">
-        @for (paso of pasos.controls; track $index) {
+        <!-- track por el control, no por $index: al reordenar, el índice del
+             nodo no cambia y formGroupName se queda atado al FormGroup
+             viejo, así que el textarea muestra el paso anterior aunque el
+             modelo ya se movió. -->
+        @for (paso of pasos.controls; track paso) {
           <div class="paso-row" [formGroupName]="$index">
             <span class="paso-numero">{{ $index + 1 }}</span>
             <textarea

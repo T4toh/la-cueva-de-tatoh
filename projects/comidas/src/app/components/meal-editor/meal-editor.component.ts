@@ -142,7 +142,7 @@ export class MealEditorComponent implements OnInit {
             this.tags.push(this.fb.control(tag));
           });
         }
-        meal.pasos?.forEach((paso) => this.addPaso(paso.texto));
+        meal.pasos?.forEach((paso) => this.addPaso(paso));
       } else {
         this.router.navigate(['/meals']);
       }
@@ -177,8 +177,11 @@ export class MealEditorComponent implements OnInit {
     this.tags.removeAt(index);
   }
 
-  addPaso(texto = ''): void {
-    this.pasos.push(this.fb.group({ texto: [texto] }));
+  // Se hace spread del paso entero y no sólo del texto: si el FormGroup no
+  // tiene el campo, editar la comida lo borra al guardar. Es la misma razón por
+  // la que limpiarPasos hace spread, un piso más abajo.
+  addPaso(paso: Paso = { texto: '' }): void {
+    this.pasos.push(this.fb.group({ ...paso }));
   }
 
   removePaso(index: number): void {
