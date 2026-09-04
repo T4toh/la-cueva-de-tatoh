@@ -41,8 +41,9 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
         regex. Entiende fracciones, números mixtos y decimales, conserva la
         unidad escrita a mano y deja de aplastar `'1/2'` a `'1'` al cargar
         desde Firestore.
-  - [ ] **2. La receta escrita.** `Paso`, `Meal.pasos`, pasos en `meal-editor`,
-        ficha `/meals/:id`, indicador en la tarjeta. Sin Storage.
+  - [x] **2. La receta escrita.** `Paso`, `Meal.pasos`, pasos en `meal-editor`
+        con reordenar, ficha `/meals/:id` de sólo lectura, y el botón de ver
+        receta en la tarjeta haciendo de indicador.
   - [ ] **3. Cocinar.** Selector ×1 ×2 ×3, modo cocina, copiar como markdown.
         Necesita la 1 y la 2.
   - [ ] **4. Fotos.** Storage, compresión con `canvas`, reglas del bucket,
