@@ -70,6 +70,7 @@
               <button
                 class="btn-porcion"
                 type="button"
+                [attr.aria-pressed]="porciones() === n"
                 [class.activo]="porciones() === n"
                 (click)="porciones.set(n)"
               >

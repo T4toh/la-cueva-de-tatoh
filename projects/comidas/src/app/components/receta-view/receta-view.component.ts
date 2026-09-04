@@ -86,7 +86,18 @@ export class RecetaViewComponent {
     if (!comida) {
       return;
     }
-    await navigator.clipboard.writeText(recetaComoMarkdown(comida));
+    try {
+      await navigator.clipboard.writeText(recetaComoMarkdown(comida));
+    } catch {
+      // El portapapeles lo puede negar el navegador (permisos, foco, contexto
+      // no seguro). Sin este aviso el botón no hace nada visible y parece roto.
+      this.dialogService.alert(
+        'No se pudo copiar',
+        'El navegador bloqueó el acceso al portapapeles.'
+      );
+      return;
+    }
+
     this.dialogService.alert(
       'Copiado',
       'La receta quedó en el portapapeles, lista para pegar en un post.'
