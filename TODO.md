@@ -33,21 +33,21 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
     existen y cómo se ven.
 
 - [ ] **Recetario.** Diseñado y sin implementar. El spec está en
-      [`docs/superpowers/specs/2026-09-03-recetario-design.md`](docs/superpowers/specs/2026-09-03-recetario-design.md);
-      lo de abajo es el resumen.
-  - Superset de las tarjetas de comidas de `comidas`, con todos los campos para
-    anotar una receta como corresponde: ingredientes con cantidades, tiempos,
-    porciones, notas.
-  - Form de carga con fotos. Las fotos no entran en Firestore: implica
-    Firebase Storage, bucket nuevo y **regla nueva** (hoy `firestore.rules`
-    niega todo lo que no sea `users/{uid}`).
-  - Paso a paso opcional: instrucciones ordenadas, capaz con foto por paso.
-    Multiplica el storage por receta.
-  - Adaptativo: la misma receta se tiene que ver bien en la tarjeta corta y en
-    la ficha completa.
-  - Linkeable desde el blog, para que una receta pueda ser también un post. Sin
-    definir todavía cómo: son dos apps y dos Workers distintos, así que el link
-    cruza dominios (`tatoh.ar` ↔ `comidas.tatoh.ar`).
+      [`docs/superpowers/specs/2026-09-03-recetario-design.md`](docs/superpowers/specs/2026-09-03-recetario-design.md).
+      La receta es un `Meal` con `pasos?` y `foto?`, no una entidad nueva: `Meal`
+      ya tiene los ingredientes que alimentan la lista de compras.
+  - [x] **1. Cantidades.** Un solo `parseQuantity` exportado desde
+        `meal.service.ts` para las tres funciones que antes tenían su propia
+        regex. Entiende fracciones, números mixtos y decimales, conserva la
+        unidad escrita a mano y deja de aplastar `'1/2'` a `'1'` al cargar
+        desde Firestore.
+  - [ ] **2. La receta escrita.** `Paso`, `Meal.pasos`, pasos en `meal-editor`,
+        ficha `/meals/:id`, indicador en la tarjeta. Sin Storage.
+  - [ ] **3. Cocinar.** Selector ×1 ×2 ×3, modo cocina, copiar como markdown.
+        Necesita la 1 y la 2.
+  - [ ] **4. Fotos.** Storage, compresión con `canvas`, reglas del bucket,
+        borrado en cascada. Bloqueada por el alta de Blaze (necesita tarjeta), y
+        es la única que puede generar factura.
 
 ## Deuda técnica declarada
 

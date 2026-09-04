@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { ensureMealIds } from './meal.service';
+import {
+  ensureMealIds,
+  multiplyQuantity,
+  normalizeQuantityToNumeric,
+  parseNumericQuantity,
+} from './meal.service';
 import { Meal } from '../models/meal.model';
 
 describe('ensureMealIds', () => {
@@ -28,5 +33,67 @@ describe('ensureMealIds', () => {
 
     expect(r).toBe(meal);
     expect(r.id).toBe('keep');
+  });
+});
+
+describe('multiplyQuantity', () => {
+  it('multiplica una cantidad entera', () => {
+    expect(multiplyQuantity('2', 3)).toBe('6');
+  });
+
+  it('interpreta las fracciones en vez de leerlas como entero', () => {
+    // parseFloat('1/2') devuelve 1, así que antes esto daba '2'.
+    expect(multiplyQuantity('1/2', 2)).toBe('1');
+    expect(multiplyQuantity('1/2', 3)).toBe('1.5');
+  });
+
+  it('interpreta los números mixtos de receta', () => {
+    expect(multiplyQuantity('1 1/2', 2)).toBe('3');
+  });
+
+  it('conserva el texto que viene después del número', () => {
+    // Antes devolvía '6' y se comía la unidad escrita a mano.
+    expect(multiplyQuantity('2 tazas', 3)).toBe('6 tazas');
+  });
+
+  it('acepta factores fraccionarios', () => {
+    // Antes cualquier factor <= 1 devolvía la cantidad sin tocar.
+    expect(multiplyQuantity('2', 0.5)).toBe('1');
+  });
+
+  it('deja intacto lo que no empieza con un número', () => {
+    expect(multiplyQuantity('a gusto', 3)).toBe('a gusto');
+  });
+
+  it('no toca la cantidad cuando el factor es 1', () => {
+    expect(multiplyQuantity('2 tazas', 1)).toBe('2 tazas');
+  });
+});
+
+describe('parseo compartido de cantidades', () => {
+  it('no divide por cero', () => {
+    expect(multiplyQuantity('1/0', 2)).toBe('1/0');
+  });
+
+  it('normalizar no aplasta la fracción a entero', () => {
+    // Corre al cargar desde Firestore: si acá se pierde, se guarda perdida.
+    expect(normalizeQuantityToNumeric('1/2')).toBe('1/2');
+    expect(normalizeQuantityToNumeric('1 1/2 tazas')).toBe('1 1/2');
+  });
+
+  it('separar cantidad y unidad entiende la fracción', () => {
+    // Antes partía en value 1 y unit '/2 taza'.
+    expect(parseNumericQuantity('1/2 taza')).toEqual({
+      value: 0.5,
+      unit: 'taza',
+    });
+  });
+
+  it('sigue partiendo el formato viejo "500 g"', () => {
+    expect(parseNumericQuantity('500 g')).toEqual({ value: 500, unit: 'g' });
+  });
+
+  it('devuelve null cuando no hay número que sacar', () => {
+    expect(parseNumericQuantity('a gusto')).toBeNull();
   });
 });

@@ -15,6 +15,69 @@ import {
   TextScheduleField,
 } from '../models/meal.model';
 
+// Las cantidades se escriben a mano y vienen de todas las formas: '2', '0.5',
+// '1/2', '1 1/2', '2 tazas'. Una sola gramática para todas, porque hasta ahora
+// había tres regex distintas y la de cargar desde Firestore aplastaba '1/2' a
+// '1' antes de que ninguna de las otras la viera.
+// ponytail: sin coma decimal — '1,5' se lee como 1. Si alguna vez importa,
+// normalizar la coma a punto antes de parsear.
+const CANTIDAD = /^\s*(?:(\d+)\s+)?(\d+(?:\.\d+)?)(?:\s*\/\s*(\d+))?/;
+
+export type CantidadParseada = {
+  // El número resuelto: '1 1/2' da 1.5.
+  valor: number;
+  // El número tal como se escribió: '1 1/2'. Es lo que se guarda, para no
+  // reescribirle al usuario lo que tipeó.
+  texto: string;
+  // Lo que sigue después del número, sin trimear: ' tazas'.
+  resto: string;
+};
+
+export function parseQuantity(quantity: string): CantidadParseada | null {
+  const texto = String(quantity ?? '');
+  const partes = CANTIDAD.exec(texto);
+  if (!partes) {
+    return null;
+  }
+
+  const [coincidencia, entero, numerador, denominador] = partes;
+  const divisor = denominador ? Number(denominador) : 1;
+  // '1/0' no es una cantidad: mejor dejarla como está que devolver Infinity.
+  if (divisor === 0) {
+    return null;
+  }
+
+  // parseFloat('1/2') devuelve 1: hay que dividir a mano, no alcanza con leer.
+  const valor = denominador
+    ? Number(entero ?? 0) + Number(numerador) / divisor
+    : Number(numerador);
+
+  return {
+    valor,
+    texto: coincidencia.trim(),
+    resto: texto.slice(coincidencia.length),
+  };
+}
+
+export function parseNumericQuantity(
+  quantity: string
+): { value: number; unit: string } | null {
+  const parsed = parseQuantity(quantity);
+  return parsed ? { value: parsed.valor, unit: parsed.resto.trim() } : null;
+}
+
+export function normalizeQuantityToNumeric(q: string): string {
+  return parseQuantity(q)?.texto ?? String(q ?? '').trim();
+}
+
+export function multiplyQuantity(quantity: string, factor: number): string {
+  const parsed = parseQuantity(quantity);
+  if (!parsed) {
+    return quantity;
+  }
+  return `${parseFloat((parsed.valor * factor).toFixed(2))}${parsed.resto}`;
+}
+
 // Garantiza que cada comida tenga un id. Las comidas que entran por restaurar
 // un backup (importData) o por bajar de Firestore pueden no traerlo, y el
 // calendario las referencia por id: sin id quedan inutilizables (el slot no se
@@ -241,7 +304,10 @@ export class MealService {
       const docRef = doc(this.firestore, 'users', user.uid);
       await setDoc(
         docRef,
-        this.sanitizeForFirestore({ [key]: data, lastUpdated: this.lastUpdated() }),
+        this.sanitizeForFirestore({
+          [key]: data,
+          lastUpdated: this.lastUpdated(),
+        }),
         { merge: true }
       );
       this.syncStatus.set('synced');
@@ -383,24 +449,27 @@ export class MealService {
     this.updateTimestamp();
     try {
       const docRef = doc(this.firestore, 'users', user.uid);
-      await setDoc(docRef, this.sanitizeForFirestore({
-        meals: this.meals(),
-        schedules: this.schedules(),
-        tags: this.tags(),
-        ingredientTags: this.ingredientTags(),
-        extraItems: this.extraItems(),
-        extraItemsHistory: this.extraItemsHistory(),
-        overrides: this.quantityOverrides(),
-        checkedItems: this.checkedItems(),
-        pantry: this.pantry(),
-        pantryGroups: this.pantryGroups(),
-        familySettings: {
-          isFamilyMode: this.isFamilyMode(),
-          visibleMeals: this.visibleMeals(),
-          familyPortions: this.familyPortions(),
-        },
-        lastUpdated: this.lastUpdated(),
-      }));
+      await setDoc(
+        docRef,
+        this.sanitizeForFirestore({
+          meals: this.meals(),
+          schedules: this.schedules(),
+          tags: this.tags(),
+          ingredientTags: this.ingredientTags(),
+          extraItems: this.extraItems(),
+          extraItemsHistory: this.extraItemsHistory(),
+          overrides: this.quantityOverrides(),
+          checkedItems: this.checkedItems(),
+          pantry: this.pantry(),
+          pantryGroups: this.pantryGroups(),
+          familySettings: {
+            isFamilyMode: this.isFamilyMode(),
+            visibleMeals: this.visibleMeals(),
+            familyPortions: this.familyPortions(),
+          },
+          lastUpdated: this.lastUpdated(),
+        })
+      );
       this.syncStatus.set('synced');
       console.log('[Sync] All data uploaded to Firebase');
     } catch (e) {
@@ -908,8 +977,19 @@ export class MealService {
     this.ingredientTags.update((map) => ({ ...map, [key]: tagId }));
   }
 
-  addExtraItem(name: string, quantity: string, tagId?: string, unit?: string): void {
-    const newItem: ShoppingItem = { name, quantity, unit, tagId, isExtra: true };
+  addExtraItem(
+    name: string,
+    quantity: string,
+    tagId?: string,
+    unit?: string
+  ): void {
+    const newItem: ShoppingItem = {
+      name,
+      quantity,
+      unit,
+      tagId,
+      isExtra: true,
+    };
     const weekKey = this.formatDateKey(this.currentWeekStart());
     this.extraItems.update((items) => ({
       ...items,
@@ -977,18 +1057,6 @@ export class MealService {
     });
   }
 
-  private multiplyQuantity(quantity: string, factor: number): string {
-    if (factor <= 1) {
-      return quantity;
-    }
-    const value = parseFloat(String(quantity ?? ''));
-    if (isNaN(value)) {
-      return quantity;
-    }
-    const result = value * factor;
-    return `${parseFloat(result.toFixed(2))}`;
-  }
-
   readonly shoppingListGrouped = computed(() => {
     const items: ShoppingItem[] = [];
     const currentSchedule = this.schedule();
@@ -1014,10 +1082,7 @@ export class MealService {
           if (meal && meal.includeInShoppingList !== false) {
             meal.ingredients.forEach((ing) => {
               const key = ing.name.toLowerCase().trim();
-              const quantity = this.multiplyQuantity(
-                ing.quantity,
-                dish.portions
-              );
+              const quantity = multiplyQuantity(ing.quantity, dish.portions);
               items.push({
                 ...ing,
                 quantity,
@@ -1077,7 +1142,7 @@ export class MealService {
         (p) => p.name.toLowerCase().trim() === item.name.toLowerCase().trim()
       );
       if (pantryEntry) {
-        const parsedPantry = this.parseNumericQuantity(pantryEntry.quantity);
+        const parsedPantry = parseNumericQuantity(pantryEntry.quantity);
         if (parsedPantry?.value !== 0) {
           const effectiveQuantity = item.quantityOverride || item.quantity;
           const { remaining, covered } = this.subtractPantryFromNeeded(
@@ -1168,12 +1233,14 @@ export class MealService {
         if (i.name.toLowerCase().trim() !== key) {
           return i;
         }
-        const parsed = this.parseNumericQuantity(i.quantity);
-        const parsedAmount = this.parseNumericQuantity(amount);
+        const parsed = parseNumericQuantity(i.quantity);
+        const parsedAmount = parseNumericQuantity(amount);
         const unitsCompatible =
           parsed &&
           parsedAmount &&
-          (parsed.unit === parsedAmount.unit || !parsed.unit || !parsedAmount.unit);
+          (parsed.unit === parsedAmount.unit ||
+            !parsed.unit ||
+            !parsedAmount.unit);
         if (unitsCompatible && parsed && parsedAmount) {
           didSubtract = true;
           const remaining = Math.max(0, parsed.value - parsedAmount.value);
@@ -1198,7 +1265,7 @@ export class MealService {
     if (!pantryEntry) {
       return;
     }
-    const parsedPantry = this.parseNumericQuantity(pantryEntry.quantity);
+    const parsedPantry = parseNumericQuantity(pantryEntry.quantity);
     if (parsedPantry?.value === 0) {
       return;
     }
@@ -1223,7 +1290,11 @@ export class MealService {
   }
 
   addPantryGroup(name: string, color?: string): void {
-    const newGroup: PantryGroup = { id: this.generateId(), name, ...(color ? { color } : {}) };
+    const newGroup: PantryGroup = {
+      id: this.generateId(),
+      name,
+      ...(color ? { color } : {}),
+    };
     this.pantryGroups.update((g) => [...g, newGroup]);
   }
 
@@ -1267,7 +1338,7 @@ export class MealService {
         (p) => p.name.toLowerCase().trim() === item.name.toLowerCase().trim()
       );
       if (pantryEntry) {
-        const parsedPantry = this.parseNumericQuantity(pantryEntry.quantity);
+        const parsedPantry = parseNumericQuantity(pantryEntry.quantity);
         if (parsedPantry?.value === 0) {
           return;
         }
@@ -1295,32 +1366,18 @@ export class MealService {
     });
   }
 
-  private parseNumericQuantity(
-    quantity: string
-  ): { value: number; unit: string } | null {
-    const qStr = String(quantity ?? '').trim();
-    const match = qStr.match(/^(\d+(\.\d+)?)\s*(.*)$/);
-    if (match) {
-      return { value: parseFloat(match[1]), unit: match[3].trim() };
-    }
-    return null;
-  }
-
-  private normalizeQuantityToNumeric(q: string): string {
-    const qStr = String(q ?? '').trim();
-    const match = qStr.match(/^(\d+(\.\d+)?)/);
-    return match ? match[1] : qStr;
-  }
-
   private normalizeMealQuantities(meals: Meal[]): Meal[] {
     return ensureMealIds(meals, () => this.generateId()).map((meal) => ({
       ...meal,
       ingredients: meal.ingredients.map((ing) => {
         if (ing.unit !== undefined) {
-          return { ...ing, quantity: this.normalizeQuantityToNumeric(ing.quantity) };
+          return {
+            ...ing,
+            quantity: normalizeQuantityToNumeric(ing.quantity),
+          };
         }
         // Old format: try to split "500 g" → { quantity: "500", unit: "g" }
-        const parsed = this.parseNumericQuantity(ing.quantity);
+        const parsed = parseNumericQuantity(ing.quantity);
         return parsed
           ? { ...ing, quantity: `${parsed.value}`, unit: parsed.unit }
           : { ...ing, unit: '' };
@@ -1331,7 +1388,7 @@ export class MealService {
   private normalizePantryQuantities(items: PantryItem[]): PantryItem[] {
     return items.map((item) => ({
       ...item,
-      quantity: this.normalizeQuantityToNumeric(item.quantity),
+      quantity: normalizeQuantityToNumeric(item.quantity),
     }));
   }
 
@@ -1353,12 +1410,14 @@ export class MealService {
   }
 
   private addQuantities(existing: string, added: string): string {
-    const parsedExisting = this.parseNumericQuantity(existing);
-    const parsedAdded = this.parseNumericQuantity(added);
+    const parsedExisting = parseNumericQuantity(existing);
+    const parsedAdded = parseNumericQuantity(added);
     if (
       parsedExisting &&
       parsedAdded &&
-      (parsedExisting.unit === parsedAdded.unit || !parsedExisting.unit || !parsedAdded.unit)
+      (parsedExisting.unit === parsedAdded.unit ||
+        !parsedExisting.unit ||
+        !parsedAdded.unit)
     ) {
       const total = parsedExisting.value + parsedAdded.value;
       const unit = parsedExisting.unit || parsedAdded.unit;
@@ -1371,12 +1430,14 @@ export class MealService {
     needed: string,
     inPantry: string
   ): { remaining: string; covered: boolean } {
-    const parsedNeeded = this.parseNumericQuantity(needed);
-    const parsedPantry = this.parseNumericQuantity(inPantry);
+    const parsedNeeded = parseNumericQuantity(needed);
+    const parsedPantry = parseNumericQuantity(inPantry);
     if (
       parsedNeeded &&
       parsedPantry &&
-      (parsedNeeded.unit === parsedPantry.unit || !parsedNeeded.unit || !parsedPantry.unit)
+      (parsedNeeded.unit === parsedPantry.unit ||
+        !parsedNeeded.unit ||
+        !parsedPantry.unit)
     ) {
       const remaining = parsedNeeded.value - parsedPantry.value;
       if (remaining <= 0) {
@@ -1437,7 +1498,10 @@ export class MealService {
     try {
       const normalized = this.parseMealsInput(jsonContent);
       if (!normalized) {
-        this.dialogService.alert('Error', 'El archivo no contiene comidas válidas.');
+        this.dialogService.alert(
+          'Error',
+          'El archivo no contiene comidas válidas.'
+        );
         return;
       }
       const existing = this.meals();
@@ -1450,7 +1514,10 @@ export class MealService {
       );
     } catch (error) {
       console.error('Error al importar comidas:', error);
-      this.dialogService.alert('Error', 'El archivo no tiene un formato válido.');
+      this.dialogService.alert(
+        'Error',
+        'El archivo no tiene un formato válido.'
+      );
     }
   }
 
@@ -1538,7 +1605,11 @@ export class MealService {
         return { valid: false };
       }
       const len = (v: unknown): number =>
-        Array.isArray(v) ? v.length : v && typeof v === 'object' ? Object.keys(v).length : 0;
+        Array.isArray(v)
+          ? v.length
+          : v && typeof v === 'object'
+            ? Object.keys(v).length
+            : 0;
       return {
         valid: true,
         counts: {

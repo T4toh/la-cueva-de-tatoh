@@ -133,8 +133,8 @@ sacar las portadas de los libros de Amazon.
 ### El ×N es sólo de la vista
 
 No se guarda nada. Las cantidades se guardan por porción y se multiplican al
-mostrar, que es exactamente lo que ya hace la lista de compras en
-`meal.service.ts:1016` con `multiplyQuantity(ing.quantity, dish.portions)`.
+mostrar, que es exactamente lo que ya hace `shoppingListGrouped` en
+`meal.service.ts` con `multiplyQuantity(ing.quantity, dish.portions)`.
 
 ## Arreglo puntual: `multiplyQuantity`
 
@@ -167,6 +167,42 @@ trabajo aburrido.
 Import/export de recetas, buscador propio, categorías nuevas, valoraciones,
 tiempo de cocción como campo estructurado, y todo lo de la colección pública.
 Nada de eso está pedido y todo se agrega después sin romper lo de arriba.
+
+## Plan de entrega
+
+Cuatro partes, un PR cada una. El orden es por dependencia, y cada una deja algo
+usable si se para ahí.
+
+### 1. Cantidades
+
+Exponer `multiplyQuantity`, arreglar el parseo de fracciones y permitir factores
+fraccionarios, con tests.
+
+No depende de nada del recetario: arregla un bug que la lista de compras ya
+tiene hoy, así que se mergea sola. Va primera porque el ×N de la parte 3 usa la
+función arreglada.
+
+### 2. La receta escrita
+
+`Paso`, `Meal.pasos`, el `FormArray` de pasos en `meal-editor`, la ficha
+`/meals/:id` de sólo lectura y el indicador de receta en la tarjeta.
+
+Es el grueso. Cuando cierra ya se escriben recetas y se leen cocinando, sin
+tocar Storage ni necesitar Blaze.
+
+### 3. Cocinar
+
+El selector ×1 ×2 ×3, el modo cocina y el botón de copiar como markdown. Las
+tres cosas cuelgan de la ficha de la parte 2, y el ×N necesita la parte 1.
+
+### 4. Fotos
+
+`provideStorage`, la compresión con `canvas`, las reglas del bucket, la subida
+en el editor y el borrado en cascada.
+
+Va última a propósito: es la única bloqueada por un trámite externo —Blaze
+necesita una tarjeta cargada antes de poder probar nada— y la única que puede
+generar factura. Las otras tres no dependen de ella.
 
 ## Testing
 
