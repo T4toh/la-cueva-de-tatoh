@@ -133,8 +133,8 @@ sacar las portadas de los libros de Amazon.
 ### El ×N es sólo de la vista
 
 No se guarda nada. Las cantidades se guardan por porción y se multiplican al
-mostrar, que es exactamente lo que ya hace la lista de compras en
-`meal.service.ts:1016` con `multiplyQuantity(ing.quantity, dish.portions)`.
+mostrar, que es exactamente lo que ya hace `shoppingListGrouped` en
+`meal.service.ts` con `multiplyQuantity(ing.quantity, dish.portions)`.
 
 ## Arreglo puntual: `multiplyQuantity`
 

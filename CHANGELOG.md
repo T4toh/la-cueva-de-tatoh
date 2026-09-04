@@ -10,6 +10,8 @@ Todos los cambios notables a este proyecto se documentan en este archivo. El for
 - **Las cantidades fraccionarias se multiplicaban mal en la lista de compras.** `multiplyQuantity` leía la cantidad con `parseFloat`, y `parseFloat('1/2')` devuelve `1`: media taza por dos daba `2` en vez de `1`. Ahora la fracción se divide a mano, y se entienden también los números mixtos de receta (`1 1/2`).
 - La misma función se comía el texto de la unidad: `'2 tazas'` por tres devolvía `'6'`. Ahora conserva lo que viene después del número.
 - Un factor menor o igual a 1 devolvía la cantidad sin tocar, así que no había forma de expresar media receta. Se sacó ese atajo.
+- **Al cargar desde Firestore, las fracciones se destruían y se volvían a guardar aplastadas.** `normalizeMealQuantities` corre en cada carga y usaba su propia regex `^(\d+(\.\d+)?)`, que de `'1/2'` se queda con `'1'`; `parseNumericQuantity` era peor y partía `'1/2 taza'` en cantidad `1` y unidad `'/2 taza'`. Era la causa de fondo: sin esto, arreglar la multiplicación no servía de nada porque la fracción nunca llegaba a guardarse. Las tres regex se unifican en un solo `parseQuantity`.
+- `'1/0'` devolvía `'Infinity'`. Ahora se trata como cantidad inválida y se deja sin tocar.
 - `multiplyQuantity` pasa de método privado a función exportada de `meal.service.ts`, para que la ficha de receta pueda reusarla sin duplicar el parseo. Es la primera de las cuatro entregas del recetario.
 
 ### Added

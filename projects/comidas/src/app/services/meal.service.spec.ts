@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { ensureMealIds, multiplyQuantity } from './meal.service';
+import {
+  ensureMealIds,
+  multiplyQuantity,
+  normalizeQuantityToNumeric,
+  parseNumericQuantity,
+} from './meal.service';
 import { Meal } from '../models/meal.model';
 
 describe('ensureMealIds', () => {
@@ -62,5 +67,33 @@ describe('multiplyQuantity', () => {
 
   it('no toca la cantidad cuando el factor es 1', () => {
     expect(multiplyQuantity('2 tazas', 1)).toBe('2 tazas');
+  });
+});
+
+describe('parseo compartido de cantidades', () => {
+  it('no divide por cero', () => {
+    expect(multiplyQuantity('1/0', 2)).toBe('1/0');
+  });
+
+  it('normalizar no aplasta la fracción a entero', () => {
+    // Corre al cargar desde Firestore: si acá se pierde, se guarda perdida.
+    expect(normalizeQuantityToNumeric('1/2')).toBe('1/2');
+    expect(normalizeQuantityToNumeric('1 1/2 tazas')).toBe('1 1/2');
+  });
+
+  it('separar cantidad y unidad entiende la fracción', () => {
+    // Antes partía en value 1 y unit '/2 taza'.
+    expect(parseNumericQuantity('1/2 taza')).toEqual({
+      value: 0.5,
+      unit: 'taza',
+    });
+  });
+
+  it('sigue partiendo el formato viejo "500 g"', () => {
+    expect(parseNumericQuantity('500 g')).toEqual({ value: 500, unit: 'g' });
+  });
+
+  it('devuelve null cuando no hay número que sacar', () => {
+    expect(parseNumericQuantity('a gusto')).toBeNull();
   });
 });
