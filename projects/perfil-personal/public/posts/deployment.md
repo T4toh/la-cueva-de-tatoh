@@ -14,6 +14,7 @@
       <p>John is about to discover that humanity is only a small part of a much larger galaxy.</p>
       <p>And for someone who has spent his entire life knowing so little of the world beyond Earth, there is a lot left to discover.</p>
     </blockquote>
+    <a href="https://www.amazon.com/dp/B0HHR3XX88" target="_blank" rel="noopener noreferrer"><img class="logo-tienda" src="/img/logos/amazon.svg" alt="" width="20" height="20"><span>Leer en Amazon</span></a>
   </div>
 </div>
 
@@ -21,8 +22,8 @@ Meridian sigue en pie, esto no la reemplaza: es otra saga, otro mundo y otro
 idioma. Si el inglés molesta, la sinopsis traducida está en la
 [ficha del libro](/libros/deployment).
 
-Todavía no hay link de compra. Va a Amazon, Google Play Books y Apple Books;
-cuando esté listado, actualizo la ficha.
+Por ahora está en Amazon. Google Play Books y Apple Books van en camino;
+cuando estén, los sumo a la ficha.
 
 ---
 

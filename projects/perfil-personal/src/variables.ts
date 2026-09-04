@@ -483,9 +483,14 @@ export const LIBROS: Libro[] = [
       'And for someone who has spent his entire life knowing so little of the',
       'world beyond Earth, there is a lot left to discover.',
     ].join('\n'),
-    // Todavía no está listado. Sin tiendas la ficha no dibuja botón, que es
-    // mejor que un link muerto: van Amazon, Google Play y Apple Books, y los
-    // tres ya tienen su `@case` en logo-tienda.
-    tiendas: [],
+    // Faltan Google Play y Apple Books: los dos tienen su `@case` en
+    // logo-tienda, así que darlos de alta es agregar la entrada con su URL.
+    tiendas: [
+      {
+        nombre: 'Amazon',
+        url: 'https://www.amazon.com/dp/B0HHR3XX88',
+        logo: 'amazon',
+      },
+    ],
   },
 ];

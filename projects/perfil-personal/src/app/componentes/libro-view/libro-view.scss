@@ -136,8 +136,15 @@
     gap: 1.75rem;
   }
 
+  // En una sola columna la tapa y los botones se centran: pegados a la
+  // izquierda quedaban desbalanceados contra el texto, que sí usa todo el ancho.
   .libro-lateral {
+    // El `width: 100%` no sobra: los márgenes auto le sacan el stretch al grid
+    // item, y sin ancho propio la columna se encoge al del botón y arrastra la
+    // tapa con ella.
+    width: 100%;
     max-width: 240px;
+    margin-inline: auto;
   }
 }
 
