@@ -4,14 +4,20 @@
   margin: 0 auto;
 }
 
-.libros-title {
-  font-family: var(--font-serif);
-  font-size: var(--fs-display);
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  margin: 1rem 0 2rem;
-  color: var(--fg-primary);
-  text-align: left;
+.saga + .saga {
+  margin-top: 3rem;
+}
+
+// Mismo tratamiento que los títulos de sección del landing: el nombre de la
+// saga rotula el grupo, no compite con los títulos de los libros.
+.saga-titulo {
+  margin: 0 0 1.25rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  color: var(--fg-muted);
 }
 
 .empty-state {
@@ -26,5 +32,9 @@
 @media (max-width: 768px) {
   .libros-container {
     padding: 1.5rem 1rem 3rem;
+  }
+
+  .saga + .saga {
+    margin-top: 2.5rem;
   }
 }

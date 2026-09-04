@@ -3,7 +3,7 @@
     <a class="libro-link" [routerLink]="['/libros', libro.slug]">
       <lib-libro
         [imagen]="libro.imagen"
-        [subtitulo]="libro.subtitulo"
+        [subtitulo]="libro.saga + ' #' + libro.numero"
         [titulo]="libro.titulo"
       />
     </a>

@@ -123,8 +123,9 @@ magick tapa-original.png -resize 752x1200 -quality 88 -strip \
 {
   slug: 'mi-libro',                        // define la URL /libros/mi-libro
   titulo: 'Mi Libro',
-  subtitulo: 'Meridian #N',
   imagen: '/img/portadas/mi-libro.jpg',
+  saga: 'Meridian',                        // agrupa el libro en /libros
+  numero: 3,                               // su orden dentro de la saga
   sinopsis: [
     'Primer párrafo, que es el que sale como og:description.',
     '',
@@ -148,6 +149,13 @@ Cosas a tener en cuenta:
   `logo-tienda`; sin eso cae en el ícono genérico de libro.
 - La ruta `/libros/<slug>` se prerenderiza sola (está en `app.routes.server.ts`),
   no hay que tocar nada más.
+- **`saga` y `numero` son el agrupador de `/libros`.** La página lista una
+  sección por saga —en el orden en que las sagas aparecen en `LIBROS`— y dentro
+  de cada una ordena por `numero`. Una saga nueva no necesita código: alcanza
+  con escribir su nombre. La etiqueta visible (`Milky Way #1`) la arma la vista,
+  así que los dos campos tienen que estar; no hay `subtitulo` libre.
+- El landing sigue mostrando el carrusel plano con todos los libros, sin
+  agrupar.
 
 3. Verificar después de un build de producción:
 

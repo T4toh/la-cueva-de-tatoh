@@ -325,6 +325,15 @@ export const POSTS: Post[] = [
       'Segunda novela de Meridian, ya en Amazon. Aedan y sus compañeros llegan a ' +
       'Brickwell como invitados, dispuestos a pasar unos días lejos de los caminos.',
   },
+  {
+    title: 'Deployment — Milky Way #1',
+    src: 'posts/deployment.md',
+    fecha: '3/9/26',
+    tags: ['libros', 'milky-way', 'space-opera'],
+    descripcion:
+      'Primera novela de Milky Way y la primera que escribo en inglés: space ' +
+      'opera. John nunca salió del sistema solar, y su primer trabajo lo saca.',
+  },
 ];
 
 // Dominio público del sitio. Solo se usa para armar og:url absoluto:
@@ -357,11 +366,14 @@ export type Libro = {
   // Una vez publicado no se cambia: rompería los links de las copias vendidas.
   slug: string;
   titulo: string;
-  subtitulo: string;
   // Ruta absoluta desde la raíz del sitio (/img/portadas/...). Se sirve
   // desde el repo a propósito: una URL de Amazon la controla Amazon, y si
   // cambia el listado se rompe el og:image sin que nos enteremos.
   imagen: string;
+  // Saga y orden van separados a propósito: `/libros` agrupa por `saga` y
+  // ordena por `numero`. La etiqueta "Milky Way #1" la arma quien la muestra.
+  saga: string;
+  numero: number;
   sinopsis: string;
   tiendas: Tienda[];
 };
@@ -371,7 +383,8 @@ export const LIBROS: Libro[] = [
   {
     slug: 'la-caballera-esmeralda',
     titulo: 'La Caballera Esmeralda',
-    subtitulo: 'Meridian #1',
+    saga: 'Meridian',
+    numero: 1,
     imagen: '/img/portadas/la-caballera-esmeralda.jpg',
     sinopsis: [
       'Aedan, por fin, puede dejar atrás la obligada prisión de su hogar y',
@@ -393,7 +406,8 @@ export const LIBROS: Libro[] = [
   {
     slug: 'mas-que-un-trabajo',
     titulo: 'Más que un Trabajo',
-    subtitulo: 'Meridian #2',
+    saga: 'Meridian',
+    numero: 2,
     imagen: '/img/portadas/mas-que-un-trabajo.jpg',
     sinopsis: [
       'Aedan y sus compañeros llegan a Brickwell como invitados, dispuestos a',
@@ -412,5 +426,52 @@ export const LIBROS: Libro[] = [
         logo: 'amazon',
       },
     ],
+  },
+  {
+    slug: 'deployment',
+    titulo: 'Deployment',
+    imagen: '/img/portadas/deployment.jpg',
+    saga: 'Milky Way',
+    numero: 1,
+    // La novela está escrita en inglés. Va la traducción primero porque el
+    // primer párrafo es el que sale como og:description y el sitio está en
+    // español; abajo, el blurb original.
+    sinopsis: [
+      'John nunca salió del sistema solar.',
+      '',
+      'Después de una vida miserable en la Tierra, su primer trabajo lo lleva',
+      'de Marte a Elysium.',
+      '',
+      'Es la primera vez que se aleja de casa. Lo espera un mundo nuevo, lleno',
+      'de gente, culturas y lugares de los que solo escuchó hablar.',
+      '',
+      'John está por descubrir que la humanidad es apenas una parte pequeña de',
+      'una galaxia mucho más grande.',
+      '',
+      'Y para alguien que pasó toda su vida sabiendo tan poco del mundo más',
+      'allá de la Tierra, queda mucho por descubrir.',
+      '',
+      '---',
+      '',
+      '*Escrita en inglés. El blurb original:*',
+      '',
+      'John has never left the Sol system.',
+      '',
+      'After a miserable life on Earth, his first job takes him from Mars to',
+      'Elysium.',
+      '',
+      'It is the first time he has ever left home. A new world awaits him,',
+      'filled with people, cultures, and places he has only ever heard about.',
+      '',
+      'John is about to discover that humanity is only a small part of a much',
+      'larger galaxy.',
+      '',
+      'And for someone who has spent his entire life knowing so little of the',
+      'world beyond Earth, there is a lot left to discover.',
+    ].join('\n'),
+    // Todavía no está listado. Sin tiendas la ficha no dibuja botón, que es
+    // mejor que un link muerto: van Amazon, Google Play y Apple Books, y los
+    // tres ya tienen su `@case` en logo-tienda.
+    tiendas: [],
   },
 ];

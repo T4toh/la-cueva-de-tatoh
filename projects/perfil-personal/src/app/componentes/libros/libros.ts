@@ -1,8 +1,13 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 
 import { GaleriaLibros } from '../galeria-libros/galeria-libros';
 import { Seo } from '../../seo';
-import { LIBROS } from '../../../variables';
+import { type Libro, LIBROS } from '../../../variables';
+
+type Saga = {
+  nombre: string;
+  libros: Libro[];
+};
 
 @Component({
   selector: 'app-libros',
@@ -24,5 +29,24 @@ export class Libros {
     });
   }
 
-  readonly libros = signal(LIBROS);
+  readonly sagas = agruparPorSaga(LIBROS);
+}
+
+// El orden de las sagas es el de su primera aparición en LIBROS; el de los
+// libros dentro de cada una, su `numero`. Un Map alcanza porque conserva el
+// orden de inserción.
+function agruparPorSaga(libros: Libro[]): Saga[] {
+  const sagas = new Map<string, Libro[]>();
+  for (const libro of libros) {
+    const grupo = sagas.get(libro.saga);
+    if (grupo) {
+      grupo.push(libro);
+    } else {
+      sagas.set(libro.saga, [libro]);
+    }
+  }
+  return [...sagas].map(([nombre, propios]) => ({
+    nombre,
+    libros: propios.sort((a, b) => a.numero - b.numero),
+  }));
 }
