@@ -119,6 +119,66 @@
       </div>
     </div>
 
+    <div class="pasos-section">
+      <div class="header">
+        <h2>Paso a paso</h2>
+        <button class="btn-secondary" type="button" (click)="addPaso()">
+          + Agregar
+        </button>
+      </div>
+
+      <p class="pasos-ayuda">
+        Opcional. Una comida con pasos se puede leer como receta; sin pasos
+        funciona igual que siempre.
+      </p>
+
+      <div formArrayName="pasos">
+        <!-- track por el control, no por $index: al reordenar, el índice del
+             nodo no cambia y formGroupName se queda atado al FormGroup
+             viejo, así que el textarea muestra el paso anterior aunque el
+             modelo ya se movió. -->
+        @for (paso of pasos.controls; track paso) {
+          <div class="paso-row" [formGroupName]="$index">
+            <span class="paso-numero">{{ $index + 1 }}</span>
+            <textarea
+              formControlName="texto"
+              placeholder="Qué hay que hacer en este paso"
+              rows="2"
+            ></textarea>
+            <div class="paso-acciones">
+              <button
+                class="btn-mover"
+                title="Subir"
+                type="button"
+                [disabled]="$index === 0"
+                (click)="moverPaso($index, -1)"
+              >
+                ↑
+              </button>
+              <button
+                class="btn-mover"
+                title="Bajar"
+                type="button"
+                [disabled]="$index === pasos.length - 1"
+                (click)="moverPaso($index, 1)"
+              >
+                ↓
+              </button>
+              <button
+                class="btn-remove"
+                type="button"
+                (click)="removePaso($index)"
+              >
+                X
+              </button>
+            </div>
+          </div>
+        } @empty {
+          <p class="empty-state">Sin pasos todavía.</p>
+        }
+      </div>
+    </div>
+
     <div class="actions">
       <a class="btn-cancel" routerLink="/meals">Cancelar</a>
       <button class="btn-primary" type="submit" [disabled]="form.invalid">

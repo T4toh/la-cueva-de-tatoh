@@ -5,6 +5,12 @@ export type Ingredient = {
   checked?: boolean;
 };
 
+// Un paso del instructivo. Una comida con pasos es una receta; sin pasos es lo
+// que había antes y sigue siendo válido.
+export type Paso = {
+  texto: string;
+};
+
 export type Meal = {
   id: string;
   name: string;
@@ -12,6 +18,7 @@ export type Meal = {
   description?: string;
   tags?: string[];
   includeInShoppingList?: boolean;
+  pasos?: Paso[];
 };
 
 export type MealType =

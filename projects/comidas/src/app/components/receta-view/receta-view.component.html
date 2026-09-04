@@ -1,0 +1,66 @@
+@if (meal(); as comida) {
+  <div class="receta">
+    <div class="header">
+      <a class="volver" routerLink="/meals">
+        <lib-icon name="arrow-right" [size]="16" />
+        Comidas
+      </a>
+      <button class="btn-secondary" type="button" (click)="editar()">
+        Editar
+      </button>
+    </div>
+
+    <h1>{{ comida.name }}</h1>
+
+    @if (comida.description) {
+      <p class="descripcion">{{ comida.description }}</p>
+    }
+
+    @if (comida.tags && comida.tags.length > 0) {
+      <div class="tags">
+        @for (tag of comida.tags; track $index) {
+          <lib-tag [texto]="tag" />
+        }
+      </div>
+    }
+
+    <section class="ingredientes">
+      <h2>Ingredientes</h2>
+      <ul>
+        @for (ing of comida.ingredients; track $index) {
+          <li>
+            <span class="cantidad">
+              {{ ing.quantity }}{{ ing.unit ? ' ' + ing.unit : '' }}
+            </span>
+            <span class="nombre">{{ ing.name }}</span>
+          </li>
+        } @empty {
+          <li class="vacio">Sin ingredientes cargados.</li>
+        }
+      </ul>
+    </section>
+
+    <section class="pasos">
+      <h2>Paso a paso</h2>
+      @if (comida.pasos && comida.pasos.length > 0) {
+        <ol>
+          @for (paso of comida.pasos; track $index) {
+            <li>{{ paso.texto }}</li>
+          }
+        </ol>
+      } @else {
+        <p class="vacio">
+          Esta comida todavía no tiene pasos.
+          <button class="enlace" type="button" (click)="editar()">
+            Escribirlos
+          </button>
+        </p>
+      }
+    </section>
+  </div>
+} @else {
+  <div class="receta">
+    <p class="vacio">Esa comida no existe.</p>
+    <a class="btn-secondary" routerLink="/meals">Volver a comidas</a>
+  </div>
+}

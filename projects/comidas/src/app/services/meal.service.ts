@@ -9,6 +9,7 @@ import {
   Meal,
   PantryGroup,
   PantryItem,
+  Paso,
   ShoppingItem,
   ShoppingListGroup,
   ShoppingTag,
@@ -82,6 +83,21 @@ export function multiplyQuantity(quantity: string, factor: number): string {
 // un backup (importData) o por bajar de Firestore pueden no traerlo, y el
 // calendario las referencia por id: sin id quedan inutilizables (el slot no se
 // llena y no hay error). Es idempotente: no toca ni regenera ids existentes.
+// Una comida es receta cuando tiene al menos un paso escrito. Un array de
+// pasos en blanco no cuenta: lo deja cualquiera que abrió el editor y no
+// escribió nada.
+export function tieneReceta(meal: Meal): boolean {
+  return !!meal.pasos?.some((paso) => paso.texto.trim() !== '');
+}
+
+// Se hace spread del paso en vez de rearmarlo campo por campo, así los que se
+// sumen después (la foto, en la entrega 4) no se pierden acá en silencio.
+export function limpiarPasos(pasos: Paso[]): Paso[] {
+  return pasos
+    .filter((paso) => paso.texto.trim() !== '')
+    .map((paso) => ({ ...paso, texto: paso.texto.trim() }));
+}
+
 export function ensureMealIds(meals: Meal[], genId: () => string): Meal[] {
   return meals.map((m) => (m.id ? m : { ...m, id: genId() }));
 }

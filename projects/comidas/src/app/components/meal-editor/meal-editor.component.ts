@@ -1,10 +1,4 @@
-import {
-  Component,
-  computed,
-  inject,
-  OnInit,
-  signal,
-} from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 
 import {
   FormArray,
@@ -15,8 +9,8 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { MealService } from '../../services/meal.service';
-import { Meal } from '../../models/meal.model';
+import { limpiarPasos, MealService } from '../../services/meal.service';
+import { Meal, Paso } from '../../models/meal.model';
 import { Tag } from 'componentes';
 
 @Component({
@@ -114,6 +108,7 @@ export class MealEditorComponent implements OnInit {
       includeInShoppingList: [true],
       ingredients: this.fb.array([]),
       tags: this.fb.array([]),
+      pasos: this.fb.array([]),
     });
   }
 
@@ -123,6 +118,10 @@ export class MealEditorComponent implements OnInit {
 
   get tags(): FormArray {
     return this.form.get('tags') as FormArray;
+  }
+
+  get pasos(): FormArray {
+    return this.form.get('pasos') as FormArray;
   }
 
   ngOnInit(): void {
@@ -143,6 +142,7 @@ export class MealEditorComponent implements OnInit {
             this.tags.push(this.fb.control(tag));
           });
         }
+        meal.pasos?.forEach((paso) => this.addPaso(paso));
       } else {
         this.router.navigate(['/meals']);
       }
@@ -177,6 +177,28 @@ export class MealEditorComponent implements OnInit {
     this.tags.removeAt(index);
   }
 
+  // Se hace spread del paso entero y no sólo del texto: si el FormGroup no
+  // tiene el campo, editar la comida lo borra al guardar. Es la misma razón por
+  // la que limpiarPasos hace spread, un piso más abajo.
+  addPaso(paso: Paso = { texto: '' }): void {
+    this.pasos.push(this.fb.group({ ...paso }));
+  }
+
+  removePaso(index: number): void {
+    this.pasos.removeAt(index);
+  }
+
+  // Reordenar importa: un paso a destiempo arruina la receta.
+  moverPaso(index: number, delta: number): void {
+    const destino = index + delta;
+    if (destino < 0 || destino >= this.pasos.length) {
+      return;
+    }
+    const control = this.pasos.at(index);
+    this.pasos.removeAt(index);
+    this.pasos.insert(destino, control);
+  }
+
   save(): void {
     if (this.form.valid) {
       const formValue = this.form.value;
@@ -195,12 +217,17 @@ export class MealEditorComponent implements OnInit {
           unit: String(ing.unit ?? '').trim(),
         }));
 
+      // Los pasos en blanco no se guardan: quedan de abrir el editor y no
+      // escribir nada, y harían pasar por receta a una comida que no lo es.
+      const pasos = limpiarPasos(formValue.pasos as Paso[]);
+
       const mealData: Omit<Meal, 'id'> = {
         name: formValue.name,
         description: formValue.description,
         includeInShoppingList: formValue.includeInShoppingList,
         ingredients: validIngredients,
         tags: formValue.tags,
+        pasos,
       };
 
       if (this.mealId) {
