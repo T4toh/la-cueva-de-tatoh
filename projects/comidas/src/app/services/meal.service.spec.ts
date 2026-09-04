@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ensureMealIds,
+  limpiarPasos,
   multiplyQuantity,
   normalizeQuantityToNumeric,
-  limpiarPasos,
   parseNumericQuantity,
   tieneReceta,
 } from './meal.service';

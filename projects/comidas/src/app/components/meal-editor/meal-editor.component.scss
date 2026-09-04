@@ -4,7 +4,8 @@
   margin: 0 auto;
 }
 
-h1, h2 {
+h1,
+h2 {
   color: var(--fg-secondary);
 }
 
@@ -17,8 +18,9 @@ h1, h2 {
     margin-bottom: 0.5rem;
     color: var(--fg-secondary);
   }
-  
-  input, textarea {
+
+  input,
+  textarea {
     width: 100%;
     box-sizing: border-box;
   }
@@ -28,18 +30,19 @@ h1, h2 {
   flex-direction: row;
   align-items: center;
   gap: 0.5rem;
-  
+
   input {
     width: auto;
     margin: 0;
   }
-  
+
   label {
     margin: 0;
   }
 }
 
-.ingredients-section {
+.ingredients-section,
+.pasos-section {
   margin-bottom: 2rem;
   background: rgba(0, 0, 0, 0.2);
   padding: 1rem;
@@ -50,9 +53,86 @@ h1, h2 {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
-    
-    h2 { margin: 0; font-size: 1.2rem; }
+
+    h2 {
+      margin: 0;
+      font-size: 1.2rem;
+    }
   }
+}
+
+.pasos-ayuda {
+  margin: -0.5rem 0 1rem;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.paso-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+
+  .paso-numero {
+    flex: 0 0 1.75rem;
+    // Alineado con la primera línea del textarea, no con el alto total.
+    padding-top: 0.55rem;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.6;
+  }
+
+  textarea {
+    flex: 1 1 0;
+    box-sizing: border-box;
+    min-width: 0;
+    resize: vertical;
+    font: inherit;
+  }
+
+  .paso-acciones {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .btn-mover {
+    background: rgba(255, 255, 255, 0.1);
+    color: inherit;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0.25rem 0.5rem;
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    &:not(:disabled):hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  }
+
+  .btn-remove {
+    background: #ff5252;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+
+    &:hover {
+      background: #d32f2f;
+    }
+  }
+}
+
+.pasos-section .empty-state {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.6;
 }
 
 .ingredient-row {
@@ -87,7 +167,7 @@ h1, h2 {
     border: none;
     border-radius: 4px;
     padding: 0 0.8rem;
-    
+
     &:hover {
       background: #d32f2f;
     }
@@ -134,12 +214,12 @@ h1, h2 {
   padding: 0.8rem 1.5rem;
   border-radius: 4px;
   font-weight: bold;
-  
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
-  
+
   &:not(:disabled):hover {
     background-color: var(--accent-strong);
   }
@@ -151,7 +231,7 @@ h1, h2 {
   color: var(--accent);
   padding: 0.5rem 1rem;
   border-radius: 4px;
-  
+
   &:hover {
     background-color: rgba(91, 92, 154, 0.1);
   }
@@ -162,7 +242,7 @@ h1, h2 {
   padding: 0.8rem 1.5rem;
   color: #ccc;
   text-decoration: none;
-  
+
   &:hover {
     color: white;
   }
@@ -174,7 +254,7 @@ h1, h2 {
   margin-bottom: 0.5rem;
 
   input {
-      flex: 1;
+    flex: 1;
   }
 }
 
@@ -187,7 +267,7 @@ h1, h2 {
 .tag-item {
   display: flex;
   align-items: center;
-  background: rgba(0,0,0,0.2);
+  background: rgba(0, 0, 0, 0.2);
   border-radius: 16px;
   padding-right: 0.5rem;
   overflow: hidden;
@@ -201,7 +281,7 @@ h1, h2 {
     line-height: 1;
     margin-left: 0.2rem;
     padding: 0 0.2rem;
-    
+
     &:hover {
       color: #ff8a80;
     }
