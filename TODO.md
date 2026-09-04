@@ -36,9 +36,9 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       [`docs/superpowers/specs/2026-09-03-recetario-design.md`](docs/superpowers/specs/2026-09-03-recetario-design.md).
       La receta es un `Meal` con `pasos?` y `foto?`, no una entidad nueva: `Meal`
       ya tiene los ingredientes que alimentan la lista de compras.
-  - [ ] **1. Cantidades.** Exponer `multiplyQuantity`, arreglar `'1/2'` y los
-        factores fraccionarios. Independiente del resto: arregla un bug que la
-        lista de compras ya tiene.
+  - [x] **1. Cantidades.** `multiplyQuantity` exportada desde `meal.service.ts`,
+        con fracciones, números mixtos y factores fraccionarios. Conserva además
+        la unidad escrita a mano, que antes se perdía.
   - [ ] **2. La receta escrita.** `Paso`, `Meal.pasos`, pasos en `meal-editor`,
         ficha `/meals/:id`, indicador en la tarjeta. Sin Storage.
   - [ ] **3. Cocinar.** Selector ×1 ×2 ×3, modo cocina, copiar como markdown.

@@ -19,6 +19,30 @@ import {
 // un backup (importData) o por bajar de Firestore pueden no traerlo, y el
 // calendario las referencia por id: sin id quedan inutilizables (el slot no se
 // llena y no hay error). Es idempotente: no toca ni regenera ids existentes.
+// Las cantidades se escriben a mano y vienen de todas las formas: '2', '1/2',
+// '1 1/2', '2 tazas'. Se multiplica el número del principio y se conserva tal
+// cual lo que venga después, que suele ser la unidad.
+// ponytail: sin coma decimal — '1,5' se lee como 1, igual que antes. Si alguna
+// vez importa, normalizar la coma a punto antes de parsear.
+const CANTIDAD = /^\s*(?:(\d+)\s+)?(\d+(?:\.\d+)?)(?:\s*\/\s*(\d+))?/;
+
+export function multiplyQuantity(quantity: string, factor: number): string {
+  const texto = String(quantity ?? '');
+  const partes = CANTIDAD.exec(texto);
+  if (!partes) {
+    return quantity;
+  }
+
+  const [coincidencia, entero, numerador, denominador] = partes;
+  // parseFloat('1/2') devuelve 1: hay que dividir a mano, no alcanza con leer.
+  const base = denominador
+    ? Number(entero ?? 0) + Number(numerador) / Number(denominador)
+    : Number(numerador);
+
+  const resto = texto.slice(coincidencia.length);
+  return `${parseFloat((base * factor).toFixed(2))}${resto}`;
+}
+
 export function ensureMealIds(meals: Meal[], genId: () => string): Meal[] {
   return meals.map((m) => (m.id ? m : { ...m, id: genId() }));
 }
@@ -241,7 +265,10 @@ export class MealService {
       const docRef = doc(this.firestore, 'users', user.uid);
       await setDoc(
         docRef,
-        this.sanitizeForFirestore({ [key]: data, lastUpdated: this.lastUpdated() }),
+        this.sanitizeForFirestore({
+          [key]: data,
+          lastUpdated: this.lastUpdated(),
+        }),
         { merge: true }
       );
       this.syncStatus.set('synced');
@@ -383,24 +410,27 @@ export class MealService {
     this.updateTimestamp();
     try {
       const docRef = doc(this.firestore, 'users', user.uid);
-      await setDoc(docRef, this.sanitizeForFirestore({
-        meals: this.meals(),
-        schedules: this.schedules(),
-        tags: this.tags(),
-        ingredientTags: this.ingredientTags(),
-        extraItems: this.extraItems(),
-        extraItemsHistory: this.extraItemsHistory(),
-        overrides: this.quantityOverrides(),
-        checkedItems: this.checkedItems(),
-        pantry: this.pantry(),
-        pantryGroups: this.pantryGroups(),
-        familySettings: {
-          isFamilyMode: this.isFamilyMode(),
-          visibleMeals: this.visibleMeals(),
-          familyPortions: this.familyPortions(),
-        },
-        lastUpdated: this.lastUpdated(),
-      }));
+      await setDoc(
+        docRef,
+        this.sanitizeForFirestore({
+          meals: this.meals(),
+          schedules: this.schedules(),
+          tags: this.tags(),
+          ingredientTags: this.ingredientTags(),
+          extraItems: this.extraItems(),
+          extraItemsHistory: this.extraItemsHistory(),
+          overrides: this.quantityOverrides(),
+          checkedItems: this.checkedItems(),
+          pantry: this.pantry(),
+          pantryGroups: this.pantryGroups(),
+          familySettings: {
+            isFamilyMode: this.isFamilyMode(),
+            visibleMeals: this.visibleMeals(),
+            familyPortions: this.familyPortions(),
+          },
+          lastUpdated: this.lastUpdated(),
+        })
+      );
       this.syncStatus.set('synced');
       console.log('[Sync] All data uploaded to Firebase');
     } catch (e) {
@@ -908,8 +938,19 @@ export class MealService {
     this.ingredientTags.update((map) => ({ ...map, [key]: tagId }));
   }
 
-  addExtraItem(name: string, quantity: string, tagId?: string, unit?: string): void {
-    const newItem: ShoppingItem = { name, quantity, unit, tagId, isExtra: true };
+  addExtraItem(
+    name: string,
+    quantity: string,
+    tagId?: string,
+    unit?: string
+  ): void {
+    const newItem: ShoppingItem = {
+      name,
+      quantity,
+      unit,
+      tagId,
+      isExtra: true,
+    };
     const weekKey = this.formatDateKey(this.currentWeekStart());
     this.extraItems.update((items) => ({
       ...items,
@@ -977,18 +1018,6 @@ export class MealService {
     });
   }
 
-  private multiplyQuantity(quantity: string, factor: number): string {
-    if (factor <= 1) {
-      return quantity;
-    }
-    const value = parseFloat(String(quantity ?? ''));
-    if (isNaN(value)) {
-      return quantity;
-    }
-    const result = value * factor;
-    return `${parseFloat(result.toFixed(2))}`;
-  }
-
   readonly shoppingListGrouped = computed(() => {
     const items: ShoppingItem[] = [];
     const currentSchedule = this.schedule();
@@ -1014,10 +1043,7 @@ export class MealService {
           if (meal && meal.includeInShoppingList !== false) {
             meal.ingredients.forEach((ing) => {
               const key = ing.name.toLowerCase().trim();
-              const quantity = this.multiplyQuantity(
-                ing.quantity,
-                dish.portions
-              );
+              const quantity = multiplyQuantity(ing.quantity, dish.portions);
               items.push({
                 ...ing,
                 quantity,
@@ -1173,7 +1199,9 @@ export class MealService {
         const unitsCompatible =
           parsed &&
           parsedAmount &&
-          (parsed.unit === parsedAmount.unit || !parsed.unit || !parsedAmount.unit);
+          (parsed.unit === parsedAmount.unit ||
+            !parsed.unit ||
+            !parsedAmount.unit);
         if (unitsCompatible && parsed && parsedAmount) {
           didSubtract = true;
           const remaining = Math.max(0, parsed.value - parsedAmount.value);
@@ -1223,7 +1251,11 @@ export class MealService {
   }
 
   addPantryGroup(name: string, color?: string): void {
-    const newGroup: PantryGroup = { id: this.generateId(), name, ...(color ? { color } : {}) };
+    const newGroup: PantryGroup = {
+      id: this.generateId(),
+      name,
+      ...(color ? { color } : {}),
+    };
     this.pantryGroups.update((g) => [...g, newGroup]);
   }
 
@@ -1317,7 +1349,10 @@ export class MealService {
       ...meal,
       ingredients: meal.ingredients.map((ing) => {
         if (ing.unit !== undefined) {
-          return { ...ing, quantity: this.normalizeQuantityToNumeric(ing.quantity) };
+          return {
+            ...ing,
+            quantity: this.normalizeQuantityToNumeric(ing.quantity),
+          };
         }
         // Old format: try to split "500 g" → { quantity: "500", unit: "g" }
         const parsed = this.parseNumericQuantity(ing.quantity);
@@ -1358,7 +1393,9 @@ export class MealService {
     if (
       parsedExisting &&
       parsedAdded &&
-      (parsedExisting.unit === parsedAdded.unit || !parsedExisting.unit || !parsedAdded.unit)
+      (parsedExisting.unit === parsedAdded.unit ||
+        !parsedExisting.unit ||
+        !parsedAdded.unit)
     ) {
       const total = parsedExisting.value + parsedAdded.value;
       const unit = parsedExisting.unit || parsedAdded.unit;
@@ -1376,7 +1413,9 @@ export class MealService {
     if (
       parsedNeeded &&
       parsedPantry &&
-      (parsedNeeded.unit === parsedPantry.unit || !parsedNeeded.unit || !parsedPantry.unit)
+      (parsedNeeded.unit === parsedPantry.unit ||
+        !parsedNeeded.unit ||
+        !parsedPantry.unit)
     ) {
       const remaining = parsedNeeded.value - parsedPantry.value;
       if (remaining <= 0) {
@@ -1437,7 +1476,10 @@ export class MealService {
     try {
       const normalized = this.parseMealsInput(jsonContent);
       if (!normalized) {
-        this.dialogService.alert('Error', 'El archivo no contiene comidas válidas.');
+        this.dialogService.alert(
+          'Error',
+          'El archivo no contiene comidas válidas.'
+        );
         return;
       }
       const existing = this.meals();
@@ -1450,7 +1492,10 @@ export class MealService {
       );
     } catch (error) {
       console.error('Error al importar comidas:', error);
-      this.dialogService.alert('Error', 'El archivo no tiene un formato válido.');
+      this.dialogService.alert(
+        'Error',
+        'El archivo no tiene un formato válido.'
+      );
     }
   }
 
@@ -1538,7 +1583,11 @@ export class MealService {
         return { valid: false };
       }
       const len = (v: unknown): number =>
-        Array.isArray(v) ? v.length : v && typeof v === 'object' ? Object.keys(v).length : 0;
+        Array.isArray(v)
+          ? v.length
+          : v && typeof v === 'object'
+            ? Object.keys(v).length
+            : 0;
       return {
         valid: true,
         counts: {
