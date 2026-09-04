@@ -58,8 +58,12 @@ enteran. Marcar el techo con un comentario `ponytail:` en el modelo y anotarlo
 en `TODO.md`.
 
 Se descartó arrancar directamente con la subcolección: paga hoy la complejidad
-de un problema que llega en varios años, y migrar A → C es mover un campo, no
-rehacer el modelo.
+de un problema que llega en varios años, y mudarse el día que llegue es mover un
+campo, no rehacer el modelo.
+
+También se descartó modelar la receta como una colección propia separada del
+`Meal`: escala sin techo, pero vuelve a partir la receta de la comida y obliga a
+sincronizar los ingredientes entre las dos.
 
 ## Fotos
 

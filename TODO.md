@@ -32,7 +32,9 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
   - Datos de relleno, sin inventar casos de uso: alcanza con que se vea que
     existen y cómo se ven.
 
-- [ ] **Recetario.** Sin empezar, en etapa de planificación.
+- [ ] **Recetario.** Diseñado y sin implementar. El spec está en
+      [`docs/superpowers/specs/2026-09-03-recetario-design.md`](docs/superpowers/specs/2026-09-03-recetario-design.md);
+      lo de abajo es el resumen.
   - Superset de las tarjetas de comidas de `comidas`, con todos los campos para
     anotar una receta como corresponde: ingredientes con cantidades, tiempos,
     porciones, notas.
