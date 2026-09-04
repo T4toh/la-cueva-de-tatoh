@@ -361,6 +361,20 @@ export type Tienda = {
   logo: LogoTienda;
 };
 
+// Los perfiles de autor que muestra el navegador de arriba, uno por tienda.
+// Es una lista y no un link suelto para que sumar Google Play y Apple Books
+// cuando existan los listados sea agregar una entrada. Una tienda sin URL no
+// va acá: preferimos que no se dibuje antes que un link muerto.
+export const TIENDAS_AUTOR: Tienda[] = [
+  {
+    nombre: 'Amazon',
+    url:
+      'https://www.amazon.com/s?i=digital-text&rh=p_27%3AIgnacio%2BMart%25C3%25' +
+      'ADn%2BArano&s=relevancerank&text=Ignacio%20Mart%C3%ADn%20Arano',
+    logo: 'amazon',
+  },
+];
+
 export type Libro = {
   // El slug es la URL del libro (/libros/<slug>) y va impresa dentro del EPUB.
   // Una vez publicado no se cambia: rompería los links de las copias vendidas.

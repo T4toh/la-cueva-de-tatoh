@@ -7,16 +7,9 @@
       </a>
 
       <div class="libro-header">
-        <div class="libro-portada">
-          <img fill priority [alt]="'Portada de ' + l.titulo" [ngSrc]="l.imagen" />
-        </div>
-
-        <div class="libro-datos">
-          <h1>{{ l.titulo }}</h1>
-          <p class="libro-serie">{{ l.saga }} #{{ l.numero }}</p>
-
-          <div class="libro-sinopsis">
-            <markdown [data]="l.sinopsis" />
+        <div class="libro-lateral">
+          <div class="libro-portada">
+            <img fill priority [alt]="'Portada de ' + l.titulo" [ngSrc]="l.imagen" />
           </div>
 
           @if (l.tiendas.length > 0) {
@@ -29,11 +22,20 @@
                   [href]="tienda.url"
                 >
                   <app-logo-tienda [size]="20" [tienda]="tienda.logo" />
-                  <span>Comprar en {{ tienda.nombre }}</span>
+                  <span>{{ tienda.nombre }}</span>
                 </a>
               }
             </div>
           }
+        </div>
+
+        <div class="libro-datos">
+          <h1>{{ l.titulo }}</h1>
+          <p class="libro-serie">{{ l.saga }} #{{ l.numero }}</p>
+
+          <div class="libro-sinopsis">
+            <markdown [data]="l.sinopsis" />
+          </div>
         </div>
       </div>
     </article>

@@ -95,7 +95,13 @@
   }
 }
 
-.amazon-link {
+.tiendas-autor {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tienda-autor-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
