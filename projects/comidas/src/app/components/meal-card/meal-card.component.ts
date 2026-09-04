@@ -1,10 +1,7 @@
-import {
-  Component,
-  input,
-  output,
-} from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 
 import { Meal } from '../../models/meal.model';
+import { tieneReceta } from '../../services/meal.service';
 import { Icon, Panel, Tag } from 'componentes';
 
 @Component({
@@ -22,7 +19,10 @@ export class MealCardComponent {
   readonly delete = output<string>();
   readonly edit = output<string>();
   readonly duplicate = output<string>();
+  readonly verReceta = output<string>();
   readonly cardClick = output<void>();
+
+  readonly esReceta = computed(() => tieneReceta(this.meal()));
 
   onDelete(event: Event): void {
     event.stopPropagation();
@@ -37,6 +37,11 @@ export class MealCardComponent {
   onDuplicate(event: Event): void {
     event.stopPropagation();
     this.duplicate.emit(this.meal().id);
+  }
+
+  onVerReceta(event: Event): void {
+    event.stopPropagation();
+    this.verReceta.emit(this.meal().id);
   }
 
   onCardClick(): void {

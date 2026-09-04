@@ -16,7 +16,10 @@
       <div class="meal-info">
         <ul class="ingredient-list">
           @for (ing of meal().ingredients; track ing.name) {
-            <li>{{ ing.name }} ({{ ing.quantity }}{{ ing.unit ? ' ' + ing.unit : '' }})</li>
+            <li>
+              {{ ing.name }} ({{ ing.quantity
+              }}{{ ing.unit ? ' ' + ing.unit : '' }})
+            </li>
           } @empty {
             <li>Sin ingredientes</li>
           }
@@ -34,8 +37,18 @@
         }
       </div>
 
-      @if (showEdit() || showDelete() || showDuplicate()) {
+      @if (esReceta() || showEdit() || showDelete() || showDuplicate()) {
         <div class="card-footer">
+          @if (esReceta()) {
+            <button
+              class="btn-icon"
+              title="Ver receta"
+              type="button"
+              (click)="onVerReceta($event)"
+            >
+              <lib-icon name="book-open" [size]="16" />
+            </button>
+          }
           @if (showDuplicate()) {
             <button
               class="btn-icon"

@@ -27,6 +27,10 @@ export class MealListComponent {
     }
   }
 
+  verReceta(id: string): void {
+    this.router.navigate(['/meals', id]);
+  }
+
   editMeal(id: string): void {
     this.router.navigate(['/meals/edit', id]);
   }
