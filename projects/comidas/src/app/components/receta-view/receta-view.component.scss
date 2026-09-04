@@ -106,3 +106,104 @@ section {
   padding: 0;
   text-decoration: underline;
 }
+
+.header-acciones {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.seccion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+
+  h2 {
+    margin: 0;
+  }
+}
+
+.porciones {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.btn-porcion {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 4px;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.25rem 0.6rem;
+
+  &.activo {
+    background: var(--color-primario, #4caf50);
+    color: #fff;
+  }
+
+  &:not(.activo):hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.btn-cocinar {
+  background: var(--color-primario, #4caf50);
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.35rem 0.9rem;
+}
+
+// Modo cocina: el teléfono está apoyado y lejos, y las manos ocupadas. Un solo
+// paso, texto grande y botones que no requieran apuntar.
+.cocina {
+  display: flex;
+  flex-direction: column;
+  min-height: 70vh;
+  max-width: 45rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.cocina-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .progreso {
+    opacity: 0.7;
+  }
+}
+
+.cocina-paso {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  font-size: 1.6rem;
+  line-height: 1.5;
+  margin: 1.5rem 0;
+}
+
+.cocina-acciones {
+  display: flex;
+  gap: 0.75rem;
+
+  button {
+    flex: 1 1 0;
+    font-size: 1.1rem;
+    padding: 1rem;
+  }
+}
+
+.btn-hecho {
+  background: var(--color-primario, #4caf50);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.1rem;
+}

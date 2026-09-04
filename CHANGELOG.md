@@ -4,6 +4,18 @@ Todos los cambios notables a este proyecto se documentan en este archivo. El for
 
 ## [Unreleased]
 
+### Added
+
+#### Comidas
+- **Multiplicador de porciones en la ficha de receta.** ×1, ×2 y ×3 reescalan los ingredientes al mostrarlos; no se guarda nada, las cantidades siguen almacenadas por porción igual que para la lista de compras.
+- **Modo cocina.** Un paso por pantalla con texto grande y botones anchos, pensado para el teléfono apoyado y las manos ocupadas. El último paso sale del modo en vez de dejar una pantalla sin salida.
+- **Copiar la receta como markdown.** Deja título, ingredientes y pasos en el portapapeles, listos para pegar como post del blog: el `#` del título es el que `post-view` usa como encabezado.
+
+### Fixed
+
+#### Comidas
+- En ×1 la ficha mostraba `0.5` donde la receta decía `1/2`. Multiplicar por uno ahora devuelve lo escrito sin normalizar: reescribirle el texto a quien cargó la receta no es tarea del visor.
+
 ### Fixed
 
 #### Comidas

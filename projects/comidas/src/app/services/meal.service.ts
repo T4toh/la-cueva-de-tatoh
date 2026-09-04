@@ -72,6 +72,12 @@ export function normalizeQuantityToNumeric(q: string): string {
 }
 
 export function multiplyQuantity(quantity: string, factor: number): string {
+  // En ×1 se devuelve lo escrito sin tocar: normalizarlo mostraría '0.5' donde
+  // la receta dice '1/2', que es reescribirle el texto al que la escribió.
+  if (factor === 1) {
+    return quantity;
+  }
+
   const parsed = parseQuantity(quantity);
   if (!parsed) {
     return quantity;
@@ -96,6 +102,36 @@ export function limpiarPasos(pasos: Paso[]): Paso[] {
   return pasos
     .filter((paso) => paso.texto.trim() !== '')
     .map((paso) => ({ ...paso, texto: paso.texto.trim() }));
+}
+
+// Para pegar la receta en un post del blog. El `#` del título es lo que
+// post-view usa como encabezado, así que el markdown sale listo para guardar
+// como .md sin retocar nada.
+export function recetaComoMarkdown(meal: Meal): string {
+  const lineas: string[] = [`# ${meal.name}`];
+
+  if (meal.description?.trim()) {
+    lineas.push('', meal.description.trim());
+  }
+
+  if (meal.ingredients.length > 0) {
+    lineas.push('', '## Ingredientes', '');
+    meal.ingredients.forEach((ing) => {
+      const cantidad = [ing.quantity, ing.unit]
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+      lineas.push(cantidad ? `- ${cantidad} — ${ing.name}` : `- ${ing.name}`);
+    });
+  }
+
+  const pasos = meal.pasos ?? [];
+  if (pasos.length > 0) {
+    lineas.push('', '## Preparación', '');
+    pasos.forEach((paso, i) => lineas.push(`${i + 1}. ${paso.texto}`));
+  }
+
+  return `${lineas.join('\n')}\n`;
 }
 
 export function ensureMealIds(meals: Meal[], genId: () => string): Meal[] {

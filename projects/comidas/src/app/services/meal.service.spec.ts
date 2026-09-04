@@ -6,6 +6,7 @@ import {
   multiplyQuantity,
   normalizeQuantityToNumeric,
   parseNumericQuantity,
+  recetaComoMarkdown,
   tieneReceta,
 } from './meal.service';
 import { Meal, Paso } from '../models/meal.model';
@@ -69,6 +70,12 @@ describe('multiplyQuantity', () => {
 
   it('no toca la cantidad cuando el factor es 1', () => {
     expect(multiplyQuantity('2 tazas', 1)).toBe('2 tazas');
+  });
+
+  it('en ×1 respeta la fracción tal como se escribió', () => {
+    // La receta dice "1/2 taza": mostrarle "0.5 taza" es reescribirle el texto.
+    expect(multiplyQuantity('1/2', 1)).toBe('1/2');
+    expect(multiplyQuantity('1 1/2 tazas', 1)).toBe('1 1/2 tazas');
   });
 });
 
@@ -138,5 +145,50 @@ describe('limpiarPasos', () => {
     const pasos = [{ texto: ' Hervir ', foto: 'u/1.jpg' }] as unknown as Paso[];
 
     expect(limpiarPasos(pasos)).toEqual([{ texto: 'Hervir', foto: 'u/1.jpg' }]);
+  });
+});
+
+describe('recetaComoMarkdown', () => {
+  const receta = (extra: Partial<Meal> = {}): Meal =>
+    ({
+      id: 'x',
+      name: 'Salsa de tomate',
+      ingredients: [
+        { name: 'Tomate perita', quantity: '0.5', unit: 'kg' },
+        { name: 'Sal', quantity: 'a gusto' },
+      ],
+      pasos: [{ texto: 'Picar la cebolla' }, { texto: 'Dorar 5 minutos' }],
+      ...extra,
+    }) as Meal;
+
+  it('arma título, ingredientes y pasos numerados', () => {
+    expect(recetaComoMarkdown(receta())).toBe(
+      [
+        '# Salsa de tomate',
+        '',
+        '## Ingredientes',
+        '',
+        '- 0.5 kg — Tomate perita',
+        '- a gusto — Sal',
+        '',
+        '## Preparación',
+        '',
+        '1. Picar la cebolla',
+        '2. Dorar 5 minutos',
+        '',
+      ].join('\n')
+    );
+  });
+
+  it('mete la descripción cuando hay', () => {
+    const md = recetaComoMarkdown(receta({ description: 'La de siempre.' }));
+
+    expect(md).toContain('# Salsa de tomate\n\nLa de siempre.\n');
+  });
+
+  it('omite las secciones vacías en vez de dejar el encabezado solo', () => {
+    const md = recetaComoMarkdown(receta({ ingredients: [], pasos: [] }));
+
+    expect(md).toBe('# Salsa de tomate\n');
   });
 });

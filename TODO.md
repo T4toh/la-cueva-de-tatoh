@@ -44,8 +44,9 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
   - [x] **2. La receta escrita.** `Paso`, `Meal.pasos`, pasos en `meal-editor`
         con reordenar, ficha `/meals/:id` de sólo lectura, y el botón de ver
         receta en la tarjeta haciendo de indicador.
-  - [ ] **3. Cocinar.** Selector ×1 ×2 ×3, modo cocina, copiar como markdown.
-        Necesita la 1 y la 2.
+  - [x] **3. Cocinar.** Selector ×1 ×2 ×3 sobre la ficha, modo cocina de un
+        paso por pantalla, y botón de copiar la receta como markdown para
+        pegarla en un post.
   - [ ] **4. Fotos.** Storage, compresión con `canvas`, reglas del bucket,
         borrado en cascada. Bloqueada por el alta de Blaze (necesita tarjeta), y
         es la única que puede generar factura.
