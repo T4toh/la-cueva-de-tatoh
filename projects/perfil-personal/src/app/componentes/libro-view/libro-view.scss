@@ -34,6 +34,12 @@
   align-items: start;
 }
 
+.libro-lateral {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 .libro-portada {
   // NgOptimizedImage con `fill` necesita un contenedor posicionado y con alto.
   position: relative;
@@ -82,16 +88,19 @@
 
 .libro-tiendas {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 2rem;
+  flex-direction: column;
+  gap: 0.6rem;
 }
 
 .tienda-boton {
-  display: inline-flex;
+  // Grid y no flex: la columna fija del logo es lo que deja los tres íconos
+  // alineados entre botones. Centrar el conjunto no sirve, porque el largo
+  // del nombre de cada tienda corre el ícono.
+  display: grid;
+  grid-template-columns: 20px 1fr;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.7rem 1.4rem;
+  padding: 0.7rem 1.1rem;
   border: 1px solid var(--fg-primary);
   border-radius: 2px;
   text-decoration: none;
@@ -103,6 +112,12 @@
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
+
+  // El logo queda pegado a la izquierda y el nombre se centra en lo que sobra:
+  // así los tres íconos caen en la misma vertical aunque el texto cambie.
+  span {
+    text-align: center;
+  }
 
   &:hover,
   &:focus-visible {
@@ -121,8 +136,15 @@
     gap: 1.75rem;
   }
 
-  .libro-portada {
-    max-width: 220px;
+  // En una sola columna la tapa y los botones se centran: pegados a la
+  // izquierda quedaban desbalanceados contra el texto, que sí usa todo el ancho.
+  .libro-lateral {
+    // El `width: 100%` no sobra: los márgenes auto le sacan el stretch al grid
+    // item, y sin ancho propio la columna se encoge al del botón y arrastra la
+    // tapa con ella.
+    width: 100%;
+    max-width: 240px;
+    margin-inline: auto;
   }
 }
 

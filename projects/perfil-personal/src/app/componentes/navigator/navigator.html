@@ -49,13 +49,17 @@
     </li>
   </ul>
 
-  <a
-    class="amazon-link"
-    rel="noopener noreferrer"
-    target="_blank"
-    title="Ver mis libros en Amazon"
-    [href]="AMAZON_URL"
-  >
-    <app-logo-tienda tienda="amazon" [size]="18" />
-  </a>
+  <div class="tiendas-autor">
+    @for (tienda of tiendas; track tienda.url) {
+      <a
+        class="tienda-autor-link"
+        rel="noopener noreferrer"
+        target="_blank"
+        [href]="tienda.url"
+        [title]="'Ver mis libros en ' + tienda.nombre"
+      >
+        <app-logo-tienda [size]="18" [tienda]="tienda.logo" />
+      </a>
+    }
+  </div>
 </nav>

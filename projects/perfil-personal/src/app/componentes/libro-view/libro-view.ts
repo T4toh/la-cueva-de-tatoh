@@ -35,7 +35,7 @@ export class LibroView implements OnInit {
 
   private publicarMeta(libro: Libro): void {
     this.seo.publicar({
-      titulo: `${libro.titulo} — ${libro.subtitulo}`,
+      titulo: `${libro.titulo} — ${libro.saga} #${libro.numero}`,
       descripcion: primerParrafo(libro.sinopsis),
       ruta: `/libros/${libro.slug}`,
       imagen: libro.imagen,

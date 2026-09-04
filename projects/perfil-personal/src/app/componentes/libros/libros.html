@@ -1,9 +1,14 @@
 <div class="libros-container">
-  @if (libros().length === 0) {
+  @if (sagas.length === 0) {
     <div class="empty-state">
       <p>No hay libros para mostrar todavía.</p>
     </div>
   } @else {
-    <app-galeria-libros [libros]="libros()" />
+    @for (saga of sagas; track saga.nombre) {
+      <section class="saga">
+        <h2 class="saga-titulo">{{ saga.nombre }}</h2>
+        <app-galeria-libros [libros]="saga.libros" />
+      </section>
+    }
   }
 </div>
