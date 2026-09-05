@@ -483,13 +483,18 @@ export const LIBROS: Libro[] = [
       'And for someone who has spent his entire life knowing so little of the',
       'world beyond Earth, there is a lot left to discover.',
     ].join('\n'),
-    // Faltan Google Play y Apple Books: los dos tienen su `@case` en
-    // logo-tienda, así que darlos de alta es agregar la entrada con su URL.
+    // Falta Google Play: ya tiene su `@case` en logo-tienda, así que darlo de
+    // alta es agregar la entrada con su URL.
     tiendas: [
       {
         nombre: 'Amazon',
         url: 'https://www.amazon.com/dp/B0HHR3XX88',
         logo: 'amazon',
+      },
+      {
+        nombre: 'Apple Books',
+        url: 'https://books.apple.com/us/book/id6808846235',
+        logo: 'apple-books',
       },
     ],
   },

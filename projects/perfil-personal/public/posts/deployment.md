@@ -15,6 +15,7 @@
       <p>And for someone who has spent his entire life knowing so little of the world beyond Earth, there is a lot left to discover.</p>
     </blockquote>
     <a href="https://www.amazon.com/dp/B0HHR3XX88" target="_blank" rel="noopener noreferrer"><img class="logo-tienda" src="/img/logos/amazon.svg" alt="" width="20" height="20"><span>Leer en Amazon</span></a>
+    <a href="https://books.apple.com/us/book/id6808846235" target="_blank" rel="noopener noreferrer"><img class="logo-tienda" src="/img/logos/apple-books.svg" alt="" width="20" height="20"><span>Leer en Apple Books</span></a>
   </div>
 </div>
 
@@ -22,8 +23,8 @@ Meridian sigue en pie, esto no la reemplaza: es otra saga, otro mundo y otro
 idioma. Si el inglés molesta, la sinopsis traducida está en la
 [ficha del libro](/libros/deployment).
 
-Por ahora está en Amazon. Google Play Books y Apple Books van en camino;
-cuando estén, los sumo a la ficha.
+Está en Amazon y en Apple Books. Google Play Books va en camino; cuando esté,
+lo sumo a la ficha.
 
 ---
 
