@@ -134,6 +134,13 @@ describe('aRecetaPublica', () => {
     expect(receta).not.toHaveProperty('pasos');
     expect(receta).not.toHaveProperty('alias');
   });
+
+  it('trata un alias de sólo espacios como ausente', () => {
+    const receta = aRecetaPublica(meal, '   ', 'uid-1', 'k7m2xq9p', 10);
+
+    expect(receta).not.toHaveProperty('alias');
+    expect(receta.ruta).toBe('/r/milanesa-napolitana/k7m2xq9p');
+  });
 });
 
 describe('aMeal', () => {

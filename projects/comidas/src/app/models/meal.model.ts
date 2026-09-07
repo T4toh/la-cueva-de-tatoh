@@ -19,6 +19,8 @@ export type Meal = {
   tags?: string[];
   includeInShoppingList?: boolean;
   pasos?: Paso[];
+  // Si está, la receta tiene un documento en `recetasPublicas` y un link vivo.
+  publicId?: string;
 };
 
 export type MealType =

@@ -2,6 +2,7 @@ import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { doc, Firestore, getDoc, setDoc } from '@angular/fire/firestore';
 import { AuthService } from './auth.service';
 import { DialogService } from './dialog.service';
+import { RecetaPublicaService } from './receta-publica.service';
 import {
   DaySchedule,
   Dish,
@@ -145,6 +146,10 @@ export class MealService {
   private firestore = inject(Firestore);
   private authService = inject(AuthService);
   private dialogService = inject(DialogService);
+  private readonly recetasPublicas = inject(RecetaPublicaService);
+  // Lo último que se escribió por cada receta publicada. Sin esto, cada
+  // tecleo en cualquier comida reescribiría todas las publicadas.
+  private readonly espejo = new Map<string, string>();
 
   private readonly MEALS_KEY = 'comidas_meals';
   private readonly SCHEDULES_KEY = 'comidas_schedules';
@@ -263,6 +268,7 @@ export class MealService {
       localStorage.setItem(this.MEALS_KEY, JSON.stringify(data));
       if (!this.isSyncing) {
         this.saveToFirestore('meals', data);
+        this.sincronizarPublicadas(data);
       }
     });
     effect(() => {
@@ -375,6 +381,29 @@ export class MealService {
     } catch (e) {
       console.error(`Error saving ${key} to firestore:`, e);
       this.syncStatus.set('error');
+    }
+  }
+
+  private sincronizarPublicadas(meals: Meal[]): void {
+    const alias = this.alias();
+    for (const meal of meals) {
+      if (!meal.publicId) {
+        continue;
+      }
+      const huella = JSON.stringify([
+        meal.name,
+        meal.description,
+        meal.ingredients,
+        meal.pasos,
+        alias,
+      ]);
+      if (this.espejo.get(meal.publicId) === huella) {
+        continue;
+      }
+      this.espejo.set(meal.publicId, huella);
+      this.recetasPublicas.sincronizar(meal, alias).catch((e) => {
+        console.error('Error sincronizando la receta pública:', e);
+      });
     }
   }
 
@@ -793,6 +822,13 @@ export class MealService {
   }
 
   deleteMeal(id: string): void {
+    const publicId = this.meals().find((m) => m.id === id)?.publicId;
+    if (publicId) {
+      this.espejo.delete(publicId);
+      this.recetasPublicas.despublicar(publicId).catch((e) => {
+        console.error('Error despublicando la receta borrada:', e);
+      });
+    }
     this.meals.update((current) => current.filter((m) => m.id !== id));
     this.schedules.update((schedules) => {
       const newSchedules: Record<string, DaySchedule[]> = {};

@@ -90,10 +90,13 @@ export function aRecetaPublica(
   id: string,
   ahora: number
 ): RecetaPublica {
+  // Un alias de sólo espacios es truthy pero no muestra nada: se trata igual
+  // que si no hubiera alias, tanto en el documento como en la ruta.
+  const aliasUsable = alias?.trim() ? alias : undefined;
   const receta: RecetaPublica = {
     nombre: meal.name,
     ingredientes: meal.ingredients ?? [],
-    ruta: rutaPublica(meal.name, alias, id),
+    ruta: rutaPublica(meal.name, aliasUsable, id),
     actualizada: ahora,
     ownerUid,
   };
@@ -105,8 +108,8 @@ export function aRecetaPublica(
   if (meal.pasos?.length) {
     receta.pasos = meal.pasos;
   }
-  if (alias) {
-    receta.alias = alias;
+  if (aliasUsable) {
+    receta.alias = aliasUsable;
   }
   return receta;
 }
