@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 
 import { Meal } from '../../models/meal.model';
 import { RecetaPublicaService } from '../../services/receta-publica.service';
-import { aMeal } from '../../services/receta-publica';
+import { aMeal, rutaPublica } from '../../services/receta-publica';
 import { RecetaDetalleComponent } from '../receta-detalle/receta-detalle.component';
 
 @Component({
@@ -30,7 +30,12 @@ export class RecetaPublicaViewComponent implements OnInit {
         this.meal.set(aMeal(receta, id));
         this.autor.set(receta.alias ?? '');
         // El link viejo sigue entrando; la barra se corrige a la ruta al día.
-        history.replaceState(null, '', receta.ruta);
+        // La ruta se rearma acá y no se lee del campo `ruta`: las reglas de
+        // Firestore validan quién escribe, no qué escribe, así que ese campo es
+        // texto libre de cualquier usuario autenticado y podría hacer que la
+        // barra dijera `/settings` o la receta de otro. `rutaPublica` pasa todo
+        // por `slug()`, que deja `[a-z0-9-]` y nada más.
+        history.replaceState(null, '', rutaPublica(receta.nombre, receta.alias, id));
       }
     } catch (err) {
       // Sin conexión, Firestore caído, permission-denied: no importa la

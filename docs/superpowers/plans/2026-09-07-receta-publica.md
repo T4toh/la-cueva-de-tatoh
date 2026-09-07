@@ -987,110 +987,42 @@ git commit -m "feat(comidas): página pública de una receta compartida"
 
 Crear `projects/comidas/worker/index.js`. JavaScript plano a propósito: así lo bundlea la build de Cloudflare sin agregar `wrangler` ni los tipos al repo.
 
-```js
-// Corre sólo en /r/* (ver `run_worker_first` en wrangler.jsonc). Lee la receta
-// pública por REST y reescribe los meta del index.html, porque el crawler de
-// WhatsApp no corre JS y comidas no se prerenderiza.
-const PROYECTO = 'la-cueva-comidas';
-const DOCUMENTOS =
-  `https://firestore.googleapis.com/v1/projects/${PROYECTO}` +
-  '/databases/(default)/documents/recetasPublicas';
-const IMAGEN = 'https://comidas.tatoh.ar/icon.png';
-const ID_VALIDO = /^[a-z0-9]{8}$/;
+La implementación real está en
+[`projects/comidas/worker/index.js`](../../../projects/comidas/worker/index.js).
+**Ese archivo es la referencia, no este plan.** El borrador que había acá tenía
+cinco cosas mal, encontradas en review, y se deja anotado en vez de reemplazado
+para que nadie las reintroduzca copiando el plan:
 
-const CAMPOS = {
-  'og:title': 'titulo',
-  'og:description': 'descripcion',
-  'og:image': 'imagen',
-  'og:url': 'url',
-  'twitter:title': 'titulo',
-  'twitter:description': 'descripcion',
-  'twitter:image': 'imagen',
-};
+1. **`og:url` salía de `ruta`, un campo escrito por el usuario.** Las reglas de
+   Firestore validan `ownerUid` —quién escribe— pero no qué escribe, así que
+   todo campo del documento público es texto libre de cualquier usuario
+   autenticado. El borrador hacía `url: new URL(receta.ruta, url.origin)`, con
+   lo que el dueño de una receta podía declarar como canónica la URL de otro
+   dominio en una página servida desde `comidas.tatoh.ar`. Va la URL que el
+   crawler acaba de pedir, que es la única que el Worker sabe cierta. El Worker
+   ya no lee `ruta`, y el cliente tampoco: la ficha rearma la ruta con
+   `rutaPublica`, que pasa todo por `slug()`.
+2. **Sin `try`/`catch`.** Un `ruta` de `"https://"` pelado tiraba `TypeError` en
+   el constructor de `URL`, y un Firestore inalcanzable o un JSON roto tiraban
+   igual: el Worker devolvía 500 y `/r/*` quedaba muerto en vez de degradar a
+   la SPA con los meta por defecto.
+3. **`env.ASSETS.fetch(new URL('/index.html', …))` no trae el shell.** Con el
+   `html_handling` por defecto (`auto-trailing-slash`) el binding contesta
+   `/index.html` con un **307 a `/`**, que `new Response(body, transformado)`
+   propaga tal cual: nada que reescribir y el crawler termina en `/`, que no
+   matchea `run_worker_first`. Va `/`.
+4. **Pasarle el `request` original al binding** reenvía el `If-None-Match` del
+   cliente, y un **304 sin cuerpo** rompe el rewrite igual de silenciosamente.
+   El fetch del shell va sin request.
+5. **Sin guarda de prefijo.** El handler corría su lógica para cualquier path;
+   ahora sale por `env.ASSETS.fetch(request)` si el pathname no empieza con
+   `/r/`.
 
-const texto = (campo) => (campo && campo.stringValue) || '';
-const largo = (campo) =>
-  (campo && campo.arrayValue && campo.arrayValue.values || []).length;
-
-async function leerReceta(id) {
-  const respuesta = await fetch(`${DOCUMENTOS}/${id}`);
-  if (!respuesta.ok) {
-    return null;
-  }
-  const { fields } = await respuesta.json();
-  if (!fields) {
-    return null;
-  }
-  return {
-    nombre: texto(fields.nombre) || 'Receta',
-    descripcion: texto(fields.descripcion),
-    alias: texto(fields.alias),
-    ruta: texto(fields.ruta) || '/',
-    ingredientes: largo(fields.ingredientes),
-    pasos: largo(fields.pasos),
-  };
-}
-
-function describir(receta) {
-  if (receta.descripcion) {
-    return receta.descripcion;
-  }
-  const partes = [`${receta.ingredientes} ingredientes`];
-  if (receta.pasos) {
-    partes.push(`${receta.pasos} pasos`);
-  }
-  const cuerpo = partes.join(', ');
-  return receta.alias ? `Receta de ${receta.alias} · ${cuerpo}` : cuerpo;
-}
-
-export default {
-  async fetch(request, env) {
-    const url = new URL(request.url);
-    const segmentos = url.pathname.split('/').filter(Boolean);
-    const id = segmentos[segmentos.length - 1] || '';
-
-    const receta = ID_VALIDO.test(id) ? await leerReceta(id) : null;
-    if (!receta) {
-      // Sin receta, la SPA se encarga de decir que no existe.
-      return env.ASSETS.fetch(request);
-    }
-
-    const meta = {
-      titulo: receta.nombre,
-      descripcion: describir(receta),
-      imagen: IMAGEN,
-      url: new URL(receta.ruta, url.origin).toString(),
-    };
-
-    const shell = await env.ASSETS.fetch(
-      new Request(new URL('/index.html', url.origin), request)
-    );
-
-    const transformado = new HTMLRewriter()
-      .on('title', {
-        element(el) {
-          el.setInnerContent(meta.titulo);
-        },
-      })
-      .on('meta', {
-        element(el) {
-          const clave = el.getAttribute('property') || el.getAttribute('name');
-          const campo = CAMPOS[clave];
-          if (campo) {
-            // setAttribute escapa. Nunca concatenar: el nombre de la receta lo
-            // escribe un usuario y termina adentro de un atributo HTML.
-            el.setAttribute('content', meta[campo]);
-          }
-        },
-      })
-      .transform(shell);
-
-    const respuesta = new Response(transformado.body, transformado);
-    respuesta.headers.set('cache-control', 'public, s-maxage=60');
-    return respuesta;
-  },
-};
-```
+Además, las entradas `twitter:*` de `CAMPOS` no van: `twitter:card` es un
+default estático del `index.html` y las demás no existen en el head, así que el
+rewriter no tenía qué reescribir. Y el `ETag` del shell se borra de la
+respuesta: es el del HTML sin reescribir, y dejarlo hace que todas las recetas
+compartan validador con cuerpos distintos.
 
 - [ ] **Step 3: Cablear el Worker en `wrangler.jsonc`**
 

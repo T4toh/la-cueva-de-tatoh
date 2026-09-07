@@ -80,9 +80,13 @@ export default {
         url: url.origin + url.pathname,
       };
 
+      // `/` y no `/index.html`: con el `html_handling` por defecto
+      // (`auto-trailing-slash`) el binding contesta `/index.html` con un 307 a
+      // `/`, y ese redirect se propagaría tal cual —sin body que reescribir— y
+      // el crawler terminaría leyendo los meta genéricos de la home.
       // Sin el request como segundo argumento: si no, reenvía el
       // If-None-Match del cliente y un 304 sin cuerpo rompe el rewrite.
-      const shell = await env.ASSETS.fetch(new URL('/index.html', url.origin));
+      const shell = await env.ASSETS.fetch(new URL('/', url.origin));
 
       const transformado = new HTMLRewriter()
         .on('title', {
@@ -105,6 +109,9 @@ export default {
 
       const respuesta = new Response(transformado.body, transformado);
       respuesta.headers.set('cache-control', 'public, s-maxage=60');
+      // El ETag es el del shell sin reescribir: dejarlo haría que todas las
+      // recetas compartieran validador con cuerpos distintos.
+      respuesta.headers.delete('etag');
       return respuesta;
     } catch {
       // Firestore inalcanzable, JSON roto, lo que sea: la SPA sabe arrancar

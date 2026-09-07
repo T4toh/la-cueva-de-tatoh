@@ -128,9 +128,10 @@ salen todas las propiedades que queremos:
   con el mismo nombre tampoco, porque ninguno de los dos desambigua nada. No hay
   colección de alias, no hay sufijos `-2`.
 - **Renombrar no rompe links.** Cambiás el nombre de la receta o tu nick, el
-  documento reescribe su `ruta`, y el link viejo sigue entrando igual. Al
-  abrirlo, la ficha corrige la barra de direcciones a la ruta al día con
-  `replaceState`, sin recargar.
+  link viejo sigue entrando igual. Al abrirlo, la ficha corrige la barra de
+  direcciones a la ruta al día con `replaceState`, sin recargar — rearmándola
+  con `rutaPublica` a partir del nombre y el alias, no leyéndola del campo
+  `ruta`.
 - **No es enumerable.** Nadie llega a una receta tipeando nombres.
 
 El id es el **último segmento**, siempre. No hay que partir por guiones ni
@@ -157,16 +158,18 @@ Los genera la app, no los escribe el usuario: minúsculas, sin tildes, sin
 signos, palabras unidas por guiones, corte a cinco palabras. Nombre sin letras
 usables —todo emoji— cae a `receta`.
 
-La ruta canónica se arma al publicar y se guarda entera en el campo `ruta`, que
-usa la ficha para corregir la barra de direcciones.
-
-**El Worker no lee ese campo**, y la razón importa: las reglas de Firestore
+La ruta canónica se arma al publicar y se guarda entera en el campo `ruta`.
+**No lo lee ningún consumidor** —ni el Worker ni la ficha—, y la razón
+importa: las reglas de Firestore
 validan `ownerUid` —quién escribe— pero no qué escribe, así que todo campo del
 documento público es texto libre de cualquier usuario autenticado. Poner `ruta`
 en el `og:url` dejaba que el dueño de una receta hiciera que una página servida
 desde `comidas.tatoh.ar` declarara como canónica la URL de otro dominio, y un
 `"https://"` pelado tiraba un `TypeError` sin atrapar. El `og:url` sale de la
-URL que el crawler acaba de pedir, que es la única que el Worker sabe cierta.
+URL que el crawler acaba de pedir, que es la única que el Worker sabe cierta, y
+la ficha rearma la ruta con `rutaPublica`, que pasa todo por `slug()` y no deja
+más que `[a-z0-9-]`: si no, cualquier usuario autenticado podía hacer que la
+barra de direcciones de un desconocido dijera `/settings` o la receta de otro.
 
 El resto de los campos que sí lee —nombre, descripción, alias— es igual de
 ajeno, pero entra por `setAttribute` y por `setInnerContent`, que escapan. Lo
@@ -237,7 +240,8 @@ Flujo, unas 40 líneas:
    tocar: la SPA muestra que la receta no existe o dejó de estar compartida.
 4. Si contesta OK, pide `/index.html` al binding de assets y lo pasa por
    `HTMLRewriter`, seteando `content` en `<title>`, `og:title`,
-   `og:description`, `og:image`, `og:url` y `twitter:card`.
+   `og:description`, `og:image` y `og:url`. `twitter:card` no: es un default
+   estático del `index.html` y el Worker no lo toca.
 5. `Cache-Control: public, s-maxage=60`.
 
 Dos detalles que no son adorno:
@@ -322,10 +326,12 @@ En Vitest, que es lo que ya corre en `comidas`:
 
 - Generación del slug: tildes, emoji, corte a cinco palabras.
 - Armado de la ruta canónica, con y sin alias.
-- Generación del id: largo, alfabeto, y que el choque regenere.
-- Lectura del id desde la ruta: último segmento, con y sin nick.
+- Generación del id: largo, alfabeto, y el descarte de los bytes sesgados. El
+  reintento por choque (`RecetaPublicaService.idLibre`) queda **sin test**:
+  necesita Firestore.
 - Mapeo del documento público a `Meal`.
-- La lista blanca: que `tags` e `includeInShoppingList` no se publiquen.
+- La lista blanca: que `tags` e `includeInShoppingList` no se publiquen, y que
+  la proyección de ingredientes y pasos no deje pasar un campo nuevo.
 
 El Worker queda **sin test automático**: no hay runner y agregarlo significa
 dependencia nueva. Se verifica a mano con `wrangler dev` y un `curl` con

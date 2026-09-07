@@ -836,13 +836,27 @@ export class MealService {
     );
   }
 
-  deleteMeal(id: string): void {
+  // La cascada va esperada y adelante del borrado local a propósito:
+  // `publicId` es el único puntero al documento público que existe en algún
+  // lado, y `allow list: if false` hace que un documento huérfano no se pueda
+  // ni enumerar —sólo se limpia desde la consola de Firebase—. Si despublicar
+  // falla, la comida se queda donde está: el puntero sobrevive para reintentar
+  // y el usuario se entera, en vez de creer que revocó un link que sigue vivo.
+  async deleteMeal(id: string): Promise<void> {
     const publicId = this.meals().find((m) => m.id === id)?.publicId;
     if (publicId) {
-      this.espejo.delete(publicId);
-      this.recetasPublicas.despublicar(publicId).catch((e) => {
+      try {
+        await this.recetasPublicas.despublicar(publicId);
+      } catch (e) {
         console.error('Error despublicando la receta borrada:', e);
-      });
+        this.dialogService.alert(
+          'No se pudo eliminar',
+          'La receta sigue compartida, así que no se borró. ' +
+            (e instanceof Error ? e.message : 'Probá de nuevo en un momento.')
+        );
+        return;
+      }
+      this.espejo.delete(publicId);
     }
     this.meals.update((current) => current.filter((m) => m.id !== id));
     this.schedules.update((schedules) => {

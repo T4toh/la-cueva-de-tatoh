@@ -4,11 +4,10 @@ import {
   aMeal,
   aRecetaPublica,
   generarIdPublico,
-  idDesdeRuta,
   rutaPublica,
   slug,
 } from './receta-publica';
-import { Meal } from '../models/meal.model';
+import { Meal, Paso } from '../models/meal.model';
 
 describe('slug', () => {
   it('saca tildes y signos y une con guiones', () => {
@@ -43,20 +42,6 @@ describe('rutaPublica', () => {
     expect(rutaPublica('🍕', 'Tatoh', 'k7m2xq9p')).toBe(
       '/r/tatoh/receta/k7m2xq9p'
     );
-  });
-});
-
-describe('idDesdeRuta', () => {
-  it('lee el último segmento con nick', () => {
-    expect(idDesdeRuta('/r/tatoh/milanesa-napolitana/k7m2xq9p')).toBe('k7m2xq9p');
-  });
-
-  it('lee el último segmento sin nick', () => {
-    expect(idDesdeRuta('/r/milanesa-napolitana/k7m2xq9p')).toBe('k7m2xq9p');
-  });
-
-  it('ignora la barra final', () => {
-    expect(idDesdeRuta('/r/receta/k7m2xq9p/')).toBe('k7m2xq9p');
   });
 });
 
@@ -146,6 +131,21 @@ describe('aRecetaPublica', () => {
     const receta = aRecetaPublica(meal, '  Tatoh  ', 'uid-1', 'k7m2xq9p', 10);
 
     expect(receta.alias).toBe('Tatoh');
+  });
+
+  it('proyecta cada paso y no filtra campos que Paso gane mañana', () => {
+    const conNota: Meal = {
+      id: 'm',
+      name: 'Arroz',
+      ingredients: [],
+      // Un campo futuro (fase 4: fotos y notas por paso) simulado acá: si
+      // `pasos` se copiara por referencia, viajaría al documento público.
+      pasos: [{ texto: 'Hervir', nota: 'privada' } as Paso],
+    };
+
+    const receta = aRecetaPublica(conNota, undefined, 'uid-1', 'k7m2xq9p', 10);
+
+    expect(receta.pasos).toEqual([{ texto: 'Hervir' }]);
   });
 
   it('proyecta cada ingrediente y no filtra campos privados como checked', () => {

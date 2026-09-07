@@ -23,7 +23,7 @@ export class MealListComponent {
       '¿Estás seguro de eliminar esta comida?'
     );
     if (confirmed) {
-      this.mealService.deleteMeal(id);
+      await this.mealService.deleteMeal(id);
     }
   }
 

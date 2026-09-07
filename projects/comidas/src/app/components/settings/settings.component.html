@@ -62,7 +62,7 @@
                 placeholder="Sin nombre"
                 type="text"
                 [value]="mealService.alias()"
-                (input)="mealService.alias.set($any($event.target).value)"
+                (change)="mealService.alias.set($any($event.target).value)"
               />
               <small>Aparece en el link y en la ficha. Vacío, no se muestra autor.</small>
             </label>

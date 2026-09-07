@@ -78,11 +78,6 @@ export function rutaPublica(
   return nick ? `/r/${nick}/${receta}/${id}` : `/r/${receta}/${id}`;
 }
 
-export function idDesdeRuta(ruta: string): string {
-  const segmentos = ruta.split('/').filter(Boolean);
-  return segmentos[segmentos.length - 1] ?? '';
-}
-
 export function aRecetaPublica(
   meal: Meal,
   alias: string | undefined,
@@ -118,7 +113,10 @@ export function aRecetaPublica(
     receta.descripcion = meal.description;
   }
   if (meal.pasos?.length) {
-    receta.pasos = meal.pasos;
+    // Proyectado paso por paso por la misma razón que los ingredientes: hoy
+    // `Paso` es sólo `texto`, pero la fase 4 le suma fotos y una nota privada
+    // por paso se publicaría sola si se copiara el objeto entero.
+    receta.pasos = meal.pasos.map((paso) => ({ texto: paso.texto }));
   }
   if (aliasUsable) {
     receta.alias = aliasUsable;
