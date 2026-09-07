@@ -4,6 +4,7 @@ import {
   ElementRef,
   inject,
   OnInit,
+  signal,
   ViewChild,
 } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
@@ -35,13 +36,22 @@ export class AppComponent implements OnInit, AfterViewInit {
   private router = inject(Router);
   isAndroid = Capacitor.getPlatform() === 'android';
 
-  @ViewChild('mainNav', { static: true }) mainNav!: ElementRef<HTMLElement>;
+  // La ruta pública (/r/...) esconde el <nav> entero en el template, así que
+  // deja de ser estático: la consulta tiene que ser { static: false } o
+  // ngAfterViewInit lee undefined para siempre, también en las pantallas
+  // normales donde la nav sí existe.
+  @ViewChild('mainNav', { static: false }) mainNav?: ElementRef<HTMLElement>;
+
+  readonly esPublica = signal(false);
 
   ngOnInit(): void {
     this.updateService.checkForUpdates();
     this.router.events
       .pipe(filter((e) => e instanceof NavigationEnd))
-      .subscribe(() => this.scrollActiveNavItemIntoView());
+      .subscribe(() => {
+        this.esPublica.set(this.router.url.startsWith('/r/'));
+        this.scrollActiveNavItemIntoView();
+      });
   }
 
   ngAfterViewInit(): void {
