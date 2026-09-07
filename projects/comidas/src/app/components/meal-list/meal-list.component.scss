@@ -49,72 +49,23 @@
   }
 }
 
+// Multicolumna en vez de grid: cada tarjeta mide lo que su contenido y la de
+// abajo arranca ahí mismo, así no queda el hueco que dejaba una fila de grid
+// (que mide siempre lo que la tarjeta más alta). El precio es que el orden
+// pasa a ser por columna: se lee para abajo y recién ahí salta a la de al lado.
 .grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  // Todas las filas con la misma altura (la del contenido más alto) para que
-  // las tarjetas queden uniformes en todo el grid.
-  grid-auto-rows: 1fr;
-  gap: 1rem;
-  align-items: stretch;
-}
+  columns: 200px;
+  column-gap: 1rem;
 
-.meal-card {
-  cursor: pointer;
-  transition: transform 0.2s;
-
-  &:hover {
-    transform: translateY(-2px);
-  }
-}
-
-.meal-content {
-  padding-top: 0.5rem;
-
-  p {
-    margin: 0.5rem 0;
-    font-size: 0.9rem;
-  }
-
-  .ingredient-list {
-    list-style: none;
-    padding: 0;
-    margin: 0.5rem 0;
-    font-size: 0.85rem;
-    max-height: 80px;
-    overflow-y: auto;
-
-    li {
-      padding: 2px 5px;
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 3px;
-      margin-bottom: 3px;
-    }
-  }
-
-  .description {
-    font-style: italic;
-    color: #ccc;
-  }
-
-  .btn-delete {
-    background-color: transparent;
-    border: 1px solid #ff5252;
-    color: #ff5252;
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    margin-top: 0.5rem;
-
-    &:hover {
-      background-color: rgba(255, 82, 82, 0.1);
-    }
+  app-meal-card {
+    display: block;
+    break-inside: avoid;
+    margin-bottom: 1rem;
   }
 }
 
 .empty-state {
   text-align: center;
-  grid-column: 1 / -1;
   color: var(--fg-secondary);
   padding: 2rem;
 }
