@@ -4,6 +4,10 @@ Todos los cambios notables a este proyecto se documentan en este archivo. El for
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-09-07
+
+El catálogo de la librería en `/componentes`, con una ficha por widget, y el service worker del blog que nunca había servido una navegación.
+
 ### Added
 
 #### Perfil Personal
