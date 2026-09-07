@@ -161,6 +161,8 @@ export class MealService {
   private readonly MIGRATION_NUMERIC_QTY_KEY = 'comidas_migration_numeric_qty';
   private readonly MIGRATION_DISH_FORMAT_KEY = 'comidas_migration_dish_format';
   private readonly MIGRATION_SPLIT_UNIT_KEY = 'comidas_migration_split_unit';
+  private readonly ALIAS_KEY = 'comidas_alias';
+  readonly alias = signal<string>(localStorage.getItem(this.ALIAS_KEY) ?? '');
   private scheduleMigrationOccurred = false;
   readonly migrationOccurred = signal<boolean>(false);
 
@@ -337,6 +339,13 @@ export class MealService {
         this.saveToFirestore('familySettings', settings);
       }
     });
+    effect(() => {
+      const data = this.alias();
+      localStorage.setItem(this.ALIAS_KEY, data);
+      if (!this.isSyncing) {
+        this.saveToFirestore('alias', data);
+      }
+    });
     this.migrateQuantitiesToNumeric();
     this.migrateQuantitiesToSplitUnit();
   }
@@ -468,6 +477,7 @@ export class MealService {
           }
           this.familyPortions.set(fs.familyPortions);
         }
+        this.alias.set(data['alias'] ?? '');
         // Update local timestamp to match remote
         this.lastUpdated.set(remoteTimestamp);
         localStorage.setItem(this.LAST_UPDATED_KEY, remoteTimestamp.toString());
@@ -519,6 +529,7 @@ export class MealService {
             visibleMeals: this.visibleMeals(),
             familyPortions: this.familyPortions(),
           },
+          alias: this.alias(),
           lastUpdated: this.lastUpdated(),
         })
       );
