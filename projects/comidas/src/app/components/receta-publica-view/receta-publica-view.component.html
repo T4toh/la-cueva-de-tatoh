@@ -7,6 +7,13 @@
     }
   </app-receta-detalle>
   <a class="marca" href="/">Hecho con Comidas</a>
+} @else if (error()) {
+  <div class="estado">
+    <p>No se pudo cargar la receta. Revisá tu conexión.</p>
+    <button class="btn-secondary" type="button" (click)="reintentar()">
+      Reintentar
+    </button>
+  </div>
 } @else {
   <div class="estado">
     <p>Esta receta no existe o dejó de estar compartida.</p>
