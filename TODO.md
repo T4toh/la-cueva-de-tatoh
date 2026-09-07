@@ -64,16 +64,24 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
   - [x] **3. Cocinar.** Selector ×1 ×2 ×3 sobre la ficha, modo cocina de un
         paso por pantalla, y botón de copiar la receta como markdown para
         pegarla en un post.
-  - [ ] **4. Fotos.** Storage, compresión con `canvas`, reglas del bucket,
-        borrado en cascada. Bloqueada por el alta de Blaze (necesita tarjeta), y
-        es la única que puede generar factura.
+  - [ ] **4. Fotos.** Storage, compresión con `canvas`, borrado en cascada.
+        Ya no va por Firebase Storage: desde febrero de 2026 exige Blaze, y el
+        costo de las imágenes está en servirlas, no en guardarlas. El camino
+        elegido es **Cloudflare R2** —egress $0, free tier mensual— con lo que
+        Firestore y Auth se quedan en Spark. La investigación, los precios y el
+        checklist de alta están en
+        [`docs/hosting-imagenes.md`](docs/hosting-imagenes.md).
 
-- [ ] **Receta pública por link.** Compartir una receta sin que el otro tenga
-      cuenta. Falta definir la forma de la URL (¿`/receta/<uid>/<idReceta>`?
-      ¿un token propio, para no exponer el uid?) y la regla de Firestore que lo
-      habilite: hoy `firestore.rules` sólo deja leer al dueño de `users/{uid}`,
-      así que cualquier lectura anónima necesita una regla nueva y explícita.
-      Se apoya en la ficha `/meals/:id` que ya existe.
+- [ ] **Receta pública por link.** Diseñado y sin implementar. El spec está en
+      [`docs/superpowers/specs/2026-09-07-receta-publica-design.md`](docs/superpowers/specs/2026-09-07-receta-publica-design.md).
+      Publicar copia la receta a una colección nueva `recetasPublicas/{id}` de
+      lectura pública —el documento `users/{uid}` guarda todo junto, así que no
+      hay regla que abra una receta sin abrir el resto—, y el link es
+      `/r/<nick>/<receta>/<id>`, con el id de ocho caracteres haciendo de llave y
+      los otros dos segmentos decorativos: renombrar no rompe links repartidos.
+      Los `og:` los inyecta un Worker con `HTMLRewriter` que corre sólo en
+      `/r/*`: comidas ya se despliega como Worker, lo que no tenía era script.
+      La ficha reusa `receta-detalle` sin tocarla.
 
 - [ ] **Configurador del landing.** Hoy el orden de las secciones está escrito
       a mano en `projects/perfil-personal/src/app/componentes/landing/landing.html`.
