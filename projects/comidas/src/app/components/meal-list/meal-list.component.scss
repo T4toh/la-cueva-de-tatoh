@@ -65,6 +65,9 @@
 }
 
 .empty-state {
+  // Vive dentro de `.grid`, que es multicolumna: sin esto la frase se parte en
+  // pedazos repartidos entre las columnas.
+  column-span: all;
   text-align: center;
   color: var(--fg-secondary);
   padding: 2rem;

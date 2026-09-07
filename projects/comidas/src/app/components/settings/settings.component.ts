@@ -9,7 +9,7 @@ import { Capacitor } from '@capacitor/core';
 import { MealService } from '../../services/meal.service';
 import { AuthService } from '../../services/auth.service';
 import { DialogService } from '../../services/dialog.service';
-import { Icon, Panel, TemaToggle } from 'componentes';
+import { Icon, Panel } from 'componentes';
 import {
   ImportMode,
   ImportPreviewComponent,
@@ -18,7 +18,7 @@ import {
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [Panel, AsyncPipe, Icon, ImportPreviewComponent, TemaToggle],
+  imports: [Panel, AsyncPipe, Icon, ImportPreviewComponent],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
 })

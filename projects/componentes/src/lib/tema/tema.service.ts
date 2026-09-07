@@ -1,7 +1,22 @@
-import { effect, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+import {
+  computed,
+  effect,
+  inject,
+  Injectable,
+  PLATFORM_ID,
+  signal,
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
 export type Tema = 'sistema' | 'claro' | 'oscuro';
+
+export type IconoTema = 'monitor' | 'sun' | 'moon';
+
+const PRESENTACION: Record<Tema, { icono: IconoTema; etiqueta: string }> = {
+  sistema: { icono: 'monitor', etiqueta: 'Tema: el del sistema' },
+  claro: { icono: 'sun', etiqueta: 'Tema: claro' },
+  oscuro: { icono: 'moon', etiqueta: 'Tema: oscuro' },
+};
 
 /** El orden en el que cicla el toggle. */
 export const TEMAS: readonly Tema[] = ['sistema', 'claro', 'oscuro'];
@@ -25,6 +40,9 @@ export class TemaService {
   private readonly esBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   readonly tema = signal<Tema>(this.leer());
+
+  readonly icono = computed<IconoTema>(() => PRESENTACION[this.tema()].icono);
+  readonly etiqueta = computed<string>(() => PRESENTACION[this.tema()].etiqueta);
 
   constructor() {
     effect((): void => {

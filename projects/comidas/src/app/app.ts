@@ -31,7 +31,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   // toggle: es el que aplica la elección guardada y el que pinta el
   // theme-color. En comidas el toggle vive sólo en /settings, así que sin esto
   // el servicio no corría hasta entrar ahí.
-  private readonly tema = inject(TemaService);
+  readonly tema = inject(TemaService);
   private router = inject(Router);
   isAndroid = Capacitor.getPlatform() === 'android';
 

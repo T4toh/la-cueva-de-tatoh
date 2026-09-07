@@ -26,6 +26,5 @@ export * from './lib/footer/footer';
 export * from './lib/icon/icon';
 // Tema
 export * from './lib/tema/tema.service';
-export * from './lib/tema/tema-toggle';
 // Version
 export * from './lib/version';

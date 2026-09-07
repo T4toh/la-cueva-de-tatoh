@@ -101,6 +101,37 @@
   gap: 0.5rem;
 }
 
+// Misma caja que los logos de tienda, con los que comparte la fila.
+.tema-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  box-sizing: border-box;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: transparent;
+  color: var(--fg-secondary);
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+
+  &:hover {
+    border-color: var(--border-strong);
+    color: var(--fg-primary);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  &::after {
+    display: none;
+  }
+}
+
 .tienda-autor-link {
   display: inline-flex;
   align-items: center;

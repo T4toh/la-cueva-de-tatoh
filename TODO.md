@@ -24,9 +24,10 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
 - [x] **Modo claro**, en las dos apps. Los tokens dejaron de estar duplicados:
       viven en `projects/componentes/src/styles/_tema.scss` y los dos
       `styles.scss` hacen `@use 'tema'` vía el `includePaths` de `angular.json`.
-      Tres estados —sistema / claro / oscuro— en `TemaService`, con
-      `lib-tema-toggle` en el navigator de perfil-personal y en `/settings` de
-      comidas. Un script inline en los dos `index.html` aplica la elección antes
+      Tres estados —sistema / claro / oscuro— en `TemaService`; el botón lo
+      dibuja cada app con el idioma de su nav (última tab en comidas, fila de
+      logos en perfil-personal). Un script inline en los dos `index.html`
+      aplica la elección antes
       del primer paint. De paso se pasaron a tokens los ~90 colores que estaban
       escritos a mano en los componentes: los `rgba(255,255,255,…)` se invertían
       mal sobre papel. Lo de `@media print` sigue en blanco y negro.

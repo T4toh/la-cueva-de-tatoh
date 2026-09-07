@@ -43,6 +43,7 @@
   --fg-secondary: #4a4b52;
   --fg-muted: #77756e;
   --fg-on-accent: #ffffff;
+  --fg-on-accent-strong: #ffffff;
 
   /* Borders */
   --border-subtle: rgba(26, 27, 32, 0.1);
@@ -91,6 +92,9 @@
   --fg-secondary: #c4c2bb;
   --fg-muted: #8a887f;
   --fg-on-accent: #14151a;
+  // Sobre `--accent-strong` (#6f6fbf) el texto casi negro de `--fg-on-accent`
+  // no se lee: ese violeta es de tono medio. Va texto claro en los dos temas.
+  --fg-on-accent-strong: #ecebe7;
 
   /* Borders */
   --border-subtle: rgba(236, 235, 231, 0.08);

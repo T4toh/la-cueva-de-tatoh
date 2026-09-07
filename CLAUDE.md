@@ -131,15 +131,30 @@ especificidad): sin `data-tema` en el `<html>` manda `prefers-color-scheme`;
 `data-tema="claro"` / `"oscuro"` es la elección explícita y gana.
 
 `TemaService` (exportado desde `componentes`) es el dueño del atributo y de la
-clave `tema` de `localStorage`. Está inyectado en el `App` de las dos apps a
-propósito: si sólo lo inyectara el toggle, en comidas no correría hasta entrar
-a `/settings`. La misma clave la lee un script inline en los dos `index.html`,
-antes del primer paint — sin él, la elección explícita parpadea mientras
-arranca Angular. Si cambia la clave, cambia en los dos lados.
+clave `tema` de `localStorage`, y expone `icono()` / `etiqueta()` con la
+presentación de cada estado. Está inyectado en el `App` de las dos apps a
+propósito: si sólo lo inyectara el botón del toggle, en comidas no correría
+hasta llegar a esa pantalla. La misma clave la lee un script inline en los dos
+`index.html`, antes del primer paint — sin él, la elección explícita parpadea
+mientras arranca Angular. Si cambia la clave, cambia en los dos lados.
+
+El botón lo dibuja cada app, no la librería: en comidas es la última tab de
+`.main-nav`, en perfil-personal va en la fila de logos del navigator. Un
+componente propio en `componentes` no servía — sus estilos están encapsulados,
+así que no podía heredar el layout del nav que lo contiene (en comidas las tabs
+pasan a icono-sobre-texto abajo de 600px). Lo compartido es el servicio.
 
 El `theme-color` de comidas lo escribe el servicio leyendo el `--bg-surface` ya
 resuelto. No se puede resolver con dos `<meta>` y `media`: el transform del
 `index.html` colapsa los duplicados por `name` y descarta el `media`.
+
+Sobre un relleno sólido va `--fg-on-accent`, y sobre `--accent-strong` va
+`--fg-on-accent-strong` — son distintos: en oscuro el primero es casi negro
+(el accent es claro) y el segundo casi blanco (el accent-strong es de tono
+medio). Poner `--fg-primary` sobre cualquiera de los dos funciona en oscuro por
+casualidad y es ilegible en claro; era el bug de "Descargar QR", "Descargar
+APK" y "Leer en Amazon". Sobre un `*-muted` —que es un tinte translúcido sobre
+la superficie— sí va `--fg-primary`.
 
 Colores nuevos: usar los tokens, nunca un hex ni un `rgba(255,255,255,…)`
 suelto — un tinte blanco sobre papel no se ve. Hay dos familias de superficie:

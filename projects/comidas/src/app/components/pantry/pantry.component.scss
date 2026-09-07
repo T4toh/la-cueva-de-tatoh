@@ -70,7 +70,7 @@
 .btn-primary {
   background: var(--accent-strong);
   border: 1px solid var(--accent-strong);
-  color: var(--fg-primary);
+  color: var(--fg-on-accent-strong);
 
   &:hover {
     background: var(--accent);
