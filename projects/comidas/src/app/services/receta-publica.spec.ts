@@ -141,6 +141,26 @@ describe('aRecetaPublica', () => {
     expect(receta).not.toHaveProperty('alias');
     expect(receta.ruta).toBe('/r/milanesa-napolitana/k7m2xq9p');
   });
+
+  it('guarda el alias trimeado, no con los espacios de sobra', () => {
+    const receta = aRecetaPublica(meal, '  Tatoh  ', 'uid-1', 'k7m2xq9p', 10);
+
+    expect(receta.alias).toBe('Tatoh');
+  });
+
+  it('proyecta cada ingrediente y no filtra campos privados como checked', () => {
+    const conTilde: Meal = {
+      id: 'm',
+      name: 'Arroz',
+      ingredients: [{ name: 'Arroz', quantity: '1', unit: 'kg', checked: true }],
+    };
+
+    const receta = aRecetaPublica(conTilde, undefined, 'uid-1', 'k7m2xq9p', 10);
+
+    expect(receta.ingredientes).toEqual([
+      { name: 'Arroz', quantity: '1', unit: 'kg' },
+    ]);
+  });
 });
 
 describe('aMeal', () => {

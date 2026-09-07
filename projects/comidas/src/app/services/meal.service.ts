@@ -400,8 +400,10 @@ export class MealService {
       if (this.espejo.get(meal.publicId) === huella) {
         continue;
       }
-      this.espejo.set(meal.publicId, huella);
+      const publicId = meal.publicId;
+      this.espejo.set(publicId, huella);
       this.recetasPublicas.sincronizar(meal, alias).catch((e) => {
+        this.espejo.delete(publicId);
         console.error('Error sincronizando la receta pública:', e);
       });
     }

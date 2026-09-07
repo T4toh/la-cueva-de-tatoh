@@ -91,11 +91,23 @@ export function aRecetaPublica(
   ahora: number
 ): RecetaPublica {
   // Un alias de sólo espacios es truthy pero no muestra nada: se trata igual
-  // que si no hubiera alias, tanto en el documento como en la ruta.
-  const aliasUsable = alias?.trim() ? alias : undefined;
+  // que si no hubiera alias, tanto en el documento como en la ruta. Se guarda
+  // ya trimeado: nada pide conservar los espacios de sobra en el documento.
+  const aliasUsable = alias?.trim() || undefined;
+  // Se proyecta ingrediente por ingrediente en vez de copiar el objeto
+  // entero: `Ingredient` tiene `checked`, el tilde de la lista de compras, y
+  // ese estado privado no debe viajar con la receta pública. Lo mismo vale
+  // para cualquier campo que gane mañana.
+  const ingredientes = (meal.ingredients ?? []).map((ing) => {
+    const proyectado: Ingredient = { name: ing.name, quantity: ing.quantity };
+    if (ing.unit) {
+      proyectado.unit = ing.unit;
+    }
+    return proyectado;
+  });
   const receta: RecetaPublica = {
     nombre: meal.name,
-    ingredientes: meal.ingredients ?? [],
+    ingredientes,
     ruta: rutaPublica(meal.name, aliasUsable, id),
     actualizada: ahora,
     ownerUid,
