@@ -32,16 +32,22 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       escritos a mano en los componentes: los `rgba(255,255,255,…)` se invertían
       mal sobre papel. Lo de `@media print` sigue en blanco y negro.
 
-## En curso / pendiente
+- [x] **Catálogo de componentes**, en `/componentes` con una ficha
+      prerenderizada por widget (`/componentes/<slug>`). Cada ficha trae la
+      demo viva, la tabla de inputs/outputs y el snippet con botón de copiar.
+      Los datos están a mano en `catalogo/widgets.ts` —el `ponytail:` de ahí
+      nombra la salida— y las 11 demos son un `@switch` en el template de
+      `catalogo-view`, sin un componente por widget.
+      Tres cosas que salieron de hacerlo: `ICON_NAMES` ahora es un const del
+      que se deriva `IconName`, así la grilla de iconos recorre la lista sin
+      copiarla; `Red` se exporta; y `lib-panel` dejó de pintarse de blanco en
+      modo oscuro —devolvía un `'#fff'` inline que le ganaba al token, y por eso
+      comidas tenía que pasarle `[colorFondo]="'var(--bg-surface)'"` a mano—.
+      `lib-generador-qr` es el único que no se instancia en su ficha: linkea a
+      `/utilidades`, porque `qr-code-styling` es CommonJS y con dos rutas lazy
+      usándolo el bundler lo subía al bundle inicial.
 
-- [ ] **Catálogo de componentes**, al estilo del de Angular Material: una
-      entrada por widget con la demo viva y el snippet de uso. Va dentro de
-      `perfil-personal`, en su ruta propia (`/componentes`), no como post: el
-      markdown de `ngx-markdown` no instancia componentes de Angular, así que
-      un post sólo podría mostrar capturas.
-  - Los 11 widgets que ya publica `public-api.ts`.
-  - Datos de relleno, sin inventar casos de uso: alcanza con que se vea que
-    existen y cómo se ven.
+## En curso / pendiente
 
 - [ ] **Recetario.** Diseñado y sin implementar. El spec está en
       [`docs/superpowers/specs/2026-09-03-recetario-design.md`](docs/superpowers/specs/2026-09-03-recetario-design.md).
@@ -87,4 +93,5 @@ techo y el camino de salida.
 | `projects/comidas/src/app/services/update.service.ts:19` | `mismoCodigo` compara sólo los subrecursos cargados: un cambio que toque únicamente el `index.html` (un meta, el title) pasa como "sin cambios". Salida: hashear también `/index.html`. |
 | `projects/perfil-personal/src/app/componentes/galeria-libros/galeria-libros.scss:30` | El landing y `/libros` comparten el carrusel. Con más libros, la página propia va a querer grilla vertical. Salida: separar las dos presentaciones. |
 | `projects/perfil-personal/src/app/app.ts:98` | El scroll restaurado usa el alto que la ruta tenía al salir. Volver a un post largo antes de que baje el markdown deja el scroll corto. |
+| `projects/perfil-personal/src/app/componentes/catalogo/widgets.ts:26` | La tabla de inputs de cada widget está escrita a mano, así que un `input()` nuevo en la librería no aparece en el catálogo hasta que alguien lo agregue. Salida: generarla parseando los `input<>()` en un script de build. |
 | `projects/comidas/src/app/components/meal-card/meal-card.component.scss:66` | La lista de ingredientes de la tarjeta corta a las 16rem y de ahí scrollea, para que una receta de veinte ingredientes no haga una tarjeta interminable. Salida: mostrar los primeros N con un "ver todos". |

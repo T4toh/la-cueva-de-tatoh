@@ -8,9 +8,20 @@ Todos los cambios notables a este proyecto se documentan en este archivo. El for
 
 #### Perfil Personal
 
+- **Catálogo de componentes** en `/componentes`, con una ficha prerenderizada por widget (`/componentes/<slug>`): la demo viva, la tabla de inputs y outputs, y el snippet con botón de copiar. Va en su ruta y no como post porque el markdown de `ngx-markdown` no instancia componentes de Angular, así que un post sólo podría mostrar capturas. Entra al nav entre *Libros* y *Comidas*, y al final del landing. Las once demos son un `@switch` en el template de `catalogo-view`, no un componente por widget; los datos están escritos a mano en `catalogo/widgets.ts`, con el `ponytail:` que nombra el techo. El snippet va en un `<pre>` con los tokens del tema y sin Prism: su tema es oscuro fijo y quedaba ilegible en modo claro.
+- La ficha de `lib-generador-qr` es la única que no instancia el widget: linkea a `/utilidades`, que ya es su demo viva. `qr-code-styling` es CommonJS, y con dos rutas lazy usándolo el bundler lo subía al bundle inicial: 25 kB para todo el que entra al sitio.
 - `pnpm check:sw`, que verifica el manifest del service worker de cada app buildeada: que el `index` del manifest esté en el `hashTable` —o sea, que algún `assetGroup` lo cachee— y que cada archivo del `hashTable` esté en el build con el hash que dice el manifest. Un solo hash que no coincida hace fallar la instalación entera, y hasta ahora nada lo miraba.
 
+#### Componentes
+
+- **`ICON_NAMES`**, la lista de nombres de `lib-icon` como const, con `IconName` derivado de ella: el catálogo necesita recorrer los nombres en runtime y una segunda lista escrita a mano se desincronizaría con la primera.
+- El tipo `Red` de `lib-redes` se exporta. Estaba declarado sin `export`, así que afuera no se podía tipar la lista que el componente recibe.
+
 ### Fixed
+
+#### Componentes
+
+- **`lib-panel` se pintaba de blanco en modo oscuro**, con el texto casi blanco encima. Sin `colorFondo` el componente devolvía un `'#fff'` hardcodeado, y ese `style` inline le ganaba al `var(--bg-surface)` de su propio `.scss`. Por eso comidas venía pasándole `[colorFondo]="'var(--bg-surface)'"` a mano en cada panel: era el workaround, no la forma de usarlo. Ahora sin color propio no se escribe el estilo inline y manda el token. Los llamadores que sí pasan un color quedan igual.
 
 #### Perfil Personal
 

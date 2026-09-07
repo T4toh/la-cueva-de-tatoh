@@ -134,10 +134,14 @@ export class Panel {
     return color;
   }
 
-  readonly backgroundColor = computed(() => {
+  readonly backgroundColor = computed<string | null>(() => {
     const fondo = this.colorFondo();
+    // Sin color propio no se escribe el style inline: el que gana es el
+    // var(--bg-surface) del .scss, que sigue al tema. Devolver un '#fff' acá
+    // pintaba el panel de blanco en modo oscuro y obligaba a cada llamador a
+    // pasarle el token a mano.
     if (!fondo) {
-      return '#fff';
+      return null;
     }
 
     // Sombreao tiene prioridad sobre transparente

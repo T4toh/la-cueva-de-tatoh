@@ -1,0 +1,161 @@
+<div class="ficha-container">
+  @if (widget(); as w) {
+    <a class="back-link" routerLink="/componentes">
+      <lib-icon name="arrow-right" [size]="14" />
+      <span>Volver al catálogo</span>
+    </a>
+
+    <header class="ficha-cabecera">
+      <h1>{{ w.nombre }}</h1>
+      <code class="ficha-selector">{{ w.selector }}</code>
+      <p class="ficha-desc">{{ w.descripcion }}</p>
+    </header>
+
+    <section class="bloque">
+      <h2 class="bloque-titulo">Ejemplo</h2>
+      <div class="demo">
+        @switch (w.slug) {
+          @case ('avatar') {
+            <lib-avatar imagenUrl="LSK-A.jpg" nombre="Ignacio Martín Arano" />
+          }
+          @case ('boton') {
+            <lib-boton texto="Guardar" />
+            <lib-boton estilo="outline" texto="Cancelar" />
+            <lib-boton estilo="text" texto="Ver más" />
+            <lib-boton texto="Guardando" [loading]="true" />
+            <lib-boton
+              tamaño="pequeño"
+              texto="No disponible"
+              [deshabilitado]="true"
+            />
+          }
+          @case ('dialogo') {
+            <lib-boton texto="Abrir el diálogo" [onClick]="abrirDialogo" />
+            <lib-dialogo
+              mensaje="Se van a borrar los ingredientes cargados."
+              titulo="¿Borrar la receta?"
+              [acciones]="acciones"
+              [(visible)]="dialogoVisible"
+            />
+          }
+          @case ('footer') {
+            <lib-footer />
+          }
+          @case ('generador-qr') {
+            <!-- Este es el único que no se instancia acá: qr-code-styling es
+            CommonJS, y con dos rutas lazy usándolo el bundler lo sube al
+            bundle inicial (+25 kB para todo el que entra al sitio). La demo
+            viva ya es /utilidades. -->
+            <a class="demo-enlace" routerLink="/utilidades">
+              <lib-icon name="wrench" [size]="16" />
+              <span>Ver la demo viva en Utilidades</span>
+              <lib-icon name="arrow-right" [size]="14" />
+            </a>
+          }
+          @case ('icon') {
+            <div class="iconos">
+              @for (nombre of iconos; track nombre) {
+                <span class="icono-celda">
+                  <lib-icon [name]="nombre" [size]="20" />
+                  <code>{{ nombre }}</code>
+                </span>
+              }
+            </div>
+          }
+          @case ('libro') {
+            <lib-libro
+              imagen="/img/portadas/la-caballera-esmeralda.jpg"
+              subtitulo="Milky Way #1"
+              titulo="La caballera esmeralda"
+            />
+          }
+          @case ('panel') {
+            <lib-panel texto="Los cambios se guardan solos." />
+            <lib-panel texto="Detalles" [colapsable]="true">
+              <p>Lo que va adentro entra por ng-content.</p>
+            </lib-panel>
+          }
+          @case ('redes') {
+            <lib-redes [redes]="redes" />
+          }
+          @case ('skill-bar') {
+            <lib-skill-bar color="#5b5bab" skill="Angular" [nivel]="90" />
+            <lib-skill-bar color="#4a7a58" skill="Node" [nivel]="70" />
+            <lib-skill-bar color="#8a6a20" skill="Rust" [nivel]="35" />
+          }
+          @case ('tag') {
+            <lib-tag texto="angular" />
+            <lib-tag icono="🚀" texto="deploy" />
+          }
+        }
+      </div>
+    </section>
+
+    <section class="bloque">
+      <div class="bloque-cabecera">
+        <h2 class="bloque-titulo">Cómo usarlo</h2>
+        <button class="copiar" type="button" (click)="copiar(w.snippet)">
+          <lib-icon [name]="copiado() ? 'check' : 'copy'" [size]="14" />
+          <span>{{ copiado() ? 'Copiado' : 'Copiar' }}</span>
+        </button>
+      </div>
+      <pre class="snippet"><code>{{ w.snippet }}</code></pre>
+    </section>
+
+    <section class="bloque">
+      <h2 class="bloque-titulo">Inputs</h2>
+      @if (w.inputs.length === 0) {
+        <p class="sin-api">No recibe inputs: se configura desde su propia UI.</p>
+      } @else {
+        <div class="tabla-scroll">
+          <table class="api">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Por defecto</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (entrada of w.inputs; track entrada.nombre) {
+                <tr>
+                  <td><code>{{ entrada.nombre }}</code></td>
+                  <td><code class="tipo">{{ entrada.tipo }}</code></td>
+                  <td>
+                    @if (entrada.porDefecto) {
+                      <code>{{ entrada.porDefecto }}</code>
+                    } @else {
+                      <span class="vacio">—</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @if (w.outputs) {
+        <h2 class="bloque-titulo bloque-titulo-outputs">Outputs</h2>
+        <div class="tabla-scroll">
+          <table class="api">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Tipo</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (salida of w.outputs; track salida.nombre) {
+                <tr>
+                  <td><code>{{ salida.nombre }}</code></td>
+                  <td><code class="tipo">{{ salida.tipo }}</code></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  }
+</div>

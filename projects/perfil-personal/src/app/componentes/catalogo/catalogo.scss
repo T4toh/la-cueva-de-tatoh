@@ -1,0 +1,125 @@
+.catalogo-container {
+  padding: 2rem 1.5rem 4rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.catalogo-cabecera {
+  max-width: var(--measure);
+  margin-bottom: 2.5rem;
+
+  h1 {
+    margin: 0 0 0.75rem;
+    font-family: var(--font-serif);
+    font-size: var(--fs-h1);
+    line-height: var(--lh-tight);
+    color: var(--fg-primary);
+  }
+
+  p {
+    margin: 0;
+    color: var(--fg-secondary);
+    line-height: var(--lh-prose);
+  }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: var(--fs-meta);
+    padding: 0.1rem 0.35rem;
+    border-radius: var(--radius-sm);
+    background: var(--bg-sunken);
+    color: var(--fg-primary);
+  }
+
+  a {
+    color: var(--accent);
+  }
+}
+
+.widgets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 1rem;
+}
+
+// Mismo tratamiento que la tarjeta de Utilidades del landing: borde sutil que
+// se afirma al hover y el título tomando el accent.
+.widget-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  text-decoration: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--border-default);
+    background: var(--bg-surface-raised);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  &:hover .widget-nombre,
+  &:focus-visible .widget-nombre {
+    color: var(--accent);
+  }
+}
+
+.widget-icono {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-sm);
+  background: var(--accent-muted);
+  color: var(--accent);
+}
+
+.widget-texto {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.widget-nombre {
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  color: var(--fg-primary);
+  transition: color 0.2s ease;
+}
+
+.widget-selector {
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  color: var(--fg-muted);
+}
+
+.widget-desc {
+  font-size: var(--fs-meta);
+  line-height: var(--lh-snug);
+  color: var(--fg-secondary);
+}
+
+@media (max-width: 768px) {
+  .catalogo-container {
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  .catalogo-cabecera {
+    margin-bottom: 2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .widget-card,
+  .widget-nombre {
+    transition: none;
+  }
+}
