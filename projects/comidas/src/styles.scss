@@ -114,6 +114,11 @@ textarea {
   background-color: var(--bg-surface-raised);
   color: var(--fg-primary);
   font-family: var(--font-sans);
+  // El UA pisa el tamaño de los controles con el shorthand `font: 400 13.333px
+  // Arial`. Declarar solo `font-family` no lo desarma: sin este `font-size` los
+  // inputs quedan a 13.33px contra los 16px del resto y el texto se ve cortado.
+  // 16px además evita el zoom automático de iOS al enfocar un campo.
+  font-size: var(--fs-body);
   padding: 8px 10px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
@@ -126,6 +131,18 @@ textarea {
     border-color: var(--accent);
     box-shadow: var(--focus-ring);
   }
+}
+
+// `rows` fija el alto del textarea, asi que un texto mas largo queda cortado.
+// `field-sizing: content` lo hace crecer con el contenido (y hace que `rows` se
+// ignore, de ahi el min-height). El max-height evita que un JSON pegado en la
+// importacion se coma la pantalla. Donde no esta soportado cae en el alto de
+// `rows`, que es el comportamiento de hoy.
+textarea {
+  field-sizing: content;
+  min-height: 3lh;
+  max-height: 40vh;
+  resize: vertical;
 }
 
 h1, h2, h3, h4 {

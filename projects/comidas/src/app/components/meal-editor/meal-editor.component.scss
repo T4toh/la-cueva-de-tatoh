@@ -138,6 +138,10 @@ h2 {
 
 .ingredient-row {
   display: flex;
+  // En un telefono los tres campos no entran en una linea: con anchos en % la
+  // cantidad y la unidad quedan en ~40px y el texto sale cortado. Con basis en
+  // rem + wrap entran los tres en desktop y bajan de linea solos en mobile.
+  flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 0.5rem;
 
@@ -147,7 +151,7 @@ h2 {
   }
 
   .ingredient-autocomplete {
-    flex: 1 1 0;
+    flex: 1 1 12rem;
     position: relative;
     min-width: 0;
 
@@ -158,8 +162,7 @@ h2 {
 
   input:nth-child(2),
   input:nth-child(3) {
-    flex: 0 0 20%;
-    min-width: 0;
+    flex: 1 1 6rem;
   }
 
   .btn-remove {
