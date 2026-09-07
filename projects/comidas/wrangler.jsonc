@@ -1,9 +1,14 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "comidas",
+  "main": "worker/index.js",
   "compatibility_date": "2025-05-11",
   "assets": {
     "directory": "../../dist/comidas/browser",
-    "not_found_handling": "single-page-application"
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    // Sin esto el handler de assets contesta /r/* con el index.html antes de
+    // que el script llegue a correr. El * hace deep matching.
+    "run_worker_first": ["/r/*"]
   }
 }

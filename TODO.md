@@ -47,6 +47,17 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       `/utilidades`, porque `qr-code-styling` es CommonJS y con dos rutas lazy
       usándolo el bundler lo subía al bundle inicial.
 
+- [x] **Receta pública por link.** El spec está en
+      [`docs/superpowers/specs/2026-09-07-receta-publica-design.md`](docs/superpowers/specs/2026-09-07-receta-publica-design.md).
+      Publicar copia la receta a una colección nueva `recetasPublicas/{id}` de
+      lectura pública —el documento `users/{uid}` guarda todo junto, así que no
+      hay regla que abra una receta sin abrir el resto—, y el link es
+      `/r/<nick>/<receta>/<id>`, con el id de ocho caracteres haciendo de llave y
+      los otros dos segmentos decorativos: renombrar no rompe links repartidos.
+      Los `og:` los inyecta un Worker con `HTMLRewriter` que corre sólo en
+      `/r/*`: comidas ya se despliega como Worker, lo que no tenía era script.
+      La ficha reusa `receta-detalle` sin tocarla.
+
 ## En curso / pendiente
 
 - [ ] **Recetario.** Diseñado y sin implementar. El spec está en
@@ -72,17 +83,6 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
         checklist de alta están en
         [`docs/hosting-imagenes.md`](docs/hosting-imagenes.md).
 
-- [ ] **Receta pública por link.** Diseñado y sin implementar. El spec está en
-      [`docs/superpowers/specs/2026-09-07-receta-publica-design.md`](docs/superpowers/specs/2026-09-07-receta-publica-design.md).
-      Publicar copia la receta a una colección nueva `recetasPublicas/{id}` de
-      lectura pública —el documento `users/{uid}` guarda todo junto, así que no
-      hay regla que abra una receta sin abrir el resto—, y el link es
-      `/r/<nick>/<receta>/<id>`, con el id de ocho caracteres haciendo de llave y
-      los otros dos segmentos decorativos: renombrar no rompe links repartidos.
-      Los `og:` los inyecta un Worker con `HTMLRewriter` que corre sólo en
-      `/r/*`: comidas ya se despliega como Worker, lo que no tenía era script.
-      La ficha reusa `receta-detalle` sin tocarla.
-
 - [ ] **Configurador del landing.** Hoy el orden de las secciones está escrito
       a mano en `projects/perfil-personal/src/app/componentes/landing/landing.html`.
       Lo mínimo es subir los libros; lo bueno sería reordenar los bloques sin
@@ -103,3 +103,4 @@ techo y el camino de salida.
 | `projects/perfil-personal/src/app/app.ts:98` | El scroll restaurado usa el alto que la ruta tenía al salir. Volver a un post largo antes de que baje el markdown deja el scroll corto. |
 | `projects/perfil-personal/src/app/componentes/catalogo/widgets.ts:26` | La tabla de inputs de cada widget está escrita a mano, así que un `input()` nuevo en la librería no aparece en el catálogo hasta que alguien lo agregue. Salida: generarla parseando los `input<>()` en un script de build. |
 | `projects/comidas/src/app/components/meal-card/meal-card.component.scss:66` | La lista de ingredientes de la tarjeta corta a las 16rem y de ahí scrollea, para que una receta de veinte ingredientes no haga una tarjeta interminable. Salida: mostrar los primeros N con un "ver todos". |
+| `projects/comidas/worker/index.js:1` | El Worker que inyecta los `og:` de las recetas compartidas no tiene test automático: no hay runner de Workers sin agregar dependencia. Se verifica a mano con `wrangler dev` y un curl con user-agent de crawler. Salida: `vitest-pool-workers`. |

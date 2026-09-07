@@ -1,7 +1,7 @@
 # Receta pública por link en `comidas`
 
 **Fecha:** 2026-09-07
-**Estado:** diseño aprobado, sin implementar
+**Estado:** implementado
 
 ## Qué es
 
