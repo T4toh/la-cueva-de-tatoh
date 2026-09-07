@@ -157,8 +157,21 @@ Los genera la app, no los escribe el usuario: minúsculas, sin tildes, sin
 signos, palabras unidas por guiones, corte a cinco palabras. Nombre sin letras
 usables —todo emoji— cae a `receta`.
 
-La ruta canónica se arma al publicar y se guarda entera en el campo `ruta`. Así
-el Worker no necesita saber slugificar: lee el campo y lo pone en `og:url`.
+La ruta canónica se arma al publicar y se guarda entera en el campo `ruta`, que
+usa la ficha para corregir la barra de direcciones.
+
+**El Worker no lee ese campo**, y la razón importa: las reglas de Firestore
+validan `ownerUid` —quién escribe— pero no qué escribe, así que todo campo del
+documento público es texto libre de cualquier usuario autenticado. Poner `ruta`
+en el `og:url` dejaba que el dueño de una receta hiciera que una página servida
+desde `comidas.tatoh.ar` declarara como canónica la URL de otro dominio, y un
+`"https://"` pelado tiraba un `TypeError` sin atrapar. El `og:url` sale de la
+URL que el crawler acaba de pedir, que es la única que el Worker sabe cierta.
+
+El resto de los campos que sí lee —nombre, descripción, alias— es igual de
+ajeno, pero entra por `setAttribute` y por `setInnerContent`, que escapan. Lo
+peor que consigue quien los escriba es un preview con texto raro de su propia
+receta.
 
 ### Descartados
 
@@ -234,7 +247,7 @@ Dos detalles que no son adorno:
   HTML. El rewriter escapa; la concatenación abre inyección.
 - **Firestore REST devuelve JSON tipado** (`{fields:{nombre:{stringValue:"…"}}}`),
   así que hay un decodificador chico para los cuatro campos que el Worker mira:
-  nombre, descripción, alias, `ruta`, y los largos de ingredientes y pasos.
+  nombre, descripción, alias, y los largos de ingredientes y pasos.
 
 El `og:description` sale de la descripción de la receta si tiene; si no,
 `Receta de <alias> · 8 ingredientes, 5 pasos`.
