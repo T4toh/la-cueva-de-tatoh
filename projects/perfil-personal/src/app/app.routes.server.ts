@@ -1,6 +1,7 @@
 import { RenderMode, ServerRoute } from '@angular/ssr';
 
 import { LIBROS, POSTS } from '../variables';
+import { WIDGETS } from './componentes/catalogo/widgets';
 
 // Cloudflare sirve el asset estático si existe y recién ahí cae al fallback
 // SPA (que devuelve el index.html del home). Por eso conviene prerenderizar
@@ -20,6 +21,13 @@ export const serverRoutes: ServerRoute[] = [
     path: 'blog/:id',
     renderMode: RenderMode.Prerender,
     getPrerenderParams: async () => POSTS.map((_, i) => ({ id: String(i) })),
+  },
+  // Una ficha por widget del catálogo, por lo mismo: sin archivo propio, un
+  // link a /componentes/boton devolvería el index.html del home.
+  {
+    path: 'componentes/:slug',
+    renderMode: RenderMode.Prerender,
+    getPrerenderParams: async () => WIDGETS.map(({ slug }) => ({ slug })),
   },
   // /utilidades ya no es RenderMode.Client: generador-qr guarda su
   // QRCodeStyling detrás de isPlatformBrowser, así que sobrevive a Node y

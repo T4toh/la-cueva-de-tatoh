@@ -35,6 +35,18 @@ export const routes: Routes = [
       import('./componentes/libro-view/libro-view').then((m) => m.LibroView),
   },
   {
+    path: 'componentes',
+    loadComponent: () =>
+      import('./componentes/catalogo/catalogo').then((m) => m.Catalogo),
+  },
+  {
+    path: 'componentes/:slug',
+    loadComponent: () =>
+      import('./componentes/catalogo-view/catalogo-view').then(
+        (m) => m.CatalogoView,
+      ),
+  },
+  {
     path: '**',
     loadComponent: () =>
       import('./componentes/not-found/not-found').then((m) => m.NotFound),

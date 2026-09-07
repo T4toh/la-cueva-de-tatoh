@@ -5,7 +5,7 @@ import {
 } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
-type Red = {
+export type Red = {
   nombre: string;
   usuario: string;
   tipo?: 'logo' | 'tc';

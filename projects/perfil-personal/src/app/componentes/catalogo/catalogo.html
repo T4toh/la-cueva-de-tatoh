@@ -1,0 +1,28 @@
+<div class="catalogo-container">
+  <header class="catalogo-cabecera">
+    <h1>Componentes</h1>
+    <p>
+      La librería que comparten este sitio y
+      <a href="https://comidas.tatoh.ar" rel="noopener" target="_blank"
+        >comidas</a
+      >. Cada ficha trae la demo viva, los inputs y el snippet listo para
+      pegar. Se instala desde el monorepo:
+      <code>{{ importDemo }}</code>
+    </p>
+  </header>
+
+  <div class="widgets">
+    @for (widget of widgets; track widget.slug) {
+      <a class="widget-card" [routerLink]="['/componentes', widget.slug]">
+        <span class="widget-icono">
+          <lib-icon [name]="widget.icono" [size]="18" />
+        </span>
+        <span class="widget-texto">
+          <span class="widget-nombre">{{ widget.nombre }}</span>
+          <code class="widget-selector">{{ widget.selector }}</code>
+          <span class="widget-desc">{{ widget.descripcion }}</span>
+        </span>
+      </a>
+    }
+  </div>
+</div>
