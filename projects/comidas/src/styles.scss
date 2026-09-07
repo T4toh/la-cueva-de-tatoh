@@ -157,6 +157,61 @@ button {
   font-family: var(--font-sans);
 }
 
+// Los botones de la app. Estaban escritos a mano en siete componentes, con
+// variantes mínimas entre uno y otro, y receta-view usaba .btn-secondary sin
+// definirla en ningún lado: por eso los botones de la ficha salían pelados.
+// Los componentes que quieran otra cosa siguen pudiendo pisar lo que declaren.
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  transition: background-color 0.2s ease, border-color 0.2s ease,
+    color 0.2s ease;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  background-color: var(--accent);
+  border: 1px solid var(--accent);
+  color: var(--fg-on-accent);
+
+  &:not(:disabled):hover {
+    background-color: var(--accent-strong);
+    border-color: var(--accent-strong);
+  }
+}
+
+.btn-secondary {
+  background-color: transparent;
+  border: 1px solid var(--accent-hover);
+  color: var(--fg-secondary);
+
+  &:not(:disabled):hover {
+    background-color: var(--accent-muted);
+    border-color: var(--accent);
+    color: var(--fg-primary);
+  }
+}
+
+.btn-danger {
+  background-color: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+
+  &:not(:disabled):hover {
+    background-color: rgba(217, 122, 122, 0.12);
+  }
+}
+
 /* Cualquier botón / link / label con lib-icon adentro: centrar verticalmente */
 button:has(lib-icon),
 a:has(lib-icon),

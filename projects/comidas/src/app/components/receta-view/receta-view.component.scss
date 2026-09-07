@@ -138,8 +138,8 @@ section {
   padding: 0.25rem 0.6rem;
 
   &.activo {
-    background: var(--color-primario, #4caf50);
-    color: #fff;
+    background: var(--accent);
+    color: var(--fg-on-accent);
   }
 
   &:not(.activo):hover {
@@ -148,10 +148,10 @@ section {
 }
 
 .btn-cocinar {
-  background: var(--color-primario, #4caf50);
+  background: var(--accent);
   border: none;
-  border-radius: 4px;
-  color: #fff;
+  border-radius: var(--radius-sm);
+  color: var(--fg-on-accent);
   cursor: pointer;
   font: inherit;
   padding: 0.35rem 0.9rem;
@@ -199,10 +199,10 @@ section {
 }
 
 .btn-hecho {
-  background: var(--color-primario, #4caf50);
+  background: var(--accent);
   border: none;
-  border-radius: 8px;
-  color: #fff;
+  border-radius: var(--radius-md);
+  color: var(--fg-on-accent);
   cursor: pointer;
   font: inherit;
   font-size: 1.1rem;

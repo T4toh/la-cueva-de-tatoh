@@ -44,7 +44,7 @@ h1 {
   .btn-change:hover {
     border-color: var(--accent-strong);
     color: var(--accent-strong);
-    background: rgba(var(--color-2-rgb, 100, 180, 255), 0.1);
+    background: var(--accent-muted);
   }
 }
 
