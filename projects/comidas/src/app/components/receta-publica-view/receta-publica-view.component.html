@@ -1,7 +1,7 @@
 @if (cargando()) {
   <p class="estado">Cargando…</p>
 } @else if (meal(); as comida) {
-  <app-receta-detalle [meal]="comida">
+  <app-receta-detalle [meal]="comida" [soloLectura]="true">
     @if (autor()) {
       <p class="autor">Receta de {{ autor() }}</p>
     }

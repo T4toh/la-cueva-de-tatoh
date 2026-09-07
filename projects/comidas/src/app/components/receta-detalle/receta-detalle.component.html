@@ -40,9 +40,11 @@
         >
           <lib-icon name="copy" [size]="16" />
         </button>
-        <button class="btn-secondary" type="button" (click)="editar()">
-          Editar
-        </button>
+        @if (!soloLectura()) {
+          <button class="btn-secondary" type="button" (click)="editar()">
+            Editar
+          </button>
+        }
       </div>
     </div>
 
@@ -113,9 +115,11 @@
       } @else {
         <p class="vacio">
           Esta comida todavía no tiene pasos.
-          <button class="enlace" type="button" (click)="editar()">
-            Escribirlos
-          </button>
+          @if (!soloLectura()) {
+            <button class="enlace" type="button" (click)="editar()">
+              Escribirlos
+            </button>
+          }
         </p>
       }
     </section>

@@ -42,7 +42,11 @@ export class AppComponent implements OnInit, AfterViewInit {
   // normales donde la nav sí existe.
   @ViewChild('mainNav', { static: false }) mainNav?: ElementRef<HTMLElement>;
 
-  readonly esPublica = signal(false);
+  // Arranca con el valor real del path, no en false: con el router en
+  // enabledNonBlocking la primera detección de cambios pinta antes del primer
+  // NavigationEnd, y en false pintaría la nav incluso en /r/... por un
+  // instante.
+  readonly esPublica = signal(location.pathname.startsWith('/r/'));
 
   ngOnInit(): void {
     this.updateService.checkForUpdates();
