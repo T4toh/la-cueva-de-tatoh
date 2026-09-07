@@ -78,16 +78,38 @@ No hay migración: los tres campos son opcionales.
 
 ```
 match /recetasPublicas/{id} {
-  allow read: if true;
+  // `get` y no `read`: `read` incluye `list`, y con `list` cualquiera puede
+  // pedir la colección entera y enumerar las recetas compartidas de todos.
+  allow get: if true;
+  allow list: if false;
   allow create: if request.auth != null
                 && request.resource.data.ownerUid == request.auth.uid;
-  allow update, delete: if request.auth != null
-                        && resource.data.ownerUid == request.auth.uid;
+  // El update valida contra el documento guardado y exige que `ownerUid` no
+  // cambie: la propiedad no se transfiere.
+  allow update: if request.auth != null
+                && resource.data.ownerUid == request.auth.uid
+                && request.resource.data.ownerUid == resource.data.ownerUid;
+  allow delete: if request.auth != null
+                && resource.data.ownerUid == request.auth.uid;
 }
 ```
 
 La regla de `users/{uid}` no cambia. La colección nueva es la única lectura
 anónima del proyecto.
+
+**`get` y `list` son permisos distintos, y ahí se juega el modelo entero.**
+`allow read` concede los dos, y con `list` cualquiera puede pedir la colección
+completa y enumerar las recetas compartidas de todos los usuarios sin tener
+ningún link — con lo cual borrar un documento deja de revocar nada, porque el
+resto se descubre igual. La llave es el id: sin id, no hay lectura.
+
+Segundo detalle, contra la intuición: **Firestore no evalúa los `match` en
+orden.** Cuando el path de una request cae en más de un bloque, se evalúan
+todos y los resultados se combinan con OR — alcanza con que uno permita. El
+`match /{document=**}` que niega todo no bloquea nada que otro bloque haya
+permitido, y moverlo de lugar no cambia el resultado. Está al final por
+convención y legibilidad, no porque el orden lo haga funcionar; lo que
+protege es qué bloques existen y qué path matchean.
 
 ## La URL
 
@@ -243,7 +265,7 @@ no sólo las recetas.
 
 ## Modelo de seguridad
 
-**El id del documento es la llave.** `read: if true` significa que cualquiera
+**El id del documento es la llave.** `get: if true` significa que cualquiera
 con el link entra, sin cuenta. Es lo pedido, y tiene una consecuencia: un link
 filtrado no se puede desfiltrar. Se revoca borrando el documento, y ahí muere
 para todos.

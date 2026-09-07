@@ -344,15 +344,28 @@ En `projects/comidas/firestore.rules`, entre el bloque de `users/{userId}` y el 
     // la app al azar y quien lo tiene, entra. Nada de esto sale de `users`,
     // que guarda todo junto y por eso no se puede abrir por partes.
     match /recetasPublicas/{recetaId} {
-      allow read: if true;
+      // `get` y no `read`: `read` incluye `list`, y con `list` cualquiera podría
+      // pedir la colección entera y enumerar las recetas compartidas de todos.
+      // La llave es el id del documento: sin id, no hay lectura.
+      allow get: if true;
+      allow list: if false;
       allow create: if request.auth != null
                     && request.resource.data.ownerUid == request.auth.uid;
-      allow update, delete: if request.auth != null
-                            && resource.data.ownerUid == request.auth.uid;
+      // En el update se valida contra el documento guardado y además se exige
+      // que `ownerUid` no cambie: la propiedad no se transfiere.
+      allow update: if request.auth != null
+                    && resource.data.ownerUid == request.auth.uid
+                    && request.resource.data.ownerUid == resource.data.ownerUid;
+      allow delete: if request.auth != null
+                    && resource.data.ownerUid == request.auth.uid;
     }
 ```
 
-El bloque `match /{document=**}` que niega todo tiene que seguir **último**.
+El bloque `match /{document=**}` que niega todo queda **último**, por
+convención. Que quede último no es lo que lo hace funcionar: Firestore evalúa
+todos los `match` que matcheen el path y combina los resultados con OR, así que
+un `if false` no revierte lo que otro bloque permitió, y moverlo de lugar da el
+mismo resultado.
 
 - [ ] **Step 2: Verificar el orden y que `users` no cambió**
 
