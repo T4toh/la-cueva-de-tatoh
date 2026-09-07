@@ -255,9 +255,17 @@ no sólo las recetas.
 - Componente nuevo: lee el documento público con `getDoc` sin auth, lo mapea a
   `Meal` y se lo pasa a `receta-detalle`. Es un wrapper de trece líneas, igual
   que `receta-view`.
-- **`receta-detalle` no se toca.** Sólo inyecta `Router` y `DialogService`,
-  recibe `meal` como `input.required<Meal>()` y es presentacional puro. El
-  selector ×1 ×2 ×3, el modo cocina y el copiar-como-markdown vienen gratis.
+- **`receta-detalle` se reusa casi tal cual.** Recibe `meal` como
+  `input.required<Meal>()`, así que el selector ×1 ×2 ×3, el modo cocina y el
+  copiar-como-markdown vienen gratis.
+  Lo único que hubo que agregarle es un input de sólo lectura, porque **no era
+  tan presentacional como parecía**: renderiza "Editar" y "Escribirlos" sin
+  condición, cableados a `/meals/edit/<id>`, y en la ficha pública eso le
+  ofrece a un desconocido editar una receta ajena. No es una fuga —el editor
+  busca contra el uid de quien mira y no encuentra nada— pero contradice lo que
+  esa pantalla es. Con el input en true esas dos afordancias no se renderizan;
+  esconderlas por CSS no alcanzaba, porque un botón oculto sigue en el DOM y en
+  el orden de tabulación.
 - La nav se apaga con un `@if` sobre la URL en `app.html`; en su lugar, un
   "Hecho con Comidas" que linkea a `/`.
 - Publicar, copiar el link y despublicar viven en la ficha `/meals/:id`.
