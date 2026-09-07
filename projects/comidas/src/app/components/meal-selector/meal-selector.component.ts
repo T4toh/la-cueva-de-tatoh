@@ -9,11 +9,12 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MealService } from '../../services/meal.service';
 import { DishMealType, Meal, MealType } from '../../models/meal.model';
 import { MealCardComponent } from '../meal-card/meal-card.component';
+import { RecetaDetalleComponent } from '../receta-detalle/receta-detalle.component';
 
 @Component({
   selector: 'app-meal-selector',
   standalone: true,
-  imports: [RouterModule, MealCardComponent],
+  imports: [RouterModule, MealCardComponent, RecetaDetalleComponent],
   templateUrl: './meal-selector.component.html',
   styleUrls: ['./meal-selector.component.scss'],
 })
@@ -28,6 +29,10 @@ export class MealSelectorComponent implements OnInit {
   private replaceIndex = 0;
 
   readonly currentMeal = signal<Meal | undefined>(undefined);
+
+  // Las porciones ya las decidió el día en el dashboard, así que la receta se
+  // muestra multiplicada por eso y no vuelve a preguntar.
+  readonly porciones = signal(1);
   readonly showingList = signal(false);
   readonly selectedTag = signal<string | null>(null);
 
@@ -72,20 +77,19 @@ export class MealSelectorComponent implements OnInit {
       .find((d) => d.dayName === this.dayName);
     if (isDishType && day) {
       const dishes = day[this.type as DishMealType];
-      if (this.action === 'replace' && dishes[this.replaceIndex]) {
-        const meal = this.mealService.getMeal(dishes[this.replaceIndex].mealId);
+      const dish =
+        this.action === 'replace' ? dishes[this.replaceIndex] : dishes[0];
+
+      if (dish && (this.action === 'replace' || !this.action)) {
+        const meal = this.mealService.getMeal(dish.mealId);
         this.currentMeal.set(meal);
+        this.porciones.set(Math.max(1, dish.portions));
         if (!meal) {
           this.showingList.set(true);
         }
       } else if (!this.action) {
-        const meal = dishes[0]
-          ? this.mealService.getMeal(dishes[0].mealId)
-          : undefined;
-        this.currentMeal.set(meal);
-        if (!meal) {
-          this.showingList.set(true);
-        }
+        this.currentMeal.set(undefined);
+        this.showingList.set(true);
       } else {
         this.showingList.set(true);
       }

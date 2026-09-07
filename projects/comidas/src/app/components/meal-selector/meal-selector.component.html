@@ -1,12 +1,12 @@
 <div class="selector-container">
-  <h1>{{ type }} del {{ dayName }}</h1>
+  <p class="contexto">{{ type }} del {{ dayName }}</p>
 
   @if (showingList()) {
     <div class="actions">
-      <button class="btn-back" routerLink="/" type="button">
+      <button class="btn-secondary" routerLink="/" type="button">
         Volver sin cambios
       </button>
-      <button class="btn-clear" type="button" (click)="clearSelection()">
+      <button class="btn-danger" type="button" (click)="clearSelection()">
         Borrar y dejar vacío
       </button>
     </div>
@@ -49,36 +49,22 @@
         </p>
       }
     </div>
-  } @else {
-    <div class="actions">
-      <button class="btn-back" routerLink="/" type="button">Volver</button>
-      <button class="btn-change" type="button" (click)="showList()">
+  } @else if (currentMeal(); as meal) {
+    <app-receta-detalle [meal]="meal" [porcionesFijas]="porciones()">
+      <button class="btn-secondary" routerLink="/" type="button">Volver</button>
+      <button class="btn-secondary" type="button" (click)="showList()">
         Cambiar comida
       </button>
-      <button class="btn-clear" type="button" (click)="clearSelection()">
+      <button class="btn-danger" type="button" (click)="clearSelection()">
         Borrar
       </button>
+    </app-receta-detalle>
+  } @else {
+    <div class="actions">
+      <button class="btn-secondary" routerLink="/" type="button">Volver</button>
+      <button class="btn-secondary" type="button" (click)="showList()">
+        Elegir comida
+      </button>
     </div>
-
-    @if (currentMeal(); as meal) {
-      <div class="recipe-view">
-        <h2>{{ meal.name }}</h2>
-        @if (meal.ingredients.length > 0) {
-          <ul class="ingredient-list">
-            @for (ing of meal.ingredients; track ing.name) {
-              <li>
-                <span class="ing-name">{{ ing.name }}</span>
-                <span class="ing-qty">{{ ing.quantity }}{{ ing.unit ? ' ' + ing.unit : '' }}</span>
-              </li>
-            }
-          </ul>
-        } @else {
-          <p class="no-ingredients">Sin ingredientes</p>
-        }
-        @if (meal.description) {
-          <p class="description">{{ meal.description }}</p>
-        }
-      </div>
-    }
   }
 </div>
