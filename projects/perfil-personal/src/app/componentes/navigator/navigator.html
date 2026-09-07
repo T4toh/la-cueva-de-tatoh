@@ -50,6 +50,16 @@
   </ul>
 
   <div class="tiendas-autor">
+    <button
+      class="tema-toggle"
+      type="button"
+      [attr.aria-label]="tema.etiqueta()"
+      [title]="tema.etiqueta()"
+      (click)="tema.siguiente()"
+    >
+      <lib-icon [name]="tema.icono()" [size]="18" />
+    </button>
+
     @for (tienda of tiendas; track tienda.url) {
       <a
         class="tienda-autor-link"

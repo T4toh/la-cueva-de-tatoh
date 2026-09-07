@@ -21,6 +21,17 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       `DESCRIPCION_SITIO`; el recordatorio está en el README, en *Escribir un
       post*.
 
+- [x] **Modo claro**, en las dos apps. Los tokens dejaron de estar duplicados:
+      viven en `projects/componentes/src/styles/_tema.scss` y los dos
+      `styles.scss` hacen `@use 'tema'` vía el `includePaths` de `angular.json`.
+      Tres estados —sistema / claro / oscuro— en `TemaService`; el botón lo
+      dibuja cada app con el idioma de su nav (última tab en comidas, fila de
+      logos en perfil-personal). Un script inline en los dos `index.html`
+      aplica la elección antes
+      del primer paint. De paso se pasaron a tokens los ~90 colores que estaban
+      escritos a mano en los componentes: los `rgba(255,255,255,…)` se invertían
+      mal sobre papel. Lo de `@media print` sigue en blanco y negro.
+
 ## En curso / pendiente
 
 - [ ] **Catálogo de componentes**, al estilo del de Angular Material: una
@@ -58,11 +69,6 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       así que cualquier lectura anónima necesita una regla nueva y explícita.
       Se apoya en la ficha `/meals/:id` que ya existe.
 
-- [ ] **Modo claro**, en comidas y en el blog. Los tokens de color ya están
-      todos en `:root` (`projects/comidas/src/styles.scss` y
-      `projects/perfil-personal/src/styles.scss`), así que es redefinirlos bajo
-      `prefers-color-scheme` más un toggle que persista la elección.
-
 - [ ] **Configurador del landing.** Hoy el orden de las secciones está escrito
       a mano en `projects/perfil-personal/src/app/componentes/landing/landing.html`.
       Lo mínimo es subir los libros; lo bueno sería reordenar los bloques sin
@@ -80,5 +86,5 @@ techo y el camino de salida.
 |-------|----------------|
 | `projects/comidas/src/app/services/update.service.ts:19` | `mismoCodigo` compara sólo los subrecursos cargados: un cambio que toque únicamente el `index.html` (un meta, el title) pasa como "sin cambios". Salida: hashear también `/index.html`. |
 | `projects/perfil-personal/src/app/componentes/galeria-libros/galeria-libros.scss:30` | El landing y `/libros` comparten el carrusel. Con más libros, la página propia va a querer grilla vertical. Salida: separar las dos presentaciones. |
-| `projects/perfil-personal/src/app/app.ts:96` | El scroll restaurado usa el alto que la ruta tenía al salir. Volver a un post largo antes de que baje el markdown deja el scroll corto. |
+| `projects/perfil-personal/src/app/app.ts:98` | El scroll restaurado usa el alto que la ruta tenía al salir. Volver a un post largo antes de que baje el markdown deja el scroll corto. |
 | `projects/comidas/src/app/components/meal-card/meal-card.component.scss:66` | La lista de ingredientes de la tarjeta corta a las 16rem y de ahí scrollea, para que una receta de veinte ingredientes no haga una tarjeta interminable. Salida: mostrar los primeros N con un "ver todos". |

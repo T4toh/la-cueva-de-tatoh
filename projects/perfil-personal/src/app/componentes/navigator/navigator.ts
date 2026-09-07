@@ -1,6 +1,6 @@
-import { Component, input, output } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { Icon } from 'componentes';
+import { Icon, TemaService } from 'componentes';
 
 import { LogoTienda } from '../logo-tienda/logo-tienda';
 import { TIENDAS_AUTOR } from '../../../variables';
@@ -12,6 +12,8 @@ import { TIENDAS_AUTOR } from '../../../variables';
   styleUrl: './navigator.scss',
 })
 export class Navigator {
+  readonly tema = inject(TemaService);
+
   readonly sidebarAbierto = input.required<boolean>();
   readonly alternarSidebar = output<void>();
 

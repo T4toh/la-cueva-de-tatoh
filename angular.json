@@ -25,6 +25,11 @@
             ],
             "tsConfig": "projects/perfil-personal/tsconfig.app.json",
             "inlineStyleLanguage": "scss",
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "projects/componentes/src/styles"
+              ]
+            },
             "assets": [
               {
                 "glob": "**/*",
@@ -170,6 +175,11 @@
             "browser": "projects/comidas/src/main.ts",
             "tsConfig": "projects/comidas/tsconfig.app.json",
             "inlineStyleLanguage": "scss",
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "projects/componentes/src/styles"
+              ]
+            },
             "assets": [
               {
                 "glob": "**/*",

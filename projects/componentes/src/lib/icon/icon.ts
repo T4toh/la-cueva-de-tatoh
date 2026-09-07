@@ -39,7 +39,10 @@ export type IconName =
   | 'refresh-cw'
   | 'wifi-off'
   | 'copy'
-  | 'menu';
+  | 'menu'
+  | 'sun'
+  | 'moon'
+  | 'monitor';
 
 @Component({
   selector: 'lib-icon',

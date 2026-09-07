@@ -70,7 +70,7 @@
 .btn-primary {
   background: var(--accent-strong);
   border: 1px solid var(--accent-strong);
-  color: var(--fg-primary);
+  color: var(--fg-on-accent-strong);
 
   &:hover {
     background: var(--accent);
@@ -80,18 +80,18 @@
 
 .btn-danger {
   background: transparent;
-  border: 1px solid rgba(217, 122, 122, 0.45);
+  border: 1px solid var(--danger);
   color: var(--danger);
 
   &:hover {
-    background: rgba(217, 122, 122, 0.12);
+    background: var(--danger-muted);
     border-color: var(--danger);
   }
 }
 
 .inline-form {
   align-items: center;
-  background: var(--bg-30, rgba(0, 0, 0, 0.05));
+  background: var(--bg-sunken-subtle);
   border-radius: 8px;
   display: flex;
   flex-wrap: wrap;
@@ -123,7 +123,7 @@
     background: var(--accent-strong);
     border: none;
     border-radius: 4px;
-    color: white;
+    color: var(--fg-on-accent);
     cursor: pointer;
     padding: 0.4rem 0.8rem;
 
@@ -141,7 +141,7 @@
 }
 
 .group-section {
-  background: var(--bg-30, rgba(0, 0, 0, 0.06));
+  background: var(--bg-sunken-subtle);
   border-left: 3px solid transparent;
   border-radius: 8px;
   overflow: hidden;
@@ -228,7 +228,7 @@
     .item-quantity {
       background: var(--accent);
       border-radius: 12px;
-      color: white;
+      color: var(--fg-on-accent);
       font-size: 0.85rem;
       margin-right: 0.3rem;
       padding: 0.15rem 0.6rem;
@@ -277,7 +277,7 @@
   }
 
   &.btn-ok {
-    color: #4caf50;
+    color: var(--success);
     font-weight: bold;
   }
 

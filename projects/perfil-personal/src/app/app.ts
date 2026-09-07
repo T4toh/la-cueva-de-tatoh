@@ -17,6 +17,7 @@ import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { filter, take } from 'rxjs/operators';
 import { Sidebar } from './componentes/sidebar/sidebar';
 import { Navigator } from './componentes/navigator/navigator';
+import { TemaService } from 'componentes';
 
 // Mismo corte que el @media de app.scss. Si cambia uno, cambia el otro:
 // abajo de este ancho el panel deja de ser columna y pasa a ser drawer.
@@ -29,6 +30,7 @@ const ANCHO_MOBILE = 768;
   styleUrl: './app.scss',
 })
 export class App {
+  private readonly tema = inject(TemaService);
   private readonly updates = inject(SwUpdate);
   private readonly router = inject(Router);
   private readonly cuerpo =

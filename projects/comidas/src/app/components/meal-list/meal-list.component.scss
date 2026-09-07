@@ -29,15 +29,15 @@
       cursor: pointer;
 
       &:hover {
-        border-color: white;
-        color: white;
+        border-color: var(--accent);
+        color: var(--fg-primary);
       }
     }
   }
 
   .btn-add {
     background-color: var(--accent);
-    color: white;
+    color: var(--fg-on-accent);
     text-decoration: none;
     padding: 0.5rem 1rem;
     border-radius: 4px;
@@ -65,6 +65,9 @@
 }
 
 .empty-state {
+  // Vive dentro de `.grid`, que es multicolumna: sin esto la frase se parte en
+  // pedazos repartidos entre las columnas.
+  column-span: all;
   text-align: center;
   color: var(--fg-secondary);
   padding: 2rem;
