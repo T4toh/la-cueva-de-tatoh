@@ -71,6 +71,15 @@ describe('generarIdPublico', () => {
     const bytes = (): Uint8Array => new Uint8Array(cola.splice(0, 10));
     expect(generarIdPublico(bytes)).toBe('a9bcdefg');
   });
+
+  it('tira error si recibe solo bytes inválidos', () => {
+    // Todos 255 caen fuera del rango válido, así que el loop nunca termina.
+    // Sin el tope, esto colgaría. Con el tope, tira un error inmediato.
+    const bytes = (): Uint8Array => new Uint8Array([255, 255, 255, 255]);
+    expect(() => generarIdPublico(bytes)).toThrow(
+      /rechazo masivo de bytes/
+    );
+  });
 });
 
 describe('aRecetaPublica', () => {

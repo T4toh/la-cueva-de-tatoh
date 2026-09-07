@@ -20,6 +20,10 @@ const LARGO_ID = 8;
 // primeras letras, y acá el azar es lo único que hace de llave.
 const TOPE_SIN_SESGO = 252;
 const MAX_PALABRAS = 5;
+// Límite de bytes consumidos para detectar rechazo masivo. Con ~98,4% de
+// aceptación por byte, 8 caracteres necesitan ~9 bytes esperados. 256 es
+// holgadísimo y nunca se toca en producción, pero captura fixtures rotos.
+const TOPE_BYTES = 256;
 
 function bytesAlAzar(): Uint8Array {
   const bytes = new Uint8Array(LARGO_ID * 2);
@@ -29,8 +33,17 @@ function bytesAlAzar(): Uint8Array {
 
 export function generarIdPublico(bytes: () => Uint8Array = bytesAlAzar): string {
   let id = '';
+  let bytesConsumidos = 0;
   while (id.length < LARGO_ID) {
-    for (const byte of bytes()) {
+    const lote = bytes();
+    bytesConsumidos += lote.length;
+    if (bytesConsumidos > TOPE_BYTES) {
+      throw new Error(
+        'generarIdPublico: rechazo masivo de bytes. ' +
+          'El inyectable bytes() devolvió demasiados valores >= 252.'
+      );
+    }
+    for (const byte of lote) {
       if (byte < TOPE_SIN_SESGO && id.length < LARGO_ID) {
         id += ALFABETO[byte % ALFABETO.length];
       }
