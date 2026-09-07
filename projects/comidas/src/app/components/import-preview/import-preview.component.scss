@@ -87,6 +87,9 @@
   border: 1px solid var(--border-default, rgba(236, 235, 231, 0.14));
   border-radius: var(--radius-md, 8px);
   padding: 0.75rem;
+  // `field-sizing: content` (styles.scss) ignora el rows="10" del template:
+  // sin esto la caja de pegar arranca en una linea.
+  min-height: 10lh;
 
   &:focus {
     outline: none;

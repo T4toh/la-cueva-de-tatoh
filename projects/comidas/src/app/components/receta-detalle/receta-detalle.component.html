@@ -1,0 +1,123 @@
+@if (cocinando()) {
+  <div class="cocina">
+    <div class="cocina-header">
+      <span class="progreso">
+        Paso {{ pasoActual() + 1 }} de {{ pasos().length }}
+      </span>
+      <button class="btn-secondary" type="button" (click)="salirDeCocina()">
+        Salir
+      </button>
+    </div>
+
+    <p class="cocina-paso">{{ pasoEnCurso()?.texto }}</p>
+
+    <div class="cocina-acciones">
+      <button
+        class="btn-secondary"
+        type="button"
+        [disabled]="pasoActual() === 0"
+        (click)="pasoAnterior()"
+      >
+        Atrás
+      </button>
+      <button class="btn-hecho" type="button" (click)="pasoHecho()">
+        {{ esUltimoPaso() ? 'Listo' : 'Hecho' }}
+      </button>
+    </div>
+  </div>
+} @else {
+  <div class="receta">
+    <div class="header">
+      <div class="header-nav">
+        <ng-content />
+      </div>
+      <div class="header-acciones">
+        <button
+          class="btn-secondary"
+          title="Copiar como markdown"
+          type="button"
+          (click)="copiarMarkdown()"
+        >
+          <lib-icon name="copy" [size]="16" />
+        </button>
+        <button class="btn-secondary" type="button" (click)="editar()">
+          Editar
+        </button>
+      </div>
+    </div>
+
+    <h1>{{ meal().name }}</h1>
+
+    @if (meal().description) {
+      <p class="descripcion">{{ meal().description }}</p>
+    }
+
+    @if (meal().tags && meal().tags!.length > 0) {
+      <div class="tags">
+        @for (tag of meal().tags; track $index) {
+          <lib-tag [texto]="tag" />
+        }
+      </div>
+    }
+
+    <section class="ingredientes">
+      <div class="seccion-header">
+        <h2>Ingredientes</h2>
+        @if (porcionesFijas(); as fijas) {
+          <span class="porciones-fijas">para ×{{ fijas }}</span>
+        } @else {
+          <div class="porciones">
+            @for (n of opcionesPorciones; track n) {
+              <button
+                class="btn-porcion"
+                type="button"
+                [attr.aria-pressed]="porciones() === n"
+                [class.activo]="porciones() === n"
+                (click)="porcionesElegidas.set(n)"
+              >
+                ×{{ n }}
+              </button>
+            }
+          </div>
+        }
+      </div>
+      <ul>
+        @for (ing of ingredientes(); track $index) {
+          <li>
+            <span class="cantidad">
+              {{ ing.quantity }}{{ ing.unit ? ' ' + ing.unit : '' }}
+            </span>
+            <span class="nombre">{{ ing.name }}</span>
+          </li>
+        } @empty {
+          <li class="vacio">Sin ingredientes cargados.</li>
+        }
+      </ul>
+    </section>
+
+    <section class="pasos">
+      <div class="seccion-header">
+        <h2>Paso a paso</h2>
+        @if (pasos().length > 0) {
+          <button class="btn-cocinar" type="button" (click)="cocinar()">
+            Cocinar
+          </button>
+        }
+      </div>
+      @if (pasos().length > 0) {
+        <ol>
+          @for (paso of pasos(); track $index) {
+            <li>{{ paso.texto }}</li>
+          }
+        </ol>
+      } @else {
+        <p class="vacio">
+          Esta comida todavía no tiene pasos.
+          <button class="enlace" type="button" (click)="editar()">
+            Escribirlos
+          </button>
+        </p>
+      }
+    </section>
+  </div>
+}

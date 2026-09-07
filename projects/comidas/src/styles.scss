@@ -114,6 +114,11 @@ textarea {
   background-color: var(--bg-surface-raised);
   color: var(--fg-primary);
   font-family: var(--font-sans);
+  // El UA pisa el tamaño de los controles con el shorthand `font: 400 13.333px
+  // Arial`. Declarar solo `font-family` no lo desarma: sin este `font-size` los
+  // inputs quedan a 13.33px contra los 16px del resto y el texto se ve cortado.
+  // 16px además evita el zoom automático de iOS al enfocar un campo.
+  font-size: var(--fs-body);
   padding: 8px 10px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
@@ -128,6 +133,18 @@ textarea {
   }
 }
 
+// `rows` fija el alto del textarea, asi que un texto mas largo queda cortado.
+// `field-sizing: content` lo hace crecer con el contenido (y hace que `rows` se
+// ignore, de ahi el min-height). El max-height evita que un JSON pegado en la
+// importacion se coma la pantalla. Donde no esta soportado cae en el alto de
+// `rows`, que es el comportamiento de hoy.
+textarea {
+  field-sizing: content;
+  min-height: 3lh;
+  max-height: 40vh;
+  resize: vertical;
+}
+
 h1, h2, h3, h4 {
   font-family: var(--font-serif);
   font-weight: 500;
@@ -138,6 +155,61 @@ h1, h2, h3, h4 {
 button {
   cursor: pointer;
   font-family: var(--font-sans);
+}
+
+// Los botones de la app. Estaban escritos a mano en siete componentes, con
+// variantes mínimas entre uno y otro, y receta-view usaba .btn-secondary sin
+// definirla en ningún lado: por eso los botones de la ficha salían pelados.
+// Los componentes que quieran otra cosa siguen pudiendo pisar lo que declaren.
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  transition: background-color 0.2s ease, border-color 0.2s ease,
+    color 0.2s ease;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  background-color: var(--accent);
+  border: 1px solid var(--accent);
+  color: var(--fg-on-accent);
+
+  &:not(:disabled):hover {
+    background-color: var(--accent-strong);
+    border-color: var(--accent-strong);
+  }
+}
+
+.btn-secondary {
+  background-color: transparent;
+  border: 1px solid var(--accent-hover);
+  color: var(--fg-secondary);
+
+  &:not(:disabled):hover {
+    background-color: var(--accent-muted);
+    border-color: var(--accent);
+    color: var(--fg-primary);
+  }
+}
+
+.btn-danger {
+  background-color: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+
+  &:not(:disabled):hover {
+    background-color: rgba(217, 122, 122, 0.12);
+  }
 }
 
 /* Cualquier botón / link / label con lib-icon adentro: centrar verticalmente */
