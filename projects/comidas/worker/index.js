@@ -13,9 +13,6 @@ const CAMPOS = {
   'og:description': 'descripcion',
   'og:image': 'imagen',
   'og:url': 'url',
-  'twitter:title': 'titulo',
-  'twitter:description': 'descripcion',
-  'twitter:image': 'imagen',
 };
 
 const texto = (campo) => (campo && campo.stringValue) || '';
@@ -35,7 +32,6 @@ async function leerReceta(id) {
     nombre: texto(fields.nombre) || 'Receta',
     descripcion: texto(fields.descripcion),
     alias: texto(fields.alias),
-    ruta: texto(fields.ruta) || '/',
     ingredientes: largo(fields.ingredientes),
     pasos: largo(fields.pasos),
   };
@@ -59,47 +55,61 @@ function describir(receta) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const segmentos = url.pathname.split('/').filter(Boolean);
-    const id = segmentos[segmentos.length - 1] || '';
-
-    const receta = ID_VALIDO.test(id) ? await leerReceta(id) : null;
-    if (!receta) {
-      // Sin receta, la SPA se encarga de decir que no existe.
+    if (!url.pathname.startsWith('/r/')) {
+      // Nada fuera de /r/* necesita Firestore: es asset puro o un 404 de SPA.
       return env.ASSETS.fetch(request);
     }
 
-    const meta = {
-      titulo: receta.nombre,
-      descripcion: describir(receta),
-      imagen: IMAGEN,
-      url: new URL(receta.ruta, url.origin).toString(),
-    };
+    try {
+      const segmentos = url.pathname.split('/').filter(Boolean);
+      const id = segmentos[segmentos.length - 1] || '';
 
-    const shell = await env.ASSETS.fetch(
-      new Request(new URL('/index.html', url.origin), request)
-    );
+      const receta = ID_VALIDO.test(id) ? await leerReceta(id) : null;
+      if (!receta) {
+        // Sin receta, la SPA se encarga de decir que no existe.
+        return env.ASSETS.fetch(request);
+      }
 
-    const transformado = new HTMLRewriter()
-      .on('title', {
-        element(el) {
-          el.setInnerContent(meta.titulo);
-        },
-      })
-      .on('meta', {
-        element(el) {
-          const clave = el.getAttribute('property') || el.getAttribute('name');
-          const campo = CAMPOS[clave];
-          if (campo) {
+      const meta = {
+        titulo: receta.nombre,
+        descripcion: describir(receta),
+        imagen: IMAGEN,
+        // La URL canónica es la que el crawler acaba de pedir, no `ruta`: ese
+        // campo lo escribe el dueño del documento como texto libre y las
+        // reglas de Firestore validan quién escribe, no qué escribe.
+        url: url.origin + url.pathname,
+      };
+
+      // Sin el request como segundo argumento: si no, reenvía el
+      // If-None-Match del cliente y un 304 sin cuerpo rompe el rewrite.
+      const shell = await env.ASSETS.fetch(new URL('/index.html', url.origin));
+
+      const transformado = new HTMLRewriter()
+        .on('title', {
+          element(el) {
+            el.setInnerContent(meta.titulo);
+          },
+        })
+        .on('meta', {
+          element(el) {
+            const clave = el.getAttribute('property') || el.getAttribute('name');
+            if (!Object.hasOwn(CAMPOS, clave)) {
+              return;
+            }
             // setAttribute escapa. Nunca concatenar: el nombre de la receta lo
             // escribe un usuario y termina adentro de un atributo HTML.
-            el.setAttribute('content', meta[campo]);
-          }
-        },
-      })
-      .transform(shell);
+            el.setAttribute('content', meta[CAMPOS[clave]]);
+          },
+        })
+        .transform(shell);
 
-    const respuesta = new Response(transformado.body, transformado);
-    respuesta.headers.set('cache-control', 'public, s-maxage=60');
-    return respuesta;
+      const respuesta = new Response(transformado.body, transformado);
+      respuesta.headers.set('cache-control', 'public, s-maxage=60');
+      return respuesta;
+    } catch {
+      // Firestore inalcanzable, JSON roto, lo que sea: la SPA sabe arrancar
+      // sola con los meta por defecto de index.html.
+      return env.ASSETS.fetch(request);
+    }
   },
 };
