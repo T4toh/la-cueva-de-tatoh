@@ -4,6 +4,18 @@ Todos los cambios notables a este proyecto se documentan en este archivo. El for
 
 ## [Unreleased]
 
+### Added
+
+#### Perfil Personal
+
+- `pnpm check:sw`, que verifica el manifest del service worker de cada app buildeada: que el `index` del manifest esté en el `hashTable` —o sea, que algún `assetGroup` lo cachee— y que cada archivo del `hashTable` esté en el build con el hash que dice el manifest. Un solo hash que no coincida hace fallar la instalación entera, y hasta ahora nada lo miraba.
+
+### Fixed
+
+#### Perfil Personal
+
+- **El service worker no resolvía ninguna navegación**, así que la app no andaba offline y parecía que el SW no existía; comidas no tenía el problema. Con `outputMode: "static"` el builder reescribe el `index` del manifest a `/index.csr.html` —el shell de CSR— aunque el `ngsw-config.json` diga `/index.html`, porque el `/index.html` del build es la home prerenderizada y no sirve de shell. Ese archivo no estaba en los `files` del grupo `app`, así que el índice quedaba fuera del cache: el worker se registraba y en devtools se veía activo, pero no tenía con qué responder una navegación. `comidas` lo listaba desde el principio, de ahí la diferencia entre las dos apps.
+
 ## [1.5.0] - 2026-09-07
 
 Las dos apps pasan a tener modo claro, con los tokens de tema en un solo lugar, y se cierran las tres primeras entregas del recetario.

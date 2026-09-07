@@ -14,6 +14,7 @@
     "test": "ng test comidas",
     "lint": "ng lint",
     "check:libros": "node scripts/check-libros.mjs",
+    "check:sw": "node scripts/check-sw.mjs",
     "cap:sync": "npx cap sync",
     "cap:open:android": "npx cap open android",
     "build:comidas": "ng build comidas --configuration=production",

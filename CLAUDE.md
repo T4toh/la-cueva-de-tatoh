@@ -21,6 +21,7 @@ pnpm build            # builds componentes → perfil-personal → comidas (prod
 pnpm test             # ng test comidas (Vitest; único proyecto con specs)
 pnpm lint             # ng lint across all three projects
 pnpm check:libros     # tras un build de prod: og: de cada /libros/<slug> + landing prerenderizado
+pnpm check:sw         # tras un build de prod: el index del manifest del SW está cacheado
 pnpm watch            # ng build --watch development
 
 ng serve comidas      # serve a specific app (requires componentes built first)
@@ -93,6 +94,18 @@ must not be unified**:
   deploy already deleted.
 
 If you touch either, keep that difference and the reason for it.
+
+Lo que sí comparten es una trampa del `ngsw-config.json`: con
+`outputMode: "static"`, el builder **reescribe** el `index` del manifest a
+`/index.csr.html` —el shell de CSR— aunque el config diga `/index.html`, porque
+el `/index.html` del build es la home prerenderizada y no sirve de shell. Si ese
+archivo no está en los `files` del grupo `app`, el índice queda fuera del cache:
+el SW se registra igual y en devtools se ve activo, pero no puede resolver
+ninguna navegación, así que no hay offline y parece que no existe. Es lo que le
+pasaba a perfil-personal y no a comidas, que lo tenía listado desde el
+principio. `pnpm check:sw` falla si el `index` del manifest no está en el
+`hashTable`, y también si un archivo del `hashTable` no está en el build o
+cambió de hash —uno solo que no coincida hace fallar la instalación entera—.
 
 Run `pnpm check:libros` after a production build to confirm every book still
 emits its `og:` tags, and that `/` is the real landing rather than a
