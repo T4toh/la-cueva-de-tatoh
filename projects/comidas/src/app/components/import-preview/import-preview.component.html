@@ -74,7 +74,11 @@
                 </label>
                 <input class="row-name" formControlName="name" type="text" (blur)="onNameBlur(row)" />
                 @if (row.dup()) {
-                  <lib-tag colorFondo="#ff9800" colorTexto="#1c1d23" texto="repetido" />
+                  <lib-tag
+                    colorFondo="var(--warning)"
+                    colorTexto="var(--fg-on-accent)"
+                    texto="repetido"
+                  />
                 }
               </div>
 

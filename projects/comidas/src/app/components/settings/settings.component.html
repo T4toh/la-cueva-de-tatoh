@@ -5,7 +5,7 @@
   @if (!isAndroid) {
     <lib-panel
       [colorFondo]="'var(--bg-surface)'"
-      [colorTexto]="'white'"
+      [colorTexto]="'var(--fg-primary)'"
       [sombreado]="true"
       [texto]="'Sincronización en la Nube'"
     >
@@ -185,6 +185,23 @@
         <p class="hint">
           Copiá el prompt, pegalo en tu IA favorita y pedile que complete las
           unidades y descripciones. Luego importá el JSON que te devuelva.
+        </p>
+      </div>
+    </div>
+  </lib-panel>
+
+  <lib-panel
+    [colorFondo]="'var(--bg-surface)'"
+    [colorTexto]="'var(--fg-primary)'"
+    [sombreado]="true"
+    [texto]="'Apariencia'"
+  >
+    <div class="settings-content">
+      <div class="actions">
+        <lib-tema-toggle />
+        <p class="hint">
+          Arranca con el tema del sistema. El botón cicla entre sistema, claro y
+          oscuro, y la elección queda guardada en este dispositivo.
         </p>
       </div>
     </div>

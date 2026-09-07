@@ -1,0 +1,9 @@
+<button
+  class="tema-toggle"
+  type="button"
+  [attr.aria-label]="estado().texto"
+  [title]="estado().texto"
+  (click)="alternar()"
+>
+  <lib-icon [name]="estado().icono" [size]="18" />
+</button>

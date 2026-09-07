@@ -32,7 +32,7 @@
 
     button {
       background: var(--accent);
-      color: white;
+      color: var(--fg-on-accent);
       border: none;
       padding: 0.4rem 0.75rem;
       border-radius: 4px;
@@ -44,8 +44,11 @@
       }
 
       &.btn-reset {
+        // Hereda el `color` de `.actions button`, que es el de texto sobre
+        // relleno accent. Sin fondo, ese color no se ve en ningun tema.
         background: transparent;
         border: 1px solid var(--accent-hover);
+        color: var(--fg-secondary);
         font-size: 1rem;
         padding: 0.4rem 0.5rem;
         display: flex;
@@ -53,8 +56,8 @@
         justify-content: center;
 
         &:hover {
-          border-color: white;
-          background: rgba(255, 255, 255, 0.1);
+          border-color: var(--accent);
+          background: var(--bg-tint);
         }
       }
     }
@@ -83,8 +86,8 @@
     cursor: pointer;
 
     &:hover {
-      border-color: white;
-      color: white;
+      border-color: var(--accent);
+      color: var(--fg-primary);
     }
   }
 }
@@ -92,7 +95,7 @@
 .inline-form {
   display: flex;
   gap: 0.5rem;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--bg-sunken);
   padding: 1rem;
   border-radius: 8px;
   margin-bottom: 1rem;
@@ -107,7 +110,7 @@
 
   button {
     background: var(--accent);
-    color: white;
+    color: var(--fg-on-accent);
     border: none;
     padding: 0.5rem 1rem;
     border-radius: 4px;
@@ -125,14 +128,14 @@
 }
 
 .group {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--bg-sunken);
   padding: 1rem;
   border-radius: 8px;
 
   h3 {
     margin-top: 0;
     margin-bottom: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--border-subtle);
     padding-bottom: 0.5rem;
   }
 }
@@ -141,7 +144,7 @@
   display: flex;
   flex-direction: column;
   padding: 0.6rem 0.8rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-subtle);
   gap: 0.3rem;
 
   &:last-child {
@@ -191,7 +194,7 @@
   .quantity-edit-input {
     background: transparent;
     border: none;
-    border-bottom: 1px dashed rgba(255, 255, 255, 0.3);
+    border-bottom: 1px dashed var(--border-strong);
     color: var(--fg-secondary);
     font-weight: bold;
     text-align: right;
@@ -203,7 +206,7 @@
       outline: none;
       border-bottom-style: solid;
       border-bottom-color: var(--accent);
-      color: white;
+      color: var(--fg-primary);
     }
   }
 
@@ -271,10 +274,10 @@
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    background: rgba(100, 181, 100, 0.25);
-    border: 1px solid rgba(100, 181, 100, 0.5);
+    background: var(--success-muted);
+    border: 1px solid var(--success);
     border-radius: 10px;
-    color: #a5d6a7;
+    color: var(--success);
     font-size: 0.7rem;
     padding: 0.2rem 0.5rem;
     text-align: center;
@@ -310,7 +313,7 @@
   }
 
   .btn-subtract-pantry:not(:disabled) {
-    color: #ef9a9a;
+    color: var(--danger);
   }
 
   /* Ajustes para Móvil */
@@ -403,7 +406,7 @@
 
 .extra-management {
   margin-top: 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--border-subtle);
   padding-top: 1rem;
 
   h3 {
@@ -429,7 +432,7 @@
     button {
       background: none;
       border: none;
-      color: #ff5252;
+      color: var(--danger);
       cursor: pointer;
       padding: 0;
       font-weight: bold;
@@ -439,7 +442,7 @@
 
 .empty {
   text-align: center;
-  color: #ccc;
+  color: var(--fg-muted);
   padding: 2rem;
 }
 

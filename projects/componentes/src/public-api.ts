@@ -24,5 +24,8 @@ export * from './lib/dialogo/dialogo';
 export * from './lib/footer/footer';
 // Icon
 export * from './lib/icon/icon';
+// Tema
+export * from './lib/tema/tema.service';
+export * from './lib/tema/tema-toggle';
 // Version
 export * from './lib/version';

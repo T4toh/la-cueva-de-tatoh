@@ -12,7 +12,7 @@ import { filter } from 'rxjs';
 import { Capacitor } from '@capacitor/core';
 import { UpdateService } from './services/update.service';
 import { AuthService } from './services/auth.service';
-import { Dialogo, Footer, Icon } from 'componentes';
+import { Dialogo, Footer, Icon, TemaService } from 'componentes';
 import { DialogService } from './services/dialog.service';
 
 @Component({
@@ -27,6 +27,11 @@ export class AppComponent implements OnInit, AfterViewInit {
   updateService = inject(UpdateService);
   authService = inject(AuthService);
   dialogService = inject(DialogService);
+  // El TemaService tiene que existir desde el arranque, no cuando monta el
+  // toggle: es el que aplica la elección guardada y el que pinta el
+  // theme-color. En comidas el toggle vive sólo en /settings, así que sin esto
+  // el servicio no corría hasta entrar ahí.
+  private readonly tema = inject(TemaService);
   private router = inject(Router);
   isAndroid = Capacitor.getPlatform() === 'android';
 

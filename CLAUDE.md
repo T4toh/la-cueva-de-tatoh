@@ -116,6 +116,37 @@ The flat config at `eslint.config.js` is strict and enforced. Code must pass `pn
 
 `tsconfig.json` is also strict: `strict`, `noImplicitOverride`, `noPropertyAccessFromIndexSignature`, `noImplicitReturns`, `noFallthroughCasesInSwitch`, plus Angular's `strictTemplates` and `strictInputAccessModifiers`.
 
+## Tema (claro / oscuro)
+
+Los tokens de color, tipografía y layout viven en un solo lugar:
+`projects/componentes/src/styles/_tema.scss`. Los dos apps lo consumen con
+`@use 'tema';` en la primera línea de su `styles.scss`, resuelto por el
+`stylePreprocessorOptions.includePaths` de `angular.json` — que apunta al
+**source** de la librería, no a `dist/componentes`. Es a propósito: son custom
+properties de CSS, no pasan por `public-api.ts`, y leerlas de `dist` obligaría
+a un `ng build componentes` en cada retoque de un color.
+
+Tres estados, y el CSS los resuelve por orden de aparición (misma
+especificidad): sin `data-tema` en el `<html>` manda `prefers-color-scheme`;
+`data-tema="claro"` / `"oscuro"` es la elección explícita y gana.
+
+`TemaService` (exportado desde `componentes`) es el dueño del atributo y de la
+clave `tema` de `localStorage`. Está inyectado en el `App` de las dos apps a
+propósito: si sólo lo inyectara el toggle, en comidas no correría hasta entrar
+a `/settings`. La misma clave la lee un script inline en los dos `index.html`,
+antes del primer paint — sin él, la elección explícita parpadea mientras
+arranca Angular. Si cambia la clave, cambia en los dos lados.
+
+El `theme-color` de comidas lo escribe el servicio leyendo el `--bg-surface` ya
+resuelto. No se puede resolver con dos `<meta>` y `media`: el transform del
+`index.html` colapsa los duplicados por `name` y descarta el `media`.
+
+Colores nuevos: usar los tokens, nunca un hex ni un `rgba(255,255,255,…)`
+suelto — un tinte blanco sobre papel no se ve. Hay dos familias de superficie:
+`--bg-sunken-*` (siempre más oscuro que la superficie) y `--bg-tint-*` (realce
+que sigue al tema). Lo que está dentro de un `@media print` se queda en blanco
+y negro, que el papel no tiene tema.
+
 ## Adding shared code
 
 Anything reusable across `perfil-personal` and `comidas` belongs in `componentes` and must be re-exported from `projects/componentes/src/public-api.ts`. App-specific logic stays in the app. Don't duplicate.

@@ -1,0 +1,24 @@
+.tema-toggle {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--fg-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  padding: 0.35rem;
+  transition: background-color 0.2s ease, border-color 0.2s ease,
+    color 0.2s ease;
+
+  &:hover {
+    background: var(--accent-muted);
+    border-color: var(--accent);
+    color: var(--fg-primary);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+}

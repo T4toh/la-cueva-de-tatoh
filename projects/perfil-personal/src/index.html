@@ -4,6 +4,20 @@
     <meta charset="utf-8" />
     <title>Ignacio Martín Arano</title>
     <base href="/" />
+    <!-- Antes del primer paint: si el usuario eligió un tema explícito, hay
+         que aplicarlo ya. Sin esto se ve el tema del sistema hasta que arranca
+         Angular y el TemaService escribe el atributo. La clave de localStorage
+         la comparte con `componentes/src/lib/tema/tema.service.ts`. -->
+    <script>
+      try {
+        var tema = localStorage.getItem('tema');
+        if (tema === 'claro' || tema === 'oscuro') {
+          document.documentElement.dataset.tema = tema;
+        }
+      } catch (e) {
+        // Modo privado o storage bloqueado: manda el prefers-color-scheme.
+      }
+    </script>
     <meta content="width=device-width, initial-scale=1" name="viewport" />
     <link href="LSK-A.jpg" rel="icon" type="image/x-icon" />
 
