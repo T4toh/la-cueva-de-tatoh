@@ -77,7 +77,16 @@ describe('generarIdPublico', () => {
     // Sin el tope, esto colgaría. Con el tope, tira un error inmediato.
     const bytes = (): Uint8Array => new Uint8Array([255, 255, 255, 255]);
     expect(() => generarIdPublico(bytes)).toThrow(
-      /rechazo masivo de bytes/
+      /rechazo masivo/
+    );
+  });
+
+  it('tira error si recibe arrays vacíos', { timeout: 1000 }, () => {
+    // Devolver arrays vacíos no suma bytes, así que sin el tope de iteraciones
+    // el loop giraría para siempre. Con el tope, tira un error.
+    const bytes = (): Uint8Array => new Uint8Array([]);
+    expect(() => generarIdPublico(bytes)).toThrow(
+      /rechazo masivo/
     );
   });
 });
