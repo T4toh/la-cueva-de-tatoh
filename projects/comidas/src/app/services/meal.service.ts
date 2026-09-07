@@ -384,19 +384,27 @@ export class MealService {
     }
   }
 
+  // Única fuente de la huella: la usan tanto la siembra de `compartirMeal`
+  // como esta sincronización. Si cada lado la calculara por su cuenta,
+  // bastaría con que difirieran en un campo para que nunca coincidan y la
+  // reescritura de más vuelva.
+  private huellaPublicada(meal: Meal, alias: string): string {
+    return JSON.stringify([
+      meal.name,
+      meal.description,
+      meal.ingredients,
+      meal.pasos,
+      alias,
+    ]);
+  }
+
   private sincronizarPublicadas(meals: Meal[]): void {
     const alias = this.alias();
     for (const meal of meals) {
       if (!meal.publicId) {
         continue;
       }
-      const huella = JSON.stringify([
-        meal.name,
-        meal.description,
-        meal.ingredients,
-        meal.pasos,
-        alias,
-      ]);
+      const huella = this.huellaPublicada(meal, alias);
       if (this.espejo.get(meal.publicId) === huella) {
         continue;
       }
@@ -844,6 +852,35 @@ export class MealService {
       }
       return newSchedules;
     });
+  }
+
+  // Publica la receta si todavía no tiene link, o devuelve el que ya tiene.
+  // Sembrar la huella acá, antes del updateMeal que guarda el publicId, es lo
+  // que evita que el effect de `meals` reescriba de entrada el documento que
+  // se acaba de crear (no encontraría huella y lo tomaría por desactualizado).
+  async compartirMeal(mealId: string): Promise<string> {
+    const meal = this.getMeal(mealId);
+    if (!meal) {
+      throw new Error('La comida no existe.');
+    }
+    if (meal.publicId) {
+      return meal.publicId;
+    }
+    const alias = this.alias();
+    const publicId = await this.recetasPublicas.publicar(meal, alias);
+    this.espejo.set(publicId, this.huellaPublicada(meal, alias));
+    this.updateMeal(mealId, { publicId });
+    return publicId;
+  }
+
+  async dejarDeCompartirMeal(mealId: string): Promise<void> {
+    const meal = this.getMeal(mealId);
+    if (!meal?.publicId) {
+      return;
+    }
+    await this.recetasPublicas.despublicar(meal.publicId);
+    this.espejo.delete(meal.publicId);
+    this.updateMeal(mealId, { publicId: undefined });
   }
 
   duplicateMeal(id: string): void {

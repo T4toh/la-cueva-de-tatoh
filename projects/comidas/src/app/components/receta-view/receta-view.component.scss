@@ -33,3 +33,10 @@
   display: inline-block;
   text-decoration: none;
 }
+
+.compartir {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
