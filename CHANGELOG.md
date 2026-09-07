@@ -7,6 +7,42 @@ Todos los cambios notables a este proyecto se documentan en este archivo. El for
 ### Added
 
 #### Comidas
+- **Modo claro.** El toggle es la última tab del nav y cicla sistema / claro / oscuro; el `title` dice en cuál está. Arranca siguiendo al sistema y sólo guarda la elección si la tocás.
+
+#### Perfil Personal
+- **Modo claro.** El toggle va en la fila de logos del navigator, arriba a la derecha. Mismos tres estados.
+
+#### Componentes
+- **`_tema.scss`** (`projects/componentes/src/styles/`), con los tokens de color, tipografía y layout que hasta ahora estaban copiados byte a byte en los dos `styles.scss`: cambiar una paleta había que hacerlo dos veces. Los apps lo consumen con `@use 'tema';` vía el `stylePreprocessorOptions.includePaths` de `angular.json`, apuntado al *source* de la librería y no a `dist/componentes` — son custom properties, no pasan por `public-api.ts`, y leerlas de `dist` obligaría a un `ng build componentes` en cada retoque de un color.
+- **`TemaService`**, dueño del `data-tema` del `<html>` y de la clave `tema` de `localStorage`. Expone `icono()` y `etiqueta()` para que cada app dibuje su propio botón: un componente de la librería no puede heredar el layout del nav que lo contiene, porque sus estilos están encapsulados, y abajo de 600px las tabs de comidas pasan a icono-sobre-texto. Lo compartido es el servicio.
+- Iconos `sun`, `moon` y `monitor` en `lib-icon`.
+
+### Changed
+
+#### Perfil Personal, Comidas y Componentes
+- **Unos 90 colores escritos a mano en los componentes pasan a tokens.** Los 34 `rgba(255, 255, 255, …)` eran el problema de fondo: un tinte blanco sobre papel no se ve. Hay dos familias de superficie, porque comidas venía usando las dos direcciones para el mismo trabajo: `--bg-sunken-*` es siempre más oscuro que la superficie y `--bg-tint-*` es un realce que sigue al tema. Están separadas para que el tema oscuro conserve los valores que ya tenía.
+- **El texto sobre un relleno `--accent` pasa de `white` a `--fg-on-accent`**, o sea de blanco a casi negro en *Copiar*, *Imprimir*, *Exportar* y *+Comida*. Es lo que ya hacía el `.btn-primary` global, y de paso el contraste sube de 3,1:1 a 5,9:1 — estaba abajo del mínimo.
+- Lo que vive dentro de un `@media print` queda en blanco y negro: el papel no tiene tema.
+
+#### Comidas
+- **El `theme-color` lo escribe `TemaService`**, leyendo el `--bg-surface` ya resuelto por el CSS. No alcanza con dos `<meta>` y `media`: el transform del `index.html` colapsa los duplicados por `name` y descarta el atributo, así que del build salía uno solo y siempre oscuro.
+- El panel *Apariencia* de `/settings` se fue: el toggle vive en el nav, que se ve desde cualquier pantalla.
+
+### Fixed
+
+#### Perfil Personal y Comidas
+- **Botones ilegibles en claro.** `background: var(--accent-strong)` con `color: var(--fg-primary)` andaba en oscuro de casualidad —ahí `--fg-primary` es casi blanco— y en claro dejaba texto casi negro sobre violeta oscuro. Estaba en seis lugares: *Descargar QR*, *Descargar APK* / *Ver en GitHub*, *Leer en Amazon* de los posts, el `lib-boton` de la librería, el generador de QR de la librería y *Restar carrito* de la despensa. Va un token nuevo `--fg-on-accent-strong` en vez de reusar `--fg-on-accent`: sobre `--accent-strong`, que es de tono medio en los dos temas, el texto tiene que ser claro, así que el tema oscuro de esos botones queda igual que antes.
+
+#### Comidas
+- El botón de recargar cantidades de la lista de compras heredaba el color de "texto sobre relleno accent" pero se pisaba el fondo con `transparent`: el icono no se veía en ningún tema.
+- **El párrafo de "no hay comidas guardadas" se partía en pedazos repartidos entre columnas.** Vive dentro de `.grid`, que es multicolumna; le faltaba `column-span: all`. No tiene que ver con el tema, pero en claro salta a la vista.
+
+#### Perfil Personal
+- Los chips de *Intereses* del sidebar salían sin color. `INTERESES` ya traía `color` y `textColor` para los trece en `variables.ts`, y el template los descartaba.
+
+### Added
+
+#### Comidas
 - **Multiplicador de porciones en la ficha de receta.** ×1, ×2 y ×3 reescalan los ingredientes al mostrarlos; no se guarda nada, las cantidades siguen almacenadas por porción igual que para la lista de compras.
 - **Modo cocina.** Un paso por pantalla con texto grande y botones anchos, pensado para el teléfono apoyado y las manos ocupadas. El último paso sale del modo en vez de dejar una pantalla sin salida.
 - **Copiar la receta como markdown.** Deja título, ingredientes y pasos en el portapapeles, listos para pegar como post del blog: el `#` del título es el que `post-view` usa como encabezado.
