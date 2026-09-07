@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ensureMealIds,
+  huellaPublicada,
   limpiarPasos,
   multiplyQuantity,
   normalizeQuantityToNumeric,
@@ -36,6 +37,33 @@ describe('ensureMealIds', () => {
 
     expect(r).toBe(meal);
     expect(r.id).toBe('keep');
+  });
+});
+
+describe('huellaPublicada', () => {
+  it('no cambia si a la comida se le agrega publicId', () => {
+    // La siembra de compartirMeal calcula la huella ANTES de guardar el
+    // publicId; si el campo entrara a la huella, sembrar y sincronizar
+    // calcularían valores distintos y la reescritura de más volvería.
+    const meal: Meal = {
+      id: 'm',
+      name: 'Milanesa',
+      description: 'La de siempre',
+      ingredients: [{ name: 'Carne', quantity: '2' }],
+      pasos: [{ texto: 'Freír' }],
+    };
+    const conPublicId: Meal = { ...meal, publicId: 'abc12345' };
+
+    expect(huellaPublicada(conPublicId, 'Tatoh')).toBe(
+      huellaPublicada(meal, 'Tatoh')
+    );
+  });
+
+  it('cambia si cambia el alias', () => {
+    const meal: Meal = { id: 'm', name: 'Arroz', ingredients: [] };
+    expect(huellaPublicada(meal, 'Tatoh')).not.toBe(
+      huellaPublicada(meal, 'Otro')
+    );
   });
 });
 

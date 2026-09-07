@@ -139,6 +139,21 @@ export function ensureMealIds(meals: Meal[], genId: () => string): Meal[] {
   return meals.map((m) => (m.id ? m : { ...m, id: genId() }));
 }
 
+// Única fuente de la huella: la usan tanto la siembra de `compartirMeal` como
+// `sincronizarPublicadas`. Deliberadamente no incluye `publicId`: agregar el
+// campo que la siembra acaba de escribir cambiaría la huella justo después de
+// sembrarla, y la reescritura de más volvería. El test de
+// "no cambia si se le agrega publicId" es lo que avisa si esto se rompe.
+export function huellaPublicada(meal: Meal, alias: string): string {
+  return JSON.stringify([
+    meal.name,
+    meal.description,
+    meal.ingredients,
+    meal.pasos,
+    alias,
+  ]);
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -384,18 +399,8 @@ export class MealService {
     }
   }
 
-  // Única fuente de la huella: la usan tanto la siembra de `compartirMeal`
-  // como esta sincronización. Si cada lado la calculara por su cuenta,
-  // bastaría con que difirieran en un campo para que nunca coincidan y la
-  // reescritura de más vuelva.
   private huellaPublicada(meal: Meal, alias: string): string {
-    return JSON.stringify([
-      meal.name,
-      meal.description,
-      meal.ingredients,
-      meal.pasos,
-      alias,
-    ]);
+    return huellaPublicada(meal, alias);
   }
 
   private sincronizarPublicadas(meals: Meal[]): void {

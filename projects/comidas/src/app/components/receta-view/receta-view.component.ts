@@ -16,7 +16,7 @@ import { RecetaDetalleComponent } from '../receta-detalle/receta-detalle.compone
 })
 export class RecetaViewComponent {
   private readonly route = inject(ActivatedRoute);
-  protected readonly mealService = inject(MealService);
+  private readonly mealService = inject(MealService);
   private readonly dialogService = inject(DialogService);
 
   readonly mealId = this.route.snapshot.paramMap.get('id') ?? '';
@@ -51,10 +51,7 @@ export class RecetaViewComponent {
       await this.mealService.compartirMeal(this.mealId);
     } catch (e) {
       console.error('Error publicando la receta:', e);
-      this.dialogService.alert(
-        'No se pudo compartir',
-        'Probá de nuevo en un momento.'
-      );
+      this.dialogService.alert('No se pudo compartir', this.mensajeError(e));
     } finally {
       this.publicando.set(false);
     }
@@ -67,14 +64,27 @@ export class RecetaViewComponent {
       console.error('Error dejando de compartir la receta:', e);
       this.dialogService.alert(
         'No se pudo dejar de compartir',
-        'Probá de nuevo en un momento.'
+        this.mensajeError(e)
       );
     }
   }
 
   async copiar(): Promise<void> {
-    await navigator.clipboard.writeText(this.linkPublico());
-    this.copiado.set(true);
-    setTimeout(() => this.copiado.set(false), 2000);
+    const link = this.linkPublico();
+    try {
+      await navigator.clipboard.writeText(link);
+      this.copiado.set(true);
+      setTimeout(() => this.copiado.set(false), 2000);
+    } catch (e) {
+      console.error('Error copiando el link:', e);
+      this.dialogService.alert('No se pudo copiar', `Copialo a mano: ${link}`);
+    }
+  }
+
+  // `navigator.clipboard` puede ni existir (origen inseguro) y `writeText`
+  // puede rechazar (sin foco, permiso denegado): ambos casos entran acá igual
+  // que un error propio del servicio, así el usuario nunca se queda sin aviso.
+  private mensajeError(e: unknown): string {
+    return e instanceof Error ? e.message : 'Probá de nuevo en un momento.';
   }
 }
