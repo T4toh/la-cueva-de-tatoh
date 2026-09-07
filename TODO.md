@@ -51,6 +51,26 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
         borrado en cascada. Bloqueada por el alta de Blaze (necesita tarjeta), y
         es la única que puede generar factura.
 
+- [ ] **Receta pública por link.** Compartir una receta sin que el otro tenga
+      cuenta. Falta definir la forma de la URL (¿`/receta/<uid>/<idReceta>`?
+      ¿un token propio, para no exponer el uid?) y la regla de Firestore que lo
+      habilite: hoy `firestore.rules` sólo deja leer al dueño de `users/{uid}`,
+      así que cualquier lectura anónima necesita una regla nueva y explícita.
+      Se apoya en la ficha `/meals/:id` que ya existe.
+
+- [ ] **Modo claro**, en comidas y en el blog. Los tokens de color ya están
+      todos en `:root` (`projects/comidas/src/styles.scss` y
+      `projects/perfil-personal/src/styles.scss`), así que es redefinirlos bajo
+      `prefers-color-scheme` más un toggle que persista la elección.
+
+- [ ] **Configurador del landing.** Hoy el orden de las secciones está escrito
+      a mano en `projects/perfil-personal/src/app/componentes/landing/landing.html`.
+      Lo mínimo es subir los libros; lo bueno sería reordenar los bloques sin
+      tocar el template. Ojo dónde vive esa configuración: perfil-personal se
+      prerenderiza, así que si el orden sale de una base en runtime el
+      prerender no lo ve y se rompen los `og:`. Tiene que resolverse en build
+      (una lista en `src/variables.ts`, o un JSON commiteado).
+
 ## Deuda técnica declarada
 
 Cada una está marcada en el código con un comentario `ponytail:` que nombra el
@@ -61,3 +81,4 @@ techo y el camino de salida.
 | `projects/comidas/src/app/services/update.service.ts:19` | `mismoCodigo` compara sólo los subrecursos cargados: un cambio que toque únicamente el `index.html` (un meta, el title) pasa como "sin cambios". Salida: hashear también `/index.html`. |
 | `projects/perfil-personal/src/app/componentes/galeria-libros/galeria-libros.scss:30` | El landing y `/libros` comparten el carrusel. Con más libros, la página propia va a querer grilla vertical. Salida: separar las dos presentaciones. |
 | `projects/perfil-personal/src/app/app.ts:96` | El scroll restaurado usa el alto que la ruta tenía al salir. Volver a un post largo antes de que baje el markdown deja el scroll corto. |
+| `projects/comidas/src/app/components/meal-card/meal-card.component.scss:66` | La lista de ingredientes de la tarjeta corta a las 16rem y de ahí scrollea, para que una receta de veinte ingredientes no haga una tarjeta interminable. Salida: mostrar los primeros N con un "ver todos". |
