@@ -6,7 +6,7 @@ const DOCUMENTOS =
   `https://firestore.googleapis.com/v1/projects/${PROYECTO}` +
   '/databases/(default)/documents/recetasPublicas';
 const IMAGEN = 'https://comidas.tatoh.ar/icon.png';
-const ID_VALIDO = /^[a-z0-9]{8}$/;
+export const ID_VALIDO = /^[a-z0-9]{8}$/;
 
 const CAMPOS = {
   'og:title': 'titulo',
@@ -19,12 +19,10 @@ const texto = (campo) => (campo && campo.stringValue) || '';
 const largo = (campo) =>
   ((campo && campo.arrayValue && campo.arrayValue.values) || []).length;
 
-async function leerReceta(id) {
-  const respuesta = await fetch(`${DOCUMENTOS}/${id}`);
-  if (!respuesta.ok) {
-    return null;
-  }
-  const { fields } = await respuesta.json();
+// La forma REST de Firestore (`{ stringValue }`, `{ arrayValue: { values } }`)
+// es un contrato externo: si cambia, sin esto se leería como una receta de
+// cero ingredientes en vez de fallar.
+export function normalizar(fields) {
   if (!fields) {
     return null;
   }
@@ -37,7 +35,16 @@ async function leerReceta(id) {
   };
 }
 
-function describir(receta) {
+async function leerReceta(id) {
+  const respuesta = await fetch(`${DOCUMENTOS}/${id}`);
+  if (!respuesta.ok) {
+    return null;
+  }
+  const { fields } = await respuesta.json();
+  return normalizar(fields);
+}
+
+export function describir(receta) {
   // `descripcion` es texto sin confirmar de cualquier usuario autenticado
   // (firestore.rules valida quién escribe, no qué escribe), y documentos
   // publicados antes de este fix pueden traer sólo espacios en blanco.
@@ -53,9 +60,12 @@ function describir(receta) {
   return receta.alias ? `Receta de ${receta.alias} · ${cuerpo}` : cuerpo;
 }
 
-// ponytail: sin test automático — no hay runner de Workers y agregarlo es una
-// dependencia nueva. Se verifica a mano con `wrangler dev` y un curl con
-// user-agent de crawler. Salida: vitest-pool-workers si esto crece.
+// ponytail: el `fetch` de acá abajo no tiene test — `HTMLRewriter` y el
+// binding `ASSETS` no existen fuera del runtime de Workers, y traerlos es una
+// dependencia nueva. La lógica pura (`ID_VALIDO`, `normalizar`, `describir`)
+// sí está cubierta en `src/app/worker-og.spec.ts`; el rewrite se verifica a
+// mano con `wrangler dev` y un curl con user-agent de crawler. Salida:
+// vitest-pool-workers si esto crece.
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
