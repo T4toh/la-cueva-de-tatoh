@@ -79,11 +79,27 @@
 
 .card-footer {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
   gap: 0.5rem;
   padding-top: 0.8rem;
   margin-top: 0.5rem;
   border-top: 1px solid var(--border-subtle);
+}
+
+// `margin-left: auto` en vez de `justify-content` en el padre: así, con o sin
+// el indicador de compartida (el otro hijo posible de `.card-footer`), los
+// botones quedan siempre pegados a la derecha.
+.card-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.badge-compartida {
+  display: inline-flex;
+  align-items: center;
+  color: var(--fg-secondary);
 }
 
 .btn-icon {

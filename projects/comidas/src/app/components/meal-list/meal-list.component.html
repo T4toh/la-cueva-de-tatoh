@@ -13,10 +13,12 @@
     @for (meal of mealService.meals(); track meal.id) {
       <app-meal-card
         [meal]="meal"
+        [showCompartir]="true"
         [showDelete]="true"
         [showDuplicate]="true"
         [showEdit]="true"
         (cardClick)="editMeal(meal.id)"
+        (compartir)="compartirMeal($event)"
         (delete)="deleteMeal($event)"
         (duplicate)="duplicateMeal($event)"
         (edit)="editMeal($event)"
