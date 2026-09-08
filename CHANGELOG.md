@@ -4,6 +4,41 @@ Todos los cambios notables a este proyecto se documentan en este archivo. El for
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-09-08
+
+Compartir una receta por link: un documento público por receta, una ficha que se abre sin cuenta, y un Worker que le pone `og:` a cada link antes de que lo lea el crawler.
+
+### Added
+
+#### Comidas
+
+- **Compartir una receta por link.** Publicar copia la receta a `recetasPublicas/{id}` con un id generado al azar: la llave es el id del documento, así que entra quien tiene el link y no hay forma de enumerar el resto. El link queda `/r/<nick>/<slug>/<id>` —el nick y el nombre son decorativos, el id es el que manda— y son dos rutas y no una con comodín, que difieren en cantidad de segmentos y no se pisan. Despublicar borra el documento; editar una receta publicada sincroniza la copia.
+- **Se comparte desde la ficha y desde el listado.** `CompartirService` es el dueño del flujo entero —armar el link, confirmar, mostrar el diálogo, copiar al portapapeles, los mensajes de error— y las dos pantallas lo llaman. `meal-card` suma el indicador de *compartida por link* y un botón opcional `showCompartir` (default `false`, así el dashboard y el selector quedan como estaban) que `meal-list` prende.
+- **Alias del autor** en Ajustes, para firmar las recetas compartidas. Se propaga a las que ya estaban publicadas.
+- **Ficha pública sin cuenta** en `/r/...`: `receta-publica-view` lee el documento público y reusa `receta-detalle`, que pasa a recibir un input de sólo lectura. Sin nav, sin *Editar*, sin *Escribirlos*: hasta ahora ofrecía las dos cosas sin condición, o sea le proponía a un desconocido editar una receta ajena.
+- **`og:` por receta, con un Worker en `/r/*`** (`projects/comidas/worker/index.js`). Comidas deja de ser sólo assets estáticos: `wrangler.jsonc` gana `main` y `run_worker_first: ["/r/*"]`, porque sin eso el handler de assets contesta esos paths con el `index.html` antes de que el script llegue a correr. El Worker pide el shell por el binding `ASSETS`, lee la receta y reescribe título, descripción, imagen y url. `index.html` trae ahora un juego de `og:` por defecto como piso para cualquier otro link de la app.
+- **Regla de Firestore para `recetasPublicas`**: `get: if true` y `list: if false` —`read` incluye `list`, y con eso cualquiera pedía la colección entera y enumeraba las recetas compartidas de todos—, create/update/delete sólo del `ownerUid`, y `ownerUid` inmutable en el update: la propiedad no se transfiere.
+- Tests de la publicación (`receta-publica.spec.ts`, `compartir.service.spec.ts`) y de la duplicación de comidas (`meal.service.spec.ts`), incluido uno de forma exhaustiva que falla si `Meal` gana un campo y la proyección de copia no se actualiza.
+- `docs/hosting-imagenes.md`, con la investigación de Cloudflare R2 que desbloquea la fase 4 del recetario (fotos por paso).
+
+### Fixed
+
+#### Comidas
+
+- **La ficha pública no confía en lo que escribe el usuario.** Las reglas validan `ownerUid` —quién escribe— pero no qué escribe, así que todo campo de un documento público es texto libre de cualquier usuario autenticado. La ruta se rearma con `rutaPublica`, que pasa todo por `slug()`, en vez de leer el campo `ruta`: sin eso se podía publicar una receta cuyo link mostrara `/settings` en la barra de direcciones. El `og:url` sale de la URL que pidió el crawler, la única que el Worker sabe cierta, y los pasos se proyectan uno por uno igual que los ingredientes.
+- **Toda receta previsualizaba como la app.** El Worker pedía `/index.html` y, con `auto-trailing-slash`, el binding contesta ese path con un 307 a `/` que se propagaba sin reescribir nada. Pide `/`, y de paso borra el `ETag` del shell, que quedaba pegado a cuerpos distintos.
+- **`duplicateMeal` perdía los pasos y el `includeInShoppingList`.** La copia se armaba con una lista explícita de campos que quedó vieja cuando `Meal` creció: duplicar descartaba en silencio lo que se había escrito. La proyección sale a `copiaParaDuplicar`, que excluye `publicId` a propósito.
+- **`deleteMeal` espera a despublicar y no borra la comida si falla.** `publicId` es el único puntero al documento público y con `allow list: if false` un huérfano sólo se limpia desde la consola de Firebase. Ahora el usuario se entera por diálogo.
+- Una descripción de sólo espacios pisaba el fallback de la receta pública. `aRecetaPublica` la trimea y la descarta si queda vacía, igual que ya hacía con el alias, y el Worker trata como ausente la que ya esté guardada sucia.
+- El alias commitea en `(change)` y no en `(input)`: cada tecla disparaba un `setDoc` de `users/{uid}` más uno por receta publicada.
+- `generarIdPublico` tiene tope de bytes y cuenta iteraciones, así que un array vacío no lo deja en un loop infinito.
+- Sin parpadeo del nav al entrar por `/r/...`, y el layout del campo de alias en Ajustes.
+- Las acciones del diálogo de compartir se quedan sin icono: `lib-boton` renderiza `icono` como un `<img [src]>`, así que un nombre de la grilla daba una imagen rota al lado del texto.
+
+#### Componentes
+
+- `lib-boton.icono` queda marcado con un `ponytail:`: el tipo es `string` y acepta tanto una URL como un nombre de `lib-icon`, sin nada que los distinga. Arreglarlo rompe la superficie pública de la librería, así que por ahora es deuda anotada en `TODO.md`, junto a los cuatro caminos que reemplazan `meals` entero y pueden dejar un `publicId` huérfano.
+
 ## [1.6.0] - 2026-09-07
 
 El catálogo de la librería en `/componentes`, con una ficha por widget, y el service worker del blog que nunca había servido una navegación.
