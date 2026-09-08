@@ -48,3 +48,6 @@ Thumbs.db
 
 # Playwright MCP output
 .playwright-mcp/
+
+# Estado y temporales de wrangler dev
+.wrangler/
