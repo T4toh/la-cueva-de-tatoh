@@ -184,6 +184,13 @@ export class MealService {
   // Lo último que se escribió por cada receta publicada. Sin esto, cada
   // tecleo en cualquier comida reescribiría todas las publicadas.
   private readonly espejo = new Map<string, string>();
+  // ponytail: cuatro lugares pisan `meals` entero y pueden borrar un
+  // `publicId` sin despublicarlo — el mismo huérfano que `deleteMeal` ya
+  // evita: la descarga de `syncFromFirestore` (meal.service.ts:505), el
+  // merge de `importMeals` (:1687), el de `applyImportedMeals` (:1770) y el
+  // de `importData` (:1840). Salida: comparar los `publicId` de antes y de
+  // después del reemplazo contra este mapa, y despublicar los que
+  // desaparecieron.
 
   private readonly MEALS_KEY = 'comidas_meals';
   private readonly SCHEDULES_KEY = 'comidas_schedules';
