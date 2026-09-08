@@ -16,13 +16,16 @@ export class MealCardComponent {
   readonly showDelete = input<boolean>(false);
   readonly showEdit = input<boolean>(false);
   readonly showDuplicate = input<boolean>(false);
+  readonly showCompartir = input<boolean>(false);
   readonly delete = output<string>();
   readonly edit = output<string>();
   readonly duplicate = output<string>();
   readonly verReceta = output<string>();
   readonly cardClick = output<void>();
+  readonly compartir = output<string>();
 
   readonly esReceta = computed(() => tieneReceta(this.meal()));
+  readonly esCompartida = computed(() => !!this.meal().publicId);
 
   onDelete(event: Event): void {
     event.stopPropagation();
@@ -42,6 +45,11 @@ export class MealCardComponent {
   onVerReceta(event: Event): void {
     event.stopPropagation();
     this.verReceta.emit(this.meal().id);
+  }
+
+  onCompartir(event: Event): void {
+    event.stopPropagation();
+    this.compartir.emit(this.meal().id);
   }
 
   onCardClick(): void {

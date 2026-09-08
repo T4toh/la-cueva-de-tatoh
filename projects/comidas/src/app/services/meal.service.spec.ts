@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  copiaParaDuplicar,
   ensureMealIds,
+  huellaPublicada,
   limpiarPasos,
   multiplyQuantity,
   normalizeQuantityToNumeric,
@@ -36,6 +38,78 @@ describe('ensureMealIds', () => {
 
     expect(r).toBe(meal);
     expect(r.id).toBe('keep');
+  });
+});
+
+describe('huellaPublicada', () => {
+  it('no cambia si a la comida se le agrega publicId', () => {
+    // La siembra de compartirMeal calcula la huella ANTES de guardar el
+    // publicId; si el campo entrara a la huella, sembrar y sincronizar
+    // calcularían valores distintos y la reescritura de más volvería.
+    const meal: Meal = {
+      id: 'm',
+      name: 'Milanesa',
+      description: 'La de siempre',
+      ingredients: [{ name: 'Carne', quantity: '2' }],
+      pasos: [{ texto: 'Freír' }],
+    };
+    const conPublicId: Meal = { ...meal, publicId: 'abc12345' };
+
+    expect(huellaPublicada(conPublicId, 'Tatoh')).toBe(
+      huellaPublicada(meal, 'Tatoh')
+    );
+  });
+
+  it('cambia si cambia el alias', () => {
+    const meal: Meal = { id: 'm', name: 'Arroz', ingredients: [] };
+    expect(huellaPublicada(meal, 'Tatoh')).not.toBe(
+      huellaPublicada(meal, 'Otro')
+    );
+  });
+});
+
+describe('copiaParaDuplicar', () => {
+  // Todos los campos de `Meal` poblados (salvo `id`, que la copia no lleva):
+  // si se agrega un campo a `Meal` y esta función no se actualiza, el
+  // `toEqual` de abajo empieza a fallar en vez de perder el dato en silencio.
+  const original: Meal = {
+    id: 'meal-1',
+    name: 'Milanesa napolitana',
+    description: 'La de siempre',
+    ingredients: [{ name: 'Carne', quantity: '2', unit: 'filetes', checked: true }],
+    tags: ['favorita'],
+    includeInShoppingList: true,
+    pasos: [{ texto: 'Freír' }, { texto: 'Napolizar' }],
+    publicId: 'k7m2xq9p',
+  };
+
+  it('copia todos los campos salvo id y publicId, con el sufijo en el nombre', () => {
+    const copia = copiaParaDuplicar(original);
+
+    expect(copia).toEqual({
+      name: 'Milanesa napolitana (Copia)',
+      description: 'La de siempre',
+      ingredients: [{ name: 'Carne', quantity: '2', unit: 'filetes', checked: true }],
+      tags: ['favorita'],
+      includeInShoppingList: true,
+      pasos: [{ texto: 'Freír' }, { texto: 'Napolizar' }],
+    });
+  });
+
+  it('no lleva publicId: la copia es una receta distinta con link propio', () => {
+    expect(copiaParaDuplicar(original)).not.toHaveProperty('publicId');
+  });
+
+  it('copia ingredients y pasos en profundidad, no por referencia', () => {
+    const copia = copiaParaDuplicar(original);
+
+    copia.ingredients[0].name = 'Pollo';
+    if (copia.pasos) {
+      copia.pasos[0].texto = 'Hervir';
+    }
+
+    expect(original.ingredients[0].name).toBe('Carne');
+    expect(original.pasos?.[0].texto).toBe('Freír');
   });
 });
 

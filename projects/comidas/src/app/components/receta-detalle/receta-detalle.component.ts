@@ -29,6 +29,10 @@ export class RecetaDetalleComponent {
   // En la ficha suelta no hay quién lo diga, y se eligen ×1 ×2 ×3 a mano.
   readonly porcionesFijas = input<number | null>(null);
 
+  // La página pública la pasa en true: un desconocido sin cuenta no es el
+  // dueño de la receta, así que las afordancias de edición no van.
+  readonly soloLectura = input(false);
+
   readonly opcionesPorciones = PORCIONES;
   readonly porcionesElegidas = signal(1);
 

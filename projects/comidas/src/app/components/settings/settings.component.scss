@@ -135,6 +135,19 @@ h1 {
   }
 }
 
+.alias {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+  max-width: 300px;
+
+  small {
+    color: var(--fg-muted);
+    font-size: 0.8rem;
+  }
+}
+
 .btn-copied {
   background-color: var(--success) !important;
   border-color: var(--success) !important;

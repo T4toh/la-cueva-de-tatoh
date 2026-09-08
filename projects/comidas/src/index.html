@@ -26,6 +26,17 @@
          con `media` no sirven: el transform del index.html colapsa los
          duplicados por `name` y descarta el atributo `media`. -->
     <meta content="#1c1d23" name="theme-color" />
+    <!-- Piso para cualquier link de la app. En /r/* el Worker reescribe el
+         `content` de estos mismos tags con los datos de la receta. -->
+    <meta content="Comidas" property="og:title" />
+    <meta
+      content="Planificador de comidas, recetas y lista de compras."
+      property="og:description"
+    />
+    <meta content="https://comidas.tatoh.ar/icon.png" property="og:image" />
+    <meta content="https://comidas.tatoh.ar/" property="og:url" />
+    <meta content="website" property="og:type" />
+    <meta content="summary_large_image" name="twitter:card" />
     <link href="icon.png" rel="icon" type="image/png" />
 
     <!-- Preconnect para optimizar carga de fuentes -->

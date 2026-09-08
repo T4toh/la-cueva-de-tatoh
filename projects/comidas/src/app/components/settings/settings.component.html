@@ -55,6 +55,18 @@
               </p>
             </div>
 
+            <label class="alias">
+              <span>Nombre para las recetas compartidas</span>
+              <input
+                maxlength="30"
+                placeholder="Sin nombre"
+                type="text"
+                [value]="mealService.alias()"
+                (change)="mealService.alias.set($any($event.target).value)"
+              />
+              <small>Aparece en el link y en la ficha. Vacío, no se muestra autor.</small>
+            </label>
+
             <button class="btn-secondary" type="button" (click)="refreshData()">
               <lib-icon name="refresh-cw" [size]="16" />
               <span>Descargar de la Nube</span>

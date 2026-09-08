@@ -4,6 +4,28 @@
       <lib-icon name="arrow-right" [size]="16" />
       Comidas
     </a>
+    <div class="compartir">
+      @if (comida.publicId) {
+        <button class="btn-secondary" type="button" (click)="copiar()">
+          <lib-icon name="copy" [size]="16" />
+          {{ copiado() ? 'Link copiado' : 'Copiar link' }}
+        </button>
+        <button class="btn-secondary" type="button" (click)="despublicar()">
+          <lib-icon name="x" [size]="16" />
+          Dejar de compartir
+        </button>
+      } @else {
+        <button
+          class="btn-secondary"
+          type="button"
+          [disabled]="publicando()"
+          (click)="publicar()"
+        >
+          <lib-icon name="external-link" [size]="16" />
+          {{ publicando() ? 'Compartiendo…' : 'Compartir' }}
+        </button>
+      }
+    </div>
   </app-receta-detalle>
 } @else {
   <div class="no-existe">

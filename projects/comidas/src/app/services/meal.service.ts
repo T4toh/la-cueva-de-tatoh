@@ -2,6 +2,7 @@ import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { doc, Firestore, getDoc, setDoc } from '@angular/fire/firestore';
 import { AuthService } from './auth.service';
 import { DialogService } from './dialog.service';
+import { RecetaPublicaService } from './receta-publica.service';
 import {
   DaySchedule,
   Dish,
@@ -138,6 +139,40 @@ export function ensureMealIds(meals: Meal[], genId: () => string): Meal[] {
   return meals.map((m) => (m.id ? m : { ...m, id: genId() }));
 }
 
+// Arma la copia de "Duplicar" campo por campo, no con un spread del original,
+// para que agregar un campo a `Meal` y olvidarse de listarlo acá falle en el
+// test en vez de perderse en silencio (así se perdieron los `pasos` de una
+// receta real). Deliberadamente NO copia `publicId`: la copia es una receta
+// distinta, y si se le llevara el publicId, compartirla o editarla
+// reescribiría el link público del original, y borrar la copia lo mataría.
+export function copiaParaDuplicar(original: Meal): Omit<Meal, 'id'> {
+  return {
+    name: `${original.name} (Copia)`,
+    ...(original.description ? { description: original.description } : {}),
+    ingredients: original.ingredients.map((i) => ({ ...i })),
+    tags: original.tags ? [...original.tags] : [],
+    ...(original.pasos ? { pasos: original.pasos.map((p) => ({ ...p })) } : {}),
+    ...(original.includeInShoppingList !== undefined
+      ? { includeInShoppingList: original.includeInShoppingList }
+      : {}),
+  };
+}
+
+// Única fuente de la huella: la usan tanto la siembra de `compartirMeal` como
+// `sincronizarPublicadas`. Deliberadamente no incluye `publicId`: agregar el
+// campo que la siembra acaba de escribir cambiaría la huella justo después de
+// sembrarla, y la reescritura de más volvería. El test de
+// "no cambia si se le agrega publicId" es lo que avisa si esto se rompe.
+export function huellaPublicada(meal: Meal, alias: string): string {
+  return JSON.stringify([
+    meal.name,
+    meal.description,
+    meal.ingredients,
+    meal.pasos,
+    alias,
+  ]);
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -145,6 +180,17 @@ export class MealService {
   private firestore = inject(Firestore);
   private authService = inject(AuthService);
   private dialogService = inject(DialogService);
+  private readonly recetasPublicas = inject(RecetaPublicaService);
+  // Lo último que se escribió por cada receta publicada. Sin esto, cada
+  // tecleo en cualquier comida reescribiría todas las publicadas.
+  private readonly espejo = new Map<string, string>();
+  // ponytail: cuatro lugares pisan `meals` entero y pueden borrar un
+  // `publicId` sin despublicarlo — el mismo huérfano que `deleteMeal` ya
+  // evita: la descarga de `syncFromFirestore` (meal.service.ts:505), el
+  // merge de `importMeals` (:1687), el de `applyImportedMeals` (:1770) y el
+  // de `importData` (:1840). Salida: comparar los `publicId` de antes y de
+  // después del reemplazo contra este mapa, y despublicar los que
+  // desaparecieron.
 
   private readonly MEALS_KEY = 'comidas_meals';
   private readonly SCHEDULES_KEY = 'comidas_schedules';
@@ -161,6 +207,8 @@ export class MealService {
   private readonly MIGRATION_NUMERIC_QTY_KEY = 'comidas_migration_numeric_qty';
   private readonly MIGRATION_DISH_FORMAT_KEY = 'comidas_migration_dish_format';
   private readonly MIGRATION_SPLIT_UNIT_KEY = 'comidas_migration_split_unit';
+  private readonly ALIAS_KEY = 'comidas_alias';
+  readonly alias = signal<string>(localStorage.getItem(this.ALIAS_KEY) ?? '');
   private scheduleMigrationOccurred = false;
   readonly migrationOccurred = signal<boolean>(false);
 
@@ -261,6 +309,7 @@ export class MealService {
       localStorage.setItem(this.MEALS_KEY, JSON.stringify(data));
       if (!this.isSyncing) {
         this.saveToFirestore('meals', data);
+        this.sincronizarPublicadas(data);
       }
     });
     effect(() => {
@@ -337,6 +386,13 @@ export class MealService {
         this.saveToFirestore('familySettings', settings);
       }
     });
+    effect(() => {
+      const data = this.alias();
+      localStorage.setItem(this.ALIAS_KEY, data);
+      if (!this.isSyncing) {
+        this.saveToFirestore('alias', data);
+      }
+    });
     this.migrateQuantitiesToNumeric();
     this.migrateQuantitiesToSplitUnit();
   }
@@ -366,6 +422,29 @@ export class MealService {
     } catch (e) {
       console.error(`Error saving ${key} to firestore:`, e);
       this.syncStatus.set('error');
+    }
+  }
+
+  private huellaPublicada(meal: Meal, alias: string): string {
+    return huellaPublicada(meal, alias);
+  }
+
+  private sincronizarPublicadas(meals: Meal[]): void {
+    const alias = this.alias();
+    for (const meal of meals) {
+      if (!meal.publicId) {
+        continue;
+      }
+      const huella = this.huellaPublicada(meal, alias);
+      if (this.espejo.get(meal.publicId) === huella) {
+        continue;
+      }
+      const publicId = meal.publicId;
+      this.espejo.set(publicId, huella);
+      this.recetasPublicas.sincronizar(meal, alias).catch((e) => {
+        this.espejo.delete(publicId);
+        console.error('Error sincronizando la receta pública:', e);
+      });
     }
   }
 
@@ -468,6 +547,7 @@ export class MealService {
           }
           this.familyPortions.set(fs.familyPortions);
         }
+        this.alias.set(data['alias'] ?? '');
         // Update local timestamp to match remote
         this.lastUpdated.set(remoteTimestamp);
         localStorage.setItem(this.LAST_UPDATED_KEY, remoteTimestamp.toString());
@@ -519,6 +599,7 @@ export class MealService {
             visibleMeals: this.visibleMeals(),
             familyPortions: this.familyPortions(),
           },
+          alias: this.alias(),
           lastUpdated: this.lastUpdated(),
         })
       );
@@ -781,7 +862,28 @@ export class MealService {
     );
   }
 
-  deleteMeal(id: string): void {
+  // La cascada va esperada y adelante del borrado local a propósito:
+  // `publicId` es el único puntero al documento público que existe en algún
+  // lado, y `allow list: if false` hace que un documento huérfano no se pueda
+  // ni enumerar —sólo se limpia desde la consola de Firebase—. Si despublicar
+  // falla, la comida se queda donde está: el puntero sobrevive para reintentar
+  // y el usuario se entera, en vez de creer que revocó un link que sigue vivo.
+  async deleteMeal(id: string): Promise<void> {
+    const publicId = this.meals().find((m) => m.id === id)?.publicId;
+    if (publicId) {
+      try {
+        await this.recetasPublicas.despublicar(publicId);
+      } catch (e) {
+        console.error('Error despublicando la receta borrada:', e);
+        this.dialogService.alert(
+          'No se pudo eliminar',
+          'La receta sigue compartida, así que no se borró. ' +
+            (e instanceof Error ? e.message : 'Probá de nuevo en un momento.')
+        );
+        return;
+      }
+      this.espejo.delete(publicId);
+    }
     this.meals.update((current) => current.filter((m) => m.id !== id));
     this.schedules.update((schedules) => {
       const newSchedules: Record<string, DaySchedule[]> = {};
@@ -797,16 +899,39 @@ export class MealService {
     });
   }
 
+  // Publica la receta si todavía no tiene link, o devuelve el que ya tiene.
+  // Sembrar la huella acá, antes del updateMeal que guarda el publicId, es lo
+  // que evita que el effect de `meals` reescriba de entrada el documento que
+  // se acaba de crear (no encontraría huella y lo tomaría por desactualizado).
+  async compartirMeal(mealId: string): Promise<string> {
+    const meal = this.getMeal(mealId);
+    if (!meal) {
+      throw new Error('La comida no existe.');
+    }
+    if (meal.publicId) {
+      return meal.publicId;
+    }
+    const alias = this.alias();
+    const publicId = await this.recetasPublicas.publicar(meal, alias);
+    this.espejo.set(publicId, this.huellaPublicada(meal, alias));
+    this.updateMeal(mealId, { publicId });
+    return publicId;
+  }
+
+  async dejarDeCompartirMeal(mealId: string): Promise<void> {
+    const meal = this.getMeal(mealId);
+    if (!meal?.publicId) {
+      return;
+    }
+    await this.recetasPublicas.despublicar(meal.publicId);
+    this.espejo.delete(meal.publicId);
+    this.updateMeal(mealId, { publicId: undefined });
+  }
+
   duplicateMeal(id: string): void {
     const original = this.getMeal(id);
     if (original) {
-      const copy: Omit<Meal, 'id'> = {
-        name: `${original.name} (Copia)`,
-        ...(original.description ? { description: original.description } : {}),
-        ingredients: original.ingredients.map((i) => ({ ...i })),
-        tags: original.tags ? [...original.tags] : [],
-      };
-      this.addMeal(copy);
+      this.addMeal(copiaParaDuplicar(original));
     }
   }
 

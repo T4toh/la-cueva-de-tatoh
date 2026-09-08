@@ -1,0 +1,22 @@
+@if (cargando()) {
+  <p class="estado">Cargando…</p>
+} @else if (meal(); as comida) {
+  <app-receta-detalle [meal]="comida" [soloLectura]="true">
+    @if (autor()) {
+      <p class="autor">Receta de {{ autor() }}</p>
+    }
+  </app-receta-detalle>
+  <a class="marca" href="/">Hecho con Comidas</a>
+} @else if (error()) {
+  <div class="estado">
+    <p>No se pudo cargar la receta. Revisá tu conexión.</p>
+    <button class="btn-secondary" type="button" (click)="reintentar()">
+      Reintentar
+    </button>
+  </div>
+} @else {
+  <div class="estado">
+    <p>Esta receta no existe o dejó de estar compartida.</p>
+    <a class="btn-secondary" href="/">Ir a Comidas</a>
+  </div>
+}

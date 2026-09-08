@@ -47,6 +47,17 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       `/utilidades`, porque `qr-code-styling` es CommonJS y con dos rutas lazy
       usándolo el bundler lo subía al bundle inicial.
 
+- [x] **Receta pública por link.** El spec está en
+      [`docs/superpowers/specs/2026-09-07-receta-publica-design.md`](docs/superpowers/specs/2026-09-07-receta-publica-design.md).
+      Publicar copia la receta a una colección nueva `recetasPublicas/{id}` de
+      lectura pública —el documento `users/{uid}` guarda todo junto, así que no
+      hay regla que abra una receta sin abrir el resto—, y el link es
+      `/r/<nick>/<receta>/<id>`, con el id de ocho caracteres haciendo de llave y
+      los otros dos segmentos decorativos: renombrar no rompe links repartidos.
+      Los `og:` los inyecta un Worker con `HTMLRewriter` que corre sólo en
+      `/r/*`: comidas ya se despliega como Worker, lo que no tenía era script.
+      La ficha reusa `receta-detalle` sin tocarla.
+
 ## En curso / pendiente
 
 - [ ] **Recetario.** Diseñado y sin implementar. El spec está en
@@ -64,16 +75,13 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
   - [x] **3. Cocinar.** Selector ×1 ×2 ×3 sobre la ficha, modo cocina de un
         paso por pantalla, y botón de copiar la receta como markdown para
         pegarla en un post.
-  - [ ] **4. Fotos.** Storage, compresión con `canvas`, reglas del bucket,
-        borrado en cascada. Bloqueada por el alta de Blaze (necesita tarjeta), y
-        es la única que puede generar factura.
-
-- [ ] **Receta pública por link.** Compartir una receta sin que el otro tenga
-      cuenta. Falta definir la forma de la URL (¿`/receta/<uid>/<idReceta>`?
-      ¿un token propio, para no exponer el uid?) y la regla de Firestore que lo
-      habilite: hoy `firestore.rules` sólo deja leer al dueño de `users/{uid}`,
-      así que cualquier lectura anónima necesita una regla nueva y explícita.
-      Se apoya en la ficha `/meals/:id` que ya existe.
+  - [ ] **4. Fotos.** Storage, compresión con `canvas`, borrado en cascada.
+        Ya no va por Firebase Storage: desde febrero de 2026 exige Blaze, y el
+        costo de las imágenes está en servirlas, no en guardarlas. El camino
+        elegido es **Cloudflare R2** —egress $0, free tier mensual— con lo que
+        Firestore y Auth se quedan en Spark. La investigación, los precios y el
+        checklist de alta están en
+        [`docs/hosting-imagenes.md`](docs/hosting-imagenes.md).
 
 - [ ] **Configurador del landing.** Hoy el orden de las secciones está escrito
       a mano en `projects/perfil-personal/src/app/componentes/landing/landing.html`.
@@ -95,3 +103,6 @@ techo y el camino de salida.
 | `projects/perfil-personal/src/app/app.ts:98` | El scroll restaurado usa el alto que la ruta tenía al salir. Volver a un post largo antes de que baje el markdown deja el scroll corto. |
 | `projects/perfil-personal/src/app/componentes/catalogo/widgets.ts:26` | La tabla de inputs de cada widget está escrita a mano, así que un `input()` nuevo en la librería no aparece en el catálogo hasta que alguien lo agregue. Salida: generarla parseando los `input<>()` en un script de build. |
 | `projects/comidas/src/app/components/meal-card/meal-card.component.scss:66` | La lista de ingredientes de la tarjeta corta a las 16rem y de ahí scrollea, para que una receta de veinte ingredientes no haga una tarjeta interminable. Salida: mostrar los primeros N con un "ver todos". |
+| `projects/comidas/worker/index.js:52` | El Worker que inyecta los `og:` de las recetas compartidas no tiene test automático: no hay runner de Workers sin agregar dependencia. Se verifica a mano con `wrangler dev` y un curl con user-agent de crawler. Salida: `vitest-pool-workers`. |
+| `projects/componentes/src/lib/boton/boton.ts:15` | `icono` es `string` y acepta tanto una URL de imagen como un nombre de `lib-icon`; nada distingue una de otra, y ya pasó (el dialog de compartir). Salida: que reciba un `IconName` y renderice con `lib-icon`, o renombrarlo `iconoUrl` — rompe la API pública de la librería cualquiera de las dos. |
+| `projects/comidas/src/app/services/meal.service.ts:187` | Cuatro caminos reemplazan `meals` entero (`syncFromFirestore`, `importMeals`, `applyImportedMeals`, `importData`) y pueden borrar un `publicId` sin despublicarlo, el mismo huérfano que `deleteMeal` ya evita. Salida: comparar `publicId`s antes/después contra el `espejo` y despublicar los que desaparecieron. |

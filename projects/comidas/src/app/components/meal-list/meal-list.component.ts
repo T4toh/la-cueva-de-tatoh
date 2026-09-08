@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 
 import { Router, RouterModule } from '@angular/router';
+import { CompartirService } from '../../services/compartir.service';
 import { MealService } from '../../services/meal.service';
 import { MealCardComponent } from '../meal-card/meal-card.component';
 import { DialogService } from '../../services/dialog.service';
@@ -16,6 +17,7 @@ export class MealListComponent {
   mealService = inject(MealService);
   router = inject(Router);
   dialogService = inject(DialogService);
+  compartirService = inject(CompartirService);
 
   async deleteMeal(id: string): Promise<void> {
     const confirmed = await this.dialogService.confirm(
@@ -23,7 +25,7 @@ export class MealListComponent {
       '¿Estás seguro de eliminar esta comida?'
     );
     if (confirmed) {
-      this.mealService.deleteMeal(id);
+      await this.mealService.deleteMeal(id);
     }
   }
 
@@ -37,6 +39,10 @@ export class MealListComponent {
 
   duplicateMeal(id: string): void {
     this.mealService.duplicateMeal(id);
+  }
+
+  compartirMeal(id: string): void {
+    void this.compartirService.compartir(id);
   }
 
   printRecipes(): void {

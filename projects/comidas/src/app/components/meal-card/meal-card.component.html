@@ -37,48 +37,70 @@
         }
       </div>
 
-      @if (esReceta() || showEdit() || showDelete() || showDuplicate()) {
+      @if (esReceta() || showEdit() || showDelete() || showDuplicate() || showCompartir() ||
+        esCompartida()) {
         <div class="card-footer">
-          @if (esReceta()) {
-            <button
-              class="btn-icon"
-              title="Ver receta"
-              type="button"
-              (click)="onVerReceta($event)"
+          @if (esCompartida()) {
+            <span
+              aria-label="Compartida por link"
+              class="badge-compartida"
+              title="Compartida por link"
             >
-              <lib-icon name="book-open" [size]="16" />
-            </button>
+              <lib-icon name="external-link" [size]="14" />
+            </span>
           }
-          @if (showDuplicate()) {
-            <button
-              class="btn-icon"
-              title="Duplicar"
-              type="button"
-              (click)="onDuplicate($event)"
-            >
-              <lib-icon name="copy" [size]="16" />
-            </button>
-          }
-          @if (showEdit()) {
-            <button
-              class="btn-icon"
-              title="Editar"
-              type="button"
-              (click)="onEdit($event)"
-            >
-              <lib-icon name="pencil" [size]="16" />
-            </button>
-          }
-          @if (showDelete()) {
-            <button
-              class="btn-icon btn-delete"
-              title="Eliminar"
-              type="button"
-              (click)="onDelete($event)"
-            >
-              <lib-icon name="trash-2" [size]="16" />
-            </button>
-          }
+          <div class="card-footer-actions">
+            @if (esReceta()) {
+              <button
+                class="btn-icon"
+                title="Ver receta"
+                type="button"
+                (click)="onVerReceta($event)"
+              >
+                <lib-icon name="book-open" [size]="16" />
+              </button>
+            }
+            @if (showDuplicate()) {
+              <button
+                class="btn-icon"
+                title="Duplicar"
+                type="button"
+                (click)="onDuplicate($event)"
+              >
+                <lib-icon name="copy" [size]="16" />
+              </button>
+            }
+            @if (showCompartir()) {
+              <button
+                class="btn-icon"
+                title="Compartir"
+                type="button"
+                (click)="onCompartir($event)"
+              >
+                <lib-icon name="external-link" [size]="16" />
+              </button>
+            }
+            @if (showEdit()) {
+              <button
+                class="btn-icon"
+                title="Editar"
+                type="button"
+                (click)="onEdit($event)"
+              >
+                <lib-icon name="pencil" [size]="16" />
+              </button>
+            }
+            @if (showDelete()) {
+              <button
+                class="btn-icon btn-delete"
+                title="Eliminar"
+                type="button"
+                (click)="onDelete($event)"
+              >
+                <lib-icon name="trash-2" [size]="16" />
+              </button>
+            }
+          </div>
         </div>
       }
     </div>
