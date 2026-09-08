@@ -139,6 +139,25 @@ export function ensureMealIds(meals: Meal[], genId: () => string): Meal[] {
   return meals.map((m) => (m.id ? m : { ...m, id: genId() }));
 }
 
+// Arma la copia de "Duplicar" campo por campo, no con un spread del original,
+// para que agregar un campo a `Meal` y olvidarse de listarlo acá falle en el
+// test en vez de perderse en silencio (así se perdieron los `pasos` de una
+// receta real). Deliberadamente NO copia `publicId`: la copia es una receta
+// distinta, y si se le llevara el publicId, compartirla o editarla
+// reescribiría el link público del original, y borrar la copia lo mataría.
+export function copiaParaDuplicar(original: Meal): Omit<Meal, 'id'> {
+  return {
+    name: `${original.name} (Copia)`,
+    ...(original.description ? { description: original.description } : {}),
+    ingredients: original.ingredients.map((i) => ({ ...i })),
+    tags: original.tags ? [...original.tags] : [],
+    ...(original.pasos ? { pasos: original.pasos.map((p) => ({ ...p })) } : {}),
+    ...(original.includeInShoppingList !== undefined
+      ? { includeInShoppingList: original.includeInShoppingList }
+      : {}),
+  };
+}
+
 // Única fuente de la huella: la usan tanto la siembra de `compartirMeal` como
 // `sincronizarPublicadas`. Deliberadamente no incluye `publicId`: agregar el
 // campo que la siembra acaba de escribir cambiaría la huella justo después de
@@ -905,13 +924,7 @@ export class MealService {
   duplicateMeal(id: string): void {
     const original = this.getMeal(id);
     if (original) {
-      const copy: Omit<Meal, 'id'> = {
-        name: `${original.name} (Copia)`,
-        ...(original.description ? { description: original.description } : {}),
-        ingredients: original.ingredients.map((i) => ({ ...i })),
-        tags: original.tags ? [...original.tags] : [],
-      };
-      this.addMeal(copy);
+      this.addMeal(copiaParaDuplicar(original));
     }
   }
 
