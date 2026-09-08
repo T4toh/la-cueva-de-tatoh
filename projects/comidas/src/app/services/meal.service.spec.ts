@@ -4,10 +4,12 @@ import {
   copiaParaDuplicar,
   ensureMealIds,
   huellaPublicada,
+  huerfanos,
   limpiarPasos,
   multiplyQuantity,
   normalizeQuantityToNumeric,
   parseNumericQuantity,
+  publicIds,
   recetaComoMarkdown,
   tieneReceta,
 } from './meal.service';
@@ -264,5 +266,67 @@ describe('recetaComoMarkdown', () => {
     const md = recetaComoMarkdown(receta({ ingredients: [], pasos: [] }));
 
     expect(md).toBe('# Salsa de tomate\n');
+  });
+});
+
+describe('huerfanos', () => {
+  const conPublicId = (id: string, publicId?: string): Meal =>
+    ({ id, name: id, ingredients: [], ...(publicId ? { publicId } : {}) }) as Meal;
+
+  it('reporta el publicId que dejó de estar en meals', () => {
+    // El caso del bug: un import pisa `meals` entero y se lleva el único
+    // puntero al documento público, que queda vivo y sin forma de enumerarlo.
+    const previos = new Set(['aaaaaaaa']);
+
+    expect(huerfanos(previos, [conPublicId('1')])).toEqual(['aaaaaaaa']);
+  });
+
+  it('no reporta el publicId que sigue estando', () => {
+    const previos = new Set(['aaaaaaaa']);
+    const meals = [conPublicId('1', 'aaaaaaaa')];
+
+    expect(huerfanos(previos, meals)).toEqual([]);
+  });
+
+  it('reporta sólo el que falta cuando hay varios publicados', () => {
+    const previos = new Set(['aaaaaaaa', 'bbbbbbbb']);
+    const meals = [conPublicId('1', 'aaaaaaaa'), conPublicId('2')];
+
+    expect(huerfanos(previos, meals)).toEqual(['bbbbbbbb']);
+  });
+
+  it('con el set vacío no reporta nada: es como arranca el servicio', () => {
+    const meals = [conPublicId('1', 'aaaaaaaa')];
+
+    expect(huerfanos(new Set(), meals)).toEqual([]);
+  });
+
+  it('una comida que gana publicId no vuelve huérfano al que ya estaba', () => {
+    const previos = new Set(['aaaaaaaa']);
+    const meals = [conPublicId('1', 'aaaaaaaa'), conPublicId('2', 'bbbbbbbb')];
+
+    expect(huerfanos(previos, meals)).toEqual([]);
+  });
+});
+
+describe('publicIds', () => {
+  it('junta los publicId y saltea las comidas sin publicar', () => {
+    const meals = [
+      { id: '1', name: 'a', ingredients: [], publicId: 'aaaaaaaa' },
+      { id: '2', name: 'b', ingredients: [] },
+    ] as Meal[];
+
+    expect(publicIds(meals)).toEqual(new Set(['aaaaaaaa']));
+  });
+
+  it('trata el publicId vacío como no publicado', () => {
+    // `updateMeal(id, { publicId: undefined })` deja la clave presente con
+    // valor undefined, así que el filtro tiene que ser por valor y no por
+    // existencia de la propiedad.
+    const meals = [
+      { id: '1', name: 'a', ingredients: [], publicId: undefined },
+    ] as Meal[];
+
+    expect(publicIds(meals)).toEqual(new Set());
   });
 });

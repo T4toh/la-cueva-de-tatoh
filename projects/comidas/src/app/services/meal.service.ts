@@ -173,6 +173,26 @@ export function huellaPublicada(meal: Meal, alias: string): string {
   ]);
 }
 
+// Los `publicId` que hay en una lista de comidas. El campo es el único puntero
+// al documento de `recetasPublicas` que existe en algún lado.
+export function publicIds(meals: Meal[]): Set<string> {
+  const ids = new Set<string>();
+  for (const meal of meals) {
+    if (meal.publicId) {
+      ids.add(meal.publicId);
+    }
+  }
+  return ids;
+}
+
+// Un `publicId` que estaba y ya no está es un huérfano: el documento público
+// sigue vivo, y `allow list: if false` hace que no se pueda ni enumerar, así
+// que sin el puntero sólo se limpia desde la consola de Firebase.
+export function huerfanos(previos: Set<string>, meals: Meal[]): string[] {
+  const vigentes = publicIds(meals);
+  return Array.from(previos).filter((publicId) => !vigentes.has(publicId));
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -184,13 +204,16 @@ export class MealService {
   // Lo último que se escribió por cada receta publicada. Sin esto, cada
   // tecleo en cualquier comida reescribiría todas las publicadas.
   private readonly espejo = new Map<string, string>();
-  // ponytail: cuatro lugares pisan `meals` entero y pueden borrar un
-  // `publicId` sin despublicarlo — el mismo huérfano que `deleteMeal` ya
-  // evita: la descarga de `syncFromFirestore` (meal.service.ts:505), el
-  // merge de `importMeals` (:1687), el de `applyImportedMeals` (:1770) y el
-  // de `importData` (:1840). Salida: comparar los `publicId` de antes y de
-  // después del reemplazo contra este mapa, y despublicar los que
-  // desaparecieron.
+  // Los `publicId` que `meals` tenía la última vez que el effect corrió. Los
+  // cuatro caminos que pisan `meals` entero (la descarga de
+  // `syncFromFirestore`, y los merges de `importMeals`, `applyImportedMeals`
+  // e `importData`) pueden dejar caer uno sin despublicarlo; el diff contra
+  // este set es lo que los cubre a los cuatro sin un guard en cada uno.
+  //
+  // Arranca vacío y no hace falta sembrarlo: la primera corrida del effect
+  // pasa con el `meals` de localStorage, y un set vacío no puede dar un
+  // huérfano falso. Sembrarlo en el constructor sería lo mismo con más código.
+  private publicados = new Set<string>();
 
   private readonly MEALS_KEY = 'comidas_meals';
   private readonly SCHEDULES_KEY = 'comidas_schedules';
@@ -309,8 +332,16 @@ export class MealService {
       localStorage.setItem(this.MEALS_KEY, JSON.stringify(data));
       if (!this.isSyncing) {
         this.saveToFirestore('meals', data);
+        this.despublicarHuerfanos(data);
         this.sincronizarPublicadas(data);
       }
+      // Fuera del `if` a propósito. Una bajada de Firestore no revoca nada
+      // —es el estado de otro dispositivo: si allá despublicaron, el
+      // documento ya no está, y si el remoto viene viejo y gana una carrera,
+      // revocar mataría un link recién creado—, pero el set igual tiene que
+      // quedar en lo que se bajó, o el próximo cambio local leería como
+      // huérfano lo que despublicó el otro dispositivo.
+      this.publicados = publicIds(data);
     });
     effect(() => {
       const data = this.schedules();
@@ -427,6 +458,25 @@ export class MealService {
 
   private huellaPublicada(meal: Meal, alias: string): string {
     return huellaPublicada(meal, alias);
+  }
+
+  // Revoca los documentos públicos que se quedaron sin puntero.
+  //
+  // ponytail: el reintento cuelga del próximo cambio de `meals`. Si el
+  // usuario importa un backup sin conexión y no vuelve a tocar una comida, el
+  // link queda vivo. Salida: reintentar también al recuperar la sesión.
+  private despublicarHuerfanos(meals: Meal[]): void {
+    for (const publicId of huerfanos(this.publicados, meals)) {
+      this.espejo.delete(publicId);
+      this.recetasPublicas.despublicar(publicId).catch((e) => {
+        // `publicId` ya no está en ningún `Meal`, así que este set es el
+        // único lado donde queda el puntero: devolverlo es lo que deja
+        // reintentar en el próximo cambio de `meals`. Sin eso el documento
+        // queda vivo y sólo se borra desde la consola de Firebase.
+        this.publicados.add(publicId);
+        console.error('Error despublicando una receta huérfana:', e);
+      });
+    }
   }
 
   private sincronizarPublicadas(meals: Meal[]): void {
@@ -883,6 +933,9 @@ export class MealService {
         return;
       }
       this.espejo.delete(publicId);
+      // Ya se despublicó acá, con el manejo de error de arriba: sacarlo del
+      // set evita que la barrida del effect pida el borrado una segunda vez.
+      this.publicados.delete(publicId);
     }
     this.meals.update((current) => current.filter((m) => m.id !== id));
     this.schedules.update((schedules) => {
@@ -925,6 +978,7 @@ export class MealService {
     }
     await this.recetasPublicas.despublicar(meal.publicId);
     this.espejo.delete(meal.publicId);
+    this.publicados.delete(meal.publicId);
     this.updateMeal(mealId, { publicId: undefined });
   }
 
