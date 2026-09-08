@@ -11,7 +11,6 @@ export type DialogoAccion = {
   texto: string;
   estilo?: 'normal' | 'outline' | 'text' | 'icon';
   color?: string;
-  icono?: string;
   accion?: () => void;
 };
 

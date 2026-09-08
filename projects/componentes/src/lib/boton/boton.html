@@ -9,11 +9,7 @@
   [type]="tipo()"
   (click)="handleClick()"
 >
-  @if (icono() && !loading()) {
-  <span class="icon">
-    <img alt="icon" [src]="icono()" />
-  </span>
-  } @if (loading()) {
+  @if (loading()) {
   <span class="spinner"></span>
   }
   <span class="text">{{ texto() }}</span>
@@ -28,11 +24,7 @@
   [style.color]="color() && estilo() === 'text' ? color() : null"
   (click)="handleClick()"
 >
-  @if (icono() && !loading()) {
-  <span class="icon">
-    <img alt="icon" [src]="icono()" />
-  </span>
-  } @if (loading()) {
+  @if (loading()) {
   <span class="spinner"></span>
   }
   <span class="text">{{ texto() }}</span>

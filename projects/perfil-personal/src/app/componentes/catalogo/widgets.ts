@@ -63,7 +63,6 @@ export const WIDGETS: Widget[] = [
       { nombre: 'tipo', tipo: "'button' | 'submit' | 'reset'", porDefecto: "'button'" },
       { nombre: 'color', tipo: 'string' },
       { nombre: 'enlace', tipo: 'string' },
-      { nombre: 'icono', tipo: 'string' },
       { nombre: 'clase', tipo: 'string' },
       { nombre: 'deshabilitado', tipo: 'boolean', porDefecto: 'false' },
       { nombre: 'loading', tipo: 'boolean', porDefecto: 'false' },
@@ -100,7 +99,7 @@ export const WIDGETS: Widget[] = [
   [(visible)]="dialogoVisible"
 />
 
-// DialogoAccion: { texto, estilo?, color?, icono?, accion? }
+// DialogoAccion: { texto, estilo?, color?, accion? }
 acciones = [
   { texto: 'Cancelar', estilo: 'text' as const },
   { texto: 'Borrar', color: '#b04a4a' },

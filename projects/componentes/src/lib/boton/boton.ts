@@ -12,13 +12,6 @@ export class Boton {
   readonly color = input<string>();
   readonly enlace = input<string>();
   readonly clase = input<string>();
-  // ponytail: el tipo es `string`, así que acepta tanto una URL de imagen
-  // como un nombre de `lib-icon` (`IconName`) — nada distingue `icono="copy"`
-  // de una URL rota. Ya pasó una vez, en el dialog de compartir. Salida: que
-  // reciba un `IconName` y renderice con `lib-icon`, o renombrarlo a
-  // `iconoUrl` y dejar los nombres a `lib-icon`; las dos rompen la
-  // superficie pública de la librería.
-  readonly icono = input<string>();
   readonly deshabilitado = input<boolean>(false);
   readonly loading = input<boolean>(false);
   readonly estilo = input<'normal' | 'outline' | 'text' | 'icon'>('normal');
