@@ -92,9 +92,6 @@ export class CompartirService {
 
   private mostrarLinkDialogo(mealId: string): void {
     const link = this.link(mealId);
-    // Sin `icono`: `lib-boton` lo renderiza como `<img [src]="icono()">`, así
-    // que un nombre de la grilla de iconos daría una imagen rota. El texto
-    // alcanza, y no vale tocar la librería por esto.
     const acciones: DialogoAccion[] = [
       {
         texto: 'Copiar',
