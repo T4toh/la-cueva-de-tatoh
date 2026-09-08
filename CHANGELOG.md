@@ -4,6 +4,24 @@ Todos los cambios notables a este proyecto se documentan en este archivo. El for
 
 ## [Unreleased]
 
+### Fixed
+
+#### Comidas
+
+- **Un import ya no deja recetas compartidas huérfanas.** Cuatro caminos pisan `meals` entero —la bajada de `syncFromFirestore` y los merges de `importMeals`, `applyImportedMeals` e `importData`— y podían llevarse el `publicId` sin despublicar la receta. Como `publicId` es el único puntero al documento de `recetasPublicas` y `allow list: if false` hace que no se pueda ni enumerar, el link quedaba vivo para siempre y sólo se limpiaba desde la consola de Firebase: el usuario borraba la receta y creía haber revocado un link que seguía funcionando. El guard va en el `effect` de `meals`, que es por donde pasan los cuatro, así que ninguno de los cuatro se tocó. Una bajada de Firestore no revoca nada a propósito —es el estado de otro dispositivo, y si el remoto viene viejo y gana una carrera, revocar mataría un link recién creado—, pero igual sincroniza el set para no leer después como huérfano lo que despublicó el otro dispositivo. Si el borrado falla, el `publicId` vuelve al set y se reintenta en el próximo cambio de `meals`.
+
+### Removed
+
+#### Componentes
+
+- **`lib-boton` pierde el input `icono`.** Era un `string` que aceptaba tanto una URL de imagen como un nombre de `lib-icon`, sin nada que distinguiera una cosa de la otra —ya había mordido una vez, en el diálogo de compartir, donde un nombre de icono se renderizaba como `<img>` roto—. No lo usaba nadie: el único binding era el de `lib-dialogo`, y ningún caller llenaba `DialogoAccion.icono`. Se va el input, el campo del type y los dos bloques del template. Si algún día hace falta un icono en un botón, entra tipado como `IconName` y renderizado con `lib-icon`.
+
+### Changed
+
+#### Comidas
+
+- El Worker de los `og:` de `/r/*` expone su lógica pura (`ID_VALIDO`, `normalizar`, `describir`) y la testea en `src/app/worker-og.spec.ts`, sin agregar un runner de Workers: `HTMLRewriter` y el binding `ASSETS` sólo se referencian adentro del `fetch`. La normalización de la forma REST de Firestore salió de `leerReceta` a su propia función, que es donde un cambio de ese contrato externo daría "0 ingredientes" en silencio en vez de fallar. El rewrite en sí se sigue verificando a mano con `wrangler dev`.
+
 ## [1.7.0] - 2026-09-08
 
 Compartir una receta por link: un documento público por receta, una ficha que se abre sin cuenta, y un Worker que le pone `og:` a cada link antes de que lo lea el crawler.
