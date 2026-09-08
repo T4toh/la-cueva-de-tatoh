@@ -133,6 +133,22 @@ describe('aRecetaPublica', () => {
     expect(receta.alias).toBe('Tatoh');
   });
 
+  it('trata una descripción de sólo espacios como ausente', () => {
+    const conBlancos: Meal = { ...meal, description: '\n\n\n\n' };
+
+    const receta = aRecetaPublica(conBlancos, undefined, 'uid-1', 'k7m2xq9p', 10);
+
+    expect(receta).not.toHaveProperty('descripcion');
+  });
+
+  it('guarda la descripción trimeada, no con los espacios de sobra', () => {
+    const conEspacios: Meal = { ...meal, description: '  La de siempre  ' };
+
+    const receta = aRecetaPublica(conEspacios, undefined, 'uid-1', 'k7m2xq9p', 10);
+
+    expect(receta.descripcion).toBe('La de siempre');
+  });
+
   it('proyecta cada paso y no filtra campos que Paso gane mañana', () => {
     const conNota: Meal = {
       id: 'm',

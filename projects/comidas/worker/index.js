@@ -38,8 +38,12 @@ async function leerReceta(id) {
 }
 
 function describir(receta) {
-  if (receta.descripcion) {
-    return receta.descripcion;
+  // `descripcion` es texto sin confirmar de cualquier usuario autenticado
+  // (firestore.rules valida quién escribe, no qué escribe), y documentos
+  // publicados antes de este fix pueden traer sólo espacios en blanco.
+  const descripcion = receta.descripcion.trim();
+  if (descripcion) {
+    return descripcion;
   }
   const partes = [`${receta.ingredientes} ingredientes`];
   if (receta.pasos) {

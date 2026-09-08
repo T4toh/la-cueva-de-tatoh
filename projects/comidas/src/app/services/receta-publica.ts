@@ -109,8 +109,9 @@ export function aRecetaPublica(
   };
   // Los opcionales se omiten en vez de escribirse en `undefined`: Firestore
   // rechaza `undefined` y `sanitizeForFirestore` lo borraría igual.
-  if (meal.description) {
-    receta.descripcion = meal.description;
+  const descripcionUsable = meal.description?.trim() || undefined;
+  if (descripcionUsable) {
+    receta.descripcion = descripcionUsable;
   }
   if (meal.pasos?.length) {
     // Proyectado paso por paso por la misma razón que los ingredientes: hoy
