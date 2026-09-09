@@ -239,6 +239,9 @@ section {
 
 // `max-height` en `vh` y no en `rem`: en un teléfono apaisado una foto fija en
 // rem tapa el texto y los botones.
+// ponytail: el techo es que no se puede ampliar. A 40vh un detalle fino —el
+// punto de la masa, un corte— no se distingue, y no hay forma de acercarse.
+// Salida: tocarla abre una vista a pantalla completa.
 .cocina-foto {
   display: block;
   width: 100%;
