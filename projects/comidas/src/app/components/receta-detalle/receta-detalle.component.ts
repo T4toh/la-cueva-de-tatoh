@@ -59,6 +59,14 @@ export class RecetaDetalleComponent implements OnDestroy {
 
   readonly pasos = computed(() => this.meal().pasos ?? []);
 
+  // Guarda el id de la receta cuya foto rompió, no un booleano: así, al
+  // cambiar de receta, la comparación con `meal().id` deja de coincidir sola
+  // y no hace falta resetear nada a mano en un efecto aparte.
+  private readonly fotoConError = signal<string | null>(null);
+  readonly hayFoto = computed(
+    () => !!this.meal().foto && this.fotoConError() !== this.meal().id
+  );
+
   readonly cocinando = signal(false);
   readonly pasoActual = signal(0);
 
@@ -74,6 +82,14 @@ export class RecetaDetalleComponent implements OnDestroy {
 
   editar(): void {
     this.router.navigate(['/meals/edit', this.meal().id]);
+  }
+
+  // Un link ajeno se puede morir en cualquier momento: la banda tiene que
+  // volver al estado "sin foto" completo (imagen, clase y color de texto
+  // juntos), no a una imagen escondida con el texto claro de la foto que ya
+  // no está.
+  fotoFallo(): void {
+    this.fotoConError.set(this.meal().id);
   }
 
   cocinar(): void {

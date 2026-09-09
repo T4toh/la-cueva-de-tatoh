@@ -50,9 +50,26 @@
   position: relative;
   width: 100%;
   padding: 2.5rem 1rem 0.85rem;
-  // El velo sólo aparece cuando hay foto detrás; sobre el degradado pelado
-  // no se nota.
+  // Sin foto el fondo es la superficie de la app: sigue el tema, así que acá
+  // no hay velo ni color de texto propios.
   background: linear-gradient(to top, var(--bg-sunken-strong), transparent);
+}
+
+// Una foto no tiene tema. El texto que va encima no puede depender de
+// `--fg-primary` ni el velo de `--bg-sunken-strong`: los dos son tan claros
+// en tema claro que dejan el título ilegible sobre una foto clara. Mismo
+// motivo que el `text-shadow` de abajo: valores fijos, iguales en los dos
+// temas, porque el fondo tampoco cambia con el tema.
+.banda--foto .banda-texto {
+  background: linear-gradient(to top, rgb(0 0 0 / 55%), transparent);
+}
+
+// El `h1` global (`styles.scss`) pinta con `--fg-primary` directo, no
+// heredado: pisa el `color` puesto arriba en `.banda-texto`. Hay que fijarlo
+// acá también, sobre el propio elemento, para que gane.
+.banda--foto .banda-texto h1,
+.banda--foto .banda-texto .descripcion {
+  color: #fff;
 }
 
 .banda-texto h1 {

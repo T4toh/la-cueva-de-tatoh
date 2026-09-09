@@ -48,13 +48,13 @@
       </div>
     </div>
 
-    <div class="banda">
-      @if (meal().foto) {
+    <div class="banda" [class.banda--foto]="hayFoto()">
+      @if (hayFoto()) {
         <img
           alt=""
           class="banda-foto"
           [src]="meal().foto"
-          (error)="$any($event.target).hidden = true"
+          (error)="fotoFallo()"
         />
       }
       <div class="banda-texto">
