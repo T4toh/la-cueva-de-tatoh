@@ -61,23 +61,20 @@ contenedores tienen alto fijo y la imagen entra con `object-fit: cover`.
 
 ## Validación
 
-La URL es **texto escrito por el usuario que termina adentro de un atributo
-HTML y adentro de un `og:image` que leen crawlers**. Se valida en los dos
-extremos, y ninguno confía en el otro.
+La validación vive **en el editor**, y en un solo lugar. Al guardar: sólo se
+acepta `http://` o `https://`. Cualquier otra cosa —`javascript:`, `data:`,
+`file:`, texto suelto— se rechaza con un mensaje al lado del campo, y la receta
+no se guarda con esa foto.
 
-**En el editor**, al guardar: sólo se acepta `http://` o `https://`. Cualquier
-otra cosa —`javascript:`, `data:`, `file:`, texto suelto— se rechaza con un
-mensaje al lado del campo, y la receta no se guarda con esa foto.
+Está para que el usuario vea el error cuando pega mal el link, no como barrera
+de seguridad: Angular sanitiza el `[src]` de un `<img>` por su cuenta, así que
+un `javascript:` no se ejecutaría igual.
 
-**En el Worker**, antes de escribir el `og:image`: la misma comprobación. No
-alcanza con validar en el editor porque `firestore.rules` valida **quién**
-escribe, no **qué** escribe —es la misma razón por la que el Worker ya no
-confía en el campo `ruta` del documento y usa la URL que pidió el crawler—.
-
-Angular sanitiza `[src]` de un `<img>` por su cuenta, así que un
-`javascript:` no se ejecutaría igual. La validación no está para eso: está para
-que el usuario vea el error cuando pega mal el link, en vez de que la imagen
-falle en silencio.
+**El Worker no la replica.** Se consideró y no corresponde: no concatena, usa
+`el.setAttribute('content', …)`, que escapa —el `og:title` con el nombre de la
+receta ya depende de eso—, así que meter la URL tal cual no abre ninguna
+inyección. Lo que el Worker sí hace es un fallback, que es otra cosa (ver
+*`og:image`*).
 
 Una función pura, exportada y testeada:
 
@@ -181,11 +178,16 @@ Es la mejor parte del negocio y casi no cuesta: el Worker **ya** tiene
 `IMAGEN = 'https://comidas.tatoh.ar/icon.png'`).
 
 - `normalizar()` suma `foto` a lo que lee del documento REST.
-- `imagen: esUrlDeImagen(receta.foto) ? receta.foto : IMAGEN`.
+- `imagen: receta.foto.startsWith('https://') ? receta.foto : IMAGEN`.
+
+Ese `startsWith` no es la validación del editor de nuevo: es que el tag sirva.
+La página se sirve por https y un `og:image` en `http://` es contenido mixto
+—varios crawlers lo descartan y te quedás sin preview en vez de con uno feo—, y
+sin foto hay que caer al ícono en vez de emitir un `og:image` vacío, que es peor
+que el genérico.
 
 Con eso el preview de WhatsApp de una receta compartida deja de ser el ícono
-genérico y pasa a ser el plato. El fallback a la constante cubre la receta sin
-foto y la URL inválida, así que nunca queda sin `og:image`.
+genérico y pasa a ser el plato.
 
 Los tests puros del Worker (`worker-og.spec.ts`) cubren `normalizar` y
 `describir`; el campo nuevo entra ahí.
