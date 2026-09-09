@@ -1,4 +1,9 @@
-import { inject, Injectable } from '@angular/core';
+import {
+  inject,
+  Injectable,
+  Injector,
+  runInInjectionContext,
+} from '@angular/core';
 import {
   deleteDoc,
   doc,
@@ -21,15 +26,30 @@ const COLECCION = 'recetasPublicas';
 export class RecetaPublicaService {
   private readonly firestore = inject(Firestore);
   private readonly authService = inject(AuthService);
+  private readonly injector = inject(Injector);
+
+  // AngularFire avisa cuando sus APIs se llaman fuera del contexto de
+  // inyección: pierde el wrapping de zona y desestabiliza change detection.
+  // Acá pasa siempre, porque las escrituras salen de effects y de promesas
+  // resueltas, no del constructor. `runInInjectionContext` se lo devuelve.
+  //
+  // Envuelve la llamada entera, `doc()` incluido, y de forma síncrona: el
+  // contexto vale mientras corre el callback, así que lo que tiene que nacer
+  // adentro es la promesa, no su resolución.
+  private enContexto<T>(fn: () => T): T {
+    return runInInjectionContext(this.injector, fn);
+  }
 
   // El alias lo pasa quien llama y no se lee de `MealService`: al revés habría
   // ciclo, porque es `MealService` el que dispara el espejo.
   async publicar(meal: Meal, alias: string): Promise<string> {
     const uid = this.uidOrThrow();
     const id = await this.idLibre();
-    await setDoc(
-      doc(this.firestore, COLECCION, id),
-      aRecetaPublica(meal, alias || undefined, uid, id, Date.now())
+    await this.enContexto(() =>
+      setDoc(
+        doc(this.firestore, COLECCION, id),
+        aRecetaPublica(meal, alias || undefined, uid, id, Date.now())
+      )
     );
     return id;
   }
@@ -39,18 +59,25 @@ export class RecetaPublicaService {
       return;
     }
     const uid = this.uidOrThrow();
-    await setDoc(
-      doc(this.firestore, COLECCION, meal.publicId),
-      aRecetaPublica(meal, alias || undefined, uid, meal.publicId, Date.now())
+    const publicId = meal.publicId;
+    await this.enContexto(() =>
+      setDoc(
+        doc(this.firestore, COLECCION, publicId),
+        aRecetaPublica(meal, alias || undefined, uid, publicId, Date.now())
+      )
     );
   }
 
   async despublicar(publicId: string): Promise<void> {
-    await deleteDoc(doc(this.firestore, COLECCION, publicId));
+    await this.enContexto(() =>
+      deleteDoc(doc(this.firestore, COLECCION, publicId))
+    );
   }
 
   async leer(id: string): Promise<RecetaPublica | null> {
-    const snap = await getDoc(doc(this.firestore, COLECCION, id));
+    const snap = await this.enContexto(() =>
+      getDoc(doc(this.firestore, COLECCION, id))
+    );
     return snap.exists() ? (snap.data() as RecetaPublica) : null;
   }
 
@@ -68,7 +95,9 @@ export class RecetaPublicaService {
   private async idLibre(): Promise<string> {
     for (let intento = 0; intento < 5; intento++) {
       const id = generarIdPublico();
-      const snap = await getDoc(doc(this.firestore, COLECCION, id));
+      const snap = await this.enContexto(() =>
+        getDoc(doc(this.firestore, COLECCION, id))
+      );
       if (!snap.exists()) {
         return id;
       }
