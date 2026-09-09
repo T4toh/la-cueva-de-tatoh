@@ -80,6 +80,17 @@ export class RecetaDetalleComponent implements OnDestroy {
     () => this.pasoActual() >= this.pasos().length - 1
   );
 
+  // Mismo patrón que `fotoConError`, pero clavado al índice del paso en vez
+  // del id de la receta: dos pasos consecutivos con foto comparten el mismo
+  // `<img>` del template, así que sin esto una foto rota en el paso 3 dejaría
+  // sin verse a la del 4, que está perfecta.
+  private readonly pasoFotoConError = signal<number | null>(null);
+  readonly hayFotoPaso = computed(
+    () =>
+      !!this.pasoEnCurso()?.foto &&
+      this.pasoFotoConError() !== this.pasoActual()
+  );
+
   editar(): void {
     this.router.navigate(['/meals/edit', this.meal().id]);
   }
@@ -90,6 +101,10 @@ export class RecetaDetalleComponent implements OnDestroy {
   // no está.
   fotoFallo(): void {
     this.fotoConError.set(this.meal().id);
+  }
+
+  pasoFotoFallo(): void {
+    this.pasoFotoConError.set(this.pasoActual());
   }
 
   cocinar(): void {

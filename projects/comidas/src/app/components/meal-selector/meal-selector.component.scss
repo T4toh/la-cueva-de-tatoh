@@ -24,6 +24,9 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 1rem;
+  // Sin esto, una tarjeta con portada estira a todas las de su fila. Efecto
+  // lateral aceptado: la grilla pasa a verse dentada, como /meals.
+  align-items: start;
 }
 
 .meal-card {

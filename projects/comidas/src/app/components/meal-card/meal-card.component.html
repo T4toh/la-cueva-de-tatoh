@@ -12,6 +12,14 @@
     [sombreado]="false"
     [texto]="meal().name"
   >
+    @if (meal().foto) {
+      <img
+        alt=""
+        class="portada"
+        [src]="meal().foto"
+        (error)="$any($event.target).hidden = true"
+      />
+    }
     <div class="meal-content-wrapper">
       <div class="meal-info">
         <ul class="ingredient-list">

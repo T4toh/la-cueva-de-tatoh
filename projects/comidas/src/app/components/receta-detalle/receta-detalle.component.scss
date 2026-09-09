@@ -237,6 +237,17 @@ section {
   }
 }
 
+// `max-height` en `vh` y no en `rem`: en un teléfono apaisado una foto fija en
+// rem tapa el texto y los botones.
+.cocina-foto {
+  display: block;
+  width: 100%;
+  max-height: 40vh;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  margin-bottom: 1rem;
+}
+
 .cocina-paso {
   flex: 1 1 auto;
   display: flex;

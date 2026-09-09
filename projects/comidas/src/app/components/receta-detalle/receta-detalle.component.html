@@ -9,6 +9,14 @@
       </button>
     </div>
 
+    @if (hayFotoPaso()) {
+      <img
+        alt=""
+        class="cocina-foto"
+        [src]="pasoEnCurso()?.foto"
+        (error)="pasoFotoFallo()"
+      />
+    }
     <p class="cocina-paso">{{ pasoEnCurso()?.texto }}</p>
 
     <div class="cocina-acciones">

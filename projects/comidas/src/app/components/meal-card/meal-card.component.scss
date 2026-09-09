@@ -31,6 +31,24 @@
   min-height: 0;
 }
 
+.portada {
+  display: block;
+  width: 100%;
+  height: 5rem;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.6rem;
+
+  // El `display: block` de acá pisa el `display: none` que el navegador le da
+  // a `[hidden]` por defecto (misma especificidad, pero el nuestro es la hoja
+  // de autor): sin este selector más específico, marcar `hidden` en el
+  // `(error)` no ocultaba nada y la portada rota quedaba con el ícono de
+  // imagen caída puesto para siempre.
+  &[hidden] {
+    display: none;
+  }
+}
+
 .meal-content-wrapper {
   display: flex;
   flex-direction: column;
