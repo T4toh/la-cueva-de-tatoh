@@ -26,6 +26,19 @@ h2 {
   }
 }
 
+.error-campo {
+  color: var(--danger);
+  font-size: 0.8125rem;
+  margin: 0.35rem 0 0;
+}
+
+.preview {
+  margin-top: 0.5rem;
+  max-height: 7rem;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
 .checkbox-group {
   flex-direction: row;
   align-items: center;
@@ -152,6 +165,11 @@ h2 {
       background: var(--danger-strong);
     }
   }
+}
+
+.paso-row .paso-foto {
+  flex: 1 1 100%;
+  margin-top: 0.35rem;
 }
 
 .pasos-section .empty-state {

@@ -21,6 +21,22 @@
       ></textarea>
     </div>
 
+    <div class="form-group">
+      <label for="foto">Foto del plato (Opcional)</label>
+      <input
+        formControlName="foto"
+        id="foto"
+        placeholder="https://…"
+        type="url"
+      />
+      @if (form.controls['foto'].invalid && form.controls['foto'].value) {
+        <p class="error-campo">El link tiene que empezar con https://</p>
+      }
+      @if (form.controls['foto'].valid && form.controls['foto'].value) {
+        <img alt="" class="preview" [src]="form.controls['foto'].value" />
+      }
+    </div>
+
     <div class="form-group checkbox-group">
       <input
         formControlName="includeInShoppingList"
@@ -176,6 +192,12 @@
               placeholder="Qué hay que hacer en este paso"
               rows="2"
             ></textarea>
+            <input
+              class="paso-foto"
+              formControlName="foto"
+              placeholder="Foto del paso (https://…)"
+              type="url"
+            />
             <div class="paso-acciones">
               <button
                 class="btn-mover"
