@@ -66,10 +66,12 @@
 
 // El `h1` global (`styles.scss`) pinta con `--fg-primary` directo, no
 // heredado: pisa el `color` puesto arriba en `.banda-texto`. Hay que fijarlo
-// acá también, sobre el propio elemento, para que gane.
+// acá también, sobre el propio elemento, para que gane. `--fg-on-accent-strong`
+// es el token para esto: texto claro en los dos temas, para algo que no
+// sigue el tema (acá, la foto).
 .banda--foto .banda-texto h1,
 .banda--foto .banda-texto .descripcion {
-  color: #fff;
+  color: var(--fg-on-accent-strong);
 }
 
 .banda-texto h1 {
