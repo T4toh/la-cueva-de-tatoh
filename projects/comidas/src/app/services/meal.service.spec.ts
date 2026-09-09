@@ -9,6 +9,7 @@ import {
   limpiarPasos,
   multiplyQuantity,
   normalizeQuantityToNumeric,
+  pareceBackup,
   parseNumericQuantity,
   publicIds,
   recetaComoMarkdown,
@@ -404,5 +405,28 @@ describe('filtrarComidas', () => {
     const conClavePresente = [comida({ id: '1', publicId: undefined })];
 
     expect(filtrarComidas(conClavePresente, null, true)).toEqual([]);
+  });
+});
+
+describe('pareceBackup', () => {
+  // Las claves reales de un backup exportado por la app.
+  it('reconoce un backup exportado', () => {
+    expect(
+      pareceBackup({ meals: [], schedules: {}, pantry: [], version: '1.4' })
+    ).toBe(true);
+  });
+
+  it('alcanza con una sola clave conocida', () => {
+    expect(pareceBackup({ alias: 'Tatoh' })).toBe(true);
+  });
+
+  // Sin esto, elegir el archivo equivocado no aplicaba nada y el cartel decía
+  // "¡Datos importados con éxito!".
+  it('un JSON válido que no es un backup se rechaza', () => {
+    expect(pareceBackup({ hola: 'mundo' })).toBe(false);
+    expect(pareceBackup({ version: '1.4' })).toBe(false);
+    expect(pareceBackup([])).toBe(false);
+    expect(pareceBackup('meals')).toBe(false);
+    expect(pareceBackup(null)).toBe(false);
   });
 });

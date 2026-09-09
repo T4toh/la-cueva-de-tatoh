@@ -203,6 +203,33 @@ export function huerfanos(previos: Set<string>, meals: Meal[]): string[] {
   return Array.from(previos).filter((publicId) => !vigentes.has(publicId));
 }
 
+// Las claves que un backup puede traer. `version` no está: se escribe pero no
+// se lee nunca, así que un archivo que sólo tenga eso no es un backup.
+const CLAVES_BACKUP = [
+  'meals',
+  'schedules',
+  'tags',
+  'ingredientTags',
+  'extraItems',
+  'extraItemsHistory',
+  'overrides',
+  'checkedItems',
+  'alias',
+  'pantry',
+  'pantryGroups',
+  'familySettings',
+];
+
+// Un JSON válido no es un backup. Sin esto, elegir el archivo equivocado no
+// avisaba nada: no había ninguna clave que aplicar y el cartel decía
+// "¡Datos importados con éxito!".
+export function pareceBackup(data: unknown): boolean {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    return false;
+  }
+  return CLAVES_BACKUP.some((clave) => clave in data);
+}
+
 // Los tags que existen en una lista de comidas, ordenados. Los usan las dos
 // pantallas que listan comidas: el selector del día y el listado propio.
 export function tagsUnicos(meals: Meal[]): string[] {
@@ -2015,73 +2042,126 @@ export class MealService {
     );
   }
 
+  // Restaura un backup completo. **Reemplaza** cada clave que venga en el
+  // archivo —no mergea— y los efectos suben lo reemplazado a Firestore, así
+  // que se propaga a los demás dispositivos. Para tocar sólo las comidas, y
+  // mergeando por id, está `importMeals`.
+  //
+  // Se arma todo antes de tocar un solo signal. Antes aplicaba mientras
+  // parseaba: un archivo que reventaba en la mitad dejaba unas claves
+  // reemplazadas y otras no, los efectos ya las habían persistido y subido, y
+  // el cartel decía "El archivo no tiene un formato válido" sobre media
+  // importación ya aplicada. Las transformaciones que pueden tirar
+  // —`normalizeMealQuantities`, `migrateSchedulesRecord`— corren en la primera
+  // fase; la segunda son puros `set`, que no tiran.
+  //
+  // `version` se escribe pero no se lee, ni acá ni nunca: el contrato real es
+  // por forma, campo por campo. Un backup viejo entra igual y uno nuevo en una
+  // app vieja entra ignorando lo que no conoce.
   importData(jsonContent: string): void {
+    let aplicar: (() => void)[];
     try {
       const data = JSON.parse(jsonContent);
-      if (data.meals) {
-        this.meals.set(this.normalizeMealQuantities(data.meals));
+      if (!pareceBackup(data)) {
+        throw new Error('El JSON no tiene ninguna clave de backup.');
       }
-      if (data.schedules) {
-        const raw = data.schedules as Record<string, unknown[]>;
-        this.schedules.set(this.migrateSchedulesRecord(raw));
-      }
-      if (data.tags) {
-        this.tags.set(data.tags);
-      }
-      if (data.ingredientTags) {
-        this.ingredientTags.set(data.ingredientTags);
-      }
-      if (data.extraItems) {
-        const extraItems = data.extraItems;
-        this.extraItems.set(
-          Array.isArray(extraItems)
-            ? {}
-            : (extraItems as Record<string, ShoppingItem[]>)
-        );
-      }
-      if (data.extraItemsHistory) {
-        this.extraItemsHistory.set(data.extraItemsHistory);
-      }
-      if (data.overrides) {
-        this.quantityOverrides.set(data.overrides);
-      }
-      if (data.checkedItems) {
-        this.checkedItems.set(data.checkedItems);
-      }
-      // Los backups anteriores a la 1.4 no lo traen: sin la guarda, restaurar
-      // uno viejo borraría el alias actual en vez de dejarlo como está.
-      if (typeof data.alias === 'string') {
-        this.alias.set(data.alias);
-      }
-      if (data.pantry) {
-        this.pantry.set(
-          this.normalizePantryQuantities(data.pantry as PantryItem[])
-        );
-      }
-      if (data.pantryGroups) {
-        this.pantryGroups.set(data.pantryGroups as PantryGroup[]);
-      }
-      if (data.familySettings) {
-        this.isFamilyMode.set(data.familySettings.isFamilyMode);
-        if (data.familySettings.visibleMeals) {
-          this.visibleMeals.set(data.familySettings.visibleMeals);
-        } else {
-          this.visibleMeals.set({
-            breakfast: data.familySettings.isBreakfastEnabled ?? false,
-            lunch: true,
-            snack: false,
-            dinner: true,
-          });
-        }
-        this.familyPortions.set(data.familySettings.familyPortions);
-      }
-      this.dialogService.alert('Importación', '¡Datos importados con éxito!');
+      aplicar = this.prepararImport(data);
     } catch (error) {
       console.error('Error al importar:', error);
       this.dialogService.alert(
         'Error',
-        'El archivo no tiene un formato válido.'
+        'El archivo no tiene un formato válido. No se cambió nada.'
       );
+      return;
     }
+
+    for (const paso of aplicar) {
+      paso();
+    }
+    this.dialogService.alert('Importación', '¡Datos importados con éxito!');
+  }
+
+  // Primera fase del import: transforma todo y devuelve los `set` pendientes,
+  // sin tocar nada. Si algo acá tira, no se aplicó ni un campo.
+  private prepararImport(data: Record<string, unknown>): (() => void)[] {
+    const pasos: (() => void)[] = [];
+    if (data['meals']) {
+      const v = this.normalizeMealQuantities(data['meals'] as Meal[]);
+      pasos.push(() => this.meals.set(v));
+    }
+    if (data['schedules']) {
+      const v = this.migrateSchedulesRecord(
+        data['schedules'] as Record<string, unknown[]>
+      );
+      pasos.push(() => this.schedules.set(v));
+    }
+    if (data['tags']) {
+      const v = data['tags'] as ShoppingTag[];
+      pasos.push(() => this.tags.set(v));
+    }
+    if (data['ingredientTags']) {
+      const v = data['ingredientTags'] as Record<string, string>;
+      pasos.push(() => this.ingredientTags.set(v));
+    }
+    if (data['extraItems']) {
+      const crudo = data['extraItems'];
+      // Un array acá es el formato viejo y se descarta.
+      const v = Array.isArray(crudo)
+        ? {}
+        : (crudo as Record<string, ShoppingItem[]>);
+      pasos.push(() => this.extraItems.set(v));
+    }
+    if (data['extraItemsHistory']) {
+      const v = data['extraItemsHistory'] as ShoppingItem[];
+      pasos.push(() => this.extraItemsHistory.set(v));
+    }
+    if (data['overrides']) {
+      const v = data['overrides'] as Record<string, string>;
+      pasos.push(() => this.quantityOverrides.set(v));
+    }
+    if (data['checkedItems']) {
+      const v = data['checkedItems'] as Record<string, string[]>;
+      pasos.push(() => this.checkedItems.set(v));
+    }
+    // Los backups anteriores a la 1.4 no lo traen: sin la guarda, restaurar
+    // uno viejo borraría el alias actual en vez de dejarlo como está.
+    if (typeof data['alias'] === 'string') {
+      const v = data['alias'];
+      pasos.push(() => this.alias.set(v));
+    }
+    if (data['pantry']) {
+      const v = this.normalizePantryQuantities(data['pantry'] as PantryItem[]);
+      pasos.push(() => this.pantry.set(v));
+    }
+    if (data['pantryGroups']) {
+      const v = data['pantryGroups'] as PantryGroup[];
+      pasos.push(() => this.pantryGroups.set(v));
+    }
+    if (data['familySettings']) {
+      const fs = data['familySettings'] as {
+        isFamilyMode: boolean;
+        familyPortions: number;
+        visibleMeals?: {
+          breakfast: boolean;
+          lunch: boolean;
+          snack: boolean;
+          dinner: boolean;
+        };
+        // Formato viejo, anterior a `visibleMeals`.
+        isBreakfastEnabled?: boolean;
+      };
+      const visibles = fs.visibleMeals ?? {
+        breakfast: fs.isBreakfastEnabled ?? false,
+        lunch: true,
+        snack: false,
+        dinner: true,
+      };
+      pasos.push(() => {
+        this.isFamilyMode.set(fs.isFamilyMode);
+        this.visibleMeals.set(visibles);
+        this.familyPortions.set(fs.familyPortions);
+      });
+    }
+    return pasos;
   }
 }
