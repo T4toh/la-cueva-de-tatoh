@@ -1,6 +1,7 @@
 import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { doc, Firestore, getDoc, setDoc } from '@angular/fire/firestore';
 import { AuthService } from './auth.service';
+import { ColaDeGuardado } from './cola-de-guardado';
 import { DialogService } from './dialog.service';
 import { RecetaPublicaService } from './receta-publica.service';
 import {
@@ -312,8 +313,15 @@ export class MealService {
   readonly pantryGroups = signal<PantryGroup[]>(this.loadPantryGroups());
   readonly todayTimestamp = signal<number>(this.getTodayTimestamp());
 
-  // Sync state - prevents effects from saving during sync from Firebase
-  private isSyncing = false;
+  // Decide qué pasa con una escritura que cae durante una sincronización.
+  // Antes era un boolean y esas escrituras se descartaban sin reintento.
+  private readonly cola = new ColaDeGuardado();
+
+  // El uid de la última sincronización. `user()` de @angular/fire emite en
+  // cada refresco del ID token —cerca de una vez por hora—, así que sin esta
+  // guarda el effect volvía a sincronizar sobre una sesión que no cambió de
+  // usuario, abriendo una ventana de pérdida nueva cada vez.
+  private uidSincronizado: string | null = null;
 
   // Family Mode State
   readonly isFamilyMode = signal<boolean>(false);
@@ -349,7 +357,8 @@ export class MealService {
     // Sync with Firestore on login
     effect(() => {
       const user = this.authService.currentUser();
-      if (user) {
+      if (user && user.uid !== this.uidSincronizado) {
+        this.uidSincronizado = user.uid;
         this.syncFromFirestore(user.uid);
       }
     });
@@ -358,7 +367,7 @@ export class MealService {
     effect(() => {
       const data = this.meals();
       localStorage.setItem(this.MEALS_KEY, JSON.stringify(data));
-      if (!this.isSyncing) {
+      if (this.cola.debeGuardarAhora('meals')) {
         this.saveToFirestore('meals', data);
         this.despublicarHuerfanos(data);
         this.sincronizarPublicadas(data);
@@ -374,63 +383,63 @@ export class MealService {
     effect(() => {
       const data = this.schedules();
       localStorage.setItem(this.SCHEDULES_KEY, JSON.stringify(data));
-      if (!this.isSyncing) {
+      if (this.cola.debeGuardarAhora('schedules')) {
         this.saveToFirestore('schedules', data);
       }
     });
     effect(() => {
       const data = this.tags();
       localStorage.setItem(this.TAGS_KEY, JSON.stringify(data));
-      if (!this.isSyncing) {
+      if (this.cola.debeGuardarAhora('tags')) {
         this.saveToFirestore('tags', data);
       }
     });
     effect(() => {
       const data = this.ingredientTags();
       localStorage.setItem(this.INGREDIENT_TAGS_KEY, JSON.stringify(data));
-      if (!this.isSyncing) {
+      if (this.cola.debeGuardarAhora('ingredientTags')) {
         this.saveToFirestore('ingredientTags', data);
       }
     });
     effect(() => {
       const data = this.extraItems();
       localStorage.setItem(this.EXTRA_ITEMS_KEY, JSON.stringify(data));
-      if (!this.isSyncing) {
+      if (this.cola.debeGuardarAhora('extraItems')) {
         this.saveToFirestore('extraItems', data);
       }
     });
     effect(() => {
       const data = this.extraItemsHistory();
       localStorage.setItem(this.EXTRA_ITEMS_HISTORY_KEY, JSON.stringify(data));
-      if (!this.isSyncing) {
+      if (this.cola.debeGuardarAhora('extraItemsHistory')) {
         this.saveToFirestore('extraItemsHistory', data);
       }
     });
     effect(() => {
       const data = this.quantityOverrides();
       localStorage.setItem(this.QUANTITY_OVERRIDES_KEY, JSON.stringify(data));
-      if (!this.isSyncing) {
+      if (this.cola.debeGuardarAhora('overrides')) {
         this.saveToFirestore('overrides', data);
       }
     });
     effect(() => {
       const data = this.checkedItems();
       localStorage.setItem(this.CHECKED_ITEMS_KEY, JSON.stringify(data));
-      if (!this.isSyncing) {
+      if (this.cola.debeGuardarAhora('checkedItems')) {
         this.saveToFirestore('checkedItems', data);
       }
     });
     effect(() => {
       const data = this.pantry();
       localStorage.setItem(this.PANTRY_KEY, JSON.stringify(data));
-      if (!this.isSyncing) {
+      if (this.cola.debeGuardarAhora('pantry')) {
         this.saveToFirestore('pantry', data);
       }
     });
     effect(() => {
       const data = this.pantryGroups();
       localStorage.setItem(this.PANTRY_GROUPS_KEY, JSON.stringify(data));
-      if (!this.isSyncing) {
+      if (this.cola.debeGuardarAhora('pantryGroups')) {
         this.saveToFirestore('pantryGroups', data);
       }
     });
@@ -441,14 +450,14 @@ export class MealService {
         familyPortions: this.familyPortions(),
       };
       localStorage.setItem(this.FAMILY_SETTINGS_KEY, JSON.stringify(settings));
-      if (!this.isSyncing) {
+      if (this.cola.debeGuardarAhora('familySettings')) {
         this.saveToFirestore('familySettings', settings);
       }
     });
     effect(() => {
       const data = this.alias();
       localStorage.setItem(this.ALIAS_KEY, data);
-      if (!this.isSyncing) {
+      if (this.cola.debeGuardarAhora('alias')) {
         this.saveToFirestore('alias', data);
       }
     });
@@ -466,17 +475,21 @@ export class MealService {
       this.syncStatus.set('offline');
       return;
     }
+    // Igual que en uploadAll: el reloj local se mueve recién cuando la
+    // escritura salió. Antes se movía primero y una escritura fallida lo
+    // dejaba adelantado sin que el remoto se enterara nunca.
+    const ahora = Date.now();
     try {
-      this.updateTimestamp();
       const docRef = doc(this.firestore, 'users', user.uid);
       await setDoc(
         docRef,
         this.sanitizeForFirestore({
           [key]: data,
-          lastUpdated: this.lastUpdated(),
+          lastUpdated: ahora,
         }),
         { merge: true }
       );
+      this.confirmarTimestamp(ahora);
       this.syncStatus.set('synced');
     } catch (e) {
       console.error(`Error saving ${key} to firestore:`, e);
@@ -549,8 +562,9 @@ export class MealService {
   }
 
   private async syncFromFirestore(uid: string): Promise<void> {
-    this.isSyncing = true;
+    this.cola.iniciarSync();
     this.syncStatus.set('loading');
+    let delUsuario: string[] = [];
 
     try {
       const docRef = doc(this.firestore, 'users', uid);
@@ -570,62 +584,18 @@ export class MealService {
         if (localTimestamp > remoteTimestamp) {
           console.log('[Sync] Local data is newer, uploading to Firebase');
           this.syncStatus.set('local-newer');
-          setTimeout(() => {
-            this.isSyncing = false;
-          }, 0);
+          // uploadAll manda el estado entero, así que lo anotado ya viaja ahí.
+          this.cola.terminarSync();
           this.uploadAllToFirestore();
           return;
         }
 
         // Remote is newer or same, download from Firebase
         console.log('[Sync] Remote data is newer or same, downloading');
-        if (data['meals']) {
-          this.meals.set(this.normalizeMealQuantities(data['meals']));
-        }
-        if (data['schedules']) {
-          const raw = data['schedules'] as Record<string, unknown[]>;
-          this.schedules.set(this.migrateSchedulesRecord(raw));
-        }
-        if (data['tags']) {
-          this.tags.set(data['tags']);
-        }
-        if (data['ingredientTags']) {
-          this.ingredientTags.set(data['ingredientTags']);
-        }
-        if (data['extraItems']) {
-          const extraItems = data['extraItems'];
-          this.extraItems.set(
-            Array.isArray(extraItems)
-              ? {}
-              : (extraItems as Record<string, ShoppingItem[]>)
-          );
-        }
-        if (data['extraItemsHistory']) {
-          this.extraItemsHistory.set(data['extraItemsHistory']);
-        }
-        if (data['overrides']) {
-          this.quantityOverrides.set(data['overrides']);
-        }
-        if (data['checkedItems']) {
-          this.checkedItems.set(data['checkedItems']);
-        }
-        if (data['pantry']) {
-          this.pantry.set(
-            this.normalizePantryQuantities(data['pantry'] as PantryItem[])
-          );
-        }
-        if (data['pantryGroups']) {
-          this.pantryGroups.set(data['pantryGroups'] as PantryGroup[]);
-        }
-        if (data['familySettings']) {
-          const fs = data['familySettings'];
-          this.isFamilyMode.set(fs.isFamilyMode);
-          if (fs.visibleMeals) {
-            this.visibleMeals.set(fs.visibleMeals);
-          }
-          this.familyPortions.set(fs.familyPortions);
-        }
-        this.alias.set(data['alias'] ?? '');
+        // Antes de aplicar nada: lo que el usuario tocó mientras corría el
+        // getDoc. Esas claves no se pisan con lo remoto y se mandan al final.
+        delUsuario = this.cola.pendientes();
+        this.aplicarRemoto(data as Record<string, unknown>);
         // Update local timestamp to match remote
         this.lastUpdated.set(remoteTimestamp);
         localStorage.setItem(this.LAST_UPDATED_KEY, remoteTimestamp.toString());
@@ -633,9 +603,7 @@ export class MealService {
       } else {
         // First time user - upload local data
         console.log('[Sync] No remote data, uploading local data');
-        setTimeout(() => {
-          this.isSyncing = false;
-        }, 0);
+        this.cola.terminarSync();
         this.uploadAllToFirestore();
         return;
       }
@@ -643,10 +611,114 @@ export class MealService {
       console.error('Error syncing from Firestore', e);
       this.syncStatus.set('error');
     }
-    // Wait for effects to run before resetting flag
+    // El setTimeout espera a que corran los efectos que dispararon los `set`
+    // de la bajada: esos se anotan solos en la cola y hay que descartarlos.
+    // Lo que se reenvía es la foto tomada ANTES de aplicar, que es lo único
+    // que escribió el usuario durante la ventana.
     setTimeout(() => {
-      this.isSyncing = false;
+      this.cola.terminarSync();
+      this.reenviar(delUsuario);
     }, 0);
+  }
+
+  // Aplica el documento remoto campo por campo, salteando lo que el usuario
+  // tocó durante la ventana. Es una tabla y no doce `if` para que la rama
+  // "¿lo tocó el usuario?" se escriba una sola vez: escrita doce veces, la
+  // que se olvide pisa datos en silencio, que es exactamente el bug que esto
+  // arregla. La condición es truthiness, igual que antes, no `!== undefined`:
+  // cambiarla alteraría el trato de los valores vacíos.
+  private aplicarRemoto(data: Record<string, unknown>): void {
+    // Cada aplicador recibe `unknown` y castea: el documento remoto es texto
+    // sin validar y el tipo estrecho acá sería una promesa que nadie cumple.
+    const aplicadores: Record<string, (valor: unknown) => void> = {
+      meals: (v) => this.meals.set(this.normalizeMealQuantities(v as Meal[])),
+      schedules: (v) =>
+        this.schedules.set(
+          this.migrateSchedulesRecord(v as Record<string, unknown[]>)
+        ),
+      tags: (v) => this.tags.set(v as ShoppingTag[]),
+      ingredientTags: (v) =>
+        this.ingredientTags.set(v as Record<string, string>),
+      // Un array acá es el formato viejo y se descarta.
+      extraItems: (v) =>
+        this.extraItems.set(
+          Array.isArray(v) ? {} : (v as Record<string, ShoppingItem[]>)
+        ),
+      extraItemsHistory: (v) =>
+        this.extraItemsHistory.set(v as ShoppingItem[]),
+      overrides: (v) => this.quantityOverrides.set(v as Record<string, string>),
+      checkedItems: (v) => this.checkedItems.set(v as Record<string, string[]>),
+      pantry: (v) =>
+        this.pantry.set(this.normalizePantryQuantities(v as PantryItem[])),
+      pantryGroups: (v) => this.pantryGroups.set(v as PantryGroup[]),
+      familySettings: (v) => {
+        const fs = v as {
+          isFamilyMode: boolean;
+          visibleMeals?: {
+            breakfast: boolean;
+            lunch: boolean;
+            snack: boolean;
+            dinner: boolean;
+          };
+          familyPortions: number;
+        };
+        this.isFamilyMode.set(fs.isFamilyMode);
+        if (fs.visibleMeals) {
+          this.visibleMeals.set(fs.visibleMeals);
+        }
+        this.familyPortions.set(fs.familyPortions);
+      },
+    };
+
+    for (const [clave, aplicar] of Object.entries(aplicadores)) {
+      if (data[clave] && !this.cola.fueTocado(clave)) {
+        aplicar(data[clave]);
+      }
+    }
+
+    // Aparte de la tabla: el alias se aplica aunque venga vacío, porque
+    // borrarlo en otro dispositivo tiene que borrarse acá.
+    if (!this.cola.fueTocado('alias')) {
+      this.alias.set((data['alias'] as string) ?? '');
+    }
+  }
+
+  // El estado completo, con las mismas claves que usa el documento remoto y
+  // que `saveToFirestore`. Una sola definición para el upload entero y para el
+  // reenvío de lo que quedó pendiente.
+  private estadoActual(): Record<string, unknown> {
+    return {
+      meals: this.meals(),
+      schedules: this.schedules(),
+      tags: this.tags(),
+      ingredientTags: this.ingredientTags(),
+      extraItems: this.extraItems(),
+      extraItemsHistory: this.extraItemsHistory(),
+      overrides: this.quantityOverrides(),
+      checkedItems: this.checkedItems(),
+      pantry: this.pantry(),
+      pantryGroups: this.pantryGroups(),
+      familySettings: {
+        isFamilyMode: this.isFamilyMode(),
+        visibleMeals: this.visibleMeals(),
+        familyPortions: this.familyPortions(),
+      },
+      alias: this.alias(),
+    };
+  }
+
+  // Manda lo que quedó anotado durante una ventana de sincronización. Va por
+  // clave y no con `uploadAllToFirestore` a propósito: acá lo remoto que no se
+  // tocó ya está aplicado en memoria, así que subir todo pisaría con una copia
+  // de ida y vuelta lo que otro dispositivo acaba de escribir.
+  private reenviar(claves: string[]): void {
+    if (!claves.length) {
+      return;
+    }
+    const estado = this.estadoActual();
+    for (const clave of claves) {
+      void this.saveToFirestore(clave, estado[clave]);
+    }
   }
 
   private async uploadAllToFirestore(): Promise<void> {
@@ -656,31 +728,26 @@ export class MealService {
       return;
     }
 
-    this.updateTimestamp();
+    // El timestamp se calcula acá pero se confirma recién si la escritura
+    // sale: bumpearlo antes dejaba el reloj local adelantado para siempre
+    // cuando el `setDoc` fallaba, y de ahí en más este origen se creía más
+    // nuevo que el remoto y lo sobrescribía en cada login.
+    const ahora = Date.now();
     try {
       const docRef = doc(this.firestore, 'users', user.uid);
       await setDoc(
         docRef,
         this.sanitizeForFirestore({
-          meals: this.meals(),
-          schedules: this.schedules(),
-          tags: this.tags(),
-          ingredientTags: this.ingredientTags(),
-          extraItems: this.extraItems(),
-          extraItemsHistory: this.extraItemsHistory(),
-          overrides: this.quantityOverrides(),
-          checkedItems: this.checkedItems(),
-          pantry: this.pantry(),
-          pantryGroups: this.pantryGroups(),
-          familySettings: {
-            isFamilyMode: this.isFamilyMode(),
-            visibleMeals: this.visibleMeals(),
-            familyPortions: this.familyPortions(),
-          },
-          alias: this.alias(),
-          lastUpdated: this.lastUpdated(),
-        })
+          ...this.estadoActual(),
+          lastUpdated: ahora,
+        }),
+        // Con merge. Sin él, este upload —que se dispara solo, por comparación
+        // de relojes— reemplazaba el documento entero: un desfasaje borraba
+        // los `schedules`, la `pantry` y los `tags` que este dispositivo no
+        // conocía.
+        { merge: true }
       );
+      this.confirmarTimestamp(ahora);
       this.syncStatus.set('synced');
       console.log('[Sync] All data uploaded to Firebase');
     } catch (e) {
@@ -848,10 +915,18 @@ export class MealService {
     return data ? parseInt(data, 10) : 0;
   }
 
-  private updateTimestamp(): void {
-    const now = Date.now();
-    this.lastUpdated.set(now);
-    localStorage.setItem(this.LAST_UPDATED_KEY, now.toString());
+  // Se llama después de que la escritura salió, nunca antes.
+  //
+  // Nunca retrocede: doce efectos pueden disparar escrituras en el mismo tick
+  // y resolverse fuera de orden. Si la más vieja confirma última, el reloj
+  // local quedaría atrás del remoto y la próxima sincronización bajaría de
+  // gusto.
+  private confirmarTimestamp(ts: number): void {
+    if (ts <= this.lastUpdated()) {
+      return;
+    }
+    this.lastUpdated.set(ts);
+    localStorage.setItem(this.LAST_UPDATED_KEY, ts.toString());
   }
 
   private getTodayTimestamp(): number {
