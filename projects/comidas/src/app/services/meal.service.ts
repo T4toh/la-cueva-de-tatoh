@@ -3,6 +3,8 @@ import {
   effect,
   inject,
   Injectable,
+  Injector,
+  runInInjectionContext,
   signal,
   untracked,
 } from '@angular/core';
@@ -235,6 +237,20 @@ export function filtrarComidas(
 export class MealService {
   private firestore = inject(Firestore);
   private authService = inject(AuthService);
+  private readonly injector = inject(Injector);
+
+  // AngularFire avisa cuando sus APIs se llaman fuera del contexto de
+  // inyección: pierde el wrapping de zona y desestabiliza change detection.
+  // Acá pasa siempre, porque las escrituras salen de effects y de promesas
+  // resueltas, no del constructor. `runInInjectionContext` se lo devuelve.
+  //
+  // Envuelve la llamada entera, `doc()` incluido, y de forma síncrona: el
+  // contexto vale mientras corre el callback, así que lo que tiene que nacer
+  // adentro es la promesa, no su resolución.
+  private enContexto<T>(fn: () => T): T {
+    return runInInjectionContext(this.injector, fn);
+  }
+
   private dialogService = inject(DialogService);
   private readonly recetasPublicas = inject(RecetaPublicaService);
   // Lo último que se escribió por cada receta publicada. Sin esto, cada
@@ -499,14 +515,15 @@ export class MealService {
     // dejaba adelantado sin que el remoto se enterara nunca.
     const ahora = Date.now();
     try {
-      const docRef = doc(this.firestore, 'users', user.uid);
-      await setDoc(
-        docRef,
-        this.sanitizeForFirestore({
-          [key]: data,
-          lastUpdated: ahora,
-        }),
-        { merge: true }
+      await this.enContexto(() =>
+        setDoc(
+          doc(this.firestore, 'users', user.uid),
+          this.sanitizeForFirestore({
+            [key]: data,
+            lastUpdated: ahora,
+          }),
+          { merge: true }
+        )
       );
       this.confirmarTimestamp(ahora);
       this.syncStatus.set('synced');
@@ -586,8 +603,9 @@ export class MealService {
     let delUsuario: string[] = [];
 
     try {
-      const docRef = doc(this.firestore, 'users', uid);
-      const docSnap = await getDoc(docRef);
+      const docSnap = await this.enContexto(() =>
+        getDoc(doc(this.firestore, 'users', uid))
+      );
 
       if (docSnap.exists()) {
         const data = docSnap.data();
@@ -752,18 +770,19 @@ export class MealService {
     // nuevo que el remoto y lo sobrescribía en cada login.
     const ahora = Date.now();
     try {
-      const docRef = doc(this.firestore, 'users', user.uid);
-      await setDoc(
-        docRef,
-        this.sanitizeForFirestore({
-          ...this.estadoActual(),
-          lastUpdated: ahora,
-        }),
-        // Con merge. Sin él, este upload —que se dispara solo, por comparación
-        // de relojes— reemplazaba el documento entero: un desfasaje borraba
-        // los `schedules`, la `pantry` y los `tags` que este dispositivo no
-        // conocía.
-        { merge: true }
+      await this.enContexto(() =>
+        setDoc(
+          doc(this.firestore, 'users', user.uid),
+          this.sanitizeForFirestore({
+            ...this.estadoActual(),
+            lastUpdated: ahora,
+          }),
+          // Con merge. Sin él, este upload —que se dispara solo, por
+          // comparación de relojes— reemplazaba el documento entero: un
+          // desfasaje borraba los `schedules`, la `pantry` y los `tags` que
+          // este dispositivo no conocía.
+          { merge: true }
+        )
       );
       this.confirmarTimestamp(ahora);
       this.syncStatus.set('synced');
@@ -1805,23 +1824,11 @@ export class MealService {
   }
 
   exportData(): void {
-    const data = {
-      meals: this.meals(),
-      schedules: this.schedules(),
-      tags: this.tags(),
-      ingredientTags: this.ingredientTags(),
-      extraItems: this.extraItems(),
-      extraItemsHistory: this.extraItemsHistory(),
-      overrides: this.quantityOverrides(),
-      pantry: this.pantry(),
-      pantryGroups: this.pantryGroups(),
-      familySettings: {
-        isFamilyMode: this.isFamilyMode(),
-        visibleMeals: this.visibleMeals(),
-        familyPortions: this.familyPortions(),
-      },
-      version: '1.3',
-    };
+    // Sale de `estadoActual()` y no de una lista propia: escrita a mano acá,
+    // el backup se había quedado sin `alias` ni `checkedItems`. Restaurarlo te
+    // dejaba sin el nombre de cocinero y sin los tildes de la lista de
+    // compras, en silencio.
+    const data = { ...this.estadoActual(), version: '1.4' };
     const blob = new Blob([JSON.stringify(data, null, 2)], {
       type: 'application/json',
     });
@@ -2037,6 +2044,14 @@ export class MealService {
       }
       if (data.overrides) {
         this.quantityOverrides.set(data.overrides);
+      }
+      if (data.checkedItems) {
+        this.checkedItems.set(data.checkedItems);
+      }
+      // Los backups anteriores a la 1.4 no lo traen: sin la guarda, restaurar
+      // uno viejo borraría el alias actual en vez de dejarlo como está.
+      if (typeof data.alias === 'string') {
+        this.alias.set(data.alias);
       }
       if (data.pantry) {
         this.pantry.set(
