@@ -61,30 +61,34 @@ contenedores tienen alto fijo y la imagen entra con `object-fit: cover`.
 
 ## Validación
 
-La validación vive **en el editor**, y en un solo lugar. Al guardar: sólo se
-acepta `http://` o `https://`. Cualquier otra cosa —`javascript:`, `data:`,
-`file:`, texto suelto— se rechaza con un mensaje al lado del campo, y la receta
-no se guarda con esa foto.
-
-Está para que el usuario vea el error cuando pega mal el link, no como barrera
-de seguridad: Angular sanitiza el `[src]` de un `<img>` por su cuenta, así que
-un `javascript:` no se ejecutaría igual.
-
-**El Worker no la replica.** Se consideró y no corresponde: no concatena, usa
-`el.setAttribute('content', …)`, que escapa —el `og:title` con el nombre de la
-receta ya depende de eso—, así que meter la URL tal cual no abre ninguna
-inyección. Lo que el Worker sí hace es un fallback, que es otra cosa (ver
-*`og:image`*).
-
-Una función pura, exportada y testeada:
+Es la URL de una imagen y nada más, así que no lleva función propia ni test.
+Angular ya trae todo:
 
 ```ts
-export function esUrlDeImagen(valor: string): boolean;
+foto: ['', Validators.pattern(/^https:\/\//)]
 ```
 
-No valida que la URL sea *una imagen* —eso sólo se sabe descargándola— sino que
-sea un link web. El caso "es un link válido pero no es una imagen" lo resuelve
-el fallback de abajo.
+más `type="url"` en el input. Con eso:
+
+- El botón Guardar ya usa `[disabled]="form.invalid"`, así que un link mal
+  pegado bloquea el guardado solo.
+- El teléfono levanta el teclado de URL.
+- El campo sigue siendo opcional sin escribir nada: los validadores de Angular
+  no corren sobre valor vacío.
+
+**`https` no es purismo.** La app se sirve por https, así que un
+`<img src="http://…">` lo bloquea el navegador por contenido mixto: esa foto no
+se vería nunca. No es una preferencia, es lo único que funciona.
+
+Angular sanitiza el `[src]` de un `<img>` por su cuenta, así que un
+`javascript:` tampoco se ejecutaría. El validador está para que el usuario vea
+el error al pegar mal, no como barrera.
+
+**El Worker no replica nada de esto.** Se consideró y no corresponde: no
+concatena, usa `el.setAttribute('content', …)`, que escapa —el `og:title` con
+el nombre de la receta ya depende de eso—, así que meter la URL tal cual no
+abre ninguna inyección. Lo que el Worker sí hace es un fallback, que es otra
+cosa (ver *`og:image`*).
 
 ## Imágenes que no cargan
 
@@ -168,8 +172,8 @@ publican solos**. Hay que agregarlos a mano:
 - `foto` del `Meal`.
 - `foto` de cada `Paso`, en la proyección paso por paso que ya existe.
 
-Ambos sólo si pasan `esUrlDeImagen`. Publicar es el momento en que el dato deja
-de ser privado; validar ahí de nuevo es barato.
+Se copian tal cual: el editor no deja guardar una URL que no arranque con
+`https://`, así que lo que hay en el `Meal` ya pasó por el validador.
 
 ## `og:image`
 
@@ -218,10 +222,10 @@ Los tests puros del Worker (`worker-og.spec.ts`) cubren `normalizar` y
 
 Cada paso deja la app andando.
 
-1. **Modelo y validación.** `Meal.foto`, `Paso.foto`, `esUrlDeImagen` con
-   tests. Nada visible todavía.
-2. **Editor.** Los dos campos, la validación al guardar y la miniatura.
-   A partir de acá se pueden cargar fotos aunque no se vean en ningún lado.
+1. **Modelo.** `Meal.foto` y `Paso.foto`. Nada visible todavía.
+2. **Editor.** Los dos campos con `type="url"` y `Validators.pattern`, más la
+   miniatura de previsualización. A partir de acá se pueden cargar fotos aunque
+   no se vean en ningún lado.
 3. **Ficha.** La banda, con y sin foto, con velo y `text-shadow`, y el
    `(error)` que oculta. Es donde se ve el trabajo del paso 2.
 4. **Tarjeta y modo cocina.** Portada condicional, `align-items: start` en el
