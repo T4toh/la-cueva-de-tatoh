@@ -80,15 +80,17 @@ export class RecetaDetalleComponent implements OnDestroy {
     () => this.pasoActual() >= this.pasos().length - 1
   );
 
-  // Mismo patrón que `fotoConError`, pero clavado al índice del paso en vez
-  // del id de la receta: dos pasos consecutivos con foto comparten el mismo
-  // `<img>` del template, así que sin esto una foto rota en el paso 3 dejaría
-  // sin verse a la del 4, que está perfecta.
-  private readonly pasoFotoConError = signal<number | null>(null);
+  // Mismo patrón que `fotoConError`, pero la clave identifica qué foto falló
+  // -receta y paso, no sólo el paso-: así se invalida sola tanto al cambiar
+  // de paso como al cambiar de receta, sin resetear nada a mano. Dos pasos
+  // consecutivos con foto comparten el mismo `<img>` del template, así que
+  // sin esto una foto rota en el paso 3 dejaría sin verse a la del 4, que
+  // está perfecta.
+  private readonly pasoFotoConError = signal<string | null>(null);
   readonly hayFotoPaso = computed(
     () =>
       !!this.pasoEnCurso()?.foto &&
-      this.pasoFotoConError() !== this.pasoActual()
+      this.pasoFotoConError() !== `${this.meal().id}:${this.pasoActual()}`
   );
 
   editar(): void {
@@ -104,7 +106,7 @@ export class RecetaDetalleComponent implements OnDestroy {
   }
 
   pasoFotoFallo(): void {
-    this.pasoFotoConError.set(this.pasoActual());
+    this.pasoFotoConError.set(`${this.meal().id}:${this.pasoActual()}`);
   }
 
   cocinar(): void {
