@@ -29,6 +29,11 @@
         placeholder="https://…"
         type="url"
       />
+      <p class="foto-ayuda">
+        El navegador de quien la vea —y la vista previa que arma WhatsApp o
+        Facebook al compartir el link— piden la foto directo al sitio donde
+        vive.
+      </p>
       @if (form.controls['foto'].invalid && form.controls['foto'].value) {
         <p class="error-campo">El link tiene que empezar con https://</p>
       }
@@ -198,6 +203,9 @@
               placeholder="Foto del paso (https://…)"
               type="url"
             />
+            @if (paso.get('foto')?.invalid && paso.get('foto')?.value) {
+              <p class="error-campo">El link tiene que empezar con https://</p>
+            }
             <div class="paso-acciones">
               <button
                 class="btn-mover"

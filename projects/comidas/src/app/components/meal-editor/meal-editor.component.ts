@@ -201,11 +201,18 @@ export class MealEditorComponent implements OnInit {
   // tiene el campo, editar la comida lo borra al guardar. Es la misma razón por
   // la que limpiarPasos hace spread, un piso más abajo.
   addPaso(paso: Paso = { texto: '' }): void {
-    // El `foto: ''` va ANTES del spread: un paso guardado antes de que
-    // existiera el campo no trae la clave, y sin control el
-    // `formControlName="foto"` del template tira NG01050. Si el paso sí
-    // trae foto, el spread la pisa, que es lo que se quiere.
-    this.pasos.push(this.fb.group({ foto: '', ...paso }));
+    // El spread va ANTES de `foto`, al revés que si sólo importara el
+    // default: `foto` tiene que ser la última clave para que su config de
+    // control (con el validator) no quede pisada por un `paso.foto` de tipo
+    // string que vendría del spread. El `?? ''` cubre al paso guardado antes
+    // de que existiera el campo, que no trae la clave — sin control ahí el
+    // `formControlName="foto"` del template tira NG01050.
+    this.pasos.push(
+      this.fb.group({
+        ...paso,
+        foto: [paso.foto ?? '', Validators.pattern(/^https:\/\//)],
+      })
+    );
   }
 
   removePaso(index: number): void {

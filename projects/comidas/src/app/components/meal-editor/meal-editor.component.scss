@@ -32,6 +32,12 @@ h2 {
   margin: 0.35rem 0 0;
 }
 
+.foto-ayuda {
+  margin: 0.35rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--fg-muted);
+}
+
 .preview {
   margin-top: 0.5rem;
   max-height: 7rem;
@@ -170,6 +176,13 @@ h2 {
 .paso-row .paso-foto {
   flex: 1 1 100%;
   margin-top: 0.35rem;
+}
+
+// Mismo flex-basis que .paso-foto: si no, el mensaje se aprieta en la fila
+// en vez de acompañar al campo que describe.
+.paso-row .error-campo {
+  flex: 1 1 100%;
+  margin: 0.15rem 0 0;
 }
 
 .pasos-section .empty-state {
