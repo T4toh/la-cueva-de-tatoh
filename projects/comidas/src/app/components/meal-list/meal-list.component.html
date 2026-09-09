@@ -9,8 +9,36 @@
     </div>
   </div>
 
+  @if (mealService.meals().length > 0) {
+    <div class="filters">
+      <button
+        type="button"
+        [class.active]="sinFiltros()"
+        (click)="limpiarFiltros()"
+      >
+        Todas
+      </button>
+      <button
+        type="button"
+        [class.active]="soloCompartidas()"
+        (click)="soloCompartidas.set(!soloCompartidas())"
+      >
+        Compartidas
+      </button>
+      @for (tag of uniqueTags(); track tag) {
+        <button
+          type="button"
+          [class.active]="selectedTag() === tag"
+          (click)="selectTag(selectedTag() === tag ? null : tag)"
+        >
+          {{ tag }}
+        </button>
+      }
+    </div>
+  }
+
   <div class="grid">
-    @for (meal of mealService.meals(); track meal.id) {
+    @for (meal of filteredMeals(); track meal.id) {
       <app-meal-card
         [meal]="meal"
         [showCompartir]="true"
@@ -25,7 +53,11 @@
         (verReceta)="verReceta($event)"
       />
     } @empty {
-      <p class="empty-state">No hay comidas guardadas. ¡Creá una!</p>
+      @if (mealService.meals().length === 0) {
+        <p class="empty-state">No hay comidas guardadas. ¡Creá una!</p>
+      } @else {
+        <p class="empty-state">Ninguna comida coincide con el filtro.</p>
+      }
     }
   </div>
 

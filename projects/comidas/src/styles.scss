@@ -168,3 +168,40 @@ label:has(lib-icon) {
   align-items: center;
   gap: 0.4rem;
 }
+
+/* Chips de filtro. Global y no en un componente porque las usan el selector
+   del día y el listado de comidas, y los estilos de componente están
+   encapsulados: en un .scss propio habría que duplicar el bloque. */
+.filters {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+
+  button {
+    background: transparent;
+    border: 1px solid var(--border-default);
+    color: var(--fg-muted);
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease,
+      background-color 0.2s ease;
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--border-strong);
+      color: var(--fg-secondary);
+    }
+
+    &.active {
+      background: var(--accent-muted);
+      color: var(--fg-primary);
+      border-color: var(--accent);
+    }
+  }
+}

@@ -145,3 +145,32 @@ lib-footer {
     }
   }
 }
+
+/* El input opcional del diálogo. Vive acá y no en la librería porque el
+   contenido proyectado lo estila el componente que lo declara. */
+.dialogo-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+
+  span {
+    color: var(--fg-muted);
+    font-size: 0.8125rem;
+  }
+
+  input {
+    background: var(--bg-sunken);
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+    color: var(--fg-primary);
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    padding: 0.5rem 0.65rem;
+
+    &:focus {
+      border-color: var(--accent);
+      outline: none;
+    }
+  }
+}

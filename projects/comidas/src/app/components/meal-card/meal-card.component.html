@@ -37,18 +37,14 @@
         }
       </div>
 
-      @if (esReceta() || showEdit() || showDelete() || showDuplicate() || showCompartir() ||
-        esCompartida()) {
+      @if (
+        esReceta() ||
+        showEdit() ||
+        showDelete() ||
+        showDuplicate() ||
+        showCompartir()
+      ) {
         <div class="card-footer">
-          @if (esCompartida()) {
-            <span
-              aria-label="Compartida por link"
-              class="badge-compartida"
-              title="Compartida por link"
-            >
-              <lib-icon name="external-link" [size]="14" />
-            </span>
-          }
           <div class="card-footer-actions">
             @if (esReceta()) {
               <button
@@ -73,8 +69,9 @@
             @if (showCompartir()) {
               <button
                 class="btn-icon"
-                title="Compartir"
                 type="button"
+                [class.compartida]="esCompartida()"
+                [title]="esCompartida() ? 'Ver el link' : 'Compartir'"
                 (click)="onCompartir($event)"
               >
                 <lib-icon name="external-link" [size]="16" />

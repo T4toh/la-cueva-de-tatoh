@@ -58,6 +58,32 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       `/r/*`: comidas ya se despliega como Worker, lo que no tenía era script.
       La ficha reusa `receta-detalle` sin tocarla.
 
+- [x] **Compartir, redondeado.** El diálogo del link pasó a ser el dueño de
+      todo el flujo —copiar, abrir, compartir con la hoja del sistema
+      (`navigator.share`, donde exista) y **dejar de compartir**—, así que el
+      botón del listado dejó de ser un camino sin salida: antes sólo se podía
+      descompartir desde `/meals/:id`. Se arregló ahí y no en cada pantalla
+      porque ese diálogo es el que abren todos los llamadores.
+      El alias se edita en ese mismo diálogo, que es donde se ve lo que hace:
+      firma la receta y es el primer segmento del link. `lib-dialogo` ya
+      proyectaba con `<ng-content>`, así que el input lo dibuja el template del
+      `App` con un `campo?` opcional del `DialogService` y la librería no
+      cambió. El link viejo no muere al renombrarse: el id de ocho es la llave.
+      El editor tiene el mismo estado como tilde, y ahí sí se aplica al
+      guardar: es dato del formulario, como el de la lista de compras, así que
+      Cancelar no publica nada. El default es privado. No aparece en
+      `/meals/new` —la comida no tiene id todavía— y la decisión sale de
+      `accionDeCompartir`, que devuelve `null` cuando el tilde no cambió:
+      guardar sin tocarlo no toca `recetasPublicas`, y republicar una ya
+      compartida acuñaría un id nuevo dejando huérfano el link repartido.
+      El listado tiene ahora los mismos chips de filtro que el selector del día
+      —`tagsUnicos` y `filtrarComidas` salieron a `meal.service.ts` y los usan
+      los dos— más uno de **Compartidas**, que es lo que reemplaza a un
+      apartado propio de recetas públicas: misma información, cero rutas
+      nuevas. Los dos filtros se componen. El `.filters` se fue al
+      `styles.scss` de comidas: los estilos de componente están encapsulados y
+      en dos `.scss` propios había que duplicar el bloque.
+
 ## En curso / pendiente
 
 - [ ] **Recetario.** Diseñado y sin implementar. El spec está en
@@ -74,14 +100,20 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
         receta en la tarjeta haciendo de indicador.
   - [x] **3. Cocinar.** Selector ×1 ×2 ×3 sobre la ficha, modo cocina de un
         paso por pantalla, y botón de copiar la receta como markdown para
-        pegarla en un post.
+        pegarla en un post. El modo cocina pide `navigator.wakeLock` al entrar,
+        lo suelta al salir y en `ngOnDestroy`, y lo **re-pide** en
+        `visibilitychange`: el navegador lo suelta por su cuenta cuando la
+        pestaña se esconde, así que sin eso mirar el teléfono un segundo
+        devolvía la pantalla apagándose. No está en Firefox de escritorio ni en
+        el WebView de Android; falla callado, es comodidad y no función.
   - [ ] **4. Fotos.** Storage, compresión con `canvas`, borrado en cascada.
         Ya no va por Firebase Storage: desde febrero de 2026 exige Blaze, y el
         costo de las imágenes está en servirlas, no en guardarlas. El camino
         elegido es **Cloudflare R2** —egress $0, free tier mensual— con lo que
         Firestore y Auth se quedan en Spark. La investigación, los precios y el
         checklist de alta están en
-        [`docs/hosting-imagenes.md`](docs/hosting-imagenes.md).
+        [`docs/hosting-imagenes.md`](docs/hosting-imagenes.md). Trabado en dar
+        de alta la cuenta de R2, que pide tarjeta.
 
 - [ ] **Configurador del landing.** Hoy el orden de las secciones está escrito
       a mano en `projects/perfil-personal/src/app/componentes/landing/landing.html`.
@@ -90,6 +122,32 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       prerenderiza, así que si el orden sale de una base en runtime el
       prerender no lo ve y se rompen los `og:`. Tiene que resolverse en build
       (una lista en `src/variables.ts`, o un JSON commiteado).
+
+- [ ] **Diseño de la receta con imágenes.** Nunca lo dibujamos, y es aparte del
+      hosting: cómo se ve la ficha con una foto de portada, cómo queda la
+      tarjeta del listado, y una foto por paso en el modo cocina. Se puede
+      diseñar y maquetar con imágenes de prueba sin resolver el hosting.
+
+- [ ] **Rating de la comida.** Un campo en el `Meal` —es el dueño natural, ya
+      lleva los tags y la lista de compras— y estrellas en la tarjeta. Falta
+      decidir: ¿1 a 5 o pulgar?, ¿ordena el listado o es un chip más al lado de
+      "Compartidas"?, ¿viaja a la receta pública o es privado? Ojo con esto
+      último: `aRecetaPublica` es una lista blanca a propósito, así que un campo
+      nuevo **no** se publica solo.
+
+- [ ] **Métrico ↔ imperial.** Mostrar las cantidades en tazas y cucharadas y
+      volver. Es el único de la lista con madriguera de verdad: taza es volumen
+      y gramo es masa, así que convertir necesita la densidad de cada
+      ingrediente (una taza de harina son ~120 g, una de azúcar ~200 g). Sin
+      una tabla por ingrediente, lo honesto es convertir sólo lo que ya es
+      volumen (ml ↔ tazas) y dejar la masa en gramos. Lleva spec propio; el
+      punto de entrada es `parseQuantity` en `meal.service.ts`, que ya conserva
+      la unidad escrita a mano.
+
+- [ ] **Comentarios en la receta pública.** Hoy `/r/...` es de sólo lectura
+      para un desconocido sin cuenta. Comentarios significa escritura anónima
+      en una colección pública: la regla de Firestore y la moderación son la
+      parte difícil, no la UI.
 
 ## Deuda técnica declarada
 
