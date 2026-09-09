@@ -100,6 +100,12 @@ Es la razón de más peso para que el diseño funcione sin foto: no es sólo el
 estado inicial, es también el estado al que puede volver cualquier receta sin
 avisar.
 
+**Excepción a propósito: la miniatura de previsualización del editor no lleva
+`(error)`.** Angular reusa el elemento cuando cambia `[src]`; ocultarlo en el
+error lo dejaría oculto para siempre aunque el usuario corrija el link después,
+porque nada vuelve a mostrarlo. En el editor, además, una imagen rota es
+exactamente la información que la miniatura existe para dar.
+
 ## Vistas
 
 ### Ficha (`receta-detalle`)
