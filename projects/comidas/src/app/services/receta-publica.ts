@@ -34,9 +34,7 @@ function bytesAlAzar(): Uint8Array {
   return bytes;
 }
 
-export function generarIdPublico(
-  bytes: () => Uint8Array = bytesAlAzar
-): string {
+export function generarIdPublico(bytes: () => Uint8Array = bytesAlAzar): string {
   let id = '';
   let iteraciones = 0;
   while (id.length < LARGO_ID) {
@@ -117,9 +115,10 @@ export function aRecetaPublica(
     receta.descripcion = descripcionUsable;
   }
   if (meal.pasos?.length) {
-    // Proyectado paso por paso por la misma razón que los ingredientes: hoy
-    // `Paso` es sólo `texto`, pero la fase 4 le suma fotos y una nota privada
-    // por paso se publicaría sola si se copiara el objeto entero.
+    // Proyectado paso por paso por la misma razón que los ingredientes: la
+    // proyección es campo por campo justamente para que un campo futuro
+    // privado (como una nota por paso) no se publique solo si se copiara el
+    // objeto entero.
     receta.pasos = meal.pasos.map((paso) => {
       const proyectado: Paso = { texto: paso.texto };
       if (paso.foto) {

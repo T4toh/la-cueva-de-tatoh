@@ -61,14 +61,18 @@ describe('generarIdPublico', () => {
     // Todos 255 caen fuera del rango válido, así que el loop nunca termina.
     // Sin el tope, esto colgaría. Con el tope, tira un error inmediato.
     const bytes = (): Uint8Array => new Uint8Array([255, 255, 255, 255]);
-    expect(() => generarIdPublico(bytes)).toThrow(/rechazo masivo/);
+    expect(() => generarIdPublico(bytes)).toThrow(
+      /rechazo masivo/
+    );
   });
 
   it('tira error si recibe arrays vacíos', { timeout: 1000 }, () => {
     // Devolver arrays vacíos no suma bytes, así que sin el tope de iteraciones
     // el loop giraría para siempre. Con el tope, tira un error.
     const bytes = (): Uint8Array => new Uint8Array([]);
-    expect(() => generarIdPublico(bytes)).toThrow(/rechazo masivo/);
+    expect(() => generarIdPublico(bytes)).toThrow(
+      /rechazo masivo/
+    );
   });
 });
 
@@ -132,13 +136,7 @@ describe('aRecetaPublica', () => {
   it('trata una descripción de sólo espacios como ausente', () => {
     const conBlancos: Meal = { ...meal, description: '\n\n\n\n' };
 
-    const receta = aRecetaPublica(
-      conBlancos,
-      undefined,
-      'uid-1',
-      'k7m2xq9p',
-      10
-    );
+    const receta = aRecetaPublica(conBlancos, undefined, 'uid-1', 'k7m2xq9p', 10);
 
     expect(receta).not.toHaveProperty('descripcion');
   });
@@ -146,13 +144,7 @@ describe('aRecetaPublica', () => {
   it('guarda la descripción trimeada, no con los espacios de sobra', () => {
     const conEspacios: Meal = { ...meal, description: '  La de siempre  ' };
 
-    const receta = aRecetaPublica(
-      conEspacios,
-      undefined,
-      'uid-1',
-      'k7m2xq9p',
-      10
-    );
+    const receta = aRecetaPublica(conEspacios, undefined, 'uid-1', 'k7m2xq9p', 10);
 
     expect(receta.descripcion).toBe('La de siempre');
   });
@@ -162,7 +154,7 @@ describe('aRecetaPublica', () => {
       id: 'm',
       name: 'Arroz',
       ingredients: [],
-      // Un campo futuro (fase 4: fotos y notas por paso) simulado acá: si
+      // Un campo futuro privado (como una nota por paso) simulado acá: si
       // `pasos` se copiara por referencia, viajaría al documento público.
       pasos: [{ texto: 'Hervir', nota: 'privada' } as Paso],
     };
@@ -176,9 +168,7 @@ describe('aRecetaPublica', () => {
     const conTilde: Meal = {
       id: 'm',
       name: 'Arroz',
-      ingredients: [
-        { name: 'Arroz', quantity: '1', unit: 'kg', checked: true },
-      ],
+      ingredients: [{ name: 'Arroz', quantity: '1', unit: 'kg', checked: true }],
     };
 
     const receta = aRecetaPublica(conTilde, undefined, 'uid-1', 'k7m2xq9p', 10);
@@ -223,11 +213,7 @@ describe('aRecetaPublica', () => {
 describe('aMeal', () => {
   it('reconstruye una comida mostrable desde el documento público', () => {
     const receta = aRecetaPublica(
-      {
-        id: 'm',
-        name: 'Arroz',
-        ingredients: [{ name: 'Arroz', quantity: '1' }],
-      },
+      { id: 'm', name: 'Arroz', ingredients: [{ name: 'Arroz', quantity: '1' }] },
       undefined,
       'uid-1',
       'k7m2xq9p',
