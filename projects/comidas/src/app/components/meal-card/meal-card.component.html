@@ -10,7 +10,6 @@
     [colorFondo]="'var(--bg-surface)'"
     [colorTexto]="'var(--fg-primary)'"
     [sombreado]="false"
-    [texto]="meal().name"
   >
     @if (meal().foto) {
       <!-- Un solo (error) con `hidden`, sin señal por id: esta tarjeta se
@@ -30,6 +29,13 @@
         (error)="$any($event.target).hidden = true"
       />
     }
+    <!-- lib-panel ya no recibe `texto`: pintaba el título antes del
+         contenido proyectado (esta foto incluida), así que la portada
+         quedaba siempre debajo del nombre. Lo dibujamos acá, después de la
+         foto, y ocultamos por CSS el <span> vacío que el panel igual sigue
+         emitiendo (panel.html lo renderiza siempre que `colapsable` sea
+         false, con o sin `texto`). -->
+    <span class="meal-title">{{ meal().name }}</span>
     <div class="meal-content-wrapper">
       <div class="meal-info">
         <ul class="ingredient-list">
