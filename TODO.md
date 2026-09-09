@@ -123,10 +123,17 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       prerender no lo ve y se rompen los `og:`. Tiene que resolverse en build
       (una lista en `src/variables.ts`, o un JSON commiteado).
 
-- [ ] **Diseño de la receta con imágenes.** Nunca lo dibujamos, y es aparte del
-      hosting: cómo se ve la ficha con una foto de portada, cómo queda la
-      tarjeta del listado, y una foto por paso en el modo cocina. Se puede
-      diseñar y maquetar con imágenes de prueba sin resolver el hosting.
+- [ ] **Recetas con imágenes, por link.** Diseñado y sin implementar. El spec
+      está en
+      [`docs/superpowers/specs/2026-09-09-recetas-con-imagenes-design.md`](docs/superpowers/specs/2026-09-09-recetas-con-imagenes-design.md).
+      `Meal.foto` y `Paso.foto` son URLs pegadas a mano, así que desbloquea la
+      fase 4 sin resolver el hosting: el día que haya subida real sólo cambia de
+      dónde sale la URL. La decisión que manda es que el hero de la ficha es una
+      banda que la foto rellena —sin foto no es el caso degradado, es el caso
+      normal— y que la tarjeta del listado a propósito **no** la repite: en la
+      grilla serían 34 bandas vacías. De regalo, el `og:image` del Worker deja
+      de ser el icono genérico. Fuera de alcance: el tap para ampliar la foto en
+      modo cocina.
 
 - [ ] **Rating de la comida.** Un campo en el `Meal` —es el dueño natural, ya
       lleva los tags y la lista de compras— y estrellas en la tarjeta. Falta
