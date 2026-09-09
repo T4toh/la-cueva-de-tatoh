@@ -84,6 +84,30 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       `styles.scss` de comidas: los estilos de componente están encapsulados y
       en dos `.scss` propios había que duplicar el bloque.
 
+- [x] **Recetas con imágenes, por link.** El spec está en
+      [`docs/superpowers/specs/2026-09-09-recetas-con-imagenes-design.md`](docs/superpowers/specs/2026-09-09-recetas-con-imagenes-design.md).
+      `Meal.foto` y `Paso.foto` son URLs `https://` pegadas a mano —el editor
+      valida el esquema porque una imagen `http://` sobre una página `https://`
+      es contenido mixto y el navegador la bloquea sola—, así que esto no
+      resuelve la fase 4 del recetario (subida real a Cloudflare R2, todavía
+      trabada en el alta de la cuenta): el día que exista, sólo cambia de dónde
+      sale la URL.
+      El hero de la ficha es una banda que la foto rellena —sin foto no es el
+      caso degradado, es el caso normal, porque hoy ninguna receta tiene foto y
+      muchas nunca la van a tener—. La tarjeta del listado a propósito **no**
+      repite esa banda: le agrega una portada sólo cuando hay foto, porque
+      treinta y cuatro bandas vacías en una grilla empujarían los ingredientes
+      fuera de la pantalla. El modo cocina muestra la foto del paso arriba del
+      texto, para que los botones de abajo no se muevan al cambiar de paso.
+      Toda imagen que falla cae al estado sin-foto en vez de al ícono roto del
+      navegador, y ese estado se guarda por *qué* foto falló —el id de la
+      receta, o el id más el índice del paso— y no con un booleano: un
+      booleano se queda pegado al navegar a otra receta o pasar al siguiente
+      paso, que capaz sí tienen foto buena.
+      De regalo, el `og:image` del Worker deja de ser siempre el ícono
+      genérico y usa la foto de la receta cuando hay una. Fuera de alcance: el
+      tap para ampliar la foto en modo cocina (tabla de deuda técnica, abajo).
+
 ## En curso / pendiente
 
 - [ ] **Recetario.** Diseñado y sin implementar. El spec está en
@@ -123,18 +147,6 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       prerender no lo ve y se rompen los `og:`. Tiene que resolverse en build
       (una lista en `src/variables.ts`, o un JSON commiteado).
 
-- [ ] **Recetas con imágenes, por link.** Diseñado y sin implementar. El spec
-      está en
-      [`docs/superpowers/specs/2026-09-09-recetas-con-imagenes-design.md`](docs/superpowers/specs/2026-09-09-recetas-con-imagenes-design.md).
-      `Meal.foto` y `Paso.foto` son URLs pegadas a mano, así que desbloquea la
-      fase 4 sin resolver el hosting: el día que haya subida real sólo cambia de
-      dónde sale la URL. La decisión que manda es que el hero de la ficha es una
-      banda que la foto rellena —sin foto no es el caso degradado, es el caso
-      normal— y que la tarjeta del listado a propósito **no** la repite: en la
-      grilla serían 34 bandas vacías. De regalo, el `og:image` del Worker deja
-      de ser el icono genérico. Fuera de alcance: el tap para ampliar la foto en
-      modo cocina.
-
 - [ ] **Rating de la comida.** Un campo en el `Meal` —es el dueño natural, ya
       lleva los tags y la lista de compras— y estrellas en la tarjeta. Falta
       decidir: ¿1 a 5 o pulgar?, ¿ordena el listado o es un chip más al lado de
@@ -171,3 +183,4 @@ techo y el camino de salida.
 | `projects/comidas/src/app/components/meal-card/meal-card.component.scss:66` | La lista de ingredientes de la tarjeta corta a las 16rem y de ahí scrollea, para que una receta de veinte ingredientes no haga una tarjeta interminable. Salida: mostrar los primeros N con un "ver todos". |
 | `projects/comidas/worker/index.js:63` | Del Worker que inyecta los `og:` está testeada la lógica pura (`ID_VALIDO`, `normalizar`, `describir`, en `src/app/worker-og.spec.ts`), pero no el `fetch`: `HTMLRewriter` y el binding `ASSETS` no existen fuera del runtime de Workers. El rewrite se verifica a mano con `wrangler dev` y un curl con user-agent de crawler. Salida: `vitest-pool-workers`. |
 | `projects/comidas/src/app/services/meal.service.ts:465` | La barrida de huérfanos reintenta en el próximo cambio de `meals`. Si el usuario importa un backup sin conexión y no vuelve a tocar una comida, el link queda vivo. Salida: reintentar también al recuperar la sesión. |
+| `projects/comidas/src/app/components/receta-detalle/receta-detalle.component.html:12` | La foto del paso en modo cocina no se puede ampliar: es del mismo tamaño fijo que el resto de la banda. Quedó fuera de alcance del spec de imágenes por link. Salida: tap para abrir un lightbox a pantalla completa. |

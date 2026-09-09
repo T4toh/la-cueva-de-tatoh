@@ -74,8 +74,8 @@ export function imagenDe(receta) {
 
 // ponytail: el `fetch` de acá abajo no tiene test — `HTMLRewriter` y el
 // binding `ASSETS` no existen fuera del runtime de Workers, y traerlos es una
-// dependencia nueva. La lógica pura (`ID_VALIDO`, `normalizar`, `describir`)
-// sí está cubierta en `src/app/worker-og.spec.ts`; el rewrite se verifica a
+// dependencia nueva. La lógica pura (`ID_VALIDO`, `normalizar`, `describir`,
+// `imagenDe`) sí está cubierta en `src/app/worker-og.spec.ts`; el rewrite se verifica a
 // mano con `wrangler dev` y un curl con user-agent de crawler. Salida:
 // vitest-pool-workers si esto crece.
 export default {
