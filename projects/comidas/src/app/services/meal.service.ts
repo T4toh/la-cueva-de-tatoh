@@ -165,6 +165,7 @@ export function copiaParaDuplicar(original: Meal): Omit<Meal, 'id'> {
     ...(original.includeInShoppingList !== undefined
       ? { includeInShoppingList: original.includeInShoppingList }
       : {}),
+    ...(original.foto ? { foto: original.foto } : {}),
   };
 }
 
@@ -179,6 +180,7 @@ export function huellaPublicada(meal: Meal, alias: string): string {
     meal.description,
     meal.ingredients,
     meal.pasos,
+    meal.foto,
     alias,
   ]);
 }

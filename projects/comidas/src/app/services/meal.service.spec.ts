@@ -71,6 +71,13 @@ describe('huellaPublicada', () => {
       huellaPublicada(meal, 'Otro')
     );
   });
+
+  it('cambiar la foto cambia la huella: si no, no se re-publica', () => {
+    const base: Meal = { id: '1', name: 'Mila', ingredients: [] };
+    const conFoto: Meal = { ...base, foto: 'https://ejemplo.com/a.jpg' };
+
+    expect(huellaPublicada(conFoto, '')).not.toBe(huellaPublicada(base, ''));
+  });
 });
 
 describe('copiaParaDuplicar', () => {
@@ -87,6 +94,7 @@ describe('copiaParaDuplicar', () => {
     tags: ['favorita'],
     includeInShoppingList: true,
     pasos: [{ texto: 'Freír' }, { texto: 'Napolizar' }],
+    foto: 'https://ejemplo.com/mila.jpg',
     publicId: 'k7m2xq9p',
   };
 
@@ -102,6 +110,7 @@ describe('copiaParaDuplicar', () => {
       tags: ['favorita'],
       includeInShoppingList: true,
       pasos: [{ texto: 'Freír' }, { texto: 'Napolizar' }],
+      foto: 'https://ejemplo.com/mila.jpg',
     });
   });
 

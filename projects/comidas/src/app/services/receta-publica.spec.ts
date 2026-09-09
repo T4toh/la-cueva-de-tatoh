@@ -61,18 +61,14 @@ describe('generarIdPublico', () => {
     // Todos 255 caen fuera del rango válido, así que el loop nunca termina.
     // Sin el tope, esto colgaría. Con el tope, tira un error inmediato.
     const bytes = (): Uint8Array => new Uint8Array([255, 255, 255, 255]);
-    expect(() => generarIdPublico(bytes)).toThrow(
-      /rechazo masivo/
-    );
+    expect(() => generarIdPublico(bytes)).toThrow(/rechazo masivo/);
   });
 
   it('tira error si recibe arrays vacíos', { timeout: 1000 }, () => {
     // Devolver arrays vacíos no suma bytes, así que sin el tope de iteraciones
     // el loop giraría para siempre. Con el tope, tira un error.
     const bytes = (): Uint8Array => new Uint8Array([]);
-    expect(() => generarIdPublico(bytes)).toThrow(
-      /rechazo masivo/
-    );
+    expect(() => generarIdPublico(bytes)).toThrow(/rechazo masivo/);
   });
 });
 
@@ -136,7 +132,13 @@ describe('aRecetaPublica', () => {
   it('trata una descripción de sólo espacios como ausente', () => {
     const conBlancos: Meal = { ...meal, description: '\n\n\n\n' };
 
-    const receta = aRecetaPublica(conBlancos, undefined, 'uid-1', 'k7m2xq9p', 10);
+    const receta = aRecetaPublica(
+      conBlancos,
+      undefined,
+      'uid-1',
+      'k7m2xq9p',
+      10
+    );
 
     expect(receta).not.toHaveProperty('descripcion');
   });
@@ -144,7 +146,13 @@ describe('aRecetaPublica', () => {
   it('guarda la descripción trimeada, no con los espacios de sobra', () => {
     const conEspacios: Meal = { ...meal, description: '  La de siempre  ' };
 
-    const receta = aRecetaPublica(conEspacios, undefined, 'uid-1', 'k7m2xq9p', 10);
+    const receta = aRecetaPublica(
+      conEspacios,
+      undefined,
+      'uid-1',
+      'k7m2xq9p',
+      10
+    );
 
     expect(receta.descripcion).toBe('La de siempre');
   });
@@ -168,7 +176,9 @@ describe('aRecetaPublica', () => {
     const conTilde: Meal = {
       id: 'm',
       name: 'Arroz',
-      ingredients: [{ name: 'Arroz', quantity: '1', unit: 'kg', checked: true }],
+      ingredients: [
+        { name: 'Arroz', quantity: '1', unit: 'kg', checked: true },
+      ],
     };
 
     const receta = aRecetaPublica(conTilde, undefined, 'uid-1', 'k7m2xq9p', 10);
@@ -177,12 +187,47 @@ describe('aRecetaPublica', () => {
       { name: 'Arroz', quantity: '1', unit: 'kg' },
     ]);
   });
+
+  it('publica la foto del plato y la de cada paso', () => {
+    const mealConFoto: Meal = {
+      id: '1',
+      name: 'Mila',
+      ingredients: [],
+      foto: 'https://ejemplo.com/plato.jpg',
+      pasos: [{ texto: 'Empanar', foto: 'https://ejemplo.com/paso1.jpg' }],
+    };
+
+    const receta = aRecetaPublica(mealConFoto, 'Tatoh', 'uid-1', 'abcd1234', 0);
+
+    expect(receta.foto).toBe('https://ejemplo.com/plato.jpg');
+    expect(receta.pasos).toEqual([
+      { texto: 'Empanar', foto: 'https://ejemplo.com/paso1.jpg' },
+    ]);
+  });
+
+  it('una receta sin fotos no escribe las claves', () => {
+    const mealSinFoto: Meal = {
+      id: '1',
+      name: 'Mila',
+      ingredients: [],
+      pasos: [{ texto: 'Empanar' }],
+    };
+
+    const receta = aRecetaPublica(mealSinFoto, '', 'uid-1', 'abcd1234', 0);
+
+    expect('foto' in receta).toBe(false);
+    expect(receta.pasos).toEqual([{ texto: 'Empanar' }]);
+  });
 });
 
 describe('aMeal', () => {
   it('reconstruye una comida mostrable desde el documento público', () => {
     const receta = aRecetaPublica(
-      { id: 'm', name: 'Arroz', ingredients: [{ name: 'Arroz', quantity: '1' }] },
+      {
+        id: 'm',
+        name: 'Arroz',
+        ingredients: [{ name: 'Arroz', quantity: '1' }],
+      },
       undefined,
       'uid-1',
       'k7m2xq9p',
