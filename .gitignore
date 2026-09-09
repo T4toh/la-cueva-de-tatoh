@@ -52,5 +52,5 @@ Thumbs.db
 # Estado y temporales de wrangler dev
 .wrangler/
 
-# Sesiones del companion visual de brainstorming
+# Scratch de herramientas de desarrollo (superpowers)
 .superpowers/
