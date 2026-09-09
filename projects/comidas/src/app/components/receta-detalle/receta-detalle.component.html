@@ -48,11 +48,22 @@
       </div>
     </div>
 
-    <h1>{{ meal().name }}</h1>
-
-    @if (meal().description) {
-      <p class="descripcion">{{ meal().description }}</p>
-    }
+    <div class="banda">
+      @if (meal().foto) {
+        <img
+          alt=""
+          class="banda-foto"
+          [src]="meal().foto"
+          (error)="$any($event.target).hidden = true"
+        />
+      }
+      <div class="banda-texto">
+        <h1>{{ meal().name }}</h1>
+        @if (meal().description) {
+          <p class="descripcion">{{ meal().description }}</p>
+        }
+      </div>
+    </div>
 
     @if (meal().tags && meal().tags!.length > 0) {
       <div class="tags">
