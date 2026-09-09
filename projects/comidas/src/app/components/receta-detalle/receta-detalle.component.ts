@@ -1,4 +1,12 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  HostListener,
+  inject,
+  input,
+  OnDestroy,
+  signal,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { Icon, Tag } from 'componentes';
 
@@ -18,7 +26,7 @@ const PORCIONES = [1, 2, 3] as const;
   templateUrl: './receta-detalle.component.html',
   styleUrls: ['./receta-detalle.component.scss'],
 })
-export class RecetaDetalleComponent {
+export class RecetaDetalleComponent implements OnDestroy {
   private readonly router = inject(Router);
   private readonly dialogService = inject(DialogService);
 
@@ -54,6 +62,11 @@ export class RecetaDetalleComponent {
   readonly cocinando = signal(false);
   readonly pasoActual = signal(0);
 
+  // El lock de pantalla del modo cocina. Es una comodidad, no una función: si
+  // el navegador no lo tiene o lo niega, cocinar sigue andando igual y no hay
+  // cartel.
+  private sentinel: WakeLockSentinel | null = null;
+
   readonly pasoEnCurso = computed(() => this.pasos()[this.pasoActual()]);
   readonly esUltimoPaso = computed(
     () => this.pasoActual() >= this.pasos().length - 1
@@ -66,10 +79,55 @@ export class RecetaDetalleComponent {
   cocinar(): void {
     this.pasoActual.set(0);
     this.cocinando.set(true);
+    void this.pedirWakeLock();
   }
 
   salirDeCocina(): void {
     this.cocinando.set(false);
+    void this.soltarWakeLock();
+  }
+
+  // Irse a otra ruta con el modo cocina abierto no pasa por `salirDeCocina`.
+  ngOnDestroy(): void {
+    void this.soltarWakeLock();
+  }
+
+  // El navegador suelta el lock solo cuando la pestaña se esconde, así que sin
+  // esto mirar el teléfono un segundo y volver deja la pantalla apagándose.
+  @HostListener('document:visibilitychange')
+  alCambiarVisibilidad(): void {
+    if (document.visibilityState === 'visible' && this.cocinando()) {
+      void this.pedirWakeLock();
+    }
+  }
+
+  private async pedirWakeLock(): Promise<void> {
+    if (!('wakeLock' in navigator) || this.sentinel) {
+      return;
+    }
+    try {
+      this.sentinel = await navigator.wakeLock.request('screen');
+      // El navegador lo suelta por su cuenta (pestaña oculta, batería baja).
+      // Sin limpiar la referencia, `pedirWakeLock` se cree con lock y no lo
+      // vuelve a pedir al volver al frente.
+      this.sentinel.addEventListener('release', () => {
+        this.sentinel = null;
+      });
+    } catch {
+      // Contexto no seguro, permiso denegado, batería baja: sin lock y sin
+      // ruido.
+      this.sentinel = null;
+    }
+  }
+
+  private async soltarWakeLock(): Promise<void> {
+    const sentinel = this.sentinel;
+    this.sentinel = null;
+    try {
+      await sentinel?.release();
+    } catch {
+      // Ya estaba suelto. No hay nada que hacer al respecto.
+    }
   }
 
   // El último "hecho" sale del modo cocina en vez de dejarte en una pantalla

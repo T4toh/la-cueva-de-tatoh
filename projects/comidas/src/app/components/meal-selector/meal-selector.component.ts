@@ -1,12 +1,10 @@
-import {
-  Component,
-  computed,
-  inject,
-  OnInit,
-  signal,
-} from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { MealService } from '../../services/meal.service';
+import {
+  filtrarComidas,
+  MealService,
+  tagsUnicos,
+} from '../../services/meal.service';
 import { DishMealType, Meal, MealType } from '../../models/meal.model';
 import { MealCardComponent } from '../meal-card/meal-card.component';
 import { RecetaDetalleComponent } from '../receta-detalle/receta-detalle.component';
@@ -36,22 +34,11 @@ export class MealSelectorComponent implements OnInit {
   readonly showingList = signal(false);
   readonly selectedTag = signal<string | null>(null);
 
-  readonly uniqueTags = computed(() => {
-    const tags = new Set<string>();
-    this.mealService
-      .meals()
-      .forEach((m) => m.tags?.forEach((t) => tags.add(t)));
-    return Array.from(tags).sort();
-  });
+  readonly uniqueTags = computed(() => tagsUnicos(this.mealService.meals()));
 
-  readonly filteredMeals = computed(() => {
-    const all = this.mealService.meals();
-    const tag = this.selectedTag();
-    if (!tag) {
-      return all;
-    }
-    return all.filter((m) => m.tags?.includes(tag));
-  });
+  readonly filteredMeals = computed(() =>
+    filtrarComidas(this.mealService.meals(), this.selectedTag(), false)
+  );
 
   ngOnInit(): void {
     this.dayName = this.route.snapshot.paramMap.get('day') || '';

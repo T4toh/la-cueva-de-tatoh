@@ -193,6 +193,34 @@ export function huerfanos(previos: Set<string>, meals: Meal[]): string[] {
   return Array.from(previos).filter((publicId) => !vigentes.has(publicId));
 }
 
+// Los tags que existen en una lista de comidas, ordenados. Los usan las dos
+// pantallas que listan comidas: el selector del día y el listado propio.
+export function tagsUnicos(meals: Meal[]): string[] {
+  const tags = new Set<string>();
+  for (const meal of meals) {
+    for (const tag of meal.tags ?? []) {
+      tags.add(tag);
+    }
+  }
+  return Array.from(tags).sort();
+}
+
+// Los dos filtros del listado son independientes y se componen: "compartidas
+// que además sean postre" es una pregunta legítima. Por eso son dos parámetros
+// y no una unión con un tag centinela — un centinela chocaría con un tag que
+// se llame igual.
+export function filtrarComidas(
+  meals: Meal[],
+  tag: string | null,
+  soloCompartidas: boolean
+): Meal[] {
+  return meals.filter(
+    (meal) =>
+      (!tag || (meal.tags?.includes(tag) ?? false)) &&
+      (!soloCompartidas || !!meal.publicId)
+  );
+}
+
 @Injectable({
   providedIn: 'root',
 })

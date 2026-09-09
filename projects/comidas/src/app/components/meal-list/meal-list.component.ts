@@ -1,8 +1,12 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 
 import { Router, RouterModule } from '@angular/router';
 import { CompartirService } from '../../services/compartir.service';
-import { MealService } from '../../services/meal.service';
+import {
+  filtrarComidas,
+  MealService,
+  tagsUnicos,
+} from '../../services/meal.service';
 import { MealCardComponent } from '../meal-card/meal-card.component';
 import { DialogService } from '../../services/dialog.service';
 
@@ -18,6 +22,34 @@ export class MealListComponent {
   router = inject(Router);
   dialogService = inject(DialogService);
   compartirService = inject(CompartirService);
+
+  readonly selectedTag = signal<string | null>(null);
+  readonly soloCompartidas = signal(false);
+
+  readonly uniqueTags = computed(() => tagsUnicos(this.mealService.meals()));
+
+  readonly filteredMeals = computed(() =>
+    filtrarComidas(
+      this.mealService.meals(),
+      this.selectedTag(),
+      this.soloCompartidas()
+    )
+  );
+
+  readonly sinFiltros = computed(
+    () => this.selectedTag() === null && !this.soloCompartidas()
+  );
+
+  selectTag(tag: string | null): void {
+    this.selectedTag.set(tag);
+  }
+
+  // "Todos" limpia los dos filtros: son independientes, pero el chip promete
+  // todas las comidas y dejar prendido el de compartidas lo desmentiría.
+  limpiarFiltros(): void {
+    this.selectedTag.set(null);
+    this.soloCompartidas.set(false);
+  }
 
   async deleteMeal(id: string): Promise<void> {
     const confirmed = await this.dialogService.confirm(

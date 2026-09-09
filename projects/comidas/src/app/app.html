@@ -95,5 +95,17 @@
     [titulo]="dialogService.title()"
     [visible]="dialogService.visible()"
     (visibleChange)="dialogService.visible.set($event)"
-  />
+  >
+    @if (dialogService.campo(); as campo) {
+    <label class="dialogo-campo">
+      <span>{{ campo.etiqueta }}</span>
+      <input
+        type="text"
+        [placeholder]="campo.placeholder ?? ''"
+        [value]="campo.valor"
+        (change)="campo.onChange($any($event.target).value)"
+      />
+    </label>
+    }
+  </lib-dialogo>
 </div>

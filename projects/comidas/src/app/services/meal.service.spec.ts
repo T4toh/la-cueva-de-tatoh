@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   copiaParaDuplicar,
   ensureMealIds,
+  filtrarComidas,
   huellaPublicada,
   huerfanos,
   limpiarPasos,
@@ -11,6 +12,7 @@ import {
   parseNumericQuantity,
   publicIds,
   recetaComoMarkdown,
+  tagsUnicos,
   tieneReceta,
 } from './meal.service';
 import { Meal, Paso } from '../models/meal.model';
@@ -78,7 +80,9 @@ describe('copiaParaDuplicar', () => {
     id: 'meal-1',
     name: 'Milanesa napolitana',
     description: 'La de siempre',
-    ingredients: [{ name: 'Carne', quantity: '2', unit: 'filetes', checked: true }],
+    ingredients: [
+      { name: 'Carne', quantity: '2', unit: 'filetes', checked: true },
+    ],
     tags: ['favorita'],
     includeInShoppingList: true,
     pasos: [{ texto: 'Freír' }, { texto: 'Napolizar' }],
@@ -91,7 +95,9 @@ describe('copiaParaDuplicar', () => {
     expect(copia).toEqual({
       name: 'Milanesa napolitana (Copia)',
       description: 'La de siempre',
-      ingredients: [{ name: 'Carne', quantity: '2', unit: 'filetes', checked: true }],
+      ingredients: [
+        { name: 'Carne', quantity: '2', unit: 'filetes', checked: true },
+      ],
       tags: ['favorita'],
       includeInShoppingList: true,
       pasos: [{ texto: 'Freír' }, { texto: 'Napolizar' }],
@@ -271,7 +277,12 @@ describe('recetaComoMarkdown', () => {
 
 describe('huerfanos', () => {
   const conPublicId = (id: string, publicId?: string): Meal =>
-    ({ id, name: id, ingredients: [], ...(publicId ? { publicId } : {}) }) as Meal;
+    ({
+      id,
+      name: id,
+      ingredients: [],
+      ...(publicId ? { publicId } : {}),
+    }) as Meal;
 
   it('reporta el publicId que dejó de estar en meals', () => {
     // El caso del bug: un import pisa `meals` entero y se lleva el único
@@ -328,5 +339,70 @@ describe('publicIds', () => {
     ] as Meal[];
 
     expect(publicIds(meals)).toEqual(new Set());
+  });
+});
+
+const comida = (parcial: Partial<Meal> & { id: string }): Meal => ({
+  name: parcial.id,
+  ingredients: [],
+  ...parcial,
+});
+
+describe('tagsUnicos', () => {
+  it('junta los tags de todas las comidas, sin repetir y ordenados', () => {
+    const meals = [
+      comida({ id: '1', tags: ['postre', 'rapido'] }),
+      comida({ id: '2', tags: ['rapido'] }),
+      comida({ id: '3' }),
+    ];
+
+    expect(tagsUnicos(meals)).toEqual(['postre', 'rapido']);
+  });
+
+  it('devuelve vacío cuando ninguna comida tiene tags', () => {
+    expect(tagsUnicos([comida({ id: '1' })])).toEqual([]);
+  });
+});
+
+describe('filtrarComidas', () => {
+  const meals = [
+    comida({ id: 'postre-publico', tags: ['postre'], publicId: 'aaaaaaaa' }),
+    comida({ id: 'postre-privado', tags: ['postre'] }),
+    comida({ id: 'salado-publico', tags: ['salado'], publicId: 'bbbbbbbb' }),
+    comida({ id: 'sin-tags' }),
+  ];
+
+  const ids = (r: Meal[]): string[] => r.map((m) => m.id);
+
+  it('sin filtros devuelve todo', () => {
+    expect(filtrarComidas(meals, null, false)).toHaveLength(4);
+  });
+
+  it('filtra por tag', () => {
+    expect(ids(filtrarComidas(meals, 'postre', false))).toEqual([
+      'postre-publico',
+      'postre-privado',
+    ]);
+  });
+
+  it('filtra por compartidas', () => {
+    expect(ids(filtrarComidas(meals, null, true))).toEqual([
+      'postre-publico',
+      'salado-publico',
+    ]);
+  });
+
+  // Los dos filtros son independientes a propósito: es la razón por la que no
+  // son una unión con un tag centinela.
+  it('compone los dos filtros', () => {
+    expect(ids(filtrarComidas(meals, 'postre', true))).toEqual([
+      'postre-publico',
+    ]);
+  });
+
+  it('trata el publicId undefined como no compartida', () => {
+    const conClavePresente = [comida({ id: '1', publicId: undefined })];
+
+    expect(filtrarComidas(conClavePresente, null, true)).toEqual([]);
   });
 });
