@@ -4,7 +4,12 @@ import { describe, expect, it } from 'vitest';
 // es su lógica pura: `HTMLRewriter` y el binding `ASSETS` no existen fuera del
 // runtime de Workers, así que el `fetch` se sigue verificando a mano con
 // `wrangler dev`.
-import { describir, ID_VALIDO, normalizar } from '../../worker/index.js';
+import {
+  describir,
+  ID_VALIDO,
+  imagenDe,
+  normalizar,
+} from '../../worker/index.js';
 
 describe('ID_VALIDO', () => {
   it('acepta el id de ocho caracteres que genera la publicación', () => {
@@ -26,6 +31,7 @@ describe('normalizar', () => {
       nombre: { stringValue: 'Milanesas' },
       descripcion: { stringValue: 'Con puré' },
       alias: { stringValue: 'Tatoh' },
+      foto: { stringValue: 'https://ejemplo.com/mila.jpg' },
       ingredientes: { arrayValue: { values: [{}, {}, {}] } },
       pasos: { arrayValue: { values: [{}, {}] } },
     });
@@ -34,9 +40,16 @@ describe('normalizar', () => {
       nombre: 'Milanesas',
       descripcion: 'Con puré',
       alias: 'Tatoh',
+      foto: 'https://ejemplo.com/mila.jpg',
       ingredientes: 3,
       pasos: 2,
     });
+  });
+
+  it('un documento sin foto devuelve string vacío, no undefined', () => {
+    const receta = normalizar({ nombre: { stringValue: 'Mila' } });
+
+    expect(receta!.foto).toBe('');
   });
 
   it('sin fields devuelve null: el documento no existe', () => {
@@ -50,9 +63,28 @@ describe('normalizar', () => {
       nombre: 'Receta',
       descripcion: '',
       alias: '',
+      foto: '',
       ingredientes: 0,
       pasos: 0,
     });
+  });
+});
+
+describe('imagenDe', () => {
+  it('usa la foto de la receta cuando es https', () => {
+    expect(imagenDe({ foto: 'https://ejemplo.com/a.jpg' })).toBe(
+      'https://ejemplo.com/a.jpg',
+    );
+  });
+
+  // http sobre una página https es contenido mixto: varios crawlers lo
+  // descartan y el link queda sin preview en vez de con uno feo.
+  it('cae al ícono con http, con vacío y con basura', () => {
+    const icono = 'https://comidas.tatoh.ar/icon.png';
+
+    expect(imagenDe({ foto: 'http://ejemplo.com/a.jpg' })).toBe(icono);
+    expect(imagenDe({ foto: '' })).toBe(icono);
+    expect(imagenDe({ foto: 'javascript:alert(1)' })).toBe(icono);
   });
 });
 
