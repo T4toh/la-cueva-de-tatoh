@@ -13,9 +13,19 @@
     [texto]="meal().name"
   >
     @if (meal().foto) {
+      <!-- Un solo (error) con `hidden`, sin señal por id: esta tarjeta se
+           renderiza dentro de un @for que trackea por meal.id
+           (meal-list.component.html, meal-selector.component.html), así que
+           el elemento se mantiene atado a la misma comida mientras esa
+           instancia de la lista viva. `hidden` no se limpia si [src] cambia
+           en un elemento reusado: si otro dispositivo repara la URL vía
+           Firestore, la tarjeta se queda oculta hasta que la lista se
+           reconstruya. En la práctica no pasa porque editar siempre navega
+           afuera de /meals y de vuelta. -->
       <img
         alt=""
         class="portada"
+        loading="lazy"
         [src]="meal().foto"
         (error)="$any($event.target).hidden = true"
       />
