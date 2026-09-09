@@ -1,4 +1,11 @@
-import { computed, effect, inject, Injectable, signal } from '@angular/core';
+import {
+  computed,
+  effect,
+  inject,
+  Injectable,
+  signal,
+  untracked,
+} from '@angular/core';
 import { doc, Firestore, getDoc, setDoc } from '@angular/fire/firestore';
 import { AuthService } from './auth.service';
 import { ColaDeGuardado } from './cola-de-guardado';
@@ -369,8 +376,20 @@ export class MealService {
       localStorage.setItem(this.MEALS_KEY, JSON.stringify(data));
       if (this.cola.debeGuardarAhora('meals')) {
         this.saveToFirestore('meals', data);
-        this.despublicarHuerfanos(data);
-        this.sincronizarPublicadas(data);
+        // Sin sesión las dos escriben en `recetasPublicas` y las reglas las
+        // rechazan: al arrancar, este efecto corre antes de que auth resuelva
+        // y disparaba una escritura condenada por cada receta compartida. El
+        // `.catch` de cada una revierte y reintenta en el próximo cambio de
+        // `meals`, así que no se perdía nada — pero eran writes al pedo y un
+        // error rojo en consola en cada carga.
+        //
+        // `untracked` porque si no el efecto pasaría a depender de
+        // `currentUser()`, que emite en cada refresco de token: volvería a
+        // correr cada hora y a mandar `meals` de nuevo sin que cambie nada.
+        if (untracked(() => this.authService.currentUser())) {
+          this.despublicarHuerfanos(data);
+          this.sincronizarPublicadas(data);
+        }
       }
       // Fuera del `if` a propósito. Una bajada de Firestore no revoca nada
       // —es el estado de otro dispositivo: si allá despublicaron, el
@@ -644,8 +663,7 @@ export class MealService {
         this.extraItems.set(
           Array.isArray(v) ? {} : (v as Record<string, ShoppingItem[]>)
         ),
-      extraItemsHistory: (v) =>
-        this.extraItemsHistory.set(v as ShoppingItem[]),
+      extraItemsHistory: (v) => this.extraItemsHistory.set(v as ShoppingItem[]),
       overrides: (v) => this.quantityOverrides.set(v as Record<string, string>),
       checkedItems: (v) => this.checkedItems.set(v as Record<string, string[]>),
       pantry: (v) =>
