@@ -283,6 +283,31 @@ describe('recetaComoMarkdown', () => {
 
     expect(md).toBe('# Salsa de tomate\n');
   });
+
+  it('mete la foto del plato debajo del título', () => {
+    const md = recetaComoMarkdown(
+      receta({ foto: 'https://ejemplo.com/salsa.jpg' })
+    );
+
+    expect(md).toContain(
+      '# Salsa de tomate\n\n![](https://ejemplo.com/salsa.jpg)\n'
+    );
+  });
+
+  it('mete la foto de cada paso debajo de su instrucción', () => {
+    const md = recetaComoMarkdown(
+      receta({
+        pasos: [
+          { texto: 'Picar la cebolla', foto: 'https://ejemplo.com/1.jpg' },
+          { texto: 'Dorar 5 minutos' },
+        ],
+      })
+    );
+
+    expect(md).toContain(
+      '1. Picar la cebolla\n\n![](https://ejemplo.com/1.jpg)\n2. Dorar 5 minutos'
+    );
+  });
 });
 
 describe('huerfanos', () => {

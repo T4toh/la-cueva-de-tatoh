@@ -121,6 +121,10 @@ export function limpiarPasos(pasos: Paso[]): Paso[] {
 export function recetaComoMarkdown(meal: Meal): string {
   const lineas: string[] = [`# ${meal.name}`];
 
+  if (meal.foto) {
+    lineas.push('', `![](${meal.foto})`);
+  }
+
   if (meal.description?.trim()) {
     lineas.push('', meal.description.trim());
   }
@@ -139,7 +143,12 @@ export function recetaComoMarkdown(meal: Meal): string {
   const pasos = meal.pasos ?? [];
   if (pasos.length > 0) {
     lineas.push('', '## Preparación', '');
-    pasos.forEach((paso, i) => lineas.push(`${i + 1}. ${paso.texto}`));
+    pasos.forEach((paso, i) => {
+      lineas.push(`${i + 1}. ${paso.texto}`);
+      if (paso.foto) {
+        lineas.push('', `![](${paso.foto})`);
+      }
+    });
   }
 
   return `${lineas.join('\n')}\n`;
