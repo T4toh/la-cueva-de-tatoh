@@ -294,7 +294,7 @@ describe('recetaComoMarkdown', () => {
     );
   });
 
-  it('mete la foto de cada paso debajo de su instrucción', () => {
+  it('no mete la foto de un paso: partiría la lista ordenada en marked', () => {
     const md = recetaComoMarkdown(
       receta({
         pasos: [
@@ -304,8 +304,21 @@ describe('recetaComoMarkdown', () => {
       })
     );
 
-    expect(md).toContain(
-      '1. Picar la cebolla\n\n![](https://ejemplo.com/1.jpg)\n2. Dorar 5 minutos'
+    expect(md).toBe(
+      [
+        '# Salsa de tomate',
+        '',
+        '## Ingredientes',
+        '',
+        '- 0.5 kg — Tomate perita',
+        '- a gusto — Sal',
+        '',
+        '## Preparación',
+        '',
+        '1. Picar la cebolla',
+        '2. Dorar 5 minutos',
+        '',
+      ].join('\n')
     );
   });
 });

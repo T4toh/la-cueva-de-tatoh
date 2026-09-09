@@ -140,15 +140,17 @@ export function recetaComoMarkdown(meal: Meal): string {
     });
   }
 
+  // La foto de cada paso queda deliberadamente afuera de acá, a diferencia de
+  // la del plato: una imagen metida entre items de una lista ordenada la
+  // corta en `marked` (la librería de ngx-markdown) — todo lo que sigue se
+  // traga como texto plano dentro del párrafo de la imagen, sin numeración.
+  // Indentarla dentro del item es lo correcto en CommonMark, pero vuelve la
+  // lista "loose" y cambia el renderizado de todos los pasos; no vale el
+  // riesgo por esto.
   const pasos = meal.pasos ?? [];
   if (pasos.length > 0) {
     lineas.push('', '## Preparación', '');
-    pasos.forEach((paso, i) => {
-      lineas.push(`${i + 1}. ${paso.texto}`);
-      if (paso.foto) {
-        lineas.push('', `![](${paso.foto})`);
-      }
-    });
+    pasos.forEach((paso, i) => lineas.push(`${i + 1}. ${paso.texto}`));
   }
 
   return `${lineas.join('\n')}\n`;
