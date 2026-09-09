@@ -200,8 +200,12 @@ export class MealEditorComponent implements OnInit {
   // Se hace spread del paso entero y no sólo del texto: si el FormGroup no
   // tiene el campo, editar la comida lo borra al guardar. Es la misma razón por
   // la que limpiarPasos hace spread, un piso más abajo.
-  addPaso(paso: Paso = { texto: '', foto: '' }): void {
-    this.pasos.push(this.fb.group({ ...paso }));
+  addPaso(paso: Paso = { texto: '' }): void {
+    // El `foto: ''` va ANTES del spread: un paso guardado antes de que
+    // existiera el campo no trae la clave, y sin control el
+    // `formControlName="foto"` del template tira NG01050. Si el paso sí
+    // trae foto, el spread la pisa, que es lo que se quiere.
+    this.pasos.push(this.fb.group({ foto: '', ...paso }));
   }
 
   removePaso(index: number): void {
