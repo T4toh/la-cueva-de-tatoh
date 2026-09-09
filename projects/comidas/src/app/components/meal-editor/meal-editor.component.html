@@ -32,6 +32,17 @@
       </label>
     </div>
 
+    @if (mealId) {
+      <div class="form-group checkbox-group">
+        <input formControlName="compartida" id="compartida" type="checkbox" />
+        <label for="compartida">Compartir por link</label>
+        <p class="ayuda">
+          Cualquiera con el link va a poder verla, sin necesidad de una cuenta.
+          Se aplica al guardar.
+        </p>
+      </div>
+    }
+
     <div class="form-group">
       <label for="tag-input">Etiquetas</label>
       <div class="tags-input-container">

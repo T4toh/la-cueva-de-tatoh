@@ -69,6 +69,13 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       proyectaba con `<ng-content>`, así que el input lo dibuja el template del
       `App` con un `campo?` opcional del `DialogService` y la librería no
       cambió. El link viejo no muere al renombrarse: el id de ocho es la llave.
+      El editor tiene el mismo estado como tilde, y ahí sí se aplica al
+      guardar: es dato del formulario, como el de la lista de compras, así que
+      Cancelar no publica nada. El default es privado. No aparece en
+      `/meals/new` —la comida no tiene id todavía— y la decisión sale de
+      `accionDeCompartir`, que devuelve `null` cuando el tilde no cambió:
+      guardar sin tocarlo no toca `recetasPublicas`, y republicar una ya
+      compartida acuñaría un id nuevo dejando huérfano el link repartido.
       El listado tiene ahora los mismos chips de filtro que el selector del día
       —`tagsUnicos` y `filtrarComidas` salieron a `meal.service.ts` y los usan
       los dos— más uno de **Compartidas**, que es lo que reemplaza a un

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  accionDeCompartir,
   armarLink,
   esCancelacion,
   soportaCompartirNativo,
@@ -53,5 +54,20 @@ describe('esCancelacion', () => {
   it('cualquier otro rechazo sí es un error', () => {
     expect(esCancelacion(new TypeError('boom'))).toBe(false);
     expect(esCancelacion('boom')).toBe(false);
+  });
+});
+
+describe('accionDeCompartir', () => {
+  it('sólo actúa cuando el tilde cambió de estado', () => {
+    expect(accionDeCompartir(true, false)).toBe('publicar');
+    expect(accionDeCompartir(false, true)).toBe('despublicar');
+  });
+
+  // Lo que importa del test: guardar una comida sin tocar el tilde no toca
+  // `recetasPublicas`. Republicar una ya compartida acuñaría un id nuevo y
+  // dejaría huérfano el documento del link que ya está repartido.
+  it('no hace nada cuando el estado no cambió', () => {
+    expect(accionDeCompartir(false, false)).toBeNull();
+    expect(accionDeCompartir(true, true)).toBeNull();
   });
 });

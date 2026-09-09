@@ -30,6 +30,16 @@ h2 {
   flex-direction: row;
   align-items: center;
   gap: 0.5rem;
+  // Para que la ayuda del tilde de compartir baje a su propia línea en vez de
+  // meterse en la fila del checkbox.
+  flex-wrap: wrap;
+
+  .ayuda {
+    flex-basis: 100%;
+    color: var(--fg-muted);
+    font-size: 0.8125rem;
+    margin: 0.15rem 0 0;
+  }
 
   input {
     width: auto;

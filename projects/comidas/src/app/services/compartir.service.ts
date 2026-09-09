@@ -31,6 +31,20 @@ export function esCancelacion(e: unknown): boolean {
   return e instanceof Error && e.name === 'AbortError';
 }
 
+// Qué hacer con el tilde de compartir del editor. El default es privado, así
+// que el caso normal es `null`: la mayoría de las comidas nunca se comparten y
+// guardarlas no tiene que tocar `recetasPublicas`. Los dos casos que sí hacen
+// algo son los cambios de estado, no los estados.
+export function accionDeCompartir(
+  compartida: boolean,
+  estaba: boolean
+): 'publicar' | 'despublicar' | null {
+  if (compartida === estaba) {
+    return null;
+  }
+  return compartida ? 'publicar' : 'despublicar';
+}
+
 // Dueño único del flujo de "compartir una receta": lo usan tanto el botón de
 // la ficha como el de la lista. No lo inyecta `MealService` — sería un ciclo,
 // esta clase es la que depende de `MealService` y no al revés.
@@ -63,18 +77,26 @@ export class CompartirService {
         'Cualquiera con el link va a poder ver esta receta, sin necesidad de ' +
           'una cuenta. Podés dejar de compartirla cuando quieras.'
       );
-      if (!confirmado) {
-        return;
-      }
-      try {
-        await this.mealService.compartirMeal(mealId);
-      } catch (e) {
-        console.error('Error publicando la receta:', e);
-        this.dialogService.alert('No se pudo compartir', this.mensajeError(e));
+      if (!confirmado || !(await this.publicar(mealId))) {
         return;
       }
     }
     this.mostrarLinkDialogo(mealId);
+  }
+
+  // Publica sin diálogos, y devuelve si pudo. El editor la usa tal cual: el
+  // aviso ya está escrito al lado del tilde, y el link no se puede mostrar
+  // porque al guardar se navega a /meals. `compartir` la usa también, para que
+  // el manejo de error viva en un solo lado.
+  async publicar(mealId: string): Promise<boolean> {
+    try {
+      await this.mealService.compartirMeal(mealId);
+      return true;
+    } catch (e) {
+      console.error('Error publicando la receta:', e);
+      this.dialogService.alert('No se pudo compartir', this.mensajeError(e));
+      return false;
+    }
   }
 
   async dejarDeCompartir(mealId: string): Promise<void> {

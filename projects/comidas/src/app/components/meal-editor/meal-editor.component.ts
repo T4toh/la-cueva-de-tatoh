@@ -10,6 +10,10 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { limpiarPasos, MealService } from '../../services/meal.service';
+import {
+  accionDeCompartir,
+  CompartirService,
+} from '../../services/compartir.service';
 import { Meal, Paso } from '../../models/meal.model';
 import { Tag } from 'componentes';
 
@@ -25,6 +29,7 @@ export class MealEditorComponent implements OnInit {
   mealService = inject(MealService);
   router = inject(Router);
   route = inject(ActivatedRoute);
+  compartirService = inject(CompartirService);
 
   mealId: string | null = null;
   form: FormGroup;
@@ -106,6 +111,8 @@ export class MealEditorComponent implements OnInit {
       name: ['', Validators.required],
       description: [''],
       includeInShoppingList: [true],
+      // El default es privado: una comida nueva no se publica por existir.
+      compartida: [false],
       ingredients: this.fb.array([]),
       tags: this.fb.array([]),
       pasos: this.fb.array([]),
@@ -133,6 +140,7 @@ export class MealEditorComponent implements OnInit {
           name: meal.name,
           description: meal.description,
           includeInShoppingList: meal.includeInShoppingList ?? true,
+          compartida: !!meal.publicId,
         });
         meal.ingredients.forEach((ing) => {
           this.addIngredient(ing.name, ing.quantity, ing.unit ?? '');
@@ -199,7 +207,7 @@ export class MealEditorComponent implements OnInit {
     this.pasos.insert(destino, control);
   }
 
-  save(): void {
+  async save(): Promise<void> {
     if (this.form.valid) {
       const formValue = this.form.value;
 
@@ -231,11 +239,32 @@ export class MealEditorComponent implements OnInit {
       };
 
       if (this.mealId) {
+        const estaba = !!this.mealService.getMeal(this.mealId)?.publicId;
         this.mealService.updateMeal(this.mealId, mealData);
+        // Después del updateMeal y no antes: publicar lee la comida ya
+        // guardada, así que el slug del link sale con el nombre nuevo.
+        await this.aplicarCompartir(
+          this.mealId,
+          !!formValue.compartida,
+          estaba
+        );
       } else {
         this.mealService.addMeal(mealData);
       }
       this.router.navigate(['/meals']);
+    }
+  }
+
+  private async aplicarCompartir(
+    mealId: string,
+    compartida: boolean,
+    estaba: boolean
+  ): Promise<void> {
+    const accion = accionDeCompartir(compartida, estaba);
+    if (accion === 'publicar') {
+      await this.compartirService.publicar(mealId);
+    } else if (accion === 'despublicar') {
+      await this.compartirService.dejarDeCompartir(mealId);
     }
   }
 }
