@@ -34,6 +34,20 @@ h2 {
   // meterse en la fila del checkbox.
   flex-wrap: wrap;
 
+  // Envuelve la etiqueta y la palabra "link" para que queden separadas por un
+  // espacio de palabra y no por el gap del grupo, que es el del checkbox.
+  .etiqueta-compartir {
+    display: inline-flex;
+    gap: 0.25rem;
+  }
+
+  // Fuera del <label> a propósito: adentro, un click en el link tildaría el
+  // checkbox además de abrir la pestaña. El <a> reemplaza a la palabra "link"
+  // de la etiqueta en vez de escupir la URL entera al lado.
+  .ver-link {
+    color: var(--accent);
+  }
+
   .ayuda {
     flex-basis: 100%;
     color: var(--fg-muted);

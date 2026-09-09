@@ -34,8 +34,28 @@
 
     @if (mealId) {
       <div class="form-group checkbox-group">
-        <input formControlName="compartida" id="compartida" type="checkbox" />
-        <label for="compartida">Compartir por link</label>
+        <input
+          aria-label="Compartir por link"
+          formControlName="compartida"
+          id="compartida"
+          type="checkbox"
+        />
+        <span class="etiqueta-compartir">
+          <label for="compartida">Compartir por</label>
+          @if (linkPublico(); as link) {
+            <a
+              class="ver-link"
+              rel="noopener"
+              target="_blank"
+              [href]="link"
+              [title]="link"
+            >
+              link
+            </a>
+          } @else {
+            <span>link</span>
+          }
+        </span>
         <p class="ayuda">
           Cualquiera con el link va a poder verla, sin necesidad de una cuenta.
           Se aplica al guardar.

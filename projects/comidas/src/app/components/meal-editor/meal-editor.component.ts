@@ -35,6 +35,12 @@ export class MealEditorComponent implements OnInit {
   form: FormGroup;
   newTagControl = new FormControl('');
 
+  // El link de la receta ya publicada, o vacío. Sale de `meals()`, así que
+  // aparece solo cuando la publicación de un guardado anterior sincroniza.
+  readonly linkPublico = computed(() =>
+    this.mealId ? this.compartirService.link(this.mealId) : ''
+  );
+
   private readonly activeIngredientIndex = signal<number>(-1);
   private readonly currentInputValue = signal<string>('');
   readonly highlightedSuggestionIndex = signal<number>(-1);

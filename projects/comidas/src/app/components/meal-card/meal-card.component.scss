@@ -86,20 +86,14 @@
   border-top: 1px solid var(--border-subtle);
 }
 
-// `margin-left: auto` en vez de `justify-content` en el padre: así, con o sin
-// el indicador de compartida (el otro hijo posible de `.card-footer`), los
-// botones quedan siempre pegados a la derecha.
+// `margin-left: auto` en vez de `justify-content` en el padre: el footer no
+// tiene otro hijo hoy, pero así el que aparezca mañana no empuja los botones
+// del borde derecho.
 .card-footer-actions {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   margin-left: auto;
-}
-
-.badge-compartida {
-  display: inline-flex;
-  align-items: center;
-  color: var(--fg-secondary);
 }
 
 .btn-icon {
@@ -118,6 +112,14 @@
   &:hover {
     color: var(--fg-primary);
     background: var(--bg-surface-raised);
+  }
+
+  // El estado de "compartida" lo lleva el botón y no un badge aparte: eran
+  // seis elementos en un footer que no envuelve —el sexto se recortaba— y dos
+  // de ellos el mismo icono para dos cosas distintas. Además el badge no era
+  // clickeable, así que el estado ahora vive donde se puede actuar sobre él.
+  &.compartida {
+    color: var(--accent);
   }
 
   &.btn-delete:hover {
