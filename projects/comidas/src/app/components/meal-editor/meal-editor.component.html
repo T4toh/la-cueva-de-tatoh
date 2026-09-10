@@ -192,6 +192,13 @@
         @for (paso of pasos.controls; track paso) {
           <div class="paso-row" [formGroupName]="$index">
             <span class="paso-numero">{{ $index + 1 }}</span>
+            @if (paso.get('foto')?.valid && paso.get('foto')?.value) {
+              <img
+                alt=""
+                class="preview-paso"
+                [src]="paso.get('foto')?.value"
+              />
+            }
             <div class="paso-campos">
               <textarea
                 formControlName="texto"
@@ -208,13 +215,6 @@
                 <p class="error-campo">
                   El link tiene que empezar con https://
                 </p>
-              }
-              @if (paso.get('foto')?.valid && paso.get('foto')?.value) {
-                <img
-                  alt=""
-                  class="preview preview-paso"
-                  [src]="paso.get('foto')?.value"
-                />
               }
             </div>
             <div class="paso-acciones">

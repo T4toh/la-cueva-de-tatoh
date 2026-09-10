@@ -45,14 +45,27 @@ h2 {
   object-fit: cover;
 }
 
+// La miniatura del paso va entre el número y los campos, estirada al alto de
+// la fila: así queda como una franja al costado y no como algo colgando
+// abajo. `align-self: stretch` + `object-fit: cover` la recortan sola sin
+// importar la proporción de la foto.
+//
 // Sin `(error)`, igual que la del plato: acá una imagen rota es justamente la
 // señal que se busca —es donde estás verificando el link— y esconderla la
 // dejaría escondida para siempre, porque Angular reusa el elemento al cambiar
-// el `[src]`. Más chica que la del plato: las filas de pasos se apilan.
-.preview-paso {
-  margin-top: 0;
-  max-height: 5rem;
-  align-self: flex-start;
+// el `[src]`.
+.paso-row .preview-paso {
+  // El `min-width: 0` no es decorativo: un item de flex arranca con
+  // `min-width: auto`, que para una imagen resuelve al ancho intrínseco del
+  // archivo y le gana al `flex-basis`. Sin esto la miniatura se dibuja del
+  // tamaño real de la foto. Es la misma razón por la que el textarea de acá
+  // al lado ya lo tenía.
+  flex: 0 0 3.25rem;
+  width: 3.25rem;
+  min-width: 0;
+  align-self: stretch;
+  object-fit: cover;
+  border-radius: 6px;
 }
 
 .checkbox-group {
