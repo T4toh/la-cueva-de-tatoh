@@ -4,11 +4,37 @@ Todos los cambios notables a este proyecto se documentan en este archivo. El for
 
 ## [Unreleased]
 
+### Added
+
+#### Comidas
+
+- **Recetas con imágenes, por link.** `Meal.foto` y `Paso.foto` son URLs `https://` que se pegan a mano: no hay hosting, y por eso esto desbloquea la fase 4 del recetario sin esperar al alta de R2 —el día que haya subida real, lo único que cambia es de dónde sale la URL—. La decisión que manda es que **el hero de la ficha es una banda y la foto la rellena**: no son dos layouts, porque hoy ninguna receta tiene foto y muchas no la van a tener nunca, así que el estado sin imagen no es el caso degradado sino el normal. La tarjeta del listado a propósito **no** repite esa regla —en la ficha hay una banda, en la grilla habría treinta y cuatro bandas vacías empujando los ingredientes abajo del pliegue—, así que ahí la portada aparece sólo si hay foto. En modo cocina la foto va arriba y el texto abajo, para que los botones no se muevan haya foto o no: se les pega sin mirar. Sólo `https` porque la app se sirve por https y el navegador bloquea una imagen `http` por contenido mixto, o sea que no se vería nunca.
+- **El `og:image` de una receta compartida es su foto.** El Worker de `/r/*` ya cableaba ese tag a una constante; ahora lee `foto` del documento público y cae al ícono si no hay o si no es `https` —un `og:image` en http sobre una página https es contenido mixto y varios crawlers lo descartan, así que el fallback deja un preview feo en vez de ninguno—. `aRecetaPublica` es lista blanca a propósito, así que los dos campos nuevos se agregaron a mano: un campo de `Meal` no se publica solo.
+- **Filtro en el listado de comidas.** Los chips que existían sólo en el selector del día —`tagsUnicos` y `filtrarComidas` salieron a `meal.service.ts` y los usan los dos— más uno de **Compartidas**, que es lo que reemplaza a un apartado propio de recetas públicas: misma información, cero rutas nuevas. Los dos filtros se componen.
+- **El modo cocina no deja que se apague la pantalla.** Pide `navigator.wakeLock` al entrar, lo suelta al salir y en `ngOnDestroy`, y lo **re-pide** en `visibilitychange`: el navegador lo suelta por su cuenta cuando la pestaña se esconde, así que sin eso mirar el teléfono un segundo devolvía la pantalla apagándose. No está en Firefox de escritorio ni en el WebView de Android; falla callado, es comodidad y no función.
+
 ### Fixed
 
 #### Comidas
 
+- **Una escritura que caía durante una sincronización se perdía, y se perdía dos veces.** El efecto de persistencia hacía `if (!isSyncing) guardar()` y punto: lo que se escribía mientras corría el `getDoc` de `syncFromFirestore` no llegaba nunca a Firestore —no había pendiente ni reintento— y, al terminar la bajada, `meals.set(remoto)` pisaba la edición en memoria, que el efecto escribía después en localStorage. La edición desaparecía de los dos lados sin un solo error en consola. Y la ventana no era rara: `AuthService` usa `user(auth)`, que emite en cada refresco del ID token —cerca de una vez por hora— con un objeto nuevo, así que el effect volvía a sincronizar sobre una sesión que no había cambiado de usuario. Ahora una `ColaDeGuardado` anota la escritura en vez de descartarla y **excluye esa clave de la bajada** —dentro de la ventana gana lo local—, el effect sólo sincroniza si cambió el uid, `uploadAllToFirestore` pasa a `{ merge: true }` —se dispara solo por comparación de relojes y sin merge reemplazaba el documento entero, o sea que un desfasaje borraba `schedules`, `pantry` y `tags` que ese dispositivo no conocía— y el timestamp se confirma después del `await` y nunca retrocede, porque antes una escritura fallida dejaba el reloj local adelantado para siempre.
+- **El `alias` no tenía guarda en la bajada.** Se seteaba siempre, a diferencia de los otros once campos, así que renombrarse y que entrara una sincronización lo revertía.
+- **Importar un backup ya no aplica a medias.** `importData` aplicaba mientras parseaba: un archivo que reventaba en la mitad dejaba unas claves reemplazadas y otras no, los efectos ya las habían escrito y subido, y el cartel decía "El archivo no tiene un formato válido" sobre media importación ya propagada. Ahora son dos fases —transformar todo, después setear— y el cartel dice que no se cambió nada. De paso, un JSON válido que no es un backup se rechaza en vez de avisar "¡Datos importados con éxito!" sin haber hecho nada.
+- **El backup ya no viaja sin `alias` ni `checkedItems`.** La lista de campos estaba escrita cuatro veces —`estadoActual`, `aplicarRemoto`, `exportData`, `importData`— y derivó: restaurar dejaba sin nombre de cocinero y sin los tildes de la lista de compras, en silencio. `exportData` sale ahora de `estadoActual()`, así que no puede volver a quedarse atrás. Formato a 1.4; un backup viejo sin `alias` no pisa el actual.
+- **Descompartir desde el listado.** Existía sólo en `/meals/:id`: el botón de la tarjeta abría el diálogo del link y ahí no había salida. Se arregló en el diálogo, que es lo que abren los dos llamadores, y no con un botón por pantalla.
+- **El editor no revienta al abrir una receta con pasos guardados antes de que existieran las fotos.** Esos pasos no traen la clave `foto`, así que el `FormGroup` salía sin ese control y el `formControlName` del template tiraba `NG01050`.
 - **Un import ya no deja recetas compartidas huérfanas.** Cuatro caminos pisan `meals` entero —la bajada de `syncFromFirestore` y los merges de `importMeals`, `applyImportedMeals` e `importData`— y podían llevarse el `publicId` sin despublicar la receta. Como `publicId` es el único puntero al documento de `recetasPublicas` y `allow list: if false` hace que no se pueda ni enumerar, el link quedaba vivo para siempre y sólo se limpiaba desde la consola de Firebase: el usuario borraba la receta y creía haber revocado un link que seguía funcionando. El guard va en el `effect` de `meals`, que es por donde pasan los cuatro, así que ninguno de los cuatro se tocó. Una bajada de Firestore no revoca nada a propósito —es el estado de otro dispositivo, y si el remoto viene viejo y gana una carrera, revocar mataría un link recién creado—, pero igual sincroniza el set para no leer después como huérfano lo que despublicó el otro dispositivo. Si el borrado falla, el `publicId` vuelve al set y se reintenta en el próximo cambio de `meals`.
+
+### Changed
+
+#### Comidas
+
+- **El diálogo del link es el dueño de todo el flujo de compartir**: copiar, abrir, dejar de compartir, y compartir con la hoja del sistema vía `navigator.share` donde exista —en Firefox de escritorio y en el WebView de Android no está, y ahí el diálogo queda como estaba—. El alias se edita en ese mismo diálogo, que es donde se ve lo que hace: firma la receta y es el primer segmento del link. `lib-dialogo` ya proyectaba con `<ng-content>`, así que el input lo dibuja el template del `App` con un `campo?` opcional del `DialogService` y la librería no cambió. Renombrarse no mata los links repartidos: el id de ocho es la llave.
+- **El estado de "compartida" lo lleva el botón de la tarjeta, no un badge aparte.** Eran seis elementos en un pie que no envuelve —el sexto se recortaba— y dos de ellos el mismo icono para dos cosas distintas. Además el badge no era clickeable, así que el estado ahora vive donde se puede actuar sobre él.
+- **Las llamadas a Firestore corren dentro del contexto de inyección.** Salen de effects y de promesas resueltas, no del constructor, y AngularFire avisaba en cada carga que eso puede desestabilizar el change detection. Un `enContexto()` por servicio envuelve la llamada entera de forma síncrona, que es lo que importa: lo que tiene que nacer adentro es la promesa, no su resolución.
+- **`despublicarHuerfanos` y `sincronizarPublicadas` no corren sin sesión.** Al arrancar, el effect de `meals` va antes de que auth resuelva, y disparaban una escritura condenada por cada receta compartida.
+- El Worker de los `og:` de `/r/*` expone su lógica pura (`ID_VALIDO`, `normalizar`, `describir`) y la testea en `src/app/worker-og.spec.ts`, sin agregar un runner de Workers: `HTMLRewriter` y el binding `ASSETS` sólo se referencian adentro del `fetch`. La normalización de la forma REST de Firestore salió de `leerReceta` a su propia función, que es donde un cambio de ese contrato externo daría "0 ingredientes" en silencio en vez de fallar. El rewrite en sí se sigue verificando a mano con `wrangler dev`.
+
 
 ### Removed
 
@@ -16,11 +42,6 @@ Todos los cambios notables a este proyecto se documentan en este archivo. El for
 
 - **`lib-boton` pierde el input `icono`.** Era un `string` que aceptaba tanto una URL de imagen como un nombre de `lib-icon`, sin nada que distinguiera una cosa de la otra —ya había mordido una vez, en el diálogo de compartir, donde un nombre de icono se renderizaba como `<img>` roto—. No lo usaba nadie: el único binding era el de `lib-dialogo`, y ningún caller llenaba `DialogoAccion.icono`. Se va el input, el campo del type y los dos bloques del template. Si algún día hace falta un icono en un botón, entra tipado como `IconName` y renderizado con `lib-icon`.
 
-### Changed
-
-#### Comidas
-
-- El Worker de los `og:` de `/r/*` expone su lógica pura (`ID_VALIDO`, `normalizar`, `describir`) y la testea en `src/app/worker-og.spec.ts`, sin agregar un runner de Workers: `HTMLRewriter` y el binding `ASSETS` sólo se referencian adentro del `fetch`. La normalización de la forma REST de Firestore salió de `leerReceta` a su propia función, que es donde un cambio de ese contrato externo daría "0 ingredientes" en silencio en vez de fallar. El rewrite en sí se sigue verificando a mano con `wrangler dev`.
 
 ## [1.7.0] - 2026-09-08
 
