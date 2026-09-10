@@ -192,20 +192,22 @@
         @for (paso of pasos.controls; track paso) {
           <div class="paso-row" [formGroupName]="$index">
             <span class="paso-numero">{{ $index + 1 }}</span>
-            <textarea
-              formControlName="texto"
-              placeholder="Qué hay que hacer en este paso"
-              rows="2"
-            ></textarea>
-            <input
-              class="paso-foto"
-              formControlName="foto"
-              placeholder="Foto del paso (https://…)"
-              type="url"
-            />
-            @if (paso.get('foto')?.invalid && paso.get('foto')?.value) {
-              <p class="error-campo">El link tiene que empezar con https://</p>
-            }
+            <div class="paso-campos">
+              <textarea
+                formControlName="texto"
+                placeholder="Qué hay que hacer en este paso"
+                rows="2"
+              ></textarea>
+              <input
+                class="paso-foto"
+                formControlName="foto"
+                placeholder="Foto del paso (https://…)"
+                type="url"
+              />
+              @if (paso.get('foto')?.invalid && paso.get('foto')?.value) {
+                <p class="error-campo">El link tiene que empezar con https://</p>
+              }
+            </div>
             <div class="paso-acciones">
               <button
                 class="btn-mover"
