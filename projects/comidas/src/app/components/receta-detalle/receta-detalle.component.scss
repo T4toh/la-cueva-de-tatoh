@@ -280,3 +280,40 @@ section {
   font: inherit;
   font-size: 1.1rem;
 }
+
+// La foto del paso va al costado del texto, no debajo: en una receta de cinco
+// pasos, cinco imágenes a lo ancho vuelven la lista larguísima y dejan de
+// poder leerse de un vistazo. Abajo de 30rem baja, que al ancho de un
+// teléfono al costado no entra nada.
+// El flex va en un div adentro del `<li>`, no en el `<li>`: `display: flex`
+// reemplaza a `display: list-item` y se lleva puesto el número del paso.
+.pasos .paso-fila {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.pasos .paso-texto {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+// Acá alcanza con `hidden` y no hace falta una señal como la del modo cocina:
+// cada `<li>` tiene su propia `<img>` atada a su índice mientras dure la
+// vista, y el componente se recrea al cambiar de receta, así que un `hidden`
+// no se pega a la foto de otro paso. El `&[hidden]` es obligatorio: un
+// `display` de autor le gana al `[hidden] { display: none }` del navegador y
+// la imagen rota seguiría a la vista.
+.pasos li .paso-foto {
+  display: block;
+  flex: 0 0 auto;
+  width: 8rem;
+  height: 6rem;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+
+  &[hidden] {
+    display: none;
+  }
+}

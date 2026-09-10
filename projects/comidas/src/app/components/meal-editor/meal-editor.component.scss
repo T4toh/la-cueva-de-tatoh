@@ -45,6 +45,16 @@ h2 {
   object-fit: cover;
 }
 
+// Sin `(error)`, igual que la del plato: acá una imagen rota es justamente la
+// señal que se busca —es donde estás verificando el link— y esconderla la
+// dejaría escondida para siempre, porque Angular reusa el elemento al cambiar
+// el `[src]`. Más chica que la del plato: las filas de pasos se apilan.
+.preview-paso {
+  margin-top: 0;
+  max-height: 5rem;
+  align-self: flex-start;
+}
+
 .checkbox-group {
   flex-direction: row;
   align-items: center;

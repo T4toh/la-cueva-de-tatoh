@@ -128,7 +128,20 @@
       @if (pasos().length > 0) {
         <ol>
           @for (paso of pasos(); track $index) {
-            <li>{{ paso.texto }}</li>
+            <li>
+              <div class="paso-fila">
+                <span class="paso-texto">{{ paso.texto }}</span>
+                @if (paso.foto) {
+                  <img
+                    alt=""
+                    class="paso-foto"
+                    loading="lazy"
+                    [src]="paso.foto"
+                    (error)="$any($event.target).hidden = true"
+                  />
+                }
+              </div>
+            </li>
           }
         </ol>
       } @else {

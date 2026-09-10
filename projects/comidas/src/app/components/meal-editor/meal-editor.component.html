@@ -205,7 +205,16 @@
                 type="url"
               />
               @if (paso.get('foto')?.invalid && paso.get('foto')?.value) {
-                <p class="error-campo">El link tiene que empezar con https://</p>
+                <p class="error-campo">
+                  El link tiene que empezar con https://
+                </p>
+              }
+              @if (paso.get('foto')?.valid && paso.get('foto')?.value) {
+                <img
+                  alt=""
+                  class="preview preview-paso"
+                  [src]="paso.get('foto')?.value"
+                />
               }
             </div>
             <div class="paso-acciones">
