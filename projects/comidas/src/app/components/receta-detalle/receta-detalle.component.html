@@ -9,6 +9,14 @@
       </button>
     </div>
 
+    @if (hayFotoPaso()) {
+      <img
+        alt=""
+        class="cocina-foto"
+        [src]="pasoEnCurso()?.foto"
+        (error)="pasoFotoFallo()"
+      />
+    }
     <p class="cocina-paso">{{ pasoEnCurso()?.texto }}</p>
 
     <div class="cocina-acciones">
@@ -48,11 +56,22 @@
       </div>
     </div>
 
-    <h1>{{ meal().name }}</h1>
-
-    @if (meal().description) {
-      <p class="descripcion">{{ meal().description }}</p>
-    }
+    <div class="banda" [class.banda--foto]="hayFoto()">
+      @if (hayFoto()) {
+        <img
+          alt=""
+          class="banda-foto"
+          [src]="meal().foto"
+          (error)="fotoFallo()"
+        />
+      }
+      <div class="banda-texto">
+        <h1>{{ meal().name }}</h1>
+        @if (meal().description) {
+          <p class="descripcion">{{ meal().description }}</p>
+        }
+      </div>
+    </div>
 
     @if (meal().tags && meal().tags!.length > 0) {
       <div class="tags">
@@ -109,7 +128,20 @@
       @if (pasos().length > 0) {
         <ol>
           @for (paso of pasos(); track $index) {
-            <li>{{ paso.texto }}</li>
+            <li>
+              <div class="paso-fila">
+                <span class="paso-texto">{{ paso.texto }}</span>
+                @if (paso.foto) {
+                  <img
+                    alt=""
+                    class="paso-foto"
+                    loading="lazy"
+                    [src]="paso.foto"
+                    (error)="$any($event.target).hidden = true"
+                  />
+                }
+              </div>
+            </li>
           }
         </ol>
       } @else {

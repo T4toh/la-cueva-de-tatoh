@@ -154,7 +154,7 @@ describe('aRecetaPublica', () => {
       id: 'm',
       name: 'Arroz',
       ingredients: [],
-      // Un campo futuro (fase 4: fotos y notas por paso) simulado acá: si
+      // Un campo futuro privado (como una nota por paso) simulado acá: si
       // `pasos` se copiara por referencia, viajaría al documento público.
       pasos: [{ texto: 'Hervir', nota: 'privada' } as Paso],
     };
@@ -176,6 +176,37 @@ describe('aRecetaPublica', () => {
     expect(receta.ingredientes).toEqual([
       { name: 'Arroz', quantity: '1', unit: 'kg' },
     ]);
+  });
+
+  it('publica la foto del plato y la de cada paso', () => {
+    const mealConFoto: Meal = {
+      id: '1',
+      name: 'Mila',
+      ingredients: [],
+      foto: 'https://ejemplo.com/plato.jpg',
+      pasos: [{ texto: 'Empanar', foto: 'https://ejemplo.com/paso1.jpg' }],
+    };
+
+    const receta = aRecetaPublica(mealConFoto, 'Tatoh', 'uid-1', 'abcd1234', 0);
+
+    expect(receta.foto).toBe('https://ejemplo.com/plato.jpg');
+    expect(receta.pasos).toEqual([
+      { texto: 'Empanar', foto: 'https://ejemplo.com/paso1.jpg' },
+    ]);
+  });
+
+  it('una receta sin fotos no escribe las claves', () => {
+    const mealSinFoto: Meal = {
+      id: '1',
+      name: 'Mila',
+      ingredients: [],
+      pasos: [{ texto: 'Empanar' }],
+    };
+
+    const receta = aRecetaPublica(mealSinFoto, '', 'uid-1', 'abcd1234', 0);
+
+    expect('foto' in receta).toBe(false);
+    expect(receta.pasos).toEqual([{ texto: 'Empanar' }]);
   });
 });
 

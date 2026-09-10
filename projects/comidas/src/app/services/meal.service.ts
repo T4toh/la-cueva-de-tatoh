@@ -121,6 +121,10 @@ export function limpiarPasos(pasos: Paso[]): Paso[] {
 export function recetaComoMarkdown(meal: Meal): string {
   const lineas: string[] = [`# ${meal.name}`];
 
+  if (meal.foto) {
+    lineas.push('', `![](${meal.foto})`);
+  }
+
   if (meal.description?.trim()) {
     lineas.push('', meal.description.trim());
   }
@@ -136,6 +140,13 @@ export function recetaComoMarkdown(meal: Meal): string {
     });
   }
 
+  // La foto de cada paso queda deliberadamente afuera de acá, a diferencia de
+  // la del plato: una imagen metida entre items de una lista ordenada la
+  // corta en `marked` (la librería de ngx-markdown) — todo lo que sigue se
+  // traga como texto plano dentro del párrafo de la imagen, sin numeración.
+  // Indentarla dentro del item es lo correcto en CommonMark, pero vuelve la
+  // lista "loose" y cambia el renderizado de todos los pasos; no vale el
+  // riesgo por esto.
   const pasos = meal.pasos ?? [];
   if (pasos.length > 0) {
     lineas.push('', '## Preparación', '');
@@ -165,6 +176,7 @@ export function copiaParaDuplicar(original: Meal): Omit<Meal, 'id'> {
     ...(original.includeInShoppingList !== undefined
       ? { includeInShoppingList: original.includeInShoppingList }
       : {}),
+    ...(original.foto ? { foto: original.foto } : {}),
   };
 }
 
@@ -179,6 +191,7 @@ export function huellaPublicada(meal: Meal, alias: string): string {
     meal.description,
     meal.ingredients,
     meal.pasos,
+    meal.foto,
     alias,
   ]);
 }

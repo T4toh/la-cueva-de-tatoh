@@ -71,6 +71,13 @@ describe('huellaPublicada', () => {
       huellaPublicada(meal, 'Otro')
     );
   });
+
+  it('cambiar la foto cambia la huella: si no, no se re-publica', () => {
+    const base: Meal = { id: '1', name: 'Mila', ingredients: [] };
+    const conFoto: Meal = { ...base, foto: 'https://ejemplo.com/a.jpg' };
+
+    expect(huellaPublicada(conFoto, '')).not.toBe(huellaPublicada(base, ''));
+  });
 });
 
 describe('copiaParaDuplicar', () => {
@@ -87,6 +94,7 @@ describe('copiaParaDuplicar', () => {
     tags: ['favorita'],
     includeInShoppingList: true,
     pasos: [{ texto: 'Freír' }, { texto: 'Napolizar' }],
+    foto: 'https://ejemplo.com/mila.jpg',
     publicId: 'k7m2xq9p',
   };
 
@@ -102,6 +110,7 @@ describe('copiaParaDuplicar', () => {
       tags: ['favorita'],
       includeInShoppingList: true,
       pasos: [{ texto: 'Freír' }, { texto: 'Napolizar' }],
+      foto: 'https://ejemplo.com/mila.jpg',
     });
   });
 
@@ -273,6 +282,44 @@ describe('recetaComoMarkdown', () => {
     const md = recetaComoMarkdown(receta({ ingredients: [], pasos: [] }));
 
     expect(md).toBe('# Salsa de tomate\n');
+  });
+
+  it('mete la foto del plato debajo del título', () => {
+    const md = recetaComoMarkdown(
+      receta({ foto: 'https://ejemplo.com/salsa.jpg' })
+    );
+
+    expect(md).toContain(
+      '# Salsa de tomate\n\n![](https://ejemplo.com/salsa.jpg)\n'
+    );
+  });
+
+  it('no mete la foto de un paso: partiría la lista ordenada en marked', () => {
+    const md = recetaComoMarkdown(
+      receta({
+        pasos: [
+          { texto: 'Picar la cebolla', foto: 'https://ejemplo.com/1.jpg' },
+          { texto: 'Dorar 5 minutos' },
+        ],
+      })
+    );
+
+    expect(md).toBe(
+      [
+        '# Salsa de tomate',
+        '',
+        '## Ingredientes',
+        '',
+        '- 0.5 kg — Tomate perita',
+        '- a gusto — Sal',
+        '',
+        '## Preparación',
+        '',
+        '1. Picar la cebolla',
+        '2. Dorar 5 minutos',
+        '',
+      ].join('\n')
+    );
   });
 });
 

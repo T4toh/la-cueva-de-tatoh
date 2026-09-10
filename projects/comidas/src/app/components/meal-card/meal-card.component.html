@@ -10,8 +10,32 @@
     [colorFondo]="'var(--bg-surface)'"
     [colorTexto]="'var(--fg-primary)'"
     [sombreado]="false"
-    [texto]="meal().name"
   >
+    @if (meal().foto) {
+      <!-- Un solo (error) con `hidden`, sin señal por id: esta tarjeta se
+           renderiza dentro de un @for que trackea por meal.id
+           (meal-list.component.html, meal-selector.component.html), así que
+           el elemento se mantiene atado a la misma comida mientras esa
+           instancia de la lista viva. `hidden` no se limpia si [src] cambia
+           en un elemento reusado: si otro dispositivo repara la URL vía
+           Firestore, la tarjeta se queda oculta hasta que la lista se
+           reconstruya. En la práctica no pasa porque editar siempre navega
+           afuera de /meals y de vuelta. -->
+      <img
+        alt=""
+        class="portada"
+        loading="lazy"
+        [src]="meal().foto"
+        (error)="$any($event.target).hidden = true"
+      />
+    }
+    <!-- lib-panel ya no recibe `texto`: pintaba el título antes del
+         contenido proyectado (esta foto incluida), así que la portada
+         quedaba siempre debajo del nombre. Lo dibujamos acá, después de la
+         foto, y ocultamos por CSS el <span> vacío que el panel igual sigue
+         emitiendo (panel.html lo renderiza siempre que `colapsable` sea
+         false, con o sin `texto`). -->
+    <span class="meal-title">{{ meal().name }}</span>
     <div class="meal-content-wrapper">
       <div class="meal-info">
         <ul class="ingredient-list">

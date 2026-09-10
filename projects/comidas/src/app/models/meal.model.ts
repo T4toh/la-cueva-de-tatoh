@@ -9,6 +9,9 @@ export type Ingredient = {
 // que había antes y sigue siendo válido.
 export type Paso = {
   texto: string;
+  // URL https a una imagen que vive en otro lado. No hay hosting propio: el
+  // usuario pega el link. Ver docs/superpowers/specs/2026-09-09-recetas-con-imagenes-design.md
+  foto?: string;
 };
 
 export type Meal = {
@@ -19,6 +22,8 @@ export type Meal = {
   tags?: string[];
   includeInShoppingList?: boolean;
   pasos?: Paso[];
+  // La foto del plato terminado, por URL. Ver `Paso.foto`.
+  foto?: string;
   // Si está, la receta tiene un documento en `recetasPublicas` y un link vivo.
   publicId?: string;
 };

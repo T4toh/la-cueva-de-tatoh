@@ -59,6 +59,14 @@ export class RecetaDetalleComponent implements OnDestroy {
 
   readonly pasos = computed(() => this.meal().pasos ?? []);
 
+  // Guarda el id de la receta cuya foto rompió, no un booleano: así, al
+  // cambiar de receta, la comparación con `meal().id` deja de coincidir sola
+  // y no hace falta resetear nada a mano en un efecto aparte.
+  private readonly fotoConError = signal<string | null>(null);
+  readonly hayFoto = computed(
+    () => !!this.meal().foto && this.fotoConError() !== this.meal().id
+  );
+
   readonly cocinando = signal(false);
   readonly pasoActual = signal(0);
 
@@ -72,8 +80,33 @@ export class RecetaDetalleComponent implements OnDestroy {
     () => this.pasoActual() >= this.pasos().length - 1
   );
 
+  // Mismo patrón que `fotoConError`, pero la clave identifica qué foto falló
+  // -receta y paso, no sólo el paso-: así se invalida sola tanto al cambiar
+  // de paso como al cambiar de receta, sin resetear nada a mano. Dos pasos
+  // consecutivos con foto comparten el mismo `<img>` del template, así que
+  // sin esto una foto rota en el paso 3 dejaría sin verse a la del 4, que
+  // está perfecta.
+  private readonly pasoFotoConError = signal<string | null>(null);
+  readonly hayFotoPaso = computed(
+    () =>
+      !!this.pasoEnCurso()?.foto &&
+      this.pasoFotoConError() !== `${this.meal().id}:${this.pasoActual()}`
+  );
+
   editar(): void {
     this.router.navigate(['/meals/edit', this.meal().id]);
+  }
+
+  // Un link ajeno se puede morir en cualquier momento: la banda tiene que
+  // volver al estado "sin foto" completo (imagen, clase y color de texto
+  // juntos), no a una imagen escondida con el texto claro de la foto que ya
+  // no está.
+  fotoFallo(): void {
+    this.fotoConError.set(this.meal().id);
+  }
+
+  pasoFotoFallo(): void {
+    this.pasoFotoConError.set(`${this.meal().id}:${this.pasoActual()}`);
   }
 
   cocinar(): void {

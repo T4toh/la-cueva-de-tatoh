@@ -25,8 +25,64 @@
   flex-wrap: wrap;
 }
 
-h1 {
-  margin: 0 0 0.5rem;
+.banda {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  margin-bottom: 1rem;
+  min-height: 8rem;
+  display: flex;
+  align-items: flex-end;
+  // Sin foto la banda es esto y alcanza: el estado sin imagen no es el caso
+  // degradado, es el normal.
+  background: linear-gradient(160deg, var(--accent-muted), transparent 70%);
+}
+
+.banda-foto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.banda-texto {
+  position: relative;
+  width: 100%;
+  padding: 2.5rem 1rem 0.85rem;
+  // Sin foto el fondo es la superficie de la app: sigue el tema, así que acá
+  // no hay velo ni color de texto propios.
+  background: linear-gradient(to top, var(--bg-sunken-strong), transparent);
+}
+
+// Una foto no tiene tema. El texto que va encima no puede depender de
+// `--fg-primary` ni el velo de `--bg-sunken-strong`: los dos son tan claros
+// en tema claro que dejan el título ilegible sobre una foto clara. Mismo
+// motivo que el `text-shadow` de abajo: valores fijos, iguales en los dos
+// temas, porque el fondo tampoco cambia con el tema.
+.banda--foto .banda-texto {
+  background: linear-gradient(to top, rgb(0 0 0 / 55%), transparent);
+}
+
+// El `h1` global (`styles.scss`) pinta con `--fg-primary` directo, no
+// heredado: pisa el `color` puesto arriba en `.banda-texto`. Hay que fijarlo
+// acá también, sobre el propio elemento, para que gane. `--fg-on-accent-strong`
+// es el token para esto: texto claro en los dos temas, para algo que no
+// sigue el tema (acá, la foto).
+.banda--foto .banda-texto h1,
+.banda--foto .banda-texto .descripcion {
+  color: var(--fg-on-accent-strong);
+}
+
+.banda-texto h1 {
+  margin: 0;
+  // El velo no alcanza contra una foto clara, y la foto es de cualquier lado.
+  text-shadow: 0 1px 3px rgb(0 0 0 / 55%);
+}
+
+.banda-texto .descripcion {
+  margin: 0.25rem 0 0;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 55%);
 }
 
 .descripcion {
@@ -181,6 +237,20 @@ section {
   }
 }
 
+// `max-height` en `vh` y no en `rem`: en un teléfono apaisado una foto fija en
+// rem tapa el texto y los botones.
+// ponytail: el techo es que no se puede ampliar. A 40vh un detalle fino —el
+// punto de la masa, un corte— no se distingue, y no hay forma de acercarse.
+// Salida: tocarla abre una vista a pantalla completa.
+.cocina-foto {
+  display: block;
+  width: 100%;
+  max-height: 40vh;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  margin-bottom: 1rem;
+}
+
 .cocina-paso {
   flex: 1 1 auto;
   display: flex;
@@ -209,4 +279,41 @@ section {
   cursor: pointer;
   font: inherit;
   font-size: 1.1rem;
+}
+
+// La foto del paso va al costado del texto, no debajo: en una receta de cinco
+// pasos, cinco imágenes a lo ancho vuelven la lista larguísima y dejan de
+// poder leerse de un vistazo. Abajo de 30rem baja, que al ancho de un
+// teléfono al costado no entra nada.
+// El flex va en un div adentro del `<li>`, no en el `<li>`: `display: flex`
+// reemplaza a `display: list-item` y se lleva puesto el número del paso.
+.pasos .paso-fila {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.pasos .paso-texto {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+// Acá alcanza con `hidden` y no hace falta una señal como la del modo cocina:
+// cada `<li>` tiene su propia `<img>` atada a su índice mientras dure la
+// vista, y el componente se recrea al cambiar de receta, así que un `hidden`
+// no se pega a la foto de otro paso. El `&[hidden]` es obligatorio: un
+// `display` de autor le gana al `[hidden] { display: none }` del navegador y
+// la imagen rota seguiría a la vista.
+.pasos li .paso-foto {
+  display: block;
+  flex: 0 0 auto;
+  width: 8rem;
+  height: 6rem;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+
+  &[hidden] {
+    display: none;
+  }
 }

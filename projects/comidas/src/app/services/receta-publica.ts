@@ -8,6 +8,7 @@ export type RecetaPublica = {
   descripcion?: string;
   ingredientes: Ingredient[];
   pasos?: Paso[];
+  foto?: string;
   alias?: string;
   ruta: string;
   actualizada: number;
@@ -114,10 +115,20 @@ export function aRecetaPublica(
     receta.descripcion = descripcionUsable;
   }
   if (meal.pasos?.length) {
-    // Proyectado paso por paso por la misma razón que los ingredientes: hoy
-    // `Paso` es sólo `texto`, pero la fase 4 le suma fotos y una nota privada
-    // por paso se publicaría sola si se copiara el objeto entero.
-    receta.pasos = meal.pasos.map((paso) => ({ texto: paso.texto }));
+    // Proyectado paso por paso por la misma razón que los ingredientes: la
+    // proyección es campo por campo justamente para que un campo futuro
+    // privado (como una nota por paso) no se publique solo si se copiara el
+    // objeto entero.
+    receta.pasos = meal.pasos.map((paso) => {
+      const proyectado: Paso = { texto: paso.texto };
+      if (paso.foto) {
+        proyectado.foto = paso.foto;
+      }
+      return proyectado;
+    });
+  }
+  if (meal.foto) {
+    receta.foto = meal.foto;
   }
   if (aliasUsable) {
     receta.alias = aliasUsable;
@@ -136,6 +147,9 @@ export function aMeal(receta: RecetaPublica, id: string): Meal {
   }
   if (receta.pasos?.length) {
     meal.pasos = receta.pasos;
+  }
+  if (receta.foto) {
+    meal.foto = receta.foto;
   }
   return meal;
 }

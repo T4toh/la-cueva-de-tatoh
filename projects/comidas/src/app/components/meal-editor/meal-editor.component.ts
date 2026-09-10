@@ -119,6 +119,11 @@ export class MealEditorComponent implements OnInit {
       includeInShoppingList: [true],
       // El default es privado: una comida nueva no se publica por existir.
       compartida: [false],
+      // Sólo https: la app se sirve por https y el navegador bloquea una
+      // imagen http por contenido mixto, así que no se vería nunca.
+      // `Validators.pattern` no corre sobre valor vacío, así que el campo
+      // sigue siendo opcional sin escribir nada.
+      foto: ['', Validators.pattern(/^https:\/\//)],
       ingredients: this.fb.array([]),
       tags: this.fb.array([]),
       pasos: this.fb.array([]),
@@ -147,6 +152,7 @@ export class MealEditorComponent implements OnInit {
           description: meal.description,
           includeInShoppingList: meal.includeInShoppingList ?? true,
           compartida: !!meal.publicId,
+          foto: meal.foto ?? '',
         });
         meal.ingredients.forEach((ing) => {
           this.addIngredient(ing.name, ing.quantity, ing.unit ?? '');
@@ -195,7 +201,18 @@ export class MealEditorComponent implements OnInit {
   // tiene el campo, editar la comida lo borra al guardar. Es la misma razón por
   // la que limpiarPasos hace spread, un piso más abajo.
   addPaso(paso: Paso = { texto: '' }): void {
-    this.pasos.push(this.fb.group({ ...paso }));
+    // El spread va ANTES de `foto`, al revés que si sólo importara el
+    // default: `foto` tiene que ser la última clave para que su config de
+    // control (con el validator) no quede pisada por un `paso.foto` de tipo
+    // string que vendría del spread. El `?? ''` cubre al paso guardado antes
+    // de que existiera el campo, que no trae la clave — sin control ahí el
+    // `formControlName="foto"` del template tira NG01050.
+    this.pasos.push(
+      this.fb.group({
+        ...paso,
+        foto: [paso.foto ?? '', Validators.pattern(/^https:\/\//)],
+      })
+    );
   }
 
   removePaso(index: number): void {
@@ -242,6 +259,7 @@ export class MealEditorComponent implements OnInit {
         ingredients: validIngredients,
         tags: formValue.tags,
         pasos,
+        foto: formValue.foto || undefined,
       };
 
       if (this.mealId) {

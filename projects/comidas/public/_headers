@@ -7,3 +7,7 @@
 /manifest.webmanifest
   Content-Type: application/manifest+json
   Cache-Control: no-cache
+
+# Ojo: no hay Content-Security-Policy a propósito. Las fotos de las recetas son
+# URLs de cualquier host (ver docs/superpowers/specs/2026-09-09-recetas-con-imagenes-design.md),
+# así que una CSP tiene que dejar img-src abierto o se rompen todas en silencio.

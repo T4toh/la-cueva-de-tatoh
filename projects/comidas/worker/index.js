@@ -30,6 +30,7 @@ export function normalizar(fields) {
     nombre: texto(fields.nombre) || 'Receta',
     descripcion: texto(fields.descripcion),
     alias: texto(fields.alias),
+    foto: texto(fields.foto),
     ingredientes: largo(fields.ingredientes),
     pasos: largo(fields.pasos),
   };
@@ -60,10 +61,21 @@ export function describir(receta) {
   return receta.alias ? `Receta de ${receta.alias} · ${cuerpo}` : cuerpo;
 }
 
+// El Worker no revalida lo que el editor ya validó —`setAttribute` escapa, así
+// que meter la URL tal cual no abre ninguna inyección—. Esto es un fallback: un
+// `og:image` en http sobre una página https es contenido mixto y varios
+// crawlers lo descartan, y sin foto hay que caer al ícono en vez de emitir el
+// tag vacío.
+export function imagenDe(receta) {
+  return receta.foto && receta.foto.startsWith('https://')
+    ? receta.foto
+    : IMAGEN;
+}
+
 // ponytail: el `fetch` de acá abajo no tiene test — `HTMLRewriter` y el
 // binding `ASSETS` no existen fuera del runtime de Workers, y traerlos es una
-// dependencia nueva. La lógica pura (`ID_VALIDO`, `normalizar`, `describir`)
-// sí está cubierta en `src/app/worker-og.spec.ts`; el rewrite se verifica a
+// dependencia nueva. La lógica pura (`ID_VALIDO`, `normalizar`, `describir`,
+// `imagenDe`) sí está cubierta en `src/app/worker-og.spec.ts`; el rewrite se verifica a
 // mano con `wrangler dev` y un curl con user-agent de crawler. Salida:
 // vitest-pool-workers si esto crece.
 export default {
@@ -87,7 +99,7 @@ export default {
       const meta = {
         titulo: receta.nombre,
         descripcion: describir(receta),
-        imagen: IMAGEN,
+        imagen: imagenDe(receta),
         // La URL canónica es la que el crawler acaba de pedir, no `ruta`: ese
         // campo lo escribe el dueño del documento como texto libre y las
         // reglas de Firestore validan quién escribe, no qué escribe.

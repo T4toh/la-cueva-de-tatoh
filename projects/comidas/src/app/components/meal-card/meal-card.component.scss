@@ -31,6 +31,44 @@
   min-height: 0;
 }
 
+// El <span> de título de lib-panel (panel.html) es siempre el primer hijo de
+// .panel-content cuando `colapsable` es false -pasemos o no `texto`-, así que
+// sin `texto` queda vacío pero sigue reservando una línea en blanco por
+// encima de la foto. Se oculta acá; el título real lo dibuja .meal-title más
+// abajo, después de la foto.
+.meal-card ::ng-deep .panel-content > span:first-child {
+  display: none;
+}
+
+// Reproduce el estilo que .panel-content > span le daba al título (panel.html
+// + panel.ts): color por el `colorTexto` que ya le pasamos al panel, y
+// font-weight normal porque `negrita` nunca se le pasa (default `false` en
+// panel.ts). Sin margin propio, igual que el <span> original.
+.meal-title {
+  display: block;
+  margin: 0;
+  font-weight: normal;
+  color: var(--fg-primary);
+}
+
+.portada {
+  display: block;
+  width: 100%;
+  height: 5rem;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.6rem;
+
+  // El `display: block` de acá pisa el `display: none` que el navegador le da
+  // a `[hidden]` por defecto (misma especificidad, pero el nuestro es la hoja
+  // de autor): sin este selector más específico, marcar `hidden` en el
+  // `(error)` no ocultaba nada y la portada rota quedaba con el ícono de
+  // imagen caída puesto para siempre.
+  &[hidden] {
+    display: none;
+  }
+}
+
 .meal-content-wrapper {
   display: flex;
   flex-direction: column;
