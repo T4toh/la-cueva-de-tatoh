@@ -362,9 +362,9 @@ export type Tienda = {
 };
 
 // Los perfiles de autor que muestra el navegador de arriba, uno por tienda.
-// Es una lista y no un link suelto para que sumar Google Play y Apple Books
-// cuando existan los listados sea agregar una entrada. Una tienda sin URL no
-// va acá: preferimos que no se dibuje antes que un link muerto.
+// Es una lista y no un link suelto para que sumar Google Play cuando exista el
+// listado sea agregar una entrada. Una tienda sin URL no va acá: preferimos
+// que no se dibuje antes que un link muerto.
 export const TIENDAS_AUTOR: Tienda[] = [
   {
     nombre: 'Amazon',
@@ -372,6 +372,21 @@ export const TIENDAS_AUTOR: Tienda[] = [
       'https://www.amazon.com/s?i=digital-text&rh=p_27%3AIgnacio%2BMart%25C3%25' +
       'ADn%2BArano&s=relevancerank&text=Ignacio%20Mart%C3%ADn%20Arano',
     logo: 'amazon',
+  },
+  {
+    nombre: 'Apple Books',
+    url: 'https://books.apple.com/us/author/ignacio-mart%C3%ADn-arano/id6808846239',
+    logo: 'apple-books',
+  },
+  {
+    // Kobo no tiene página de autor: esto es la búsqueda filtrada por el facet
+    // `ac.author`, que es lo que deja sólo mis libros. Sin ese parámetro la
+    // búsqueda por texto trae cualquier cosa que mencione el nombre.
+    nombre: 'Kobo',
+    url:
+      'https://www.kobo.com/ar/en/search?query=ignacio%20mart%C3%ADn%20arano&ac=1&' +
+      'acp=ignacio%20mart%C3%ADn%20arano&ac.author=ignacio%20mart%C3%ADn%20arano',
+    logo: 'kobo',
   },
 ];
 
@@ -495,6 +510,11 @@ export const LIBROS: Libro[] = [
         nombre: 'Apple Books',
         url: 'https://books.apple.com/us/book/id6808846235',
         logo: 'apple-books',
+      },
+      {
+        nombre: 'Kobo',
+        url: 'https://www.kobo.com/ar/en/ebook/deployment-10',
+        logo: 'kobo',
       },
     ],
   },

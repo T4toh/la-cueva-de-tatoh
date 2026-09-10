@@ -16,6 +16,7 @@
     </blockquote>
     <a href="https://www.amazon.com/dp/B0HHR3XX88" target="_blank" rel="noopener noreferrer"><img class="logo-tienda" src="/img/logos/amazon.svg" alt="" width="20" height="20"><span>Leer en Amazon</span></a>
     <a href="https://books.apple.com/us/book/id6808846235" target="_blank" rel="noopener noreferrer"><img class="logo-tienda" src="/img/logos/apple-books.svg" alt="" width="20" height="20"><span>Leer en Apple Books</span></a>
+    <a href="https://www.kobo.com/ar/en/ebook/deployment-10" target="_blank" rel="noopener noreferrer"><img class="logo-tienda" src="/img/logos/kobo.svg" alt="" width="20" height="20"><span>Leer en Kobo</span></a>
   </div>
 </div>
 
@@ -23,8 +24,8 @@ Meridian sigue en pie, esto no la reemplaza: es otra saga, otro mundo y otro
 idioma. Si el inglés molesta, la sinopsis traducida está en la
 [ficha del libro](/libros/deployment).
 
-Está en Amazon y en Apple Books. Google Play Books va en camino; cuando esté,
-lo sumo a la ficha.
+Está en Amazon, en Apple Books y en Kobo. Google Play Books va en camino;
+cuando esté, lo sumo a la ficha.
 
 ---
 
