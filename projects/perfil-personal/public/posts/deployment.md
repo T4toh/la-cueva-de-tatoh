@@ -17,6 +17,7 @@
     <a href="https://www.amazon.com/dp/B0HHR3XX88" target="_blank" rel="noopener noreferrer"><img class="logo-tienda" src="/img/logos/amazon.svg" alt="" width="20" height="20"><span>Leer en Amazon</span></a>
     <a href="https://books.apple.com/us/book/id6808846235" target="_blank" rel="noopener noreferrer"><img class="logo-tienda" src="/img/logos/apple-books.svg" alt="" width="20" height="20"><span>Leer en Apple Books</span></a>
     <a href="https://www.kobo.com/ar/en/ebook/deployment-10" target="_blank" rel="noopener noreferrer"><img class="logo-tienda" src="/img/logos/kobo.svg" alt="" width="20" height="20"><span>Leer en Kobo</span></a>
+    <a href="/muestras/deployment.epub" download>Descargar muestra gratis (EPUB)</a>
   </div>
 </div>
 

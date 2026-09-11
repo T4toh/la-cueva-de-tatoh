@@ -405,6 +405,9 @@ export type Libro = {
   numero: number;
   sinopsis: string;
   tiendas: Tienda[];
+  // Muestra gratis en EPUB, servida desde el repo (/muestras/<slug>.epub) por
+  // el mismo motivo que la portada. Opcional: sin esto no hay botón.
+  muestra?: string;
 };
 
 export const LIBROS: Libro[] = [
@@ -415,6 +418,7 @@ export const LIBROS: Libro[] = [
     saga: 'Meridian',
     numero: 1,
     imagen: '/img/portadas/la-caballera-esmeralda.jpg',
+    muestra: '/muestras/la-caballera-esmeralda.epub',
     sinopsis: [
       'Aedan, por fin, puede dejar atrás la obligada prisión de su hogar y',
       'explorar el reino que hasta ahora solo conocía por historias.',
@@ -438,6 +442,7 @@ export const LIBROS: Libro[] = [
     saga: 'Meridian',
     numero: 2,
     imagen: '/img/portadas/mas-que-un-trabajo.jpg',
+    muestra: '/muestras/mas-que-un-trabajo.epub',
     sinopsis: [
       'Aedan y sus compañeros llegan a Brickwell como invitados, dispuestos a',
       'pasar unos días lejos de los caminos.',
@@ -460,6 +465,7 @@ export const LIBROS: Libro[] = [
     slug: 'deployment',
     titulo: 'Deployment',
     imagen: '/img/portadas/deployment.jpg',
+    muestra: '/muestras/deployment.epub',
     saga: 'Milky Way',
     numero: 1,
     // La novela está escrita en inglés. Va la traducción primero porque el

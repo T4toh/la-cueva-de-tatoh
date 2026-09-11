@@ -13,6 +13,7 @@
       <p>El mundo está ahí afuera. Es hora de conocerlo.</p>
     </blockquote>
     <a href="https://www.amazon.com/dp/B0G3JTSR43" target="_blank" rel="noopener noreferrer"><img class="logo-tienda" src="/img/logos/amazon.svg" alt="" width="20" height="20"><span>Leer en Amazon</span></a>
+    <a href="/muestras/la-caballera-esmeralda.epub" download>Descargar muestra gratis (EPUB)</a>
   </div>
 </div>
 
