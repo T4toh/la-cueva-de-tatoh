@@ -13,6 +13,7 @@
       <p>Pero para un cazador de monstruos, incluso una visita puede terminar siendo más que un trabajo.</p>
     </blockquote>
     <a href="https://www.amazon.com/dp/B0HHKNV1QP" target="_blank" rel="noopener noreferrer"><img class="logo-tienda" src="/img/logos/amazon.svg" alt="" width="20" height="20"><span>Leer en Amazon</span></a>
+    <a href="/muestras/mas-que-un-trabajo.epub" download>Descargar muestra gratis (EPUB)</a>
   </div>
 </div>
 

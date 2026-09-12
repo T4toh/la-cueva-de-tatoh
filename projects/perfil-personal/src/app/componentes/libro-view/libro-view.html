@@ -12,7 +12,7 @@
             <img fill priority [alt]="'Portada de ' + l.titulo" [ngSrc]="l.imagen" />
           </div>
 
-          @if (l.tiendas.length > 0) {
+          @if (l.tiendas.length > 0 || l.muestra) {
             <div class="libro-tiendas">
               @for (tienda of l.tiendas; track tienda.url) {
                 <a
@@ -23,6 +23,12 @@
                 >
                   <app-logo-tienda [size]="20" [tienda]="tienda.logo" />
                   <span>{{ tienda.nombre }}</span>
+                </a>
+              }
+              @if (l.muestra) {
+                <a class="tienda-boton" download [href]="l.muestra">
+                  <lib-icon name="download" [size]="20" />
+                  <span>Muestra gratis</span>
                 </a>
               }
             </div>
