@@ -557,7 +557,12 @@ export const LIBROS: Libro[] = [
       'Después de una vida dedicada a fingir, quizá empezar de cero sea lo más',
       'difícil de todo.',
     ].join('\n'),
-    // Sin link de compra todavía: la ficha no dibuja botones de tienda.
-    tiendas: [],
+    tiendas: [
+      {
+        nombre: 'Amazon',
+        url: 'https://www.amazon.com/dp/B0HJN8WX3R',
+        logo: 'amazon',
+      },
+    ],
   },
 ];
