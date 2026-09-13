@@ -23,4 +23,4 @@ completa está en [/libros/la-ciudad-de-las-luces](/libros/la-ciudad-de-las-luce
 
 ---
 
-Tags: #libros #buenosaires2077 #cienciaficcion
+Tags: #libros #cienciaficcion #ba2077 #cyberpunk

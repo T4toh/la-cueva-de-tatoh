@@ -338,7 +338,7 @@ export const POSTS: Post[] = [
     title: 'La Ciudad de Las Luces — Buenos Aires 2077 #1',
     src: 'posts/la-ciudad-de-las-luces.md',
     fecha: '13/9/26',
-    tags: ['libros', 'buenos-aires-2077', 'ciencia-ficcion'],
+    tags: ['libros', 'ciencia-ficcion', 'ba2077', 'cyberpunk'],
     descripcion:
       'Primera novela de Buenos Aires 2077, una saga nueva. La guerra terminó. ' +
       'T ya no tiene motivos para seguir siendo un soldado y vuelve a Buenos ' +
@@ -542,10 +542,10 @@ export const LIBROS: Libro[] = [
     imagen: '/img/portadas/la-ciudad-de-las-luces.jpg',
     muestra: '/muestras/la-ciudad-de-las-luces.epub',
     sinopsis: [
-      'La guerra terminó.',
-      '',
-      'T ya no tiene motivos para seguir siendo un soldado y vuelve a Buenos',
-      'Aires para empezar de nuevo.',
+      // Dos párrafos del blurb en uno: el primero solo era "La guerra terminó."
+      // y eso es lo que sale como og:description.
+      'La guerra terminó. T ya no tiene motivos para seguir siendo un soldado y',
+      'vuelve a Buenos Aires para empezar de nuevo.',
       '',
       'Pero la ciudad que dejó atrás hace años ya no existe. Tampoco su casa.',
       '',
