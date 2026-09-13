@@ -28,3 +28,5 @@ export * from './lib/icon/icon';
 export * from './lib/tema/tema.service';
 // Version
 export * from './lib/version';
+// Service worker
+export * from './lib/sw/mismo-build';
