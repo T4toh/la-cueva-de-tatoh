@@ -19,3 +19,10 @@
     <router-outlet />
   </div>
 </section>
+
+<lib-dialogo
+  mensaje="Hay una versión nueva del sitio. Recargá para verla."
+  titulo="Actualización disponible"
+  [acciones]="accionesActualizacion"
+  [(visible)]="actualizacionLista"
+/>

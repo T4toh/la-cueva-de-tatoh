@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { mismoCodigo } from './update.service';
+import { mismoCodigo } from 'componentes';
 
 // hashTable de un ngsw.json: mismos bundles, otro timestamp de build.
 const hashTable = {

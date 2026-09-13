@@ -1,4 +1,5 @@
 import {
+  ApplicationRef,
   Component,
   ElementRef,
   inject,
@@ -14,10 +15,10 @@ import {
   RouterOutlet,
 } from '@angular/router';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
-import { filter, take } from 'rxjs/operators';
+import { filter, first, take } from 'rxjs/operators';
 import { Sidebar } from './componentes/sidebar/sidebar';
 import { Navigator } from './componentes/navigator/navigator';
-import { TemaService } from 'componentes';
+import { Dialogo, DialogoAccion, mismoBuild, TemaService } from 'componentes';
 
 // Mismo corte que el @media de app.scss. Si cambia uno, cambia el otro:
 // abajo de este ancho el panel deja de ser columna y pasa a ser drawer.
@@ -25,19 +26,33 @@ const ANCHO_MOBILE = 768;
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Sidebar, Navigator],
+  imports: [RouterOutlet, Sidebar, Navigator, Dialogo],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
 export class App {
   private readonly tema = inject(TemaService);
   private readonly updates = inject(SwUpdate);
+  private readonly appRef = inject(ApplicationRef);
   private readonly router = inject(Router);
   private readonly cuerpo =
     viewChild.required<ElementRef<HTMLElement>>('cuerpo');
   private readonly scrollPorUrl = new Map<string, number>();
   private readonly esBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   readonly sidebarAbierto = signal(true);
+  readonly actualizacionLista = signal(false);
+  readonly accionesActualizacion: DialogoAccion[] = [
+    {
+      texto: 'Más tarde',
+      estilo: 'text',
+      accion: (): void => this.actualizacionLista.set(false),
+    },
+    {
+      texto: 'Recargar',
+      color: 'var(--accent)',
+      accion: (): void => void this.recargar(),
+    },
+  ];
 
   constructor() {
     this.gestionarScrollAlNavegar();
@@ -49,9 +64,12 @@ export class App {
       return;
     }
 
-    // El service worker baja el build nuevo en segundo plano pero sigue
-    // sirviendo el viejo hasta que se cierran todas las pestañas del sitio.
-    // Sin esto uno queda clavado en una versión vieja por tiempo indefinido.
+    // Una pestaña ya abierta sigue corriendo el build viejo aunque el service
+    // worker haya bajado el nuevo (recargar sí trae el nuevo: el ngsw-config
+    // usa navigationRequestStrategy "freshness"). Sin esto, quien navega dentro
+    // de la app sin recargar queda en la versión vieja por tiempo indefinido.
+    // Se avisa con un diálogo y, si lo posterga, se aplica solo en la próxima
+    // navegación.
     //
     // Comidas resuelve lo mismo de otra forma: su ngsw-custom.js hace
     // skipWaiting() + clients.claim(). Acá eso NO sirve. Comidas no tiene
@@ -60,7 +78,9 @@ export class App {
     // hashes que el deploy nuevo borró. No unificar las dos apps.
     this.updates.versionUpdates
       .pipe(filter((e): e is VersionReadyEvent => e.type === 'VERSION_READY'))
-      .subscribe(() => this.aplicarEnLaProximaNavegacion());
+      .subscribe(() => void this.avisarActualizacion());
+
+    this.chequearActualizaciones();
   }
 
   alternarSidebar(): void {
@@ -145,9 +165,38 @@ export class App {
         filter((e) => e instanceof NavigationEnd),
         take(1),
       )
-      .subscribe(async () => {
-        await this.updates.activateUpdate();
-        document.location.reload();
-      });
+      .subscribe(() => void this.recargar());
+  }
+
+  // El SW sólo mira ngsw.json cuando arranca o tras una navegación, y en
+  // idle (5-30 s): una pestaña quieta no se entera nunca de un deploy. Por
+  // eso se le pide al estabilizar la app y cada vez que la pestaña vuelve a
+  // estar visible, que es cuando alguien retoma la lectura.
+  private chequearActualizaciones(): void {
+    this.appRef.isStable
+      .pipe(first((estable) => estable))
+      .subscribe(() => void this.updates.checkForUpdate());
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        void this.updates.checkForUpdate();
+      }
+    });
+  }
+
+  // Si los bundles que esta página tiene cargados están todos en el manifiesto
+  // nuevo, ya estamos corriendo ese build: se activa en silencio y sin cartel.
+  private async avisarActualizacion(): Promise<void> {
+    if (await mismoBuild()) {
+      await this.updates.activateUpdate();
+      return;
+    }
+    this.actualizacionLista.set(true);
+    this.aplicarEnLaProximaNavegacion();
+  }
+
+  private async recargar(): Promise<void> {
+    await this.updates.activateUpdate();
+    document.location.reload();
   }
 }
