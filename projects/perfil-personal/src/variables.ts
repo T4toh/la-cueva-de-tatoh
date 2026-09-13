@@ -334,6 +334,16 @@ export const POSTS: Post[] = [
       'Primera novela de Milky Way y la primera que escribo en inglés: space ' +
       'opera. John nunca salió del sistema solar, y su primer trabajo lo saca.',
   },
+  {
+    title: 'La Ciudad de Las Luces — Buenos Aires 2077 #1',
+    src: 'posts/la-ciudad-de-las-luces.md',
+    fecha: '13/9/26',
+    tags: ['libros', 'buenos-aires-2077', 'ciencia-ficcion'],
+    descripcion:
+      'Primera novela de Buenos Aires 2077, una saga nueva. La guerra terminó. ' +
+      'T ya no tiene motivos para seguir siendo un soldado y vuelve a Buenos ' +
+      'Aires para empezar de nuevo.',
+  },
 ];
 
 // Dominio público del sitio. Solo se usa para armar og:url absoluto:
@@ -523,5 +533,31 @@ export const LIBROS: Libro[] = [
         logo: 'kobo',
       },
     ],
+  },
+  {
+    slug: 'la-ciudad-de-las-luces',
+    titulo: 'La Ciudad de Las Luces',
+    saga: 'Buenos Aires 2077',
+    numero: 1,
+    imagen: '/img/portadas/la-ciudad-de-las-luces.jpg',
+    muestra: '/muestras/la-ciudad-de-las-luces.epub',
+    sinopsis: [
+      'La guerra terminó.',
+      '',
+      'T ya no tiene motivos para seguir siendo un soldado y vuelve a Buenos',
+      'Aires para empezar de nuevo.',
+      '',
+      'Pero la ciudad que dejó atrás hace años ya no existe. Tampoco su casa.',
+      '',
+      'Recibido por su viejo amigo, T tendrá que encontrar su lugar en una',
+      'Buenos Aires enorme y cambiante, una ciudad de corporaciones,',
+      'criminales, inmigrantes, oportunidades y cicatrices que todavía no',
+      'terminan de cerrar.',
+      '',
+      'Después de una vida dedicada a fingir, quizá empezar de cero sea lo más',
+      'difícil de todo.',
+    ].join('\n'),
+    // Sin link de compra todavía: la ficha no dibuja botones de tienda.
+    tiendas: [],
   },
 ];
