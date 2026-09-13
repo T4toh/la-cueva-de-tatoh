@@ -49,9 +49,10 @@ export class App {
       return;
     }
 
-    // El service worker baja el build nuevo en segundo plano pero sigue
-    // sirviendo el viejo hasta que se cierran todas las pestañas del sitio.
-    // Sin esto uno queda clavado en una versión vieja por tiempo indefinido.
+    // Una pestaña ya abierta sigue corriendo el build viejo aunque el service
+    // worker haya bajado el nuevo (recargar sí trae el nuevo: el ngsw-config
+    // usa navigationRequestStrategy "freshness"). Sin esto, quien navega dentro
+    // de la app sin recargar queda en la versión vieja por tiempo indefinido.
     //
     // Comidas resuelve lo mismo de otra forma: su ngsw-custom.js hace
     // skipWaiting() + clients.claim(). Acá eso NO sirve. Comidas no tiene

@@ -80,9 +80,21 @@ is a separate command from `pnpm build` — run it after touching routes.
 
 ### Service worker updates
 
-Both apps are PWAs, and both had to solve "the Angular SW keeps serving the old
-build until every tab closes" — but **they solve it differently on purpose, and
-must not be unified**:
+Both apps set `navigationRequestStrategy: "freshness"` in their
+`ngsw-config.json`. With the default (`performance`) the SW answers every
+navigation with the cached shell and only *then* checks `ngsw.json` in the
+background, so after a deploy the first reload always shows the old build and
+only a second reload, some seconds later, shows the new one — which is why
+"only Ctrl+Shift+R works" kept coming back no matter what else was patched.
+With `freshness` a navigation goes to the network first (Cloudflare serves the
+new `index.html`, whose chunks the SW doesn't know and passes through), and the
+cached shell is only the fallback when the network fails. Reproduced and
+verified both halves with two local builds before switching; don't go back to
+`performance`.
+
+Both apps are PWAs, and both also had to solve "a tab that is already open keeps
+the old build" — but **they solve it differently on purpose, and must not be
+unified**:
 
 - **comidas** registers `ngsw-custom.js`, which does `skipWaiting()` +
   `clients.claim()` so the new worker takes control on the next load. Safe there
