@@ -2,9 +2,30 @@ import { describe, expect, it } from 'vitest';
 
 import { ColaDeGuardado } from './cola-de-guardado';
 
+// Una cola con la corrida de arranque de cada clave ya consumida.
+function arrancada(): ColaDeGuardado {
+  const cola = new ColaDeGuardado();
+  for (const clave of ['meals', 'pantry', 'tags']) {
+    cola.debeGuardarAhora(clave);
+  }
+  return cola;
+}
+
 describe('ColaDeGuardado', () => {
-  it('fuera de una sincronización guarda derecho', () => {
+  // La primera llamada por clave es el efecto corriendo con lo que había en
+  // localStorage. No es una edición y no se anota: si cayera dentro de una
+  // ventana de sync, la bajada la saltearía y el drenaje subiría lo viejo.
+  it('la primera corrida de cada clave es el arranque: ni guarda ni anota', () => {
     const cola = new ColaDeGuardado();
+    cola.iniciarSync();
+
+    expect(cola.debeGuardarAhora('meals')).toBe(false);
+    expect(cola.fueTocado('meals')).toBe(false);
+    expect(cola.terminarSync()).toEqual([]);
+  });
+
+  it('fuera de una sincronización guarda derecho', () => {
+    const cola = arrancada();
 
     expect(cola.debeGuardarAhora('meals')).toBe(true);
   });
@@ -12,7 +33,7 @@ describe('ColaDeGuardado', () => {
   // El bug: el efecto hacía `if (!isSyncing) guardar()` y punto. Lo que caía
   // en la ventana no llegaba nunca a Firestore y no había reintento.
   it('durante una sincronización no descarta la escritura: la anota', () => {
-    const cola = new ColaDeGuardado();
+    const cola = arrancada();
     cola.iniciarSync();
 
     expect(cola.debeGuardarAhora('meals')).toBe(false);
@@ -22,7 +43,7 @@ describe('ColaDeGuardado', () => {
   // La otra mitad del bug: anotar no alcanza si la bajada igual pisa la
   // edición en memoria. Drenar después mandaría lo bajado, no lo escrito.
   it('lo tocado durante la ventana no se deja pisar por la bajada', () => {
-    const cola = new ColaDeGuardado();
+    const cola = arrancada();
     cola.iniciarSync();
     cola.debeGuardarAhora('meals');
 
@@ -31,7 +52,7 @@ describe('ColaDeGuardado', () => {
   });
 
   it('la misma clave dos veces se drena una sola vez', () => {
-    const cola = new ColaDeGuardado();
+    const cola = arrancada();
     cola.iniciarSync();
     cola.debeGuardarAhora('meals');
     cola.debeGuardarAhora('meals');
@@ -40,7 +61,7 @@ describe('ColaDeGuardado', () => {
   });
 
   it('conserva el orden en que se tocaron las claves', () => {
-    const cola = new ColaDeGuardado();
+    const cola = arrancada();
     cola.iniciarSync();
     cola.debeGuardarAhora('pantry');
     cola.debeGuardarAhora('meals');
@@ -49,7 +70,7 @@ describe('ColaDeGuardado', () => {
   });
 
   it('terminar la sincronización vacía lo pendiente y vuelve a guardar derecho', () => {
-    const cola = new ColaDeGuardado();
+    const cola = arrancada();
     cola.iniciarSync();
     cola.debeGuardarAhora('meals');
     cola.terminarSync();
@@ -63,7 +84,7 @@ describe('ColaDeGuardado', () => {
   // nuevo, excepción). Si una de ellas se olvida de cerrar, la cola quedaría
   // trabada anotando para siempre y nada volvería a guardarse.
   it('terminar sin haber empezado no rompe', () => {
-    const cola = new ColaDeGuardado();
+    const cola = arrancada();
 
     expect(cola.terminarSync()).toEqual([]);
     expect(cola.debeGuardarAhora('meals')).toBe(true);
@@ -72,7 +93,7 @@ describe('ColaDeGuardado', () => {
   // La bajada toma la foto antes de aplicar: después, sus propios `set`
   // disparan efectos que se anotan solos y se confundirían con ediciones.
   it('pendientes() es una copia y no cierra la ventana', () => {
-    const cola = new ColaDeGuardado();
+    const cola = arrancada();
     cola.iniciarSync();
     cola.debeGuardarAhora('meals');
 

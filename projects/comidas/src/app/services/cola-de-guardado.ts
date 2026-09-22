@@ -16,6 +16,14 @@ export class ColaDeGuardado {
   // sólo hay que mandarla una. Set conserva el orden de inserción, que es el
   // orden en que se tocaron.
   private readonly claves = new Set<string>();
+  // Claves cuyo efecto de persistencia ya corrió al menos una vez. La primera
+  // corrida de cada efecto es la carga desde localStorage, no una edición: si
+  // Firebase Auth restauró la sesión antes de la primera detección de cambios
+  // (pasa seguido en el celular), esa corrida caía dentro de la ventana de
+  // sync y anotaba las doce claves como tocadas. La bajada las salteaba todas
+  // y el drenaje subía el estado viejo del dispositivo encima de la nube: las
+  // comidas cargadas en el otro dispositivo desaparecían sin error.
+  private readonly arrancadas = new Set<string>();
 
   iniciarSync(): void {
     this.sincronizando = true;
@@ -32,8 +40,13 @@ export class ColaDeGuardado {
     return pendientes;
   }
 
-  // `true` = mandalo ahora. `false` = quedó anotado para el drenaje.
+  // `true` = mandalo ahora. `false` = quedó anotado para el drenaje, o era
+  // la corrida de arranque y no hay nada que mandar.
   debeGuardarAhora(clave: string): boolean {
+    if (!this.arrancadas.has(clave)) {
+      this.arrancadas.add(clave);
+      return false;
+    }
     if (!this.sincronizando) {
       return true;
     }
