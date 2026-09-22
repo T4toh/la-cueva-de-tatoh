@@ -31,12 +31,6 @@
                     <span>Sincronizando...</span>
                   </span>
                 }
-                @case ('local-newer') {
-                  <span class="status-badge local-newer">
-                    <lib-icon name="upload" [size]="14" />
-                    <span>Subiendo datos locales...</span>
-                  </span>
-                }
                 @case ('error') {
                   <span class="status-badge error">
                     <lib-icon name="triangle-alert" [size]="14" />
