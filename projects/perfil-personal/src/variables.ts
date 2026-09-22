@@ -83,8 +83,12 @@ import type { IconName } from 'componentes';
 export type Apk = {
   nombre: string;
   descripcion: string;
+  // Versión y URL de arranque. Si hay `repo`, la vidriera las reemplaza con la
+  // última release de GitHub al cargar; si la API falla, quedan estas.
   version: string;
   url: string;
+  // `dueño/repo` en GitHub. Sin él, la tarjeta es estática (app archivada).
+  repo?: string;
   icono?: IconName;
   // Ícono propio de la app, ruta bajo public/. Si está, gana sobre `icono`.
   imagen?: string;
@@ -107,6 +111,7 @@ export const APKS: Apk[] = [
   },
   {
     nombre: 'Pulpero',
+    repo: 'T4toh/pulpero',
     descripcion: 'Anotador de Truco, Escoba del 15 y Generala. Flutter, sin cuentas.',
     version: 'v1.1.1',
     url: 'https://github.com/T4toh/pulpero/releases/download/v1.1.1/pulpero-1.1.1.apk',
@@ -116,6 +121,7 @@ export const APKS: Apk[] = [
   },
   {
     nombre: 'tWriter',
+    repo: 'T4toh/tWriter',
     descripcion:
       'Editor de novelas con conversor de diálogos RAE y export a EPUB. Tauri 2 + Angular.',
     version: 'v0.19.0',
@@ -127,6 +133,7 @@ export const APKS: Apk[] = [
   },
   {
     nombre: 'Dokusho Renshuu - 読書練習',
+    repo: 'T4toh/dokusho-renshuu',
     descripcion:
       'Lector de japonés con diccionario, furigana, cuentos de Aozora Bunko, ' +
       'captura de pantalla con OCR offline y export a Anki. Kotlin + Compose.',
@@ -138,6 +145,7 @@ export const APKS: Apk[] = [
   },
   {
     nombre: 'Cyberpunk 2077 Mod Manager',
+    repo: 'T4toh/cp2077-mm',
     descripcion:
       'Fork de Nexus Mods App sólo para Cyberpunk 2077 en Linux vía Steam/Proton. ' +
       'Colecciones sin premium, sin telemetría. AppImage.',

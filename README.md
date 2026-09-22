@@ -168,6 +168,16 @@ absoluto o apunta a un archivo que no está en el build, si alguna ruta
 prerenderizada no publicó su propio `og:url`, o si el landing salió como stub de
 redirect en vez del home prerenderizado.
 
+## Agregar una app (APK o desktop)
+
+Agregar la entrada a `APKS` en `projects/perfil-personal/src/variables.ts`. Si tiene
+`repo` (`T4toh/lo-que-sea`), la tarjeta de Utilidades pide la última release a la API de
+GitHub al cargar y reemplaza `version` y, para APKs, `url` por el asset `.apk` de esa
+release (se saltan drafts y releases sin APK, como los `db-vN` de Dokusho). Los valores
+hardcodeados quedan como fallback si la API falla o corta por rate limit (60 por hora sin
+token), así que conviene mantenerlos al día igual. Sin `repo`, la tarjeta es estática (apps
+archivadas). Sin `repo` no hay request: la landing no consulta nada.
+
 ## Meta tags y previews
 
 Todo lo que ve un chat cuando le pegás un link sale de
