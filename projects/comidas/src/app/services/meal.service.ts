@@ -8,7 +8,15 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { doc, Firestore, getDoc, setDoc } from '@angular/fire/firestore';
+import {
+  doc,
+  DocumentSnapshot,
+  Firestore,
+  getDoc,
+  onSnapshot,
+  setDoc,
+  Unsubscribe,
+} from '@angular/fire/firestore';
 import { AuthService } from './auth.service';
 import { ColaDeGuardado } from './cola-de-guardado';
 import { DialogService } from './dialog.service';
@@ -406,9 +414,11 @@ export class MealService {
 
   // Sync state
   readonly lastUpdated = signal<number>(this.loadLastUpdated());
-  readonly syncStatus = signal<
-    'synced' | 'local-newer' | 'loading' | 'error' | 'offline'
-  >('loading');
+  readonly syncStatus = signal<'synced' | 'loading' | 'error' | 'offline'>(
+    'loading'
+  );
+  // Cierra la escucha en vivo del documento del usuario. Null sin sesión.
+  private detenerEscucha: Unsubscribe | null = null;
 
   constructor() {
     this.loadFamilySettings();
@@ -417,12 +427,18 @@ export class MealService {
       this.migrationOccurred.set(true);
     }
 
-    // Sync with Firestore on login
+    // Con sesión, escuchar el documento del usuario. Se abre una vez por uid:
+    // un refresco de token no reabre nada.
     effect(() => {
       const user = this.authService.currentUser();
       if (user && user.uid !== this.uidSincronizado) {
         this.uidSincronizado = user.uid;
-        this.syncFromFirestore(user.uid);
+        this.escuchar(user.uid);
+      }
+      if (!user && this.uidSincronizado) {
+        this.uidSincronizado = null;
+        this.detenerEscucha?.();
+        this.detenerEscucha = null;
       }
     });
 
@@ -547,12 +563,15 @@ export class MealService {
   private async saveToFirestore(key: string, data: unknown): Promise<void> {
     const user = this.authService.currentUser();
     if (!user) {
+      // Sin sesión no hay a quién mandarle. No queda pendiente a propósito:
+      // si quedara, al iniciar sesión en un dispositivo nuevo lo que se tocó
+      // acá pisaría lo que ya hay en la nube en vez de bajar.
+      this.cola.confirmada(key);
       this.syncStatus.set('offline');
       return;
     }
-    // Igual que en uploadAll: el reloj local se mueve recién cuando la
-    // escritura salió. Antes se movía primero y una escritura fallida lo
-    // dejaba adelantado sin que el remoto se enterara nunca.
+    // `lastUpdated` es sólo para mostrar "Última actualización": quién pisa a
+    // quién lo decide la cola, no el reloj.
     const ahora = Date.now();
     try {
       await this.enContexto(() =>
@@ -565,10 +584,12 @@ export class MealService {
           { merge: true }
         )
       );
+      this.cola.confirmada(key);
       this.confirmarTimestamp(ahora);
       this.syncStatus.set('synced');
     } catch (e) {
       console.error(`Error saving ${key} to firestore:`, e);
+      this.cola.pendiente(key);
       this.syncStatus.set('error');
     }
   }
@@ -615,10 +636,23 @@ export class MealService {
     }
   }
 
+  // "Descargar de la Nube": una lectura explícita, con reenvío de lo
+  // pendiente. La escucha en vivo ya trae los cambios; esto es para cuando el
+  // usuario quiere verlo pasar.
   async refreshData(): Promise<void> {
     const user = this.authService.currentUser();
-    if (user) {
-      await this.syncFromFirestore(user.uid);
+    if (!user) {
+      return;
+    }
+    this.syncStatus.set('loading');
+    try {
+      const snap = await this.enContexto(() =>
+        getDoc(doc(this.firestore, 'users', user.uid))
+      );
+      this.aplicarDocumento(snap, true);
+    } catch (e) {
+      console.error('Error syncing from Firestore', e);
+      this.syncStatus.set('error');
     }
   }
 
@@ -637,64 +671,64 @@ export class MealService {
     return new Date(ts).toLocaleString('es-AR');
   }
 
-  private async syncFromFirestore(uid: string): Promise<void> {
-    this.cola.iniciarSync();
+  // Escucha en vivo el documento del usuario. El primer snapshot es la
+  // sincronización de arranque, con reenvío de lo pendiente; los siguientes
+  // son cambios que llegan de otro dispositivo y sólo se aplican. Sin esto la
+  // app sólo se enteraba de lo del otro dispositivo al recargar.
+  private escuchar(uid: string): void {
+    this.detenerEscucha?.();
     this.syncStatus.set('loading');
-    let delUsuario: string[] = [];
-
-    try {
-      const docSnap = await this.enContexto(() =>
-        getDoc(doc(this.firestore, 'users', uid))
-      );
-
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const remoteTimestamp = data['lastUpdated'] || 0;
-        const localTimestamp = this.lastUpdated();
-
-        console.log(
-          `[Sync] Local: ${new Date(localTimestamp).toISOString()}, ` +
-            `Remote: ${new Date(remoteTimestamp).toISOString()}`
-        );
-
-        // If local is newer, upload to Firebase instead of downloading
-        if (localTimestamp > remoteTimestamp) {
-          console.log('[Sync] Local data is newer, uploading to Firebase');
-          this.syncStatus.set('local-newer');
-          // uploadAll manda el estado entero, así que lo anotado ya viaja ahí.
-          this.cola.terminarSync();
-          this.uploadAllToFirestore();
-          return;
+    let primero = true;
+    this.detenerEscucha = this.enContexto(() =>
+      onSnapshot(
+        doc(this.firestore, 'users', uid),
+        (snap) => {
+          // El eco local de una escritura propia llega antes de que el
+          // servidor la confirme. No aporta nada y, aplicado, dispararía los
+          // efectos con datos que ya están en memoria.
+          if (snap.metadata.hasPendingWrites) {
+            return;
+          }
+          this.aplicarDocumento(snap, primero);
+          primero = false;
+        },
+        (e) => {
+          console.error('Error escuchando Firestore', e);
+          this.syncStatus.set('error');
         }
+      )
+    );
+  }
 
-        // Remote is newer or same, download from Firebase
-        console.log('[Sync] Remote data is newer or same, downloading');
-        // Antes de aplicar nada: lo que el usuario tocó mientras corría el
-        // getDoc. Esas claves no se pisan con lo remoto y se mandan al final.
-        delUsuario = this.cola.pendientes();
-        this.aplicarRemoto(data as Record<string, unknown>);
-        // Update local timestamp to match remote
-        this.lastUpdated.set(remoteTimestamp);
-        localStorage.setItem(this.LAST_UPDATED_KEY, remoteTimestamp.toString());
-        this.syncStatus.set('synced');
-      } else {
-        // First time user - upload local data
-        console.log('[Sync] No remote data, uploading local data');
-        this.cola.terminarSync();
-        this.uploadAllToFirestore();
-        return;
-      }
-    } catch (e) {
-      console.error('Error syncing from Firestore', e);
-      this.syncStatus.set('error');
+  // Aplica un documento remoto encima del estado local, salvo las claves con
+  // cambios locales sin confirmar: esas valen más que lo remoto y, si
+  // `reenviar`, se mandan al final. El reenvío es sólo para la lectura de
+  // arranque y la explícita: hacerlo en cada snapshot en vivo haría ping-pong,
+  // porque el ack de cada reenvío llega como otro snapshot.
+  private aplicarDocumento(snap: DocumentSnapshot, reenviar: boolean): void {
+    if (!snap.exists()) {
+      // Usuario nuevo: la nube arranca con lo que hay acá.
+      console.log('[Sync] No remote data, uploading local data');
+      this.uploadAllToFirestore();
+      return;
     }
-    // El setTimeout espera a que corran los efectos que dispararon los `set`
-    // de la bajada: esos se anotan solos en la cola y hay que descartarlos.
-    // Lo que se reenvía es la foto tomada ANTES de aplicar, que es lo único
-    // que escribió el usuario durante la ventana.
+    const data = snap.data() as Record<string, unknown>;
+    // Los `set` de la bajada disparan los efectos de persistencia. Con la
+    // ventana abierta, esos no escriben; al cerrarla se vuelve a la foto de
+    // pendientes de antes de aplicar, que es lo único que escribió el usuario.
+    this.cola.iniciarSync();
+    const delUsuario = this.cola.pendientes();
+    this.aplicarRemoto(data);
+    const remoteTimestamp = (data['lastUpdated'] as number) || 0;
+    this.lastUpdated.set(remoteTimestamp);
+    localStorage.setItem(this.LAST_UPDATED_KEY, remoteTimestamp.toString());
+    this.syncStatus.set('synced');
+    // El setTimeout espera a que corran los efectos que dispararon los `set`.
     setTimeout(() => {
-      this.cola.terminarSync();
-      this.reenviar(delUsuario);
+      this.cola.terminarSync(delUsuario);
+      if (reenviar) {
+        this.reenviar(delUsuario);
+      }
     }, 0);
   }
 
@@ -804,10 +838,6 @@ export class MealService {
       return;
     }
 
-    // El timestamp se calcula acá pero se confirma recién si la escritura
-    // sale: bumpearlo antes dejaba el reloj local adelantado para siempre
-    // cuando el `setDoc` fallaba, y de ahí en más este origen se creía más
-    // nuevo que el remoto y lo sobrescribía en cada login.
     const ahora = Date.now();
     try {
       await this.enContexto(() =>
@@ -824,6 +854,7 @@ export class MealService {
           { merge: true }
         )
       );
+      this.cola.confirmadas();
       this.confirmarTimestamp(ahora);
       this.syncStatus.set('synced');
       console.log('[Sync] All data uploaded to Firebase');
@@ -992,12 +1023,8 @@ export class MealService {
     return data ? parseInt(data, 10) : 0;
   }
 
-  // Se llama después de que la escritura salió, nunca antes.
-  //
-  // Nunca retrocede: doce efectos pueden disparar escrituras en el mismo tick
-  // y resolverse fuera de orden. Si la más vieja confirma última, el reloj
-  // local quedaría atrás del remoto y la próxima sincronización bajaría de
-  // gusto.
+  // Sólo para "Última actualización". Nunca retrocede: doce efectos pueden
+  // disparar escrituras en el mismo tick y resolverse fuera de orden.
   private confirmarTimestamp(ts: number): void {
     if (ts <= this.lastUpdated()) {
       return;

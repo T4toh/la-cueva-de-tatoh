@@ -110,8 +110,7 @@ h1 {
       color: var(--fg-on-accent);
     }
 
-    &.loading,
-    &.local-newer {
+    &.loading {
       background-color: var(--warning);
       color: var(--fg-on-accent);
     }
