@@ -51,6 +51,13 @@
         line-height: 1;
       }
 
+      .apk-imagen {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        flex-shrink: 0;
+      }
+
       .apk-nombre {
         margin: 0;
         font-family: var(--font-serif);

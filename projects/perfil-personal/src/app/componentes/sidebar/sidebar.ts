@@ -6,6 +6,7 @@ import {
 import { RouterLink } from '@angular/router';
 import { Avatar, Footer, Redes, SkillBar, Tag } from 'componentes';
 import {
+  fechaDePost,
   INTERESES,
   POSTS,
   REDES,
@@ -30,10 +31,14 @@ export class Sidebar {
     Siempre buscando aprender nuevas tecnologías y mejorar mis habilidades.`
   );
 
-  readonly recentPosts = computed(() => {
-    const allPosts = this.posts();
-    return allPosts.slice(-3).reverse();
-  });
+  // Por fecha y no por posición en el array: un post que se escribe tarde
+  // sobre algo viejo va al final del array (las rutas son por índice) pero no
+  // es reciente.
+  readonly recentPosts = computed(() =>
+    [...this.posts()]
+      .sort((a, b) => fechaDePost(b).getTime() - fechaDePost(a).getTime())
+      .slice(0, 3)
+  );
 
   getPostIndex(postTitle: string): number {
     return this.posts().findIndex((p) => p.title === postTitle);

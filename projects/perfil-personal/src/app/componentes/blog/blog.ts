@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { Icon } from 'componentes';
 import { PostCard } from '../post-card/post-card';
 import { Seo } from '../../seo';
-import { Post, POSTS } from '../../../variables';
+import { fechaDePost, Post, POSTS } from '../../../variables';
 
 // Temas disponibles de Prism.js (cambiar en angular.json > styles):
 // - prism-okaidia.css (tema oscuro actual)
@@ -84,10 +84,7 @@ export class Blog {
 
   // Parsear fecha en formato DD/MM/YY a Date
   private parseDate(dateStr: string): Date {
-    const [day, month, year] = dateStr.split('/').map(Number);
-    // Asumiendo que años 00-99 son 2000-2099
-    const fullYear = year < 100 ? 2000 + year : year;
-    return new Date(fullYear, month - 1, day);
+    return fechaDePost({ fecha: dateStr });
   }
 
   sortByDate(): void {

@@ -86,6 +86,8 @@ export type Apk = {
   version: string;
   url: string;
   icono?: IconName;
+  // Ícono propio de la app, ruta bajo public/. Si está, gana sobre `icono`.
+  imagen?: string;
   color: string;
   tipo?: 'android' | 'desktop';
   nota?: string;
@@ -94,40 +96,56 @@ export type Apk = {
 export const APKS: Apk[] = [
   {
     nombre: 'Kanji no Ryoushi - 漢字の漁師',
-    descripcion: 'OCR orientado al Japonés',
+    descripcion:
+      'OCR de japonés con burbuja flotante. Se archivó: la captura y el OCR ' +
+      'viven ahora dentro de Dokusho Renshuu.',
     version: 'v0.0.4',
     url: 'https://github.com/T4toh/Kanji-no-Ryoushi/releases/download/v0.0.4/kanji_no_ryoushi.apk',
     icono: 'languages',
-    color: 'indigo',
+    color: 'gray',
+    nota: 'Deprecado: usá Dokusho Renshuu',
   },
   {
-    nombre: 'Contador de Truco',
-    descripcion: 'Nombre autodescriptivo',
-    version: 'v0.0.1',
-    url: 'https://github.com/T4toh/contador-de-truco/releases/download/v0.0.1/contador_de_truco.apk',
-    icono: 'swords',
-    color: 'midnightblue',
+    nombre: 'Pulpero',
+    descripcion: 'Anotador de Truco, Escoba del 15 y Generala. Flutter, sin cuentas.',
+    version: 'v1.1.1',
+    url: 'https://github.com/T4toh/pulpero/releases/download/v1.1.1/pulpero-1.1.1.apk',
+    imagen: 'img/logos/pulpero.png',
+    color: '#1b5e3a',
+    nota: 'Se actualiza sola desde la app',
   },
   {
     nombre: 'tWriter',
     descripcion:
       'Editor de novelas con conversor de diálogos RAE y export a EPUB. Tauri 2 + Angular.',
-    version: 'alpha',
+    version: 'v0.19.0',
     url: 'https://github.com/T4toh/tWriter',
     icono: 'pen-tool',
     color: '#4a3a8e',
     tipo: 'desktop',
-    nota: 'Pronto en AUR',
+    nota: 'En AUR: twriter-bin. También .deb, .dmg y .exe',
   },
   {
     nombre: 'Dokusho Renshuu - 読書練習',
     descripcion:
-      'Lector de japonés con diccionario de kanji, historias precargadas ' +
-      '(Momotarō, Kintarō) y export de cartas a Anki.',
-    version: 'v0.1.0-beta.3',
-    url: 'https://github.com/T4toh/dokusho-renshuu/releases/download/v0.1.0-beta.3/app-release.apk',
-    icono: 'book-open',
+      'Lector de japonés con diccionario, furigana, cuentos de Aozora Bunko, ' +
+      'captura de pantalla con OCR offline y export a Anki. Kotlin + Compose.',
+    version: 'v0.1.0-beta.4',
+    url: 'https://github.com/T4toh/dokusho-renshuu/releases/download/v0.1.0-beta.4/dokusho-renshuu-v0.1.0-beta.4.apk',
+    imagen: 'img/logos/dokusho.png',
     color: '#7F52FF',
+    nota: 'Pesa 83 MB: el OCR va adentro',
+  },
+  {
+    nombre: 'Cyberpunk 2077 Mod Manager',
+    descripcion:
+      'Fork de Nexus Mods App sólo para Cyberpunk 2077 en Linux vía Steam/Proton. ' +
+      'Colecciones sin premium, sin telemetría. AppImage.',
+    version: 'v0.23.4',
+    url: 'https://github.com/T4toh/cp2077-mm',
+    icono: 'gamepad-2',
+    color: '#f2e600',
+    tipo: 'desktop',
   },
   // Agrega más APKs aquí
 ];
@@ -185,6 +203,12 @@ export const PROYECTOS: Proyecto[] = [
     tipo: 'repo',
   },
 ];
+
+// 'd/m/aa' → Date. Años de dos dígitos son 20aa.
+export function fechaDePost(post: Pick<Post, 'fecha'>): Date {
+  const [dia, mes, anio] = post.fecha.split('/').map(Number);
+  return new Date(anio < 100 ? 2000 + anio : anio, mes - 1, dia);
+}
 
 export type Post = {
   title: string;
@@ -343,6 +367,42 @@ export const POSTS: Post[] = [
       'Primera novela de Buenos Aires 2077, una saga nueva. La guerra terminó. ' +
       'T ya no tiene motivos para seguir siendo un soldado y vuelve a Buenos ' +
       'Aires para empezar de nuevo.',
+  },
+  {
+    title: 'Pulpero - Un anotador para la mesa',
+    src: 'posts/pulpero.md',
+    fecha: '22/9/26',
+    tags: ['flutter', 'android', 'truco', 'juegos'],
+    descripcion:
+      'Empezó como un contador de truco para no pelear por los fósforos. Hoy es ' +
+      'Pulpero: Truco, Escoba del 15 y Generala en una mesa dibujada en Flutter.',
+  },
+  {
+    title: 'Dokusho Renshuu - El pescador de kanjis se mudó',
+    src: 'posts/dokusho.md',
+    fecha: '22/9/26',
+    tags: ['android', 'kotlin', 'japones', 'ocr'],
+    descripcion:
+      'Kanji no Ryoushi queda archivado: la burbuja flotante y el OCR viven ' +
+      'ahora dentro de Dokusho Renshuu, con diccionario, furigana y Anki.',
+  },
+  {
+    title: 'Cyberpunk 2077 Mod Manager - Mods en Linux sin pagar premium',
+    src: 'posts/cp2077-mm.md',
+    fecha: '20/3/26',
+    tags: ['linux', 'dotnet', 'cyberpunk', 'mods'],
+    descripcion:
+      'Nexus Mods discontinuó su app. Forkeé lo que servía, lo dejé sólo para ' +
+      'Cyberpunk 2077 en Linux y le saqué la telemetría y el paywall.',
+  },
+  {
+    title: 'tWriter, cuatro meses después - De alpha a herramienta de trabajo',
+    src: 'posts/twriter-2.md',
+    fecha: '22/9/26',
+    tags: ['linux', 'rust', 'angular', 'tauri', 'escritura'],
+    descripcion:
+      '799 commits y 20 releases después: búsqueda con tantivy, detector de ' +
+      'repeticiones, tesauro offline, PRs mergeados en LanguageTool y AUR.',
   },
 ];
 

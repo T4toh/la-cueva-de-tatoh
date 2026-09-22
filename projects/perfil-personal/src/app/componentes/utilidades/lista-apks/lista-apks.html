@@ -8,7 +8,9 @@
     @for (apk of apks(); track apk.nombre) {
     <div class="apk-card">
       <div class="apk-header" [style.border-left-color]="apk.color">
-        @if (apk.icono) {
+        @if (apk.imagen) {
+        <img alt="" class="apk-imagen" [src]="apk.imagen" />
+        } @else if (apk.icono) {
         <span class="apk-icono"><lib-icon [name]="apk.icono" [size]="20" /></span>
         }
         <h3 class="apk-nombre">{{ apk.nombre }}</h3>
