@@ -130,11 +130,11 @@ export const APKS: Apk[] = [
     descripcion:
       'Lector de japonés con diccionario, furigana, cuentos de Aozora Bunko, ' +
       'captura de pantalla con OCR offline y export a Anki. Kotlin + Compose.',
-    version: 'v0.1.0-beta.4',
-    url: 'https://github.com/T4toh/dokusho-renshuu/releases/download/v0.1.0-beta.4/dokusho-renshuu-v0.1.0-beta.4.apk',
+    version: 'v0.1.0-beta.5',
+    url: 'https://github.com/T4toh/dokusho-renshuu/releases/download/v0.1.0-beta.5/dokusho-renshuu-v0.1.0-beta.5.apk',
     imagen: 'img/logos/dokusho.png',
     color: '#7F52FF',
-    nota: 'Pesa 83 MB: el OCR va adentro',
+    nota: 'Se actualiza sola desde la app. Pesa 83 MB: el OCR va adentro',
   },
   {
     nombre: 'Cyberpunk 2077 Mod Manager',

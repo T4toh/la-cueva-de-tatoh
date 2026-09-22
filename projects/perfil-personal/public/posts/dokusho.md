@@ -40,11 +40,11 @@ Todo **offline**. El diccionario (armado desde Jitendex, KANJIDIC2 y Tatoeba) y 
 - Android 8 o superior. La captura de pantalla pide Android 10 o superior.
 - El APK está firmado con clave de debug, así que Android avisa al instalar. Es esperable.
 - Si venís de una beta anterior, instalás encima y quedan tus historias y tu progreso.
-- Todavía no se actualiza sola. Hay que volver a las releases cuando salga una nueva; está en la lista.
+- Desde la beta.5 se actualiza sola: una vez por día mira si hay release nueva y, si hay, la baja, verifica el hash y abre el instalador. Si tenés la beta.4 o anterior, esa última vez la bajás a mano.
 
 ## Repo y APK
 
-El repo está acá: [github.com/T4toh/dokusho-renshuu](https://github.com/T4toh/dokusho-renshuu). El APK se baja desde [utilidades](/utilidades) o de las [releases](https://github.com/T4toh/dokusho-renshuu/releases/latest). Sigue en beta: lo uso todos los días pero el nombre lo dice, es práctica.
+El repo está acá: [github.com/T4toh/dokusho-renshuu](https://github.com/T4toh/dokusho-renshuu). El APK se baja desde [utilidades](/utilidades) o de las [releases](https://github.com/T4toh/dokusho-renshuu/releases). Sigue en beta: lo uso todos los días pero el nombre lo dice, es práctica.
 
 ---
 
