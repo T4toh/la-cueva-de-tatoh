@@ -149,6 +149,69 @@ describe('MealService: sincronización', () => {
     expect(localStorage.getItem('comidas_pendientes')).toBe('[]');
   });
 
+  // Al abrir la PWA, Firebase Auth tarda en resolver la sesión: valida el
+  // token contra la red, así que en el celular llega después de la primera
+  // detección de cambios. `currentUser` arranca en `undefined` hasta entonces.
+  describe('con auth resolviendo tarde', () => {
+    const usuario = signal<{ uid: string } | null | undefined>(undefined);
+
+    beforeEach(() => {
+      usuario.set(undefined);
+      TestBed.overrideProvider(AuthService, {
+        useValue: { currentUser: usuario },
+      });
+    });
+
+    // `saveToFirestore` leía `currentUser()` adentro del efecto, así que
+    // después de la primera edición el efecto dependía de la sesión. `user()`
+    // emite un objeto nuevo en cada refresco del token —el primero, al volver
+    // la PWA del fondo, antes de que la escucha se ponga al día—, y cada uno
+    // volvía a subir el `meals` de este dispositivo, viejo, encima de lo que
+    // el otro había cargado.
+    it('un refresco del token no vuelve a subir lo local', async () => {
+      usuario.set({ uid: 'u1' });
+      const service = TestBed.inject(MealService);
+      TestBed.tick();
+      emitir(snapshot([comida('a')]));
+      await asentar();
+      service.addMeal({ name: 'c', ingredients: [] });
+      await asentar();
+      const subidas = idsSubidos().length;
+
+      usuario.set({ uid: 'u1' });
+      await asentar();
+
+      expect(idsSubidos()).toHaveLength(subidas);
+    });
+
+    // Lo cargado en ese rato se descartaba como "sin sesión" y el primer
+    // snapshot lo pisaba con lo remoto.
+    it('lo cargado antes de que resuelva queda pendiente y se reenvía', async () => {
+      const service = TestBed.inject(MealService);
+      TestBed.tick();
+      service.addMeal({ name: 'c', ingredients: [] });
+      await asentar();
+      usuario.set({ uid: 'u1' });
+      await asentar();
+      emitir(snapshot([comida('a'), comida('b')]));
+      await asentar();
+
+      expect(service.meals().map((m) => m.name)).toEqual(['a', 'c']);
+      expect(idsSubidos()).toEqual([service.meals().map((m) => m.id)]);
+    });
+
+    it('si resuelve sin sesión, lo pendiente se descarta', async () => {
+      const service = TestBed.inject(MealService);
+      TestBed.tick();
+      service.addMeal({ name: 'c', ingredients: [] });
+      await asentar();
+      usuario.set(null);
+      await asentar();
+
+      expect(localStorage.getItem('comidas_pendientes')).toBe('[]');
+    });
+  });
+
   it('una escritura que falla queda pendiente para la próxima apertura', async () => {
     vi.mocked(setDoc).mockRejectedValueOnce(new Error('sin red'));
     const service = TestBed.inject(MealService);
