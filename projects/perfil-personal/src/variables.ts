@@ -113,8 +113,8 @@ export const APKS: Apk[] = [
     nombre: 'Pulpero',
     repo: 'T4toh/pulpero',
     descripcion: 'Anotador de Truco, Escoba del 15 y Generala. Flutter, sin cuentas.',
-    version: 'v1.1.1',
-    url: 'https://github.com/T4toh/pulpero/releases/download/v1.1.1/pulpero-1.1.1.apk',
+    version: 'v1.2.0',
+    url: 'https://github.com/T4toh/pulpero/releases/download/v1.2.0/pulpero-1.2.0.apk',
     imagen: 'img/logos/pulpero.png',
     color: '#1b5e3a',
     nota: 'Se actualiza sola desde la app',
@@ -124,7 +124,7 @@ export const APKS: Apk[] = [
     repo: 'T4toh/tWriter',
     descripcion:
       'Editor de novelas con conversor de diálogos RAE y export a EPUB. Tauri 2 + Angular.',
-    version: 'v0.19.0',
+    version: 'v0.20.0',
     url: 'https://github.com/T4toh/tWriter',
     icono: 'pen-tool',
     color: '#4a3a8e',
@@ -137,8 +137,8 @@ export const APKS: Apk[] = [
     descripcion:
       'Lector de japonés con diccionario, furigana, cuentos de Aozora Bunko, ' +
       'captura de pantalla con OCR offline y export a Anki. Kotlin + Compose.',
-    version: 'v0.1.0-beta.5',
-    url: 'https://github.com/T4toh/dokusho-renshuu/releases/download/v0.1.0-beta.5/dokusho-renshuu-v0.1.0-beta.5.apk',
+    version: 'v0.1.0-beta.6',
+    url: 'https://github.com/T4toh/dokusho-renshuu/releases/download/v0.1.0-beta.6/dokusho-renshuu-v0.1.0-beta.6.apk',
     imagen: 'img/logos/dokusho.png',
     color: '#7F52FF',
     nota: 'Se actualiza sola desde la app. Pesa 83 MB: el OCR va adentro',
