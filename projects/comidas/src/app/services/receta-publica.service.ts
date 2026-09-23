@@ -3,6 +3,7 @@ import {
   Injectable,
   Injector,
   runInInjectionContext,
+  untracked,
 } from '@angular/core';
 import {
   deleteDoc,
@@ -82,7 +83,9 @@ export class RecetaPublicaService {
   }
 
   private uidOrThrow(): string {
-    const user = this.authService.currentUser();
+    // `untracked`: `sincronizar` corre desde el effect de `meals`, que si no
+    // pasaría a depender de la sesión y re-subiría en cada refresco del token.
+    const user = untracked(() => this.authService.currentUser());
     if (!user) {
       throw new Error('Hay que iniciar sesión para compartir una receta.');
     }

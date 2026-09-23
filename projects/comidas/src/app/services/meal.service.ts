@@ -435,6 +435,11 @@ export class MealService {
         this.uidSincronizado = user.uid;
         this.escuchar(user.uid);
       }
+      if (user === null) {
+        // Sin sesión, lo retenido mientras auth resolvía no tiene a quién ir,
+        // y al iniciar sesión pisaría lo que ya hay en la nube.
+        this.cola.confirmadas();
+      }
       if (!user && this.uidSincronizado) {
         this.uidSincronizado = null;
         this.detenerEscucha?.();
@@ -561,7 +566,18 @@ export class MealService {
   }
 
   private async saveToFirestore(key: string, data: unknown): Promise<void> {
-    const user = this.authService.currentUser();
+    // `untracked`: esto corre adentro de los efectos de persistencia. Leído
+    // a secas, cada efecto pasaba a depender de la sesión y volvía a subir su
+    // clave en cada refresco del token, con lo que este dispositivo tuviera,
+    // viejo o no, encima de la nube.
+    const user = untracked(() => this.authService.currentUser());
+    if (user === undefined) {
+      // Auth todavía no resolvió. Queda pendiente: la bajada de arranque no
+      // la pisa y la reenvía. Si resuelve sin sesión, el effect de auth la
+      // descarta.
+      this.cola.pendiente(key);
+      return;
+    }
     if (!user) {
       // Sin sesión no hay a quién mandarle. No queda pendiente a propósito:
       // si quedara, al iniciar sesión en un dispositivo nuevo lo que se tocó
