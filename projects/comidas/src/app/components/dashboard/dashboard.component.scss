@@ -626,3 +626,33 @@ input:checked + .slider:before {
         }
     }
 }
+
+.plantas {
+  display: block;
+  margin: 0.25rem auto 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.panel-plantas {
+  margin: 0.5rem 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  background: var(--bg-tint-subtle);
+  font-size: 0.9rem;
+
+  .sin-clasificar {
+    color: var(--fg-muted);
+  }
+}
+
+@media print {
+  .plantas,
+  .panel-plantas {
+    display: none;
+  }
+}
