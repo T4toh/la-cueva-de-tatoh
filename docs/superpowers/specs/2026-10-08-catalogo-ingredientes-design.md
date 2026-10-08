@@ -1,7 +1,7 @@
 # Catálogo de ingredientes, porciones y plantas por semana
 
 Fecha: 2026-10-08
-Estado: diseñado, sin implementar
+Estado: implementado
 
 ## Qué resuelve
 
@@ -181,7 +181,7 @@ el umbral del American Gut Project (McDonald et al., *mSystems*, 2018).
 
 ## Contenido del catálogo inicial
 
-Unas 300 entradas de ingredientes comunes en Argentina, con sinónimos, armadas
+Unas 150 entradas iniciales de ingredientes comunes en Argentina, con sinónimos, armadas
 a mano a partir de las comidas cargadas, los planes de alimentación de
 referencia y los grupos de las GAPA. Va en un archivo de datos, separado de la
 lógica. `TAGS_BASE`: tipo de comida (desayuno, almuerzo, cena, colación,
