@@ -171,6 +171,14 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
         día (`filtrarComidas` en `meal.service.ts`), así que el cambio sirve
         para los dos.
 
+- [ ] **Tips de la guía en el plan.** Una línea bajo el contador de plantas
+      con una regla de la guía y un link a `/guia`. Una por día, de las
+      visibles y las propias (nunca las ocultas), elegida según la fecha para
+      que no cambie en cada recarga, con un "otro" para pasar a la siguiente;
+      si están todas ocultas, no aparece. Lógica en una función pura
+      `tipDelDia(reglas, fecha, salto)`. Cuando existan los chequeos, el tip
+      prioriza la regla que la semana no está cumpliendo.
+
 - [ ] **Chequeos de la guía contra la semana.** Uno por regla, calculados
       sobre el plan como `catalogo/plantas.ts`: primero "carbos dos veces el
       mismo día" (dos platos del día con `feculentos` o `pan`) y "carne roja
