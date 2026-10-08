@@ -12,6 +12,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Meal } from '../models/meal.model';
 import { AuthService } from './auth.service';
 import { MealService } from './meal.service';
+import { RecetaPublicaService } from './receta-publica.service';
 
 vi.mock('@angular/fire/firestore', async (importOriginal) => {
   const original =
@@ -240,5 +241,71 @@ describe('MealService: sincronización', () => {
     await asentar();
 
     expect(service.meals().map((m) => m.id)).toEqual(['a', 'b']);
+  });
+});
+
+describe('MealService: revocación de links huérfanos', () => {
+  const despublicar = vi.fn();
+  const sincronizar = vi.fn(async () => undefined);
+
+  beforeEach(() => {
+    localStorage.clear();
+    despublicar.mockReset();
+    vi.mocked(onSnapshot).mockImplementation(((
+      _ref: unknown,
+      next: (snap: DocumentSnapshot) => void
+    ) => {
+      emitir = next;
+      return (): void => undefined;
+    }) as never);
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: Firestore, useValue: {} },
+        { provide: AuthService, useValue: { currentUser: signal({ uid: 'u1' }) } },
+        { provide: RecetaPublicaService, useValue: { despublicar, sincronizar } },
+      ],
+    });
+  });
+
+  afterEach(() => localStorage.clear());
+
+  const porRevocar = (): string[] =>
+    JSON.parse(localStorage.getItem('comidas_por_revocar') ?? '[]');
+
+  it('la que falló queda anotada aunque se cierre la pestaña', async () => {
+    const compartida = { ...comida('a'), publicId: 'aaaaaaaa' };
+    localStorage.setItem('comidas_meals', JSON.stringify([compartida]));
+    despublicar.mockRejectedValue(new Error('sin red'));
+    const service = TestBed.inject(MealService);
+    TestBed.tick();
+    emitir(snapshot([compartida]));
+    await asentar();
+
+    // Un import que pisa `meals` sin la receta compartida.
+    service.meals.set([comida('b')]);
+    await asentar();
+
+    expect(despublicar).toHaveBeenCalledWith('aaaaaaaa');
+    expect(porRevocar()).toEqual(['aaaaaaaa']);
+  });
+
+  it('al arrancar con sesión reintenta lo que quedó anotado', async () => {
+    localStorage.setItem('comidas_por_revocar', JSON.stringify(['aaaaaaaa']));
+    despublicar.mockResolvedValue(undefined);
+    TestBed.inject(MealService);
+    await asentar();
+
+    expect(despublicar).toHaveBeenCalledWith('aaaaaaaa');
+    expect(porRevocar()).toEqual([]);
+  });
+
+  it('si el documento ya no está, deja de reintentar', async () => {
+    // Las reglas leen `resource.data`: borrar uno inexistente da permission-denied.
+    localStorage.setItem('comidas_por_revocar', JSON.stringify(['aaaaaaaa']));
+    despublicar.mockRejectedValue({ code: 'permission-denied' });
+    TestBed.inject(MealService);
+    await asentar();
+
+    expect(porRevocar()).toEqual([]);
   });
 });

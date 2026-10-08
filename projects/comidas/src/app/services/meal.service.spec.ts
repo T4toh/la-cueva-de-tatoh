@@ -197,6 +197,14 @@ describe('parseo compartido de cantidades', () => {
   it('devuelve null cuando no hay número que sacar', () => {
     expect(parseNumericQuantity('a gusto')).toBeNull();
   });
+
+  it('entiende la coma decimal', () => {
+    // Antes '1,5' se leía como 1 y la coma pasaba a ser parte de la unidad.
+    expect(parseNumericQuantity('1,5 kg')).toEqual({ value: 1.5, unit: 'kg' });
+    expect(multiplyQuantity('1,5', 2)).toBe('3');
+    // Se guarda como se escribió, igual que la fracción.
+    expect(normalizeQuantityToNumeric('1,5 kg')).toBe('1,5');
+  });
 });
 
 describe('tieneReceta', () => {
