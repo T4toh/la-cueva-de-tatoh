@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { comidasQueSuman, META_PLANTAS, plantasDeLaSemana } from '../../catalogo/plantas';
+import { armarGuia, REGLAS, tipDelDia } from '../../guia/guia';
 import { RouterModule } from '@angular/router';
 import { MealService } from '../../services/meal.service';
 import { DialogService } from '../../services/dialog.service';
@@ -30,6 +31,17 @@ export class DashboardComponent {
   );
   readonly sumanPlantas = computed(() =>
     comidasQueSuman(new Set(this.plantas().plantas), this.mealService.meals(), this.mealService.indiceCatalogo())
+  );
+
+  // Las reglas candidatas son las que se ven en /guia, en ese orden: propias y
+  // base sin las ocultas. El salto no se guarda: al recargar vuelve el del día.
+  readonly saltoTip = signal(0);
+  readonly tip = computed(() =>
+    tipDelDia(
+      armarGuia(REGLAS, this.mealService.guia()).grupos.flatMap((g) => g.reglas),
+      new Date(),
+      this.saltoTip()
+    )
   );
 
   getMealName(id: string): string {

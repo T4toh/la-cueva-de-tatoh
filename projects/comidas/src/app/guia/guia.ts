@@ -133,3 +133,14 @@ export function armarGuia(base: readonly Regla[], guia: GuiaPropia): GuiaArmada 
   base.filter((r) => !ocultas.has(r.id)).forEach(agregar);
   return { grupos, ocultas: base.filter((r) => ocultas.has(r.id)) };
 }
+
+// Una regla por día, la misma en cada recarga; `salto` es el "otro" del plan.
+// El día se cuenta con la fecha local: en UTC, a las 21 de Argentina ya
+// cambiaría el tip.
+export function tipDelDia(reglas: readonly Regla[], fecha: Date, salto: number): Regla | null {
+  if (!reglas.length) {
+    return null;
+  }
+  const dia = Math.round(Date.UTC(fecha.getFullYear(), fecha.getMonth(), fecha.getDate()) / 86_400_000);
+  return reglas[(dia + salto) % reglas.length];
+}

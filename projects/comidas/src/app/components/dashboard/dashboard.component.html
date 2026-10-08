@@ -51,6 +51,15 @@
         </div>
       }
 
+      @if (tip(); as regla) {
+        <p class="tip">
+          <lib-icon name="book-open" [size]="14" />
+          <span class="tip-texto">{{ regla.texto }}</span>
+          <button type="button" (click)="saltoTip.set(saltoTip() + 1)">Otro</button>
+          <a routerLink="/guia">Ver guía</a>
+        </p>
+      }
+
     <div class="family-mode-toggle">
       <div class="toggle-group">
         <label class="switch">
