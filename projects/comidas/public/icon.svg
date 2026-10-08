@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Comidas: plato con cubiertos y la t de la familia de tWriter. Paleta cueva -->
+  <!-- tile -->
+  <rect x="32" y="32" width="960" height="960" rx="215" fill="#1E1E48"/>
+  <!-- tenedor -->
+  <g fill="none" stroke="#8B8BD6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 172 300 L 172 860" stroke-width="44"/>
+    <path d="M 122 190 L 122 330 Q 122 400 172 400 Q 222 400 222 330 L 222 190" stroke-width="30"/>
+    <path d="M 172 190 L 172 330" stroke-width="30"/>
+  </g>
+  <!-- cuchillo -->
+  <path d="M 852 860 L 852 520 L 822 520 Q 812 300 852 170 Q 882 260 882 420 L 882 860 Z" fill="#8B8BD6" stroke="#8B8BD6" stroke-width="16" stroke-linejoin="round"/>
+  <!-- plato -->
+  <circle cx="512" cy="524" r="270" fill="#ECEBE7"/>
+  <circle cx="512" cy="524" r="205" fill="none" stroke="#C9C8D6" stroke-width="12"/>
+  <!-- t -->
+  <g transform="translate(516 530) scale(0.72) translate(-516 -550)" fill="none" stroke="#1E1E48" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 462 388 L 462 626 Q 462 710 546 710 Q 590 710 616 681" stroke-width="66"/>
+    <path d="M 364 458 L 668 458" stroke-width="54"/>
+  </g>
+</svg>
