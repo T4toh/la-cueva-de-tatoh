@@ -26,6 +26,10 @@
       <span class="icon"><lib-icon name="package" [size]="18" /></span>
       <span class="text">Despensa</span>
     </a>
+    <a routerLink="/guia" routerLinkActive="active" title="Guía">
+      <span class="icon"><lib-icon name="book-open" [size]="18" /></span>
+      <span class="text">Guía</span>
+    </a>
 
     <!-- Auth & Config Logic -->
     @if (!isAndroid) { @if (authService.user$ | async; as user) {
