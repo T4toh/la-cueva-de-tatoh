@@ -74,12 +74,22 @@ function esObjeto(v: unknown): v is Record<string, unknown> {
 }
 
 // Lo que llega de Firestore o de un backup no está tipado: una forma rara no
-// puede romper la pantalla.
+// puede romper la pantalla. Una propia sin id o sin texto se descarta, y la
+// fuente se fuerza: con otra, caería en un grupo base y no se podría borrar.
 export function normalizarGuia(v: unknown): GuiaPropia {
   const g = esObjeto(v) ? v : {};
+  const propias = (Array.isArray(g['propias']) ? g['propias'] : [])
+    .filter(esObjeto)
+    .filter((r) => typeof r['id'] === 'string' && typeof r['texto'] === 'string' && !!r['texto'].trim())
+    .map((r) => ({
+      id: r['id'] as string,
+      texto: r['texto'] as string,
+      fuente: 'propia' as const,
+      ...(typeof r['detalle'] === 'string' && r['detalle'] ? { detalle: r['detalle'] } : {}),
+    }));
   return {
-    propias: Array.isArray(g['propias']) ? (g['propias'] as Regla[]) : [],
-    ocultas: Array.isArray(g['ocultas']) ? (g['ocultas'] as string[]) : [],
+    propias,
+    ocultas: Array.isArray(g['ocultas']) ? g['ocultas'].filter((o): o is string => typeof o === 'string') : [],
   };
 }
 

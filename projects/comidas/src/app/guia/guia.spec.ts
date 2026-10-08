@@ -18,6 +18,14 @@ describe('normalizarGuia', () => {
     expect(normalizarGuia({ propias: 'x', ocultas: null })).toEqual({ propias: [], ocultas: [] });
   });
 
+  it('descarta propias mal formadas y fuerza su fuente', () => {
+    const r = normalizarGuia({
+      propias: [null, { texto: 'x', fuente: 'gapa', id: 'q' }, { id: 'sin-texto' }, { texto: 'sin id' }, '  '],
+      ocultas: [],
+    });
+    expect(r.propias).toEqual([{ id: 'q', texto: 'x', fuente: 'propia' }]);
+  });
+
   it('conserva lo que viene bien', () => {
     const guia = { propias: [{ id: 'p1', texto: 'Mate sin azúcar', fuente: 'propia' }], ocultas: ['a'] };
     expect(normalizarGuia(guia)).toEqual(guia);
