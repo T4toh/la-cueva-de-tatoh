@@ -204,4 +204,33 @@ label:has(lib-icon) {
       border-color: var(--accent);
     }
   }
+
+  // Los tags van en un select y no en chips: con muchos, los chips empujaban
+  // el listado fuera de la pantalla del celular. Conserva el `font-size` global
+  // de 16px a propósito: más chico, iOS hace zoom al tocarlo.
+  select {
+    border-radius: 999px;
+    padding: 0.3rem 0.85rem;
+    cursor: pointer;
+
+    &.active {
+      background: var(--accent-muted);
+      border-color: var(--accent);
+    }
+  }
+}
+
+.buscador {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 28rem;
+  margin: 0 auto 0.75rem;
+}
+
+.contador {
+  text-align: center;
+  color: var(--fg-muted);
+  font-size: 0.8125rem;
+  margin: -0.75rem 0 1rem;
 }

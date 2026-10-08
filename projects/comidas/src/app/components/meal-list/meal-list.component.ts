@@ -25,6 +25,7 @@ export class MealListComponent {
 
   readonly selectedTag = signal<string | null>(null);
   readonly soloCompartidas = signal(false);
+  readonly texto = signal('');
 
   readonly uniqueTags = computed(() => tagsUnicos(this.mealService.meals()));
 
@@ -32,23 +33,28 @@ export class MealListComponent {
     filtrarComidas(
       this.mealService.meals(),
       this.selectedTag(),
-      this.soloCompartidas()
+      this.soloCompartidas(),
+      this.texto()
     )
   );
 
   readonly sinFiltros = computed(
-    () => this.selectedTag() === null && !this.soloCompartidas()
+    () =>
+      this.selectedTag() === null &&
+      !this.soloCompartidas() &&
+      this.texto().trim() === ''
   );
 
   selectTag(tag: string | null): void {
     this.selectedTag.set(tag);
   }
 
-  // "Todos" limpia los dos filtros: son independientes, pero el chip promete
-  // todas las comidas y dejar prendido el de compartidas lo desmentiría.
+  // "Todas" limpia todos los filtros: son independientes, pero el chip promete
+  // todas las comidas y dejar prendido cualquiera lo desmentiría.
   limpiarFiltros(): void {
     this.selectedTag.set(null);
     this.soloCompartidas.set(false);
+    this.texto.set('');
   }
 
   async deleteMeal(id: string): Promise<void> {
