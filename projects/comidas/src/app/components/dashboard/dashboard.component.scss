@@ -650,8 +650,36 @@ input:checked + .slider:before {
   }
 }
 
+.tip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem 0.6rem;
+  margin: 0.25rem 0 1rem;
+  color: var(--fg-secondary);
+  font-size: 0.85rem;
+  text-align: center;
+
+  lib-icon {
+    color: var(--fg-muted);
+  }
+
+  button,
+  a {
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--accent);
+    font-size: inherit;
+    text-decoration: none;
+    cursor: pointer;
+  }
+}
+
 @media print {
   .plantas,
+  .tip,
   .panel-plantas {
     display: none;
   }

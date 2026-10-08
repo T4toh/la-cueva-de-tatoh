@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { armarGuia, normalizarGuia, Regla, REGLAS } from './guia';
+import { armarGuia, normalizarGuia, Regla, REGLAS, tipDelDia } from './guia';
 
 describe('REGLAS', () => {
   it('cada regla base tiene id único, texto y una fuente que no es propia', () => {
@@ -66,5 +66,34 @@ describe('armarGuia', () => {
 
   it('un id oculto que ya no existe se ignora', () => {
     expect(armarGuia(base, { propias: [], ocultas: ['zz'] }).ocultas).toEqual([]);
+  });
+});
+
+describe('tipDelDia', () => {
+  const reglas: Regla[] = ['a', 'b', 'c'].map((id) => ({ id, texto: id, fuente: 'sugerida' }));
+  const id = (fecha: Date, salto = 0): string | undefined => tipDelDia(reglas, fecha, salto)?.id;
+
+  it('la misma fecha da el mismo tip', () => {
+    expect(id(new Date(2026, 9, 8, 9))).toBe(id(new Date(2026, 9, 8, 18)));
+  });
+
+  it('cambia al día siguiente', () => {
+    expect(id(new Date(2026, 9, 9))).not.toBe(id(new Date(2026, 9, 8)));
+  });
+
+  // En hora local: a las 21 de Argentina ya es otro día en UTC.
+  it('00:30 y 23:30 son el mismo día', () => {
+    expect(id(new Date(2026, 9, 8, 0, 30))).toBe(id(new Date(2026, 9, 8, 23, 30)));
+  });
+
+  it('el salto avanza y da la vuelta', () => {
+    const hoy = new Date(2026, 9, 8);
+    const vistos = [0, 1, 2].map((s) => id(hoy, s));
+    expect(new Set(vistos).size).toBe(3);
+    expect(id(hoy, 3)).toBe(vistos[0]);
+  });
+
+  it('sin reglas no hay tip', () => {
+    expect(tipDelDia([], new Date(), 0)).toBeNull();
   });
 });
