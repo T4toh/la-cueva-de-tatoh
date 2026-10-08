@@ -85,6 +85,6 @@ describe('platosHuerfanos', () => {
 describe('CLAVES_BACKUP', () => {
   it('cada clave pertenece a una sola sección', () => {
     expect(new Set(CLAVES_BACKUP).size).toBe(CLAVES_BACKUP.length);
-    expect(CLAVES_BACKUP).toHaveLength(13);
+    expect(CLAVES_BACKUP).toHaveLength(14);
   });
 });

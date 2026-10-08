@@ -30,6 +30,7 @@ import {
   normalizar,
 } from '../catalogo/catalogo';
 import { CATALOGO } from '../catalogo/catalogo-datos';
+import { GUIA_VACIA, GuiaPropia, normalizarGuia } from '../guia/guia';
 import {
   DaySchedule,
   Dish,
@@ -330,6 +331,7 @@ export class MealService {
   private readonly MIGRATION_SPLIT_UNIT_KEY = 'comidas_migration_split_unit';
   private readonly ALIAS_KEY = 'comidas_alias';
   private readonly CATALOGO_PROPIO_KEY = 'comidas_catalogo_propio';
+  private readonly GUIA_KEY = 'comidas_guia';
   private readonly POR_REVOCAR_KEY = 'comidas_por_revocar';
   // Links huérfanos que todavía no se confirmaron revocados. Una vez que el
   // `publicId` salió de `meals`, éste es el único lado donde queda el puntero,
@@ -394,6 +396,9 @@ export class MealService {
   readonly pantryGroups = signal<PantryGroup[]>(this.loadPantryGroups());
   // Lo que el usuario agregó o corrigió del catálogo base. Ver
   // docs/superpowers/specs/2026-10-08-catalogo-ingredientes-design.md
+  // Lo que el usuario ocultó o agregó a la guía. Ver
+  // docs/superpowers/specs/2026-10-08-guia-design.md
+  readonly guia = signal<GuiaPropia>(this.loadGuia());
   readonly catalogoPropio = signal<EntradaCatalogo[]>(this.loadCatalogoPropio());
   readonly catalogoEfectivo = computed(() => combinar(CATALOGO, this.catalogoPropio()));
   readonly indiceCatalogo = computed<IndiceCatalogo>(() => indexar(this.catalogoEfectivo()));
@@ -582,6 +587,13 @@ export class MealService {
       localStorage.setItem(this.CATALOGO_PROPIO_KEY, JSON.stringify(data));
       if (this.cola.debeGuardarAhora('catalogoPropio')) {
         this.saveToFirestore('catalogoPropio', data);
+      }
+    });
+    effect(() => {
+      const data = this.guia();
+      localStorage.setItem(this.GUIA_KEY, JSON.stringify(data));
+      if (this.cola.debeGuardarAhora('guia')) {
+        this.saveToFirestore('guia', data);
       }
     });
     this.migrateQuantitiesToNumeric();
@@ -833,6 +845,7 @@ export class MealService {
         this.pantry.set(this.normalizePantryQuantities(v as PantryItem[])),
       pantryGroups: (v) => this.pantryGroups.set(v as PantryGroup[]),
       catalogoPropio: (v) => this.catalogoPropio.set(v as EntradaCatalogo[]),
+      guia: (v) => this.guia.set(normalizarGuia(v)),
       familySettings: (v) => {
         const fs = v as {
           isFamilyMode: boolean;
@@ -881,6 +894,7 @@ export class MealService {
       pantry: this.pantry(),
       pantryGroups: this.pantryGroups(),
       catalogoPropio: this.catalogoPropio(),
+      guia: this.guia(),
       familySettings: {
         isFamilyMode: this.isFamilyMode(),
         visibleMeals: this.visibleMeals(),
@@ -1076,6 +1090,41 @@ export class MealService {
   private loadPantry(): PantryItem[] {
     const data = localStorage.getItem(this.PANTRY_KEY);
     return data ? (JSON.parse(data) as PantryItem[]) : [];
+  }
+
+  private loadGuia(): GuiaPropia {
+    const data = localStorage.getItem(this.GUIA_KEY);
+    return data ? normalizarGuia(JSON.parse(data)) : GUIA_VACIA;
+  }
+
+  // Una en blanco no se guarda: devuelve `false` para que la pantalla no
+  // limpie el formulario.
+  agregarReglaPropia(texto: string, detalle?: string): boolean {
+    const limpio = texto.trim();
+    if (!limpio) {
+      return false;
+    }
+    const extra = detalle?.trim();
+    this.guia.update((g) => ({
+      ...g,
+      propias: [
+        ...g.propias,
+        { id: this.generateId(), texto: limpio, fuente: 'propia', ...(extra ? { detalle: extra } : {}) },
+      ],
+    }));
+    return true;
+  }
+
+  borrarReglaPropia(id: string): void {
+    this.guia.update((g) => ({ ...g, propias: g.propias.filter((r) => r.id !== id) }));
+  }
+
+  ocultarRegla(id: string): void {
+    this.guia.update((g) => (g.ocultas.includes(id) ? g : { ...g, ocultas: [...g.ocultas, id] }));
+  }
+
+  mostrarRegla(id: string): void {
+    this.guia.update((g) => ({ ...g, ocultas: g.ocultas.filter((o) => o !== id) }));
   }
 
   private loadCatalogoPropio(): EntradaCatalogo[] {
@@ -2205,6 +2254,10 @@ export class MealService {
     if (data['catalogoPropio']) {
       const v = data['catalogoPropio'] as EntradaCatalogo[];
       pasos.push(() => this.catalogoPropio.set(v));
+    }
+    if (data['guia']) {
+      const v = normalizarGuia(data['guia']);
+      pasos.push(() => this.guia.set(v));
     }
     if (data['familySettings']) {
       const fs = data['familySettings'] as {

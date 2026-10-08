@@ -451,3 +451,68 @@ describe('MealService: catálogo propio', () => {
     expect(pareceBackup({ catalogoPropio: [] })).toBe(true);
   });
 });
+
+describe('MealService: guía', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: Firestore, useValue: {} },
+        { provide: AuthService, useValue: { currentUser: signal(null) } },
+      ],
+    });
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('agrega una propia recortada y no agrega una en blanco', async () => {
+    const service = TestBed.inject(MealService);
+
+    expect(service.agregarReglaPropia('  Mate sin azúcar ', ' ')).toBe(true);
+    expect(service.agregarReglaPropia('   ')).toBe(false);
+    await asentar();
+
+    const [regla] = service.guia().propias;
+    expect(service.guia().propias).toHaveLength(1);
+    expect(regla.texto).toBe('Mate sin azúcar');
+    expect(regla.fuente).toBe('propia');
+    expect(regla).not.toHaveProperty('detalle');
+    expect(JSON.parse(localStorage.getItem('comidas_guia')!).propias).toHaveLength(1);
+  });
+
+  it('borra una propia', () => {
+    const service = TestBed.inject(MealService);
+    service.agregarReglaPropia('Mate sin azúcar');
+    service.borrarReglaPropia(service.guia().propias[0].id);
+
+    expect(service.guia().propias).toEqual([]);
+  });
+
+  it('oculta una vez aunque se pida dos, y vuelve a mostrar', () => {
+    const service = TestBed.inject(MealService);
+    service.ocultarRegla('ayuno');
+    service.ocultarRegla('ayuno');
+    expect(service.guia().ocultas).toEqual(['ayuno']);
+
+    service.mostrarRegla('ayuno');
+    expect(service.guia().ocultas).toEqual([]);
+  });
+
+  it('arranca desde localStorage, normalizando lo mal formado', () => {
+    localStorage.setItem('comidas_guia', JSON.stringify({ ocultas: ['ayuno'] }));
+    const service = TestBed.inject(MealService);
+
+    expect(service.guia()).toEqual({ propias: [], ocultas: ['ayuno'] });
+  });
+
+  it('viaja en el backup; uno sin guía no la toca', () => {
+    const service = TestBed.inject(MealService);
+    service.ocultarRegla('ayuno');
+
+    service.importData(JSON.stringify({ meals: [] }));
+    expect(service.guia().ocultas).toEqual(['ayuno']);
+
+    service.importData(JSON.stringify({ guia: { propias: [], ocultas: ['anotar'] } }));
+    expect(service.guia().ocultas).toEqual(['anotar']);
+  });
+});
