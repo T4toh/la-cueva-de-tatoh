@@ -378,9 +378,23 @@ h2 {
   }
 }
 
-.hint,
-.referencia {
+.hint {
   margin: 0.25rem 0 0.5rem;
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+}
+
+// Grupo y referencia van debajo de la fila, no adentro: el chip cambia de
+// ancho según la etiqueta y deformaba los inputs fila por fila.
+.info-fila {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.referencia {
   font-size: 0.8rem;
   color: var(--fg-muted);
 }

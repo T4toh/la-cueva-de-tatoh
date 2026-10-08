@@ -170,20 +170,6 @@
               type="text"
             />
             <input formControlName="unit" placeholder="Unidad" type="text" />
-            @if (ing.value.name?.trim()) {
-              <button
-                class="chip-grupo"
-                type="button"
-                [class.sin-clasificar]="!entradaDe(ing.value.name)"
-                (click)="abrirClasificacion($index)"
-              >
-                @if (entradaDe(ing.value.name); as entrada) {
-                  {{ etiquetaGrupo[entrada.grupo] }}
-                } @else {
-                  sin clasificar
-                }
-              </button>
-            }
             <button
               class="btn-remove"
               type="button"
@@ -192,8 +178,24 @@
               X
             </button>
           </div>
-          @if (referenciaDe(fila); as ref) {
-            <p class="referencia" [class.aviso]="ref.aviso">{{ ref.texto }}</p>
+          @if (ing.value.name?.trim()) {
+            <div class="info-fila">
+              <button
+                class="chip-grupo"
+                type="button"
+                [class.sin-clasificar]="!entradaDe(ing.value.name)"
+                (click)="abrirClasificacion(fila)"
+              >
+                @if (entradaDe(ing.value.name); as entrada) {
+                  {{ etiquetaGrupo[entrada.grupo] }}
+                } @else {
+                  sin clasificar
+                }
+              </button>
+              @if (referenciaDe(fila); as ref) {
+                <span class="referencia" [class.aviso]="ref.aviso">{{ ref.texto }}</span>
+              }
+            </div>
           }
           @if (clasificando() === fila) {
             <div class="clasificar" [formGroup]="clasificacion">
