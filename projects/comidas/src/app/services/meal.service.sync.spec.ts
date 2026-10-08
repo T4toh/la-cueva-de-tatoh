@@ -11,7 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Meal } from '../models/meal.model';
 import { AuthService } from './auth.service';
-import { MealService } from './meal.service';
+import { MealService, pareceBackup } from './meal.service';
 import { RecetaPublicaService } from './receta-publica.service';
 
 vi.mock('@angular/fire/firestore', async (importOriginal) => {
@@ -382,5 +382,65 @@ describe('MealService: importar', () => {
 
     expect(service.meals().map((m) => m.id)).toEqual(['a', 'b']);
     expect(service.meals()[0].publicId).toBe('aaaaaaaa');
+  });
+});
+
+describe('MealService: catálogo propio', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.mocked(onSnapshot).mockImplementation(((
+      _ref: unknown,
+      next: (snap: DocumentSnapshot) => void
+    ) => {
+      emitir = next;
+      return (): void => undefined;
+    }) as never);
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: Firestore, useValue: {} },
+        { provide: AuthService, useValue: { currentUser: signal(null) } },
+      ],
+    });
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('guardar reemplaza la entrada del mismo nombre y persiste', async () => {
+    const service = TestBed.inject(MealService);
+    service.guardarEnCatalogo({ nombre: 'Muzza Rica', grupo: 'lacteos', unidad: 'g' });
+    service.guardarEnCatalogo({ nombre: 'muzza rica', grupo: 'lacteos', unidad: 'g', porcion: 40 });
+    await asentar();
+
+    expect(service.catalogoPropio()).toEqual([
+      { nombre: 'muzza rica', grupo: 'lacteos', unidad: 'g', porcion: 40 },
+    ]);
+    expect(JSON.parse(localStorage.getItem('comidas_catalogo_propio')!)).toHaveLength(1);
+  });
+
+  it('el índice reconoce lo propio y lo propio corrige el base', () => {
+    const service = TestBed.inject(MealService);
+    service.guardarEnCatalogo({ nombre: 'huevo', grupo: 'carnesHuevos', unidad: 'unidad', porcion: 2 });
+
+    expect(service.indiceCatalogo().get('huevo')?.porcion).toBe(2);
+  });
+
+  it('arranca desde localStorage', () => {
+    localStorage.setItem(
+      'comidas_catalogo_propio',
+      JSON.stringify([{ nombre: 'kale', grupo: 'hortalizas', unidad: 'atado' }])
+    );
+    const service = TestBed.inject(MealService);
+
+    expect(service.indiceCatalogo().get('kale')?.grupo).toBe('hortalizas');
+  });
+
+  it('viaja en el backup y se restaura con importData', () => {
+    const service = TestBed.inject(MealService);
+    service.importData(
+      JSON.stringify({ catalogoPropio: [{ nombre: 'kale', grupo: 'hortalizas', unidad: 'atado' }] })
+    );
+
+    expect(service.catalogoPropio()).toEqual([{ nombre: 'kale', grupo: 'hortalizas', unidad: 'atado' }]);
+    expect(pareceBackup({ catalogoPropio: [] })).toBe(true);
   });
 });

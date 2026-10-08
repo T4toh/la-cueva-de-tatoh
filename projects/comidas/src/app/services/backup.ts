@@ -15,7 +15,7 @@ export type ResumenSeccion = {
 type Seccion = { seccion: SeccionBackup; etiqueta: string; claves: string[]; cuenta?: string; unidad?: string };
 
 const SECCIONES: Seccion[] = [
-  { seccion: 'comidas', etiqueta: 'Comidas', claves: ['meals'], cuenta: 'meals', unidad: 'comidas' },
+  { seccion: 'comidas', etiqueta: 'Comidas', claves: ['meals', 'catalogoPropio'], cuenta: 'meals', unidad: 'comidas' },
   { seccion: 'calendario', etiqueta: 'Calendario', claves: ['schedules'], cuenta: 'schedules', unidad: 'semanas' },
   {
     seccion: 'compras',
