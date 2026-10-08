@@ -59,7 +59,14 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  // Lo que ocupa el ícono propio: así las tarjetas con lucide no quedan más bajas.
+  min-height: 28px;
   color: var(--fg-muted);
+}
+
+.imagen {
+  border-radius: 6px;
+  flex-shrink: 0;
 }
 
 .etiqueta {

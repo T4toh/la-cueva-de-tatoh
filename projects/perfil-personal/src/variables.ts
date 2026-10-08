@@ -95,6 +95,8 @@ export type Apk = {
   color: string;
   tipo?: 'android' | 'desktop';
   nota?: string;
+  // Archivada: va aparte, al fondo de Utilidades → Apps, y no sale en el landing.
+  deprecado?: boolean;
 };
 
 export const APKS: Apk[] = [
@@ -108,6 +110,7 @@ export const APKS: Apk[] = [
     icono: 'languages',
     color: 'gray',
     nota: 'Deprecado: usá Dokusho Renshuu',
+    deprecado: true,
   },
   {
     nombre: 'Pulpero',
@@ -127,6 +130,7 @@ export const APKS: Apk[] = [
     version: 'v0.20.0',
     url: 'https://github.com/T4toh/tWriter',
     icono: 'pen-tool',
+    imagen: 'img/logos/twriter.png',
     color: '#4a3a8e',
     tipo: 'desktop',
     nota: 'En AUR: twriter-bin. También .deb, .dmg y .exe',
@@ -144,15 +148,16 @@ export const APKS: Apk[] = [
     nota: 'Se actualiza sola desde la app. Pesa 83 MB: el OCR va adentro',
   },
   {
-    nombre: 'Cyberpunk 2077 Mod Manager',
-    repo: 'T4toh/cp2077-mm',
+    nombre: 'tModManager',
+    repo: 'T4toh/tModManager',
     descripcion:
-      'Fork de Nexus Mods App sólo para Cyberpunk 2077 en Linux vía Steam/Proton. ' +
-      'Colecciones sin premium, sin telemetría. AppImage.',
-    version: 'v0.23.4',
-    url: 'https://github.com/T4toh/cp2077-mm',
+      'Gestor de mods para juegos de Steam en Linux vía Proton, fork de Nexus ' +
+      'Mods App. Por ahora Cyberpunk 2077. Colecciones sin premium, sin telemetría. AppImage.',
+    version: 'v0.24.0',
+    url: 'https://github.com/T4toh/tModManager',
     icono: 'gamepad-2',
-    color: '#f2e600',
+    imagen: 'img/logos/tmodmanager.png',
+    color: '#6f6fbf',
     tipo: 'desktop',
   },
   // Agrega más APKs aquí
@@ -166,6 +171,8 @@ export type Proyecto = {
   descripcion: string;
   url: string;
   icono: IconName;
+  // Ícono propio, ruta bajo public/. Si está, gana sobre `icono`.
+  imagen?: string;
   color: string;
   // Qué te llevás al hacer click: 'repo' abre GitHub, 'web' abre el sitio.
   tipo: 'repo' | 'web';
@@ -173,22 +180,13 @@ export type Proyecto = {
 
 export const PROYECTOS: Proyecto[] = [
   {
-    nombre: 'Cyberpunk 2077 Mod Manager',
-    descripcion:
-      'Gestor de mods de Cyberpunk 2077 para Linux y Steam Deck. Fork de ' +
-      'NexusMods.App, que quedó discontinuado.',
-    url: 'https://github.com/T4toh/cp2077-mm',
-    icono: 'gamepad-2',
-    color: '#fcee0a',
-    tipo: 'repo',
-  },
-  {
     nombre: 'Comidas',
     descripcion:
       'Planificador de comidas semanal con lista de compras. Angular y ' +
       'Firebase, también como app de Android.',
     url: 'https://comidas.tatoh.ar',
     icono: 'utensils',
+    imagen: 'img/logos/comidas.png',
     color: '#2E8B57',
     tipo: 'web',
   },
@@ -411,6 +409,15 @@ export const POSTS: Post[] = [
     descripcion:
       '799 commits y 20 releases después: búsqueda con tantivy, detector de ' +
       'repeticiones, tesauro offline, PRs mergeados en LanguageTool y AUR.',
+  },
+  {
+    title: 'tModManager - El mod manager de Cyberpunk cambió de nombre',
+    src: 'posts/tmodmanager.md',
+    fecha: '8/10/26',
+    tags: ['linux', 'dotnet', 'cyberpunk', 'mods'],
+    descripcion:
+      'Va a ser para más juegos que Cyberpunk: chau formato .nx, borrados que ' +
+      'no siguen symlinks, Proton desde la app y la v0.24.0.',
   },
 ];
 
