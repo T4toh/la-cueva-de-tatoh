@@ -12,6 +12,16 @@ describe('REGLAS', () => {
   });
 });
 
+describe('REGLAS: contenido', () => {
+  it('carbos una vez por día, sin hora; el horario lo da la regla de comer temprano', () => {
+    const carbos = REGLAS.find((r) => r.id === 'un-carbo-por-dia');
+    expect(carbos?.texto).not.toMatch(/noche/);
+    expect(REGLAS.map((r) => r.id)).toEqual(
+      expect.arrayContaining(['ayuno-nocturno', 'horarios-regulares', 'comer-temprano', 'fermentados'])
+    );
+  });
+});
+
 describe('normalizarGuia', () => {
   it('lo mal formado queda en listas vacías', () => {
     expect(normalizarGuia(undefined)).toEqual({ propias: [], ocultas: [] });

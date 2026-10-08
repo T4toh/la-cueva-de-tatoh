@@ -123,7 +123,7 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
 
 - [x] **Guía.** El spec está en
       [`docs/superpowers/specs/2026-10-08-guia-design.md`](docs/superpowers/specs/2026-10-08-guia-design.md).
-      Pestaña `/guia` con 15 reglas cortas, cada una con su fuente: planes de
+      Pestaña `/guia` con 18 reglas cortas, cada una con su fuente: planes de
       nutricionista (inferidas, como "un solo plato con carbos por día": así
       son 20 de 21 días de los planes), GAPA, el libro (sólo lo medible) y
       sugeridas. Cada usuario oculta las que no le sirven —sin borrarlas— y
@@ -178,8 +178,9 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       hoy `carnesHuevos` mezcla vaca, pollo, pescado y huevo.
 
 - [ ] **Después del catálogo.** Lo que el spec dejó fuera de alcance:
-      **calorías** (un campo kcal/100 g en `EntradaCatalogo`, de la tabla de
-      composición argentina) y las **frecuencias semanales de las GAPA**
+      **calorías y fibra** (campos kcal/100 g y fibra/100 g en
+      `EntradaCatalogo`, de la tabla de composición argentina; la fibra para
+      la meta del libro: 25 g/día mujeres, 38 g/día hombres) y las **frecuencias semanales de las GAPA**
       (pescado ≥2, carnes blancas 2, rojas ≤3), que se calculan igual que las
       plantas en `catalogo/plantas.ts`.
 

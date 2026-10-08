@@ -31,8 +31,8 @@ export const ETIQUETA_FUENTE: Record<FuenteRegla, string> = {
 export const REGLAS: readonly Regla[] = [
   {
     id: 'un-carbo-por-dia',
-    texto: 'Un solo plato con carbohidratos por día, mejor a la noche.',
-    detalle: 'Al mediodía, proteína y verdura. Así son 20 de los 21 días de los planes.',
+    texto: 'Un solo plato con carbohidratos por día.',
+    detalle: 'La otra comida, proteína y verdura. Así son 20 de los 21 días de los planes.',
     fuente: 'nutricionista',
   },
   { id: 'caldo-antes', texto: 'Caldo o agua antes del almuerzo y la cena.', fuente: 'nutricionista' },
@@ -64,9 +64,32 @@ export const REGLAS: readonly Regla[] = [
     fuente: 'libro',
   },
   { id: 'fibra-de-a-poco', texto: 'La fibra se sube de a poco.', fuente: 'libro' },
+  {
+    id: 'ayuno-nocturno',
+    texto: 'Ayuno nocturno de 12 horas como mínimo.',
+    detalle: 'Por ejemplo, cenar a las 20 y desayunar a las 8. Más largo, con indicación profesional.',
+    fuente: 'libro',
+  },
+  {
+    id: 'horarios-regulares',
+    texto: 'Comer a las mismas horas todos los días.',
+    detalle: 'Para el libro pesa tanto como las horas de ayuno.',
+    fuente: 'libro',
+  },
+  {
+    id: 'comer-temprano',
+    texto: 'Comer más temprano y cenar liviano.',
+    detalle: 'Las mismas calorías, más temprano, bajaron glucemia y triglicéridos. Nada sólido después de las 20.',
+    fuente: 'libro',
+  },
+  {
+    id: 'fermentados',
+    texto: 'Un fermentado por día: yogur, kéfir o chucrut.',
+    detalle: 'El yogur fue el que más aumentó la diversidad intestinal en el estudio que cita.',
+    fuente: 'libro',
+  },
   { id: 'anotar', texto: 'Anotar lo que se come.', fuente: 'sugerida' },
   { id: 'dia-vegetariano', texto: 'Un día vegetariano o vegano por semana.', fuente: 'sugerida' },
-  { id: 'ayuno', texto: 'Ayuno: sólo con indicación profesional.', fuente: 'sugerida' },
 ];
 
 function esObjeto(v: unknown): v is Record<string, unknown> {

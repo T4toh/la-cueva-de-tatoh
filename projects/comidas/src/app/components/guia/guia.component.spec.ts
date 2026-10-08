@@ -41,7 +41,7 @@ describe('GuiaComponent: accesibilidad', () => {
   });
 
   it('el desplegable de ocultas avisa si está abierto', () => {
-    TestBed.inject(MealService).ocultarRegla('ayuno');
+    TestBed.inject(MealService).ocultarRegla('ayuno-nocturno');
     const fixture = TestBed.createComponent(GuiaComponent);
     fixture.detectChanges();
     const boton = (fixture.nativeElement as HTMLElement).querySelector('.ocultas .btn-link')!;

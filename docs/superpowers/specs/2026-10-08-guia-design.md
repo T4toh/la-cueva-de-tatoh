@@ -58,8 +58,9 @@ bajada, `estadoActual` y `prepararImport`. En `backup.ts` va en la sección
 *De planes de nutricionista* (inferido de tres planes semanales, ago 2024 –
 mar 2025):
 
-1. Un solo plato con carbohidratos por día, mejor a la noche; al mediodía,
-   proteína y verdura. — *20 de 21 días de los planes.*
+1. Un solo plato con carbohidratos por día; la otra comida, proteína y
+   verdura. — *20 de 21 días de los planes.* Sin hora: el horario lo da
+   "comer más temprano", del libro.
 2. Caldo o agua antes del almuerzo y la cena.
 3. Aceite medido: una cucharada por comida.
 4. Fruta de postre en almuerzo y cena.
@@ -77,12 +78,16 @@ mar 2025):
 
 11. Variedad: 30 plantas distintas por semana. — *El contador del plan.*
 12. La fibra se sube de a poco.
+13. Ayuno nocturno de 12 horas como mínimo; más largo, con indicación
+    profesional.
+14. Comer a las mismas horas todos los días.
+15. Comer más temprano y cenar liviano; nada sólido después de las 20.
+16. Un fermentado por día: yogur, kéfir o chucrut.
 
 *Sugeridas* (sin fuente externa):
 
-13. Anotar lo que se come.
-14. Un día vegetariano o vegano por semana.
-15. Ayuno: sólo con indicación profesional.
+17. Anotar lo que se come.
+18. Un día vegetariano o vegano por semana.
 
 Las reglas son de alcance general; no hay datos de salud de nadie en el
 código. Lo inferido de un plan dice "de planes de nutricionista", no de
