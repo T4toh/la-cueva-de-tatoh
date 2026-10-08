@@ -9,7 +9,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { limpiarPasos, MealService } from '../../services/meal.service';
+import { limpiarPasos, MealService, tagsUnicos } from '../../services/meal.service';
 import {
   accionDeCompartir,
   CompartirService,
@@ -18,10 +18,13 @@ import { Meal, Paso } from '../../models/meal.model';
 import {
   clasificar,
   EntradaCatalogo,
+  entradaPropia,
   ETIQUETA_GRUPO,
+  Grupo,
   Sugerencia,
   sugerencias,
 } from '../../catalogo/catalogo';
+import { TAGS_BASE } from '../../catalogo/catalogo-datos';
 import { excede, ResumenPlato, resumenPlato, textoReferencia } from '../../catalogo/plato';
 import { Tag } from 'componentes';
 
@@ -64,6 +67,48 @@ export class MealEditorComponent implements OnInit {
   );
 
   readonly etiquetaGrupo = ETIQUETA_GRUPO;
+
+  // La fila que se está clasificando, o -1. Una sola a la vez.
+  readonly clasificando = signal<number>(-1);
+  readonly grupos = Object.keys(ETIQUETA_GRUPO) as Grupo[];
+  readonly clasificacion = this.fb.group({
+    grupo: ['hortalizas' as Grupo],
+    unidad: [''],
+    porcion: [''],
+  });
+
+  readonly tagsSugeridos = computed(() => {
+    const base = new Set(TAGS_BASE);
+    return [...TAGS_BASE, ...tagsUnicos(this.mealService.meals()).filter((t) => !base.has(t))];
+  });
+
+  // Sirve para lo que no está y para corregir lo que está: con una entrada,
+  // parte de sus valores y guarda con su nombre canónico, así reemplaza a la
+  // del base.
+  abrirClasificacion(index: number): void {
+    const { name, unit } = this.ingredients.at(index).value as { name: string; unit: string };
+    const entrada = this.entradaDe(name);
+    this.clasificacion.setValue({
+      grupo: entrada?.grupo ?? 'hortalizas',
+      unidad: entrada?.unidad ?? unit ?? '',
+      porcion: entrada?.porcion !== undefined ? String(entrada.porcion) : '',
+    });
+    this.clasificando.set(index);
+  }
+
+  guardarClasificacion(): void {
+    const index = this.clasificando();
+    const { name } = this.ingredients.at(index).value as { name: string };
+    const { grupo, unidad, porcion } = this.clasificacion.getRawValue();
+    this.mealService.guardarEnCatalogo(
+      entradaPropia(name, this.entradaDe(name), {
+        grupo: grupo ?? 'hortalizas',
+        unidad: unidad ?? '',
+        porcion: porcion ?? '',
+      })
+    );
+    this.clasificando.set(-1);
+  }
 
   showSuggestionsFor(index: number): boolean {
     return (

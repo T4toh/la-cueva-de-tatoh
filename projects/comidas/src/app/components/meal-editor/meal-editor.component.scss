@@ -411,3 +411,26 @@ h2 {
     font-weight: normal;
   }
 }
+
+.chip-grupo {
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  background: none;
+  color: var(--fg-muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &.sin-clasificar {
+    border-style: dashed;
+    color: var(--warning);
+  }
+}
+
+.clasificar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.25rem 0 0.75rem;
+}

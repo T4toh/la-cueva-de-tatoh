@@ -4,6 +4,7 @@ import {
   clasificar,
   combinar,
   EntradaCatalogo,
+  entradaPropia,
   esPlanta,
   indexar,
   normalizar,
@@ -111,5 +112,34 @@ describe('sugerencias', () => {
   it('no sugiere con menos de dos letras ni lo que ya está escrito igual', () => {
     expect(sugerencias('t', base, [])).toEqual([]);
     expect(sugerencias('tomate', base, [])).toEqual([]);
+  });
+});
+
+describe('entradaPropia', () => {
+  const valores = { grupo: 'hortalizas' as const, unidad: 'atado', porcion: '' };
+
+  it('lo que no está en el catálogo toma el nombre de la fila', () => {
+    expect(entradaPropia(' kale ', null, valores)).toEqual({ nombre: 'kale', grupo: 'hortalizas', unidad: 'atado' });
+  });
+
+  it('corregir una del catálogo conserva su nombre canónico y sus sinónimos', () => {
+    const r = entradaPropia('pechuga', base[2], { grupo: 'carnesHuevos', unidad: 'g', porcion: '120' });
+    expect(r).toEqual({
+      nombre: 'pechuga de pollo',
+      sinonimos: ['pechuga'],
+      grupo: 'carnesHuevos',
+      unidad: 'g',
+      porcion: 120,
+    });
+  });
+
+  it('la porción acepta coma y se ignora si no es un número positivo', () => {
+    expect(entradaPropia('kale', null, { ...valores, porcion: '1,5' }).porcion).toBe(1.5);
+    expect(entradaPropia('kale', null, { ...valores, porcion: 'mucho' })).not.toHaveProperty('porcion');
+    expect(entradaPropia('kale', null, { ...valores, porcion: '0' })).not.toHaveProperty('porcion');
+  });
+
+  it('sin unidad queda en "unidad"', () => {
+    expect(entradaPropia('kale', null, { ...valores, unidad: '  ' }).unidad).toBe('unidad');
   });
 });

@@ -89,11 +89,17 @@
       <div class="tags-input-container">
         <input
           id="tag-input"
+          list="tags-sugeridos"
           placeholder="Ej: Vegetariano, Rápido"
           type="text"
           [formControl]="newTagControl"
           (keydown.enter)="addTag($event)"
         />
+        <datalist id="tags-sugeridos">
+          @for (tag of tagsSugeridos(); track tag) {
+            <option [value]="tag"></option>
+          }
+        </datalist>
         <button class="btn-secondary" type="button" (click)="addTag()">
           +
         </button>
@@ -164,6 +170,20 @@
               type="text"
             />
             <input formControlName="unit" placeholder="Unidad" type="text" />
+            @if (ing.value.name?.trim()) {
+              <button
+                class="chip-grupo"
+                type="button"
+                [class.sin-clasificar]="!entradaDe(ing.value.name)"
+                (click)="abrirClasificacion($index)"
+              >
+                @if (entradaDe(ing.value.name); as entrada) {
+                  {{ etiquetaGrupo[entrada.grupo] }}
+                } @else {
+                  sin clasificar
+                }
+              </button>
+            }
             <button
               class="btn-remove"
               type="button"
@@ -174,6 +194,23 @@
           </div>
           @if (referenciaDe(fila); as ref) {
             <p class="referencia" [class.aviso]="ref.aviso">{{ ref.texto }}</p>
+          }
+          @if (clasificando() === fila) {
+            <div class="clasificar" [formGroup]="clasificacion">
+              <select formControlName="grupo">
+                @for (g of grupos; track g) {
+                  <option [value]="g">{{ etiquetaGrupo[g] }}</option>
+                }
+              </select>
+              <input formControlName="unidad" placeholder="Unidad" type="text" />
+              <input formControlName="porcion" placeholder="Porción (opcional)" type="text" />
+              <button class="btn-secondary" type="button" (click)="guardarClasificacion()">
+                Guardar
+              </button>
+              <button class="btn-secondary" type="button" (click)="clasificando.set(-1)">
+                Cancelar
+              </button>
+            </div>
           }
         }
         @if (chipsPlato(); as chips) {

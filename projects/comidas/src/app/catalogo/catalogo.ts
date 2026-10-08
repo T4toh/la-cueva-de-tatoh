@@ -140,3 +140,21 @@ export function sugerencias(
     .map((nombre) => ({ nombre }));
   return [...delCatalogo, ...sueltos].slice(0, max);
 }
+
+// Lo que guarda el formulario de "clasificar" del editor. Con una entrada
+// existente se queda con su nombre canónico y sus sinónimos, así la propia
+// reemplaza a la del base en `combinar`; sin ella, toma el nombre de la fila.
+export function entradaPropia(
+  nombreFila: string,
+  existente: EntradaCatalogo | null,
+  valores: { grupo: Grupo; unidad: string; porcion: string }
+): EntradaCatalogo {
+  const porcion = Number(valores.porcion.trim().replace(',', '.'));
+  return {
+    nombre: existente?.nombre ?? nombreFila.trim(),
+    ...(existente?.sinonimos ? { sinonimos: existente.sinonimos } : {}),
+    grupo: valores.grupo,
+    unidad: valores.unidad.trim() || 'unidad',
+    ...(porcion > 0 ? { porcion } : {}),
+  };
+}
