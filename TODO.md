@@ -108,6 +108,19 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       genérico y usa la foto de la receta cuando hay una. Fuera de alcance: el
       tap para ampliar la foto en modo cocina (tabla de deuda técnica, abajo).
 
+- [x] **Catálogo de ingredientes, porciones y plantas por semana.** El spec
+      está en
+      [`docs/superpowers/specs/2026-10-08-catalogo-ingredientes-design.md`](docs/superpowers/specs/2026-10-08-catalogo-ingredientes-design.md).
+      Un catálogo base en el código (`catalogo/catalogo-datos.ts`, ~150
+      entradas con porciones de las GAPA) y uno propio por usuario
+      (`catalogoPropio`, sincronizado y en el backup) que lo corrige sin
+      tocarlo. En el editor: "para 1 persona", autocompletado del catálogo con
+      el grupo, precarga de la porción si la fila está vacía, referencia por
+      fila con aviso arriba de 1,5×, chip para clasificar lo que no reconoce y
+      resumen del plato (verdura, proteína, feculento, aceite). En el
+      dashboard: plantas distintas de la semana contra una meta de 30, con las
+      comidas propias que más sumarían.
+
 ## En curso / pendiente
 
 - [ ] **Recetario.** Diseñado y sin implementar. El spec está en
@@ -138,6 +151,32 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
         checklist de alta están en
         [`docs/hosting-imagenes.md`](docs/hosting-imagenes.md). Trabado en dar
         de alta la cuenta de R2, que pide tarjeta.
+
+- [ ] **Listado de comidas, más usable.** Pedido después de cargar las 121
+      comidas de la nutri: con esa cantidad el listado de `/meals` no escala.
+  - [ ] **Buscar por texto**: nombre, y de paso ingredientes.
+  - [ ] **Contador**: cuántas comidas hay, y cuántas muestra el filtro activo.
+  - [ ] **Tags que no coman la pantalla.** Hoy los chips de filtro van todos
+        arriba y en el celular empujan el listado fuera de la vista. Algo
+        colapsable o un selector; los mismos chips los usa el selector del
+        día (`filtrarComidas` en `meal.service.ts`), así que el cambio sirve
+        para los dos.
+
+- [ ] **Después del catálogo.** Lo que el spec dejó fuera de alcance:
+      **calorías** (un campo kcal/100 g en `EntradaCatalogo`, de la tabla de
+      composición argentina) y las **frecuencias semanales de las GAPA**
+      (pescado ≥2, carnes blancas 2, rojas ≤3), que se calculan igual que las
+      plantas en `catalogo/plantas.ts`.
+
+- [ ] **Comidas sin cocinar: asado, afuera, delivery.** Un marcador para el
+      slot del día que diga "esta vez no se cocina" sin inventar una receta:
+      asado, comer afuera, en lo de alguien, pedido. Tiene que verse en el
+      plan y en la impresión, no sumar a la lista de compras y no contar para
+      las plantas de la semana (o contar sólo si se le cargan ingredientes).
+      Ojo con lo que ya existe y no es esto: `Dish.label` es una nota libre
+      por plato (se imprime como "– texto") y `Dish.excluded` saca un plato
+      del cálculo, pero los dos cuelgan de un `mealId` real. Decidir si es un
+      tipo de `Dish` sin `mealId` o un puñado de comidas especiales fijas.
 
 - [ ] **Configurador del landing.** Hoy el orden de las secciones está escrito
       a mano en `projects/perfil-personal/src/app/componentes/landing/landing.html`.

@@ -1,4 +1,5 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { comidasQueSuman, META_PLANTAS, plantasDeLaSemana } from '../../catalogo/plantas';
 import { RouterModule } from '@angular/router';
 import { MealService } from '../../services/meal.service';
 import { DialogService } from '../../services/dialog.service';
@@ -21,6 +22,15 @@ import { FormsModule } from '@angular/forms';
 export class DashboardComponent {
   mealService = inject(MealService);
   private dialogService = inject(DialogService);
+
+  readonly metaPlantas = META_PLANTAS;
+  readonly verPlantas = signal(false);
+  readonly plantas = computed(() =>
+    plantasDeLaSemana(this.mealService.schedule(), this.mealService.meals(), this.mealService.indiceCatalogo())
+  );
+  readonly sumanPlantas = computed(() =>
+    comidasQueSuman(new Set(this.plantas().plantas), this.mealService.meals(), this.mealService.indiceCatalogo())
+  );
 
   getMealName(id: string): string {
     const meal = this.mealService.getMeal(id);

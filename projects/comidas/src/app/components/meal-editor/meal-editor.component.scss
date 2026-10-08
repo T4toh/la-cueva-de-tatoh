@@ -377,3 +377,74 @@ h2 {
     }
   }
 }
+
+.hint {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+}
+
+// Grupo y referencia van debajo de la fila, no adentro: el chip cambia de
+// ancho según la etiqueta y deformaba los inputs fila por fila.
+.info-fila {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.referencia {
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+}
+
+.referencia.aviso {
+  color: var(--warning);
+}
+
+.suggestion-item .grupo {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--fg-muted);
+}
+
+.resumen-plato {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--fg-secondary);
+
+  .falta {
+    color: var(--warning);
+    font-weight: 600;
+  }
+
+  span + span::before {
+    content: ' · ';
+    color: var(--fg-muted);
+    font-weight: normal;
+  }
+}
+
+.chip-grupo {
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  background: none;
+  color: var(--fg-muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &.sin-clasificar {
+    border-style: dashed;
+    color: var(--warning);
+  }
+}
+
+.clasificar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.25rem 0 0.75rem;
+}

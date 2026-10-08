@@ -9,13 +9,26 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { limpiarPasos, MealService } from '../../services/meal.service';
+import { limpiarPasos, MealService, tagsUnicos } from '../../services/meal.service';
 import {
   accionDeCompartir,
   CompartirService,
 } from '../../services/compartir.service';
 import { Meal, Paso } from '../../models/meal.model';
+import {
+  clasificar,
+  EntradaCatalogo,
+  entradaPropia,
+  ETIQUETA_GRUPO,
+  Grupo,
+  Sugerencia,
+  sugerencias,
+} from '../../catalogo/catalogo';
+import { TAGS_BASE } from '../../catalogo/catalogo-datos';
+import { excede, ResumenPlato, resumenPlato, textoReferencia } from '../../catalogo/plato';
 import { Tag } from 'componentes';
+
+type ChipPlato = { etiqueta: string; marca: string; falta: boolean };
 
 @Component({
   selector: 'app-meal-editor',
@@ -45,16 +58,57 @@ export class MealEditorComponent implements OnInit {
   private readonly currentInputValue = signal<string>('');
   readonly highlightedSuggestionIndex = signal<number>(-1);
 
-  readonly filteredSuggestions = computed(() => {
-    const value = this.currentInputValue().toLowerCase().trim();
-    if (value.length < 2) {
-      return [];
-    }
-    return this.mealService
-      .allIngredientNames()
-      .filter((name) => name.includes(value) && name !== value)
-      .slice(0, 8);
+  readonly filteredSuggestions = computed(() =>
+    sugerencias(
+      this.currentInputValue(),
+      this.mealService.catalogoEfectivo(),
+      this.mealService.allIngredientNames()
+    )
+  );
+
+  readonly etiquetaGrupo = ETIQUETA_GRUPO;
+
+  // La fila que se está clasificando, o -1. Una sola a la vez.
+  readonly clasificando = signal<number>(-1);
+  readonly grupos = Object.keys(ETIQUETA_GRUPO) as Grupo[];
+  readonly clasificacion = this.fb.group({
+    grupo: ['hortalizas' as Grupo],
+    unidad: [''],
+    porcion: [''],
   });
+
+  readonly tagsSugeridos = computed(() => {
+    const base = new Set(TAGS_BASE);
+    return [...TAGS_BASE, ...tagsUnicos(this.mealService.meals()).filter((t) => !base.has(t))];
+  });
+
+  // Sirve para lo que no está y para corregir lo que está: con una entrada,
+  // parte de sus valores y guarda con su nombre canónico, así reemplaza a la
+  // del base.
+  abrirClasificacion(index: number): void {
+    const { name, unit } = this.ingredients.at(index).value as { name: string; unit: string };
+    const entrada = this.entradaDe(name);
+    this.clasificacion.setValue({
+      grupo: entrada?.grupo ?? 'hortalizas',
+      unidad: entrada?.unidad ?? unit ?? '',
+      porcion: entrada?.porcion !== undefined ? String(entrada.porcion) : '',
+    });
+    this.clasificando.set(index);
+  }
+
+  guardarClasificacion(): void {
+    const index = this.clasificando();
+    const { name } = this.ingredients.at(index).value as { name: string };
+    const { grupo, unidad, porcion } = this.clasificacion.getRawValue();
+    this.mealService.guardarEnCatalogo(
+      entradaPropia(name, this.entradaDe(name), {
+        grupo: grupo ?? 'hortalizas',
+        unidad: unidad ?? '',
+        porcion: porcion ?? '',
+      })
+    );
+    this.clasificando.set(-1);
+  }
 
   showSuggestionsFor(index: number): boolean {
     return (
@@ -104,12 +158,60 @@ export class MealEditorComponent implements OnInit {
     }
   }
 
-  selectSuggestion(name: string, ingredientIndex: number): void {
-    const control = (this.ingredients.at(ingredientIndex) as FormGroup).get(
-      'name'
-    );
-    control?.setValue(name);
+  // Al elegir del catálogo, el nombre queda canónico y —sólo si están vacías—
+  // cantidad y unidad se llenan con la porción de referencia. Nunca pisa lo
+  // escrito.
+  selectSuggestion(sugerencia: Sugerencia, ingredientIndex: number): void {
+    const fila = this.ingredients.at(ingredientIndex) as FormGroup;
+    fila.get('name')?.setValue(sugerencia.nombre);
+    const entrada = this.entradaDe(sugerencia.nombre);
+    const vacia = !fila.get('quantity')?.value && !fila.get('unit')?.value;
+    if (entrada?.porcion !== undefined && vacia) {
+      fila.patchValue({ quantity: String(entrada.porcion), unit: entrada.unidad });
+    }
     this.activeIngredientIndex.set(-1);
+  }
+
+  entradaDe(nombre: string): EntradaCatalogo | null {
+    return clasificar(nombre, this.mealService.indiceCatalogo());
+  }
+
+  // La referencia de porción de la fila, y si la cantidad se pasa. En el
+  // componente y no en el template: ahí ya está al límite de complejidad.
+  referenciaDe(index: number): { texto: string; aviso: boolean } | null {
+    const { name, quantity, unit } = this.ingredients.at(index).value as {
+      name: string;
+      quantity: string;
+      unit: string;
+    };
+    const entrada = this.entradaDe(name);
+    const texto = entrada && textoReferencia(entrada);
+    return entrada && texto ? { texto, aviso: excede(quantity, unit, entrada) } : null;
+  }
+
+  // `null` y no `[]` cuando no hay nada clasificado: el template lo usa en un
+  // `@if`, y un array vacío es truthy.
+  chipsPlato(): ChipPlato[] | null {
+    const r: ResumenPlato = resumenPlato(
+      this.ingredients.value as { name: string }[],
+      this.mealService.indiceCatalogo()
+    );
+    if (!r.clasificados) {
+      return null;
+    }
+    const chip = (etiqueta: string, ok: boolean, resaltar = false): ChipPlato => ({
+      etiqueta,
+      marca: ok ? '✓' : '—',
+      falta: resaltar && !ok,
+    });
+    // Sólo la falta de verdura se resalta: es la regla que las GAPA ponen en
+    // almuerzo y cena.
+    return [
+      chip('Verdura', r.verdura, true),
+      chip('Proteína', r.proteina),
+      chip('Feculento', r.feculento),
+      chip('Aceite', r.aceite),
+    ];
   }
 
   constructor() {

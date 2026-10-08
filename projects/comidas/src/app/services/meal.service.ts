@@ -23,6 +23,14 @@ import { DialogService } from './dialog.service';
 import { RecetaPublicaService } from './receta-publica.service';
 import { CLAVES_BACKUP, filtrarSecciones, SeccionBackup } from './backup';
 import {
+  combinar,
+  EntradaCatalogo,
+  indexar,
+  IndiceCatalogo,
+  normalizar,
+} from '../catalogo/catalogo';
+import { CATALOGO } from '../catalogo/catalogo-datos';
+import {
   DaySchedule,
   Dish,
   DishMealType,
@@ -321,6 +329,7 @@ export class MealService {
   private readonly MIGRATION_DISH_FORMAT_KEY = 'comidas_migration_dish_format';
   private readonly MIGRATION_SPLIT_UNIT_KEY = 'comidas_migration_split_unit';
   private readonly ALIAS_KEY = 'comidas_alias';
+  private readonly CATALOGO_PROPIO_KEY = 'comidas_catalogo_propio';
   private readonly POR_REVOCAR_KEY = 'comidas_por_revocar';
   // Links huérfanos que todavía no se confirmaron revocados. Una vez que el
   // `publicId` salió de `meals`, éste es el único lado donde queda el puntero,
@@ -383,6 +392,11 @@ export class MealService {
 
   readonly pantry = signal<PantryItem[]>(this.loadPantry());
   readonly pantryGroups = signal<PantryGroup[]>(this.loadPantryGroups());
+  // Lo que el usuario agregó o corrigió del catálogo base. Ver
+  // docs/superpowers/specs/2026-10-08-catalogo-ingredientes-design.md
+  readonly catalogoPropio = signal<EntradaCatalogo[]>(this.loadCatalogoPropio());
+  readonly catalogoEfectivo = computed(() => combinar(CATALOGO, this.catalogoPropio()));
+  readonly indiceCatalogo = computed<IndiceCatalogo>(() => indexar(this.catalogoEfectivo()));
   readonly todayTimestamp = signal<number>(this.getTodayTimestamp());
 
   // Decide qué pasa con una escritura que cae durante una sincronización.
@@ -561,6 +575,13 @@ export class MealService {
       localStorage.setItem(this.ALIAS_KEY, data);
       if (this.cola.debeGuardarAhora('alias')) {
         this.saveToFirestore('alias', data);
+      }
+    });
+    effect(() => {
+      const data = this.catalogoPropio();
+      localStorage.setItem(this.CATALOGO_PROPIO_KEY, JSON.stringify(data));
+      if (this.cola.debeGuardarAhora('catalogoPropio')) {
+        this.saveToFirestore('catalogoPropio', data);
       }
     });
     this.migrateQuantitiesToNumeric();
@@ -811,6 +832,7 @@ export class MealService {
       pantry: (v) =>
         this.pantry.set(this.normalizePantryQuantities(v as PantryItem[])),
       pantryGroups: (v) => this.pantryGroups.set(v as PantryGroup[]),
+      catalogoPropio: (v) => this.catalogoPropio.set(v as EntradaCatalogo[]),
       familySettings: (v) => {
         const fs = v as {
           isFamilyMode: boolean;
@@ -858,6 +880,7 @@ export class MealService {
       checkedItems: this.checkedItems(),
       pantry: this.pantry(),
       pantryGroups: this.pantryGroups(),
+      catalogoPropio: this.catalogoPropio(),
       familySettings: {
         isFamilyMode: this.isFamilyMode(),
         visibleMeals: this.visibleMeals(),
@@ -1053,6 +1076,23 @@ export class MealService {
   private loadPantry(): PantryItem[] {
     const data = localStorage.getItem(this.PANTRY_KEY);
     return data ? (JSON.parse(data) as PantryItem[]) : [];
+  }
+
+  private loadCatalogoPropio(): EntradaCatalogo[] {
+    const data = localStorage.getItem(this.CATALOGO_PROPIO_KEY);
+    return data ? (JSON.parse(data) as EntradaCatalogo[]) : [];
+  }
+
+  // Una entrada por nombre normalizado: guardar otra vez la reemplaza. Lo
+  // guardado conserva los acentos —es lo que aparece en el autocompletado y
+  // termina en la receta—; `normalizar` es sólo para comparar.
+  guardarEnCatalogo(entrada: EntradaCatalogo): void {
+    const nombre = entrada.nombre.trim().toLowerCase();
+    const clave = normalizar(nombre);
+    this.catalogoPropio.update((actual) => [
+      ...actual.filter((e) => normalizar(e.nombre) !== clave),
+      { ...entrada, nombre },
+    ]);
   }
 
   private loadPantryGroups(): PantryGroup[] {
@@ -1974,16 +2014,6 @@ export class MealService {
     );
   }
 
-  // Normaliza un nombre para comparar duplicados: minúsculas, sin acentos, sin
-  // espacios sobrantes.
-  private normalizeName(name: string): string {
-    return (name ?? '')
-      .normalize('NFD')
-      .replace(/\p{Diacritic}/gu, '')
-      .trim()
-      .toLowerCase();
-  }
-
   // La comida que una importada vendría a reemplazar: primero por id —un
   // archivo exportado de acá los trae—, después por nombre normalizado, que
   // es lo único que traen los JSON armados a mano o por una IA.
@@ -1992,8 +2022,8 @@ export class MealService {
     if (porId) {
       return porId;
     }
-    const target = this.normalizeName(meal.name);
-    return this.meals().find((m) => this.normalizeName(m.name) === target);
+    const target = normalizar(meal.name);
+    return this.meals().find((m) => normalizar(m.name) === target);
   }
 
   // Aplica una importación ya resuelta por el usuario fila a fila.
@@ -2171,6 +2201,10 @@ export class MealService {
     if (data['pantryGroups']) {
       const v = data['pantryGroups'] as PantryGroup[];
       pasos.push(() => this.pantryGroups.set(v));
+    }
+    if (data['catalogoPropio']) {
+      const v = data['catalogoPropio'] as EntradaCatalogo[];
+      pasos.push(() => this.catalogoPropio.set(v));
     }
     if (data['familySettings']) {
       const fs = data['familySettings'] as {

@@ -22,11 +22,34 @@
       <div class="week-info">
         <h1>Plan Semanal</h1>
         <span class="date-range">{{ mealService.weekRangeDisplay() }}</span>
+        <button class="plantas" type="button" (click)="verPlantas.set(!verPlantas())">
+          {{ plantas().plantas.length }} de {{ metaPlantas }} plantas
+        </button>
       </div>
       <button class="btn-nav" type="button" (click)="mealService.nextWeek()">
         &gt;
       </button>
     </div>
+
+      @if (verPlantas()) {
+        <div class="panel-plantas">
+          <p>{{ plantas().plantas.join(', ') || 'Todavía ninguna planta esta semana.' }}</p>
+          @if (plantas().sinClasificar.length) {
+            <p class="sin-clasificar">
+              +{{ plantas().sinClasificar.length }} sin clasificar:
+              {{ plantas().sinClasificar.join(', ') }}
+            </p>
+          }
+          @if (sumanPlantas().length) {
+            <p>Suman plantas nuevas:</p>
+            <ul>
+              @for (s of sumanPlantas(); track s.meal.id) {
+                <li>{{ s.meal.name }} (+{{ s.nuevas }})</li>
+              }
+            </ul>
+          }
+        </div>
+      }
 
     <div class="family-mode-toggle">
       <div class="toggle-group">
