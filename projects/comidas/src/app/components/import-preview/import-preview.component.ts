@@ -2,7 +2,6 @@ import {
   Component,
   computed,
   inject,
-  input,
   model,
   output,
   signal,
@@ -16,13 +15,21 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 
-import { MealService } from '../../services/meal.service';
+import { MealService, pareceBackup } from '../../services/meal.service';
 import { DialogService } from '../../services/dialog.service';
+import {
+  platosHuerfanos,
+  ResumenSeccion,
+  SeccionBackup,
+  seccionesDe,
+  soloComidas,
+} from '../../services/backup';
 import { Meal } from '../../models/meal.model';
 import { Icon, Tag } from 'componentes';
 
-export type ImportMode = 'meals' | 'data';
 type RowAction = 'replace' | 'skip' | 'new';
+
+type FilaSeccion = ResumenSeccion & { elegida: WritableSignal<boolean> };
 
 type PreviewRow = {
   original: Meal;
@@ -45,70 +52,120 @@ export class ImportPreviewComponent {
   private dialogService = inject(DialogService);
   mealService = inject(MealService);
 
-  readonly mode = input<ImportMode>('meals');
   readonly open = model<boolean>(false);
   readonly importDone = output<void>();
 
   readonly rawText = signal('');
   readonly parseError = signal<string | null>(null);
-  readonly parsed = signal(false);
+  // Qué se pegó o cargó: un backup se elige por secciones; una lista de
+  // comidas suelta se revisa fila por fila.
+  readonly tipo = signal<'backup' | 'comidas' | null>(null);
+  readonly parsed = computed(() => this.tipo() !== null);
   readonly rows = signal<PreviewRow[]>([]);
-  readonly backupSummary = signal<{ label: string; value: number }[] | null>(
-    null
+  readonly secciones = signal<FilaSeccion[]>([]);
+  // Sólo para listas de comidas: tirar la lista actual y quedarse con la
+  // importada. Es lo único que limpia duplicados que ya existen.
+  readonly reemplazarTodo = signal(false);
+  private datos: Record<string, unknown> = {};
+
+  readonly elegidas = computed(() =>
+    this.secciones()
+      .filter((s) => s.elegida())
+      .map((s) => s.seccion)
+  );
+
+  // Platos del calendario que quedarían apuntando a comidas inexistentes:
+  // las del archivo si se reemplazan las comidas, las actuales si no.
+  readonly huerfanos = computed(() => {
+    const elegidas = this.elegidas();
+    if (!elegidas.includes('calendario')) {
+      return 0;
+    }
+    const comidas = elegidas.includes('comidas')
+      ? ((this.datos['meals'] ?? []) as Meal[])
+      : this.mealService.meals();
+    return platosHuerfanos(this.datos['schedules'], new Set(comidas.map((m) => m.id)));
+  });
+
+  // Con Comidas tildado, el problema es del archivo mismo, no de la elección.
+  readonly avisoHuerfanos = computed(() =>
+    this.elegidas().includes('comidas')
+      ? `${this.huerfanos()} plato(s) del calendario de este archivo apuntan a comidas que no están en él: ` +
+        'esos días van a quedar vacíos.'
+      : `${this.huerfanos()} plato(s) del calendario apuntarían a comidas que no existen. ` +
+        'Tildá también Comidas para traerlas.'
   );
 
   readonly selectedCount = computed(
     () => this.rows().filter((r) => r.selected()).length
   );
   readonly dupCount = computed(() => this.rows().filter((r) => r.dup()).length);
+  readonly textoConfirmar = computed(() =>
+    this.reemplazarTodo()
+      ? `Reemplazar la lista por ${this.selectedCount()} comida(s)`
+      : `Importar ${this.selectedCount()} comida(s)`
+  );
 
   onTextInput(event: Event): void {
     this.rawText.set((event.target as HTMLTextAreaElement).value);
     this.parseError.set(null);
   }
 
-  parse(): void {
-    this.parseError.set(null);
-    this.parsed.set(false);
-    this.rows.set([]);
-    this.backupSummary.set(null);
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e): void => {
+      this.rawText.set((e.target?.result as string) ?? '');
+      this.parse();
+    };
+    reader.readAsText(file);
+    // Sin esto, elegir el mismo archivo otra vez no dispara `change`.
+    input.value = '';
+  }
 
+  parse(): void {
+    this.reset();
     const text = this.rawText().trim();
     if (!text) {
-      this.parseError.set('Pegá el JSON antes de continuar.');
+      this.parseError.set('Pegá el JSON o elegí un archivo.');
       return;
     }
-
-    if (this.mode() === 'data') {
-      const summary = this.mealService.parseBackupSummary(text);
-      if (!summary.valid || !summary.counts) {
-        this.parseError.set('El JSON no tiene un formato de backup válido.');
-        return;
-      }
-      this.backupSummary.set(
-        Object.entries(summary.counts).map(([label, value]) => ({
-          label,
-          value,
-        }))
-      );
-      this.parsed.set(true);
-      return;
-    }
-
-    // mode === 'meals'
-    let meals: Meal[] | null;
+    let data: unknown;
     try {
-      meals = this.mealService.parseMealsInput(text);
+      data = JSON.parse(text);
     } catch {
       this.parseError.set('El JSON no es válido. Revisá la sintaxis.');
       return;
     }
-    if (!meals || meals.length === 0) {
-      this.parseError.set('El JSON no contiene comidas válidas.');
+
+    if (soloComidas(data)) {
+      const meals = this.mealService.parseMealsInput(text) ?? [];
+      if (!meals.length) {
+        this.parseError.set('El JSON no contiene comidas.');
+        return;
+      }
+      this.rows.set(meals.map((m) => this.buildRow(m)));
+      this.tipo.set('comidas');
       return;
     }
-    this.rows.set(meals.map((m) => this.buildRow(m)));
-    this.parsed.set(true);
+
+    if (!pareceBackup(data)) {
+      this.parseError.set('El JSON no es un backup ni una lista de comidas.');
+      return;
+    }
+    this.datos = data as Record<string, unknown>;
+    this.secciones.set(seccionesDe(this.datos).map((s) => ({ ...s, elegida: signal(true) })));
+    this.tipo.set('backup');
+  }
+
+  toggleSeccion(seccion: SeccionBackup): void {
+    this.secciones()
+      .find((s) => s.seccion === seccion)
+      ?.elegida.update((v) => !v);
   }
 
   private buildRow(meal: Meal): PreviewRow {
@@ -130,7 +187,7 @@ export class ImportPreviewComponent {
       ingredients,
       tags,
     });
-    const isDup = !!this.mealService.findMealByName(meal.name);
+    const isDup = !!this.mealService.buscarExistente(meal);
     return {
       original: meal,
       form,
@@ -183,7 +240,7 @@ export class ImportPreviewComponent {
   // Reevalúa el estado de duplicado tras editar el nombre.
   onNameBlur(row: PreviewRow): void {
     const name = (row.form.get('name')?.value ?? '').trim();
-    const dup = !!this.mealService.findMealByName(name);
+    const dup = !!this.mealService.buscarExistente({ id: row.original.id, name });
     if (dup !== row.dup()) {
       row.dup.set(dup);
       if (!dup) {
@@ -201,8 +258,10 @@ export class ImportPreviewComponent {
       ingredients: { name: string; quantity: string; unit: string }[];
       tags: string[];
     };
+    // Sobre el original y no de cero: lo que la vista previa no edita (pasos,
+    // foto) tiene que llegar igual.
     return {
-      id: row.original.id,
+      ...row.original,
       name: (value.name ?? '').trim(),
       description: (value.description ?? '').trim(),
       tags: value.tags ?? [],
@@ -213,21 +272,25 @@ export class ImportPreviewComponent {
           quantity: String(i.quantity ?? '').trim(),
           unit: String(i.unit ?? '').trim(),
         })),
-      includeInShoppingList: row.original.includeInShoppingList,
     };
   }
 
   confirm(): void {
-    if (this.mode() === 'data') {
-      this.mealService.importData(this.rawText());
+    if (this.tipo() === 'backup') {
+      this.mealService.importData(this.rawText(), this.elegidas());
       this.importDone.emit();
       this.close();
       return;
     }
-    const resolved = this.rows()
-      .filter((r) => r.selected())
-      .map((r) => ({ action: r.action(), meal: this.buildMeal(r) }));
-    const imported = this.mealService.applyImportedMeals(resolved);
+    const elegidas = this.rows().filter((r) => r.selected());
+    let imported = elegidas.length;
+    if (this.reemplazarTodo()) {
+      this.mealService.reemplazarComidas(elegidas.map((r) => this.buildMeal(r)));
+    } else {
+      imported = this.mealService.applyImportedMeals(
+        elegidas.map((r) => ({ action: r.action(), meal: this.buildMeal(r) }))
+      );
+    }
     this.importDone.emit();
     this.close();
     this.dialogService.alert(
@@ -242,12 +305,18 @@ export class ImportPreviewComponent {
     }
   }
 
-  close(): void {
-    this.rawText.set('');
+  private reset(): void {
     this.parseError.set(null);
-    this.parsed.set(false);
+    this.tipo.set(null);
     this.rows.set([]);
-    this.backupSummary.set(null);
+    this.secciones.set([]);
+    this.reemplazarTodo.set(false);
+    this.datos = {};
+  }
+
+  close(): void {
+    this.reset();
+    this.rawText.set('');
     this.open.set(false);
   }
 }

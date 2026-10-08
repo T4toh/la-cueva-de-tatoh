@@ -9,13 +9,7 @@
   >
     <div class="import-container">
       <div class="import-header">
-        <h3>
-          @if (mode() === 'data') {
-            Pegar backup completo
-          } @else {
-            Pegar comidas (JSON)
-          }
-        </h3>
+        <h3>Importar</h3>
         <button aria-label="Cerrar" class="btn-close" type="button" (click)="close()">
           <lib-icon name="x" [size]="20" />
         </button>
@@ -24,15 +18,15 @@
       <div class="import-body">
         @if (!parsed()) {
           <p class="intro">
-            @if (mode() === 'data') {
-              Pegá el contenido de un backup (formato con
-              <code>meals</code>, <code>schedules</code>, etc.). Vas a ver un
-              resumen antes de restaurar.
-            } @else {
-              Pegá un array de comidas o un objeto <code>{{ '{' }} "meals": [...] {{ '}' }}</code>.
-              Vas a poder revisar, editar y marcar repetidos antes de importar.
-            }
+            Elegí un archivo exportado de acá o pegá un JSON: un backup
+            completo o una lista de comidas. Antes de cambiar nada vas a ver
+            qué trae.
           </p>
+          <label class="btn-file">
+            <lib-icon name="download" [size]="16" />
+            <span>Elegir archivo</span>
+            <input accept=".json" type="file" (change)="onFileSelected($event)" />
+          </label>
           <textarea
             class="json-input"
             placeholder='[ { "name": "...", "ingredients": [...] } ]'
@@ -46,21 +40,49 @@
               <span>{{ err }}</span>
             </p>
           }
-        } @else if (mode() === 'data') {
-          <p class="intro">Esto vas a restaurar (reemplaza tus datos actuales):</p>
+        } @else if (tipo() === 'backup') {
+          <p class="intro">
+            Elegí qué reemplazar. Lo que no tildes queda como está.
+          </p>
           <ul class="summary">
-            @for (item of backupSummary(); track item.label) {
+            @for (s of secciones(); track s.seccion) {
               <li>
-                <span>{{ item.label }}</span>
-                <strong>{{ item.value }}</strong>
+                <label>
+                  <input
+                    type="checkbox"
+                    [checked]="s.elegida()"
+                    (change)="toggleSeccion(s.seccion)"
+                  />
+                  <span>{{ s.etiqueta }}</span>
+                </label>
+                @if (s.cantidad !== undefined) {
+                  <strong>{{ s.cantidad }} {{ s.unidad }}</strong>
+                }
               </li>
             }
           </ul>
+          @if (huerfanos() > 0) {
+            <p class="error">
+              <lib-icon name="triangle-alert" [size]="16" />
+              <span>{{ avisoHuerfanos() }}</span>
+            </p>
+          }
         } @else {
           <p class="intro">
             {{ rows().length }} comida(s) · {{ dupCount() }} repetida(s) ·
             {{ selectedCount() }} seleccionada(s) para importar.
           </p>
+          <label class="reemplazar-todo">
+            <input
+              type="checkbox"
+              [checked]="reemplazarTodo()"
+              (change)="reemplazarTodo.set(!reemplazarTodo())"
+            />
+            <span>
+              Reemplazar toda mi lista por esta. Las comidas que no estén acá
+              se borran: sirve para limpiar duplicados.
+            </span>
+          </label>
 
           @for (row of rows(); track row.original.id) {
             <div class="preview-row" [class.unselected]="!row.selected()" [formGroup]="row.form">
@@ -82,7 +104,7 @@
                 }
               </div>
 
-              @if (row.dup() && row.selected()) {
+              @if (row.dup() && row.selected() && !reemplazarTodo()) {
                 <div class="dup-actions">
                   <button
                     type="button"
@@ -151,9 +173,16 @@
       <div class="import-footer">
         <button class="btn-cancel" type="button" (click)="close()">Cancelar</button>
         @if (!parsed()) {
-          <button class="btn-primary" type="button" (click)="parse()">Parsear</button>
-        } @else if (mode() === 'data') {
-          <button class="btn-primary" type="button" (click)="confirm()">Restaurar backup</button>
+          <button class="btn-primary" type="button" (click)="parse()">Continuar</button>
+        } @else if (tipo() === 'backup') {
+          <button
+            class="btn-primary"
+            type="button"
+            [disabled]="elegidas().length === 0"
+            (click)="confirm()"
+          >
+            Reemplazar {{ elegidas().length }} sección(es)
+          </button>
         } @else {
           <button
             class="btn-primary"
@@ -161,7 +190,7 @@
             [disabled]="selectedCount() === 0"
             (click)="confirm()"
           >
-            Importar {{ selectedCount() }} comida(s)
+            {{ textoConfirmar() }}
           </button>
         }
       </div>

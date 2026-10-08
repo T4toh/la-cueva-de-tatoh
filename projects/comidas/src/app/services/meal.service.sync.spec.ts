@@ -309,3 +309,78 @@ describe('MealService: revocación de links huérfanos', () => {
     expect(porRevocar()).toEqual([]);
   });
 });
+
+describe('MealService: importar', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: Firestore, useValue: {} },
+        { provide: AuthService, useValue: { currentUser: signal(null) } },
+      ],
+    });
+  });
+
+  afterEach(() => localStorage.clear());
+
+  const compartida: Meal = { ...comida('a'), name: 'Galletitas', publicId: 'aaaaaaaa', pasos: [{ texto: 'Hornear' }] };
+
+  it('importData con secciones sólo reemplaza esas', async () => {
+    const service = TestBed.inject(MealService);
+    await asentar();
+    const calendarioAntes = localStorage.getItem('comidas_schedules');
+
+    service.importData(
+      JSON.stringify({ meals: [comida('x')], schedules: { '2026-10-05': [] } }),
+      ['comidas']
+    );
+    await asentar();
+
+    expect(service.meals().map((m) => m.id)).toEqual(['x']);
+    expect(localStorage.getItem('comidas_schedules')).toBe(calendarioAntes);
+  });
+
+  it('reemplazar por fila conserva el id y el link público de la existente', () => {
+    const service = TestBed.inject(MealService);
+    service.meals.set([compartida]);
+
+    service.applyImportedMeals([
+      { action: 'replace', meal: { id: '', name: 'galletitas', ingredients: [{ name: 'nueces', quantity: '1' }] } },
+    ]);
+
+    const [m] = service.meals();
+    expect(m.id).toBe('a');
+    expect(m.publicId).toBe('aaaaaaaa');
+    expect(m.ingredients[0].name).toBe('nueces');
+  });
+
+  it('importar como nueva no se lleva el link público de nadie', () => {
+    const service = TestBed.inject(MealService);
+    service.meals.set([compartida]);
+
+    service.applyImportedMeals([{ action: 'new', meal: { ...compartida } }]);
+
+    expect(service.meals()).toHaveLength(2);
+    expect(service.meals()[1].publicId).toBeUndefined();
+    expect(service.meals()[1].id).not.toBe('a');
+  });
+
+  it('busca la existente primero por id y después por nombre', () => {
+    const service = TestBed.inject(MealService);
+    service.meals.set([comida('a'), { ...comida('b'), name: 'Tarta' }]);
+
+    expect(service.buscarExistente({ id: 'a', name: 'otro nombre' })?.id).toBe('a');
+    expect(service.buscarExistente({ id: 'zz', name: ' TARTA ' })?.id).toBe('b');
+    expect(service.buscarExistente({ id: 'zz', name: 'nada' })).toBeUndefined();
+  });
+
+  it('reemplazar la lista entera deja exactamente lo importado', () => {
+    const service = TestBed.inject(MealService);
+    service.meals.set([comida('a'), comida('a2'), comida('a3')]);
+
+    service.reemplazarComidas([compartida, comida('b')]);
+
+    expect(service.meals().map((m) => m.id)).toEqual(['a', 'b']);
+    expect(service.meals()[0].publicId).toBe('aaaaaaaa');
+  });
+});
