@@ -121,6 +121,15 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       dashboard: plantas distintas de la semana contra una meta de 30, con las
       comidas propias que más sumarían.
 
+- [x] **Guía.** El spec está en
+      [`docs/superpowers/specs/2026-10-08-guia-design.md`](docs/superpowers/specs/2026-10-08-guia-design.md).
+      Pestaña `/guia` con 18 reglas cortas, cada una con su fuente: planes de
+      nutricionista (inferidas, como "un solo plato con carbos por día": así
+      son 20 de 21 días de los planes), GAPA, el libro (sólo lo medible) y
+      sugeridas. Cada usuario oculta las que no le sirven —sin borrarlas— y
+      agrega las suyas; todo va en la clave `guia`, sincronizada y en la
+      sección Ajustes del backup.
+
 ## En curso / pendiente
 
 - [ ] **Recetario.** Diseñado y sin implementar. El spec está en
@@ -162,9 +171,24 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
         día (`filtrarComidas` en `meal.service.ts`), así que el cambio sirve
         para los dos.
 
+- [ ] **Tips de la guía en el plan.** Una línea bajo el contador de plantas
+      con una regla de la guía y un link a `/guia`. Una por día, de las
+      visibles y las propias (nunca las ocultas), elegida según la fecha para
+      que no cambie en cada recarga, con un "otro" para pasar a la siguiente;
+      si están todas ocultas, no aparece. Lógica en una función pura
+      `tipDelDia(reglas, fecha, salto)`. Cuando existan los chequeos, el tip
+      prioriza la regla que la semana no está cumpliendo.
+
+- [ ] **Chequeos de la guía contra la semana.** Uno por regla, calculados
+      sobre el plan como `catalogo/plantas.ts`: primero "carbos dos veces el
+      mismo día" (dos platos del día con `feculentos` o `pan`) y "carne roja
+      más de 3". Para la carne roja hace falta distinguirla en el catálogo:
+      hoy `carnesHuevos` mezcla vaca, pollo, pescado y huevo.
+
 - [ ] **Después del catálogo.** Lo que el spec dejó fuera de alcance:
-      **calorías** (un campo kcal/100 g en `EntradaCatalogo`, de la tabla de
-      composición argentina) y las **frecuencias semanales de las GAPA**
+      **calorías y fibra** (campos kcal/100 g y fibra/100 g en
+      `EntradaCatalogo`, de la tabla de composición argentina; la fibra para
+      la meta del libro: 25 g/día mujeres, 38 g/día hombres) y las **frecuencias semanales de las GAPA**
       (pescado ≥2, carnes blancas 2, rojas ≤3), que se calculan igual que las
       plantas en `catalogo/plantas.ts`.
 

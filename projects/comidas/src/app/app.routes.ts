@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { GuiaComponent } from './components/guia/guia.component';
 import { MealEditorComponent } from './components/meal-editor/meal-editor.component';
 import { MealListComponent } from './components/meal-list/meal-list.component';
 import { MealSelectorComponent } from './components/meal-selector/meal-selector.component';
@@ -19,6 +20,7 @@ export const routes: Routes = [
   { path: 'meals/:id', component: RecetaViewComponent },
   { path: 'shopping-list', component: ShoppingListComponent },
   { path: 'despensa', component: PantryComponent },
+  { path: 'guia', component: GuiaComponent },
   { path: 'schedule/:day/:type', component: MealSelectorComponent },
   { path: 'settings', component: SettingsComponent },
   // Dos rutas y no una con comodín: difieren en cantidad de segmentos, así que

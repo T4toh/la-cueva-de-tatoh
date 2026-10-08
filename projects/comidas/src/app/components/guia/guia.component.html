@@ -1,0 +1,85 @@
+<div class="guia-container">
+  <div class="header">
+    <h1>
+      <lib-icon name="book-open" [size]="24" />
+      <span>Guía</span>
+    </h1>
+    <p class="subtitle">
+      Reglas cortas para armar la semana. Ocultá las que no te sirven y sumá
+      las tuyas.
+    </p>
+  </div>
+
+  <form class="agregar" (submit)="agregar($event)">
+    <input aria-label="Tu regla" placeholder="Tu regla, en una línea" type="text" [formControl]="texto" />
+    <input aria-label="Por qué (opcional)" placeholder="Por qué (opcional)" type="text" [formControl]="detalle" />
+    <button class="btn-primary" type="submit">Agregar</button>
+  </form>
+
+  @for (grupo of guia().grupos; track grupo.fuente) {
+    <section class="grupo">
+      <h2>{{ grupo.etiqueta }}</h2>
+      <ul>
+        @for (regla of grupo.reglas; track regla.id) {
+          <li>
+            <div class="regla">
+              <p class="texto">{{ regla.texto }}</p>
+              @if (regla.detalle) {
+                <p class="detalle">{{ regla.detalle }}</p>
+              }
+            </div>
+            @if (regla.fuente === 'propia') {
+              <button
+                class="btn-link"
+                type="button"
+                [attr.aria-label]="'Borrar: ' + regla.texto"
+                (click)="mealService.borrarReglaPropia(regla.id)"
+              >
+                Borrar
+              </button>
+            } @else {
+              <button
+                class="btn-link"
+                type="button"
+                [attr.aria-label]="'Ocultar: ' + regla.texto"
+                (click)="mealService.ocultarRegla(regla.id)"
+              >
+                Ocultar
+              </button>
+            }
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  @if (guia().ocultas.length) {
+    <section class="ocultas">
+      <button
+        class="btn-link"
+        type="button"
+        [attr.aria-expanded]="verOcultas()"
+        (click)="verOcultas.set(!verOcultas())"
+      >
+        Ocultas: {{ guia().ocultas.length }} — {{ verOcultas() ? 'esconder' : 'mostrar' }}
+      </button>
+      @if (verOcultas()) {
+        <ul>
+          @for (regla of guia().ocultas; track regla.id) {
+            <li>
+              <p class="texto">{{ regla.texto }}</p>
+              <button
+                class="btn-link"
+                type="button"
+                [attr.aria-label]="'Volver a mostrar: ' + regla.texto"
+                (click)="mealService.mostrarRegla(regla.id)"
+              >
+                Volver a mostrar
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</div>
