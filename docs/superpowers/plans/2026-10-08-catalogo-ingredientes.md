@@ -56,7 +56,7 @@
 **Files:**
 - Create: `projects/comidas/src/app/catalogo/catalogo.ts`
 - Test: `projects/comidas/src/app/catalogo/catalogo.spec.ts`
-- Modify: `projects/comidas/src/app/services/meal.service.ts` (método privado `normalizeName`, ~línea 2029)
+- Modify: `projects/comidas/src/app/services/meal.service.ts` (método privado `normalizeName`, lo usa `buscarExistente`)
 
 **Interfaces:**
 - Produces:
@@ -346,15 +346,13 @@ Expected: PASS.
 
 - [ ] **Step 5: `MealService.normalizeName` usa `normalizar`**
 
-En `projects/comidas/src/app/services/meal.service.ts`, borrar el método privado `normalizeName` (el que hace `normalize('NFD')…toLowerCase()`) y en `findMealByName` usar la función compartida:
+En `projects/comidas/src/app/services/meal.service.ts`, borrar el método privado `normalizeName` y en `buscarExistente` usar la función compartida:
 
 ```ts
 import { normalizar } from '../catalogo/catalogo';
 // ...
-  findMealByName(name: string): Meal | undefined {
-    const target = normalizar(name);
+    const target = normalizar(meal.name);
     return this.meals().find((m) => normalizar(m.name) === target);
-  }
 ```
 
 El comentario que estaba sobre `normalizeName` se va con él. Si `grep -n normalizeName` encuentra otro uso, reemplazarlo igual.
@@ -838,7 +836,7 @@ describe('MealService: catálogo propio', () => {
 });
 ```
 
-Y en el import de arriba del archivo: `import { MealService, pareceBackup } from './meal.service';`
+`pareceBackup` ya se exporta de `meal.service.ts`: sumarlo al import de arriba del archivo si todavía no está.
 
 - [ ] **Step 2: Run test to verify it fails**
 
@@ -864,7 +862,7 @@ import { CATALOGO } from '../catalogo/catalogo-datos';
 
 (`normalizar` ya entró en Task 1: no duplicar el import.)
 
-2. `CLAVES_BACKUP`: agregar `'catalogoPropio',` después de `'pantryGroups',`.
+2. En `projects/comidas/src/app/services/backup.ts`, sección `comidas` de `SECCIONES`: `claves: ['meals', 'catalogoPropio']`. Así viaja en el backup, cuenta para `pareceBackup` y se reemplaza junto con las comidas. En `backup.spec.ts`, el test de `CLAVES_BACKUP` pasa de `toHaveLength(12)` a `toHaveLength(13)`.
 
 3. Junto a las otras claves (`private readonly ALIAS_KEY …`):
 
@@ -933,11 +931,7 @@ import { CATALOGO } from '../catalogo/catalogo-datos';
     }
 ```
 
-10. En `parseBackupSummary`, en `counts`, después de `Despensa`:
-
-```ts
-          'Catálogo propio': len(data.catalogoPropio),
-```
+10. `soloComidas` (en `backup.ts`) sigue tratando como lista suelta un archivo que sólo trae `meals`; uno con `catalogoPropio` es un backup. No hay que tocarlo.
 
 - [ ] **Step 4: Run tests**
 
