@@ -95,6 +95,8 @@ export type Apk = {
   color: string;
   tipo?: 'android' | 'desktop';
   nota?: string;
+  // Archivada: va aparte, al fondo de Utilidades → Apps, y no sale en el landing.
+  deprecado?: boolean;
 };
 
 export const APKS: Apk[] = [
@@ -108,6 +110,7 @@ export const APKS: Apk[] = [
     icono: 'languages',
     color: 'gray',
     nota: 'Deprecado: usá Dokusho Renshuu',
+    deprecado: true,
   },
   {
     nombre: 'Pulpero',

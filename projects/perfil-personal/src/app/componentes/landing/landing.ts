@@ -43,7 +43,8 @@ export class Landing {
   // ya viven en APKS: una sola fuente de verdad por proyecto, sin copiarlos.
   readonly tarjetas: Tarjeta[] = [
     ...PROYECTOS.map((p) => ({ ...p, etiqueta: ETIQUETA_PROYECTO[p.tipo] })),
-    ...APKS.map((a) => ({
+    // Las deprecadas no van a la vidriera: siguen en Utilidades → Apps.
+    ...APKS.filter((a) => !a.deprecado).map((a) => ({
       nombre: a.nombre,
       descripcion: a.descripcion,
       url: a.url,

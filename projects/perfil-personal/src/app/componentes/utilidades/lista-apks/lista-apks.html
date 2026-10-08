@@ -4,8 +4,12 @@
     <p>No hay APKs disponibles en este momento.</p>
   </div>
   } @else {
+  @for (grupo of grupos(); track grupo.titulo) {
+  @if (grupo.titulo) {
+  <h3 class="grupo-titulo">{{ grupo.titulo }}</h3>
+  }
   <div class="apks-grid">
-    @for (apk of apks(); track apk.nombre) {
+    @for (apk of grupo.apks; track apk.nombre) {
     <div class="apk-card">
       <div class="apk-header" [style.border-left-color]="apk.color">
         @if (apk.imagen) {
@@ -44,5 +48,6 @@
     </div>
     }
   </div>
+  }
   }
 </div>
