@@ -18,6 +18,7 @@ type Tarjeta = {
   descripcion: string;
   url: string;
   icono: IconName;
+  imagen?: string;
   color: string;
   etiqueta: string;
 };
@@ -47,6 +48,7 @@ export class Landing {
       descripcion: a.descripcion,
       url: a.url,
       icono: a.icono ?? 'package',
+      imagen: a.imagen,
       color: a.color,
       etiqueta: a.tipo === 'desktop' ? 'App' : 'APK',
     })),
