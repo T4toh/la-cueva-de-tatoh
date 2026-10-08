@@ -22,6 +22,7 @@ import { ColaDeGuardado } from './cola-de-guardado';
 import { DialogService } from './dialog.service';
 import { RecetaPublicaService } from './receta-publica.service';
 import { CLAVES_BACKUP, filtrarSecciones, SeccionBackup } from './backup';
+import { normalizar } from '../catalogo/catalogo';
 import {
   DaySchedule,
   Dish,
@@ -1974,16 +1975,6 @@ export class MealService {
     );
   }
 
-  // Normaliza un nombre para comparar duplicados: minúsculas, sin acentos, sin
-  // espacios sobrantes.
-  private normalizeName(name: string): string {
-    return (name ?? '')
-      .normalize('NFD')
-      .replace(/\p{Diacritic}/gu, '')
-      .trim()
-      .toLowerCase();
-  }
-
   // La comida que una importada vendría a reemplazar: primero por id —un
   // archivo exportado de acá los trae—, después por nombre normalizado, que
   // es lo único que traen los JSON armados a mano o por una IA.
@@ -1992,8 +1983,8 @@ export class MealService {
     if (porId) {
       return porId;
     }
-    const target = this.normalizeName(meal.name);
-    return this.meals().find((m) => this.normalizeName(m.name) === target);
+    const target = normalizar(meal.name);
+    return this.meals().find((m) => normalizar(m.name) === target);
   }
 
   // Aplica una importación ya resuelta por el usuario fila a fila.
