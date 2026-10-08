@@ -10,6 +10,15 @@
   </div>
 
   @if (mealService.meals().length > 0) {
+    <input
+      #buscador
+      aria-label="Buscar comida o ingrediente"
+      class="buscador"
+      placeholder="Buscar comida o ingrediente"
+      type="search"
+      [value]="texto()"
+      (input)="texto.set(buscador.value)"
+    />
     <div class="filters">
       <button
         type="button"
@@ -25,16 +34,31 @@
       >
         Compartidas
       </button>
-      @for (tag of uniqueTags(); track tag) {
-        <button
-          type="button"
-          [class.active]="selectedTag() === tag"
-          (click)="selectTag(selectedTag() === tag ? null : tag)"
+      @if (uniqueTags().length > 0) {
+        <select
+          #tags
+          aria-label="Filtrar por tag"
+          [class.active]="selectedTag() !== null"
+          (change)="selectTag(tags.value || null)"
         >
-          {{ tag }}
-        </button>
+          <option value="" [selected]="selectedTag() === null">
+            Todos los tags
+          </option>
+          @for (tag of uniqueTags(); track tag) {
+            <option [selected]="selectedTag() === tag" [value]="tag">
+              {{ tag }}
+            </option>
+          }
+        </select>
       }
     </div>
+    <p class="contador">
+      @if (sinFiltros()) {
+        {{ mealService.meals().length }} comidas
+      } @else {
+        {{ filteredMeals().length }} de {{ mealService.meals().length }}
+      }
+    </p>
   }
 
   <div class="grid">

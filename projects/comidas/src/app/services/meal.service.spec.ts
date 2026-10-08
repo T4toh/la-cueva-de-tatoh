@@ -461,6 +461,53 @@ describe('filtrarComidas', () => {
 
     expect(filtrarComidas(conClavePresente, null, true)).toEqual([]);
   });
+
+  describe('texto', () => {
+    const conIngredientes = [
+      comida({
+        id: 'tarta',
+        name: 'Tarta de Limón',
+        tags: ['postre'],
+        ingredients: [{ name: 'Harina', quantity: '200', unit: 'g' }],
+      }),
+      comida({
+        id: 'pollo',
+        name: 'Pollo al horno',
+        ingredients: [{ name: 'Limón', quantity: '1' }],
+      }),
+      comida({ id: 'guiso', name: 'Guiso' }),
+    ];
+
+    it('vacío o sólo espacios no filtra', () => {
+      expect(filtrarComidas(conIngredientes, null, false, '')).toHaveLength(3);
+      expect(filtrarComidas(conIngredientes, null, false, '  ')).toHaveLength(3);
+    });
+
+    it('busca en el nombre', () => {
+      expect(ids(filtrarComidas(conIngredientes, null, false, 'tarta'))).toEqual([
+        'tarta',
+      ]);
+    });
+
+    it('busca en los ingredientes', () => {
+      expect(ids(filtrarComidas(conIngredientes, null, false, 'harina'))).toEqual([
+        'tarta',
+      ]);
+    });
+
+    it('ignora acentos y mayúsculas', () => {
+      expect(ids(filtrarComidas(conIngredientes, null, false, 'LIMON'))).toEqual([
+        'tarta',
+        'pollo',
+      ]);
+    });
+
+    it('se compone con el tag', () => {
+      expect(ids(filtrarComidas(conIngredientes, 'postre', false, 'limón'))).toEqual([
+        'tarta',
+      ]);
+    });
+  });
 });
 
 describe('pareceBackup', () => {

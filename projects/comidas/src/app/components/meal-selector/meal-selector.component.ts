@@ -33,11 +33,17 @@ export class MealSelectorComponent implements OnInit {
   readonly porciones = signal(1);
   readonly showingList = signal(false);
   readonly selectedTag = signal<string | null>(null);
+  readonly texto = signal('');
 
   readonly uniqueTags = computed(() => tagsUnicos(this.mealService.meals()));
 
   readonly filteredMeals = computed(() =>
-    filtrarComidas(this.mealService.meals(), this.selectedTag(), false)
+    filtrarComidas(
+      this.mealService.meals(),
+      this.selectedTag(),
+      false,
+      this.texto()
+    )
   );
 
   ngOnInit(): void {

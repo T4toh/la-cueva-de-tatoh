@@ -265,17 +265,28 @@ export function tagsUnicos(meals: Meal[]): string[] {
 // Los dos filtros del listado son independientes y se componen: "compartidas
 // que además sean postre" es una pregunta legítima. Por eso son dos parámetros
 // y no una unión con un tag centinela — un centinela chocaría con un tag que
-// se llame igual.
+// se llame igual. El texto se compone igual, y busca en el nombre y en los
+// ingredientes sin distinguir acentos: "limon" tiene que encontrar "Limón".
 export function filtrarComidas(
   meals: Meal[],
   tag: string | null,
-  soloCompartidas: boolean
+  soloCompartidas: boolean,
+  texto = ''
 ): Meal[] {
+  const buscado = sinAcentos(texto.trim());
   return meals.filter(
     (meal) =>
       (!tag || (meal.tags?.includes(tag) ?? false)) &&
-      (!soloCompartidas || !!meal.publicId)
+      (!soloCompartidas || !!meal.publicId) &&
+      (!buscado ||
+        [meal.name, ...(meal.ingredients ?? []).map((i) => i.name)].some((s) =>
+          sinAcentos(s).includes(buscado)
+        ))
   );
+}
+
+function sinAcentos(s: string): string {
+  return s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
 }
 
 @Injectable({

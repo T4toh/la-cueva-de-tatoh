@@ -130,6 +130,15 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       agrega las suyas; todo va en la clave `guia`, sincronizada y en la
       sección Ajustes del backup.
 
+- [x] **Listado de comidas, más usable.** Pedido después de cargar las 121
+      comidas de la nutri. `/meals` y el selector del día tienen buscador
+      (nombre e ingredientes, sin distinguir acentos: `limon` encuentra
+      "Limón"), contador ("121 comidas" o "12 de 121") y los tags en un
+      `<select>` en vez de chips, que en el celular empujaban el listado fuera
+      de la pantalla. Los tres filtros se componen dentro de `filtrarComidas`
+      en `meal.service.ts`, y el chip "Todas" los limpia a todos. El select
+      conserva los 16px globales: más chico, iOS hace zoom al tocarlo.
+
 ## En curso / pendiente
 
 - [ ] **Recetario.** Diseñado y sin implementar. El spec está en
@@ -160,16 +169,6 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
         checklist de alta están en
         [`docs/hosting-imagenes.md`](docs/hosting-imagenes.md). Trabado en dar
         de alta la cuenta de R2, que pide tarjeta.
-
-- [ ] **Listado de comidas, más usable.** Pedido después de cargar las 121
-      comidas de la nutri: con esa cantidad el listado de `/meals` no escala.
-  - [ ] **Buscar por texto**: nombre, y de paso ingredientes.
-  - [ ] **Contador**: cuántas comidas hay, y cuántas muestra el filtro activo.
-  - [ ] **Tags que no coman la pantalla.** Hoy los chips de filtro van todos
-        arriba y en el celular empujan el listado fuera de la vista. Algo
-        colapsable o un selector; los mismos chips los usa el selector del
-        día (`filtrarComidas` en `meal.service.ts`), así que el cambio sirve
-        para los dos.
 
 - [ ] **Tips de la guía en el plan.** Una línea bajo el contador de plantas
       con una regla de la guía y un link a `/guia`. Una por día, de las
