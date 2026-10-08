@@ -168,6 +168,16 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       (pescado ≥2, carnes blancas 2, rojas ≤3), que se calculan igual que las
       plantas en `catalogo/plantas.ts`.
 
+- [ ] **Comidas sin cocinar: asado, afuera, delivery.** Un marcador para el
+      slot del día que diga "esta vez no se cocina" sin inventar una receta:
+      asado, comer afuera, en lo de alguien, pedido. Tiene que verse en el
+      plan y en la impresión, no sumar a la lista de compras y no contar para
+      las plantas de la semana (o contar sólo si se le cargan ingredientes).
+      Ojo con lo que ya existe y no es esto: `Dish.label` es una nota libre
+      por plato (se imprime como "– texto") y `Dish.excluded` saca un plato
+      del cálculo, pero los dos cuelgan de un `mealId` real. Decidir si es un
+      tipo de `Dish` sin `mealId` o un puñado de comidas especiales fijas.
+
 - [ ] **Configurador del landing.** Hoy el orden de las secciones está escrito
       a mano en `projects/perfil-personal/src/app/componentes/landing/landing.html`.
       Lo mínimo es subir los libros; lo bueno sería reordenar los bloques sin
