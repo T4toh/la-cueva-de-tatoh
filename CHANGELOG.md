@@ -4,16 +4,36 @@ Todos los cambios notables a este proyecto se documentan en este archivo. El for
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-10-08
+
+Comidas aprende algo de nutrición —un catálogo de ingredientes con porciones, las plantas distintas de la semana y una guía de reglas cortas que asoma en el plan—, el listado aguanta cien comidas, y la sincronización entre dispositivos deja de perder escrituras. En perfil-personal, un libro nuevo, muestras gratis en EPUB y un service worker que trae el deploy nuevo en la primera recarga.
+
 ### Added
 
 #### Comidas
 
+- **Catálogo de ingredientes.** Uno base en el código (`catalogo/catalogo-datos.ts`, ~130 entradas con la porción por persona de las GAPA, marcadas `estimada` donde las guías no dan gramos) y uno propio por usuario (`catalogoPropio`, sincronizado y en el backup) que lo corrige sin tocarlo. En el editor, los ingredientes pasan a ser "para 1 persona": autocompletado con el grupo, precarga de la porción si la fila está vacía, referencia por fila con aviso arriba de 1,5×, un chip para clasificar lo que no reconoce y un resumen del plato (verdura, proteína, feculento, aceite). El autocompletado sugiere el texto que coincidió, nombre o sinónimo, y no siempre el canónico: varios sinónimos son otro producto ("aceite de girasol" clasifica como aceite) y reescribirlos cambiaba lo que pide la lista de compras.
+- **Plantas por semana.** "N de 30 plantas" bajo la semana del plan, la meta de *Plant Powered Plus*. Al tocarlo muestra las contadas, las sin clasificar y hasta tres comidas propias que sumarían plantas nuevas. Se calcula sobre el plan con la misma clasificación del catálogo, así que un sinónimo o un plural cuentan como la misma planta.
+- **Guía.** Pestaña `/guia` con 18 reglas cortas, cada una con su fuente: planes de nutricionista (inferidas, como "un solo plato con carbos por día": así son 20 de los 21 días de los planes), GAPA, *Plant Powered Plus* (sólo lo medible) y sugeridas. Cada usuario oculta las que no le sirven —sin borrarlas— y agrega las suyas, que van primero. Todo en la clave `guia`, sincronizada y en la sección Ajustes del backup; lo que llega de afuera pasa por `normalizarGuia`, porque una forma rara no puede romper la pantalla.
+- **Un tip de la guía en el plan.** Una línea bajo el contador de plantas con una regla, un "Otro" y un link a `/guia`. `tipDelDia` elige la misma regla todo el día —contado en fecha local: en UTC, a las 21 de Argentina ya cambiaría— entre las que se ven en `/guia`, nunca las ocultas. El "Otro" no se guarda, así que al recargar vuelve el del día. Con todas ocultas la línea no aparece.
+- **Buscar y filtrar el listado de comidas.** Pedido después de cargar las 121 comidas de la nutri, para el listado y para el selector del día: buscador por nombre e ingredientes sin distinguir acentos (`limon` encuentra "Limón"), contador ("12 de 121") y los tags en un `<select>` —como chips empujaban el listado fuera de la pantalla del celular—. En el listado se suma el filtro de **Compartidas**, que reemplaza a un apartado propio de recetas públicas: misma información, cero rutas nuevas. Los filtros se componen en `filtrarComidas` y "Todas" los limpia a todos.
 - **Recetas con imágenes, por link.** `Meal.foto` y `Paso.foto` son URLs `https://` que se pegan a mano: no hay hosting, y por eso esto desbloquea la fase 4 del recetario sin esperar al alta de R2 —el día que haya subida real, lo único que cambia es de dónde sale la URL—. La decisión que manda es que **el hero de la ficha es una banda y la foto la rellena**: no son dos layouts, porque hoy ninguna receta tiene foto y muchas no la van a tener nunca, así que el estado sin imagen no es el caso degradado sino el normal. La tarjeta del listado a propósito **no** repite esa regla —en la ficha hay una banda, en la grilla habría treinta y cuatro bandas vacías empujando los ingredientes abajo del pliegue—, así que ahí la portada aparece sólo si hay foto. En modo cocina la foto va arriba y el texto abajo, para que los botones no se muevan haya foto o no: se les pega sin mirar. Sólo `https` porque la app se sirve por https y el navegador bloquea una imagen `http` por contenido mixto, o sea que no se vería nunca.
 - **El `og:image` de una receta compartida es su foto.** El Worker de `/r/*` ya cableaba ese tag a una constante; ahora lee `foto` del documento público y cae al ícono si no hay o si no es `https` —un `og:image` en http sobre una página https es contenido mixto y varios crawlers lo descartan, así que el fallback deja un preview feo en vez de ninguno—. `aRecetaPublica` es lista blanca a propósito, así que los dos campos nuevos se agregaron a mano: un campo de `Meal` no se publica solo.
-- **Filtro en el listado de comidas.** Los chips que existían sólo en el selector del día —`tagsUnicos` y `filtrarComidas` salieron a `meal.service.ts` y los usan los dos— más uno de **Compartidas**, que es lo que reemplaza a un apartado propio de recetas públicas: misma información, cero rutas nuevas. Los dos filtros se componen.
 - **El modo cocina no deja que se apague la pantalla.** Pide `navigator.wakeLock` al entrar, lo suelta al salir y en `ngOnDestroy`, y lo **re-pide** en `visibilitychange`: el navegador lo suelta por su cuenta cuando la pestaña se esconde, así que sin eso mirar el teléfono un segundo devolvía la pantalla apagándose. No está en Firefox de escritorio ni en el WebView de Android; falla callado, es comodidad y no función.
 
+#### Perfil Personal
+
+- **La Ciudad de Las Luces**, primer libro de la saga *Buenos Aires 2077*, con su ficha en `/libros/la-ciudad-de-las-luces`, post de lanzamiento y link a Amazon.
+- **Muestra gratis en EPUB** para cada libro: botón en `/libros/<slug>` y link de descarga en el post. Los archivos viven en `public/muestras/` —nada externo que se rompa sin avisar— y van reempaquetados con la tapa en JPG: el PNG era 5 de los 6 MB. `Libro.muestra` es opcional; sin él no hay botón.
+- **Deployment en Kobo**, y la fila de tiendas del navigator suma Apple Books y Kobo. Kobo no tiene página de autor, así que el link es la búsqueda filtrada por el facet de autor, sin el filtro de idioma: si mañana sube algo en español, aparece solo.
+- **Las tarjetas de Apps toman la última release de GitHub.** Versión y link de descarga salen de la API al cargar; lo escrito en `variables.ts` queda de respaldo si la API falla o corta por rate limit. Para un APK exige que la release traiga un `.apk`: Dokusho publica también el diccionario como release.
+
 ### Fixed
+
+#### Perfil Personal y Comidas
+
+- **El deploy nuevo aparece en la primera recarga.** Era la estrategia default del service worker (`performance`): cada navegación se respondía con el shell cacheado y recién después, en idle, se chequeaba `ngsw.json`, así que tras un deploy la primera recarga mostraba la versión vieja y sólo la segunda la nueva —de ahí "sólo funciona Ctrl+Shift+R"—. Con `navigationRequestStrategy: "freshness"` la navegación va a la red primero y el shell cacheado queda para cuando no hay red.
+- **perfil-personal avisa que hay versión nueva**, como comidas: pide `checkForUpdate()` al estabilizar y cada vez que la pestaña vuelve a estar visible, y muestra un `lib-dialogo` con *Recargar* / *Más tarde*. Una pestaña quieta antes no se enteraba nunca.
 
 #### Comidas
 
@@ -25,17 +45,29 @@ Todos los cambios notables a este proyecto se documentan en este archivo. El for
 - **Descompartir desde el listado.** Existía sólo en `/meals/:id`: el botón de la tarjeta abría el diálogo del link y ahí no había salida. Se arregló en el diálogo, que es lo que abren los dos llamadores, y no con un botón por pantalla.
 - **El editor no revienta al abrir una receta con pasos guardados antes de que existieran las fotos.** Esos pasos no traen la clave `foto`, así que el `FormGroup` salía sin ese control y el `formControlName` del template tiraba `NG01050`.
 - **Un import ya no deja recetas compartidas huérfanas.** Cuatro caminos pisan `meals` entero —la bajada de `syncFromFirestore` y los merges de `importMeals`, `applyImportedMeals` e `importData`— y podían llevarse el `publicId` sin despublicar la receta. Como `publicId` es el único puntero al documento de `recetasPublicas` y `allow list: if false` hace que no se pueda ni enumerar, el link quedaba vivo para siempre y sólo se limpiaba desde la consola de Firebase: el usuario borraba la receta y creía haber revocado un link que seguía funcionando. El guard va en el `effect` de `meals`, que es por donde pasan los cuatro, así que ninguno de los cuatro se tocó. Una bajada de Firestore no revoca nada a propósito —es el estado de otro dispositivo, y si el remoto viene viejo y gana una carrera, revocar mataría un link recién creado—, pero igual sincroniza el set para no leer después como huérfano lo que despublicó el otro dispositivo. Si el borrado falla, el `publicId` vuelve al set y se reintenta en el próximo cambio de `meals`.
+- **Las cantidades aceptan fracciones y coma decimal.** Los inputs eran `type="number"` y el navegador rechazaba `1/2` antes de llegar al formulario; y `parseQuantity` leía `1,5` como `1`, con la coma pasada a la unidad. El texto se guarda como se escribió.
+- **Revocar un link huérfano sobrevive a cerrar la pestaña.** Los `publicId` por revocar vivían en memoria, y Firestore corre sin cache persistente: un borrado fallido o colgado sin red se perdía. Ahora van a `localStorage` y se reintentan en cada cambio de `meals` y al recuperar la sesión; un `permission-denied` quiere decir que el documento ya no existe y se olvida.
+- **Reemplazar una comida al importar ya no pierde pasos, foto ni link.** Se armaba de cero, y al perder el `publicId` la barrida de huérfanos revocaba el link público. Ahora conserva el de la existente, y una comida nueva no hereda el de otra.
+- **Elegir una sugerencia con el mouse en el editor escribía en otra fila**: usaba el `$index` del `@for` de sugerencias, no el de la fila.
 
 ### Changed
 
 #### Comidas
 
+- **Un solo importador, con vista previa.** Había cuatro caminos de importar con cuatro comportamientos, y el botón del panel "Comidas" agregaba sin preguntar: un JSON sin ids sumaba copias en cada import. Ahora Ajustes tiene un único panel de copia de seguridad, y la vista previa detecta qué se le dio. Un backup se elige por secciones —comidas, calendario, compras, despensa, ajustes— y avisa si el calendario queda apuntando a comidas que no están. Una lista de comidas se revisa por fila, buscando la existente por id y después por nombre, con la opción de reemplazar la lista entera para limpiar duplicados.
 - **El diálogo del link es el dueño de todo el flujo de compartir**: copiar, abrir, dejar de compartir, y compartir con la hoja del sistema vía `navigator.share` donde exista —en Firefox de escritorio y en el WebView de Android no está, y ahí el diálogo queda como estaba—. El alias se edita en ese mismo diálogo, que es donde se ve lo que hace: firma la receta y es el primer segmento del link. `lib-dialogo` ya proyectaba con `<ng-content>`, así que el input lo dibuja el template del `App` con un `campo?` opcional del `DialogService` y la librería no cambió. Renombrarse no mata los links repartidos: el id de ocho es la llave.
 - **El estado de "compartida" lo lleva el botón de la tarjeta, no un badge aparte.** Eran seis elementos en un pie que no envuelve —el sexto se recortaba— y dos de ellos el mismo icono para dos cosas distintas. Además el badge no era clickeable, así que el estado ahora vive donde se puede actuar sobre él.
 - **Las llamadas a Firestore corren dentro del contexto de inyección.** Salen de effects y de promesas resueltas, no del constructor, y AngularFire avisaba en cada carga que eso puede desestabilizar el change detection. Un `enContexto()` por servicio envuelve la llamada entera de forma síncrona, que es lo que importa: lo que tiene que nacer adentro es la promesa, no su resolución.
 - **`despublicarHuerfanos` y `sincronizarPublicadas` no corren sin sesión.** Al arrancar, el effect de `meals` va antes de que auth resuelva, y disparaban una escritura condenada por cada receta compartida.
 - El Worker de los `og:` de `/r/*` expone su lógica pura (`ID_VALIDO`, `normalizar`, `describir`) y la testea en `src/app/worker-og.spec.ts`, sin agregar un runner de Workers: `HTMLRewriter` y el binding `ASSETS` sólo se referencian adentro del `fetch`. La normalización de la forma REST de Firestore salió de `leerReceta` a su propia función, que es donde un cambio de ese contrato externo daría "0 ingredientes" en silencio en vez de fallar. El rewrite en sí se sigue verificando a mano con `wrangler dev`.
 
+#### Componentes
+
+- **`mismoBuild()` se comparte entre las dos apps.** Con `freshness`, la primera recarga tras un deploy ya corre el build nuevo pero el service worker tiene al cliente en el viejo, y avisa una "versión nueva" que ya está en pantalla. La comparación de los bundles cargados contra el `hashTable` nuevo sale de comidas a `componentes`, y las dos apps la usan para activar en silencio.
+
+#### Perfil Personal
+
+- Versiones de respaldo de las tarjetas de Apps al día: Pulpero 1.2.0, Dokusho beta.6, tWriter 0.20.0.
 
 ### Removed
 
