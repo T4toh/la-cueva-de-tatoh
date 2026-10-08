@@ -377,3 +377,37 @@ h2 {
     }
   }
 }
+
+.hint,
+.referencia {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+}
+
+.referencia.aviso {
+  color: var(--warning);
+}
+
+.suggestion-item .grupo {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--fg-muted);
+}
+
+.resumen-plato {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--fg-secondary);
+
+  .falta {
+    color: var(--warning);
+    font-weight: 600;
+  }
+
+  span + span::before {
+    content: ' · ';
+    color: var(--fg-muted);
+    font-weight: normal;
+  }
+}

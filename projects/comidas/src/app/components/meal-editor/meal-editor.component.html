@@ -116,15 +116,19 @@
 
     <div class="ingredients-section">
       <div class="header">
-        <h2>Ingredientes</h2>
+        <h2>Ingredientes · para 1 persona</h2>
         <button class="btn-secondary" type="button" (click)="addIngredient()">
           + Agregar
         </button>
       </div>
+      <p class="hint">
+        Las cantidades son de una porción; la lista de compras y el ×N de la
+        receta las multiplican.
+      </p>
 
       <div formArrayName="ingredients">
-        @for (ing of ingredients.controls; track $index) {
-          <div class="ingredient-row" [formGroupName]="$index">
+        @for (ing of ingredients.controls; track $index; let fila = $index) {
+          <div class="ingredient-row" [formGroupName]="fila">
             <div class="ingredient-autocomplete">
               <input
                 formControlName="name"
@@ -143,9 +147,12 @@
                       [class.highlighted]="
                         highlightedSuggestionIndex() === $index
                       "
-                      (mousedown)="selectSuggestion(suggestion, $index)"
+                      (mousedown)="selectSuggestion(suggestion, fila)"
                     >
-                      {{ suggestion }}
+                      {{ suggestion.nombre }}
+                      @if (suggestion.grupo) {
+                        <span class="grupo">{{ etiquetaGrupo[suggestion.grupo] }}</span>
+                      }
                     </div>
                   }
                 </div>
@@ -165,6 +172,16 @@
               X
             </button>
           </div>
+          @if (referenciaDe(fila); as ref) {
+            <p class="referencia" [class.aviso]="ref.aviso">{{ ref.texto }}</p>
+          }
+        }
+        @if (chipsPlato(); as chips) {
+          <p class="resumen-plato">
+            @for (c of chips; track c.etiqueta) {
+              <span [class.falta]="c.falta">{{ c.etiqueta }} {{ c.marca }}</span>
+            }
+          </p>
         }
       </div>
     </div>

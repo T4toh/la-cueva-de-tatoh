@@ -15,7 +15,17 @@ import {
   CompartirService,
 } from '../../services/compartir.service';
 import { Meal, Paso } from '../../models/meal.model';
+import {
+  clasificar,
+  EntradaCatalogo,
+  ETIQUETA_GRUPO,
+  Sugerencia,
+  sugerencias,
+} from '../../catalogo/catalogo';
+import { excede, ResumenPlato, resumenPlato, textoReferencia } from '../../catalogo/plato';
 import { Tag } from 'componentes';
+
+type ChipPlato = { etiqueta: string; marca: string; falta: boolean };
 
 @Component({
   selector: 'app-meal-editor',
@@ -45,16 +55,15 @@ export class MealEditorComponent implements OnInit {
   private readonly currentInputValue = signal<string>('');
   readonly highlightedSuggestionIndex = signal<number>(-1);
 
-  readonly filteredSuggestions = computed(() => {
-    const value = this.currentInputValue().toLowerCase().trim();
-    if (value.length < 2) {
-      return [];
-    }
-    return this.mealService
-      .allIngredientNames()
-      .filter((name) => name.includes(value) && name !== value)
-      .slice(0, 8);
-  });
+  readonly filteredSuggestions = computed(() =>
+    sugerencias(
+      this.currentInputValue(),
+      this.mealService.catalogoEfectivo(),
+      this.mealService.allIngredientNames()
+    )
+  );
+
+  readonly etiquetaGrupo = ETIQUETA_GRUPO;
 
   showSuggestionsFor(index: number): boolean {
     return (
@@ -104,12 +113,60 @@ export class MealEditorComponent implements OnInit {
     }
   }
 
-  selectSuggestion(name: string, ingredientIndex: number): void {
-    const control = (this.ingredients.at(ingredientIndex) as FormGroup).get(
-      'name'
-    );
-    control?.setValue(name);
+  // Al elegir del catálogo, el nombre queda canónico y —sólo si están vacías—
+  // cantidad y unidad se llenan con la porción de referencia. Nunca pisa lo
+  // escrito.
+  selectSuggestion(sugerencia: Sugerencia, ingredientIndex: number): void {
+    const fila = this.ingredients.at(ingredientIndex) as FormGroup;
+    fila.get('name')?.setValue(sugerencia.nombre);
+    const entrada = this.entradaDe(sugerencia.nombre);
+    const vacia = !fila.get('quantity')?.value && !fila.get('unit')?.value;
+    if (entrada?.porcion !== undefined && vacia) {
+      fila.patchValue({ quantity: String(entrada.porcion), unit: entrada.unidad });
+    }
     this.activeIngredientIndex.set(-1);
+  }
+
+  entradaDe(nombre: string): EntradaCatalogo | null {
+    return clasificar(nombre, this.mealService.indiceCatalogo());
+  }
+
+  // La referencia de porción de la fila, y si la cantidad se pasa. En el
+  // componente y no en el template: ahí ya está al límite de complejidad.
+  referenciaDe(index: number): { texto: string; aviso: boolean } | null {
+    const { name, quantity, unit } = this.ingredients.at(index).value as {
+      name: string;
+      quantity: string;
+      unit: string;
+    };
+    const entrada = this.entradaDe(name);
+    const texto = entrada && textoReferencia(entrada);
+    return entrada && texto ? { texto, aviso: excede(quantity, unit, entrada) } : null;
+  }
+
+  // `null` y no `[]` cuando no hay nada clasificado: el template lo usa en un
+  // `@if`, y un array vacío es truthy.
+  chipsPlato(): ChipPlato[] | null {
+    const r: ResumenPlato = resumenPlato(
+      this.ingredients.value as { name: string }[],
+      this.mealService.indiceCatalogo()
+    );
+    if (!r.clasificados) {
+      return null;
+    }
+    const chip = (etiqueta: string, ok: boolean, resaltar = false): ChipPlato => ({
+      etiqueta,
+      marca: ok ? '✓' : '—',
+      falta: resaltar && !ok,
+    });
+    // Sólo la falta de verdura se resalta: es la regla que las GAPA ponen en
+    // almuerzo y cena.
+    return [
+      chip('Verdura', r.verdura, true),
+      chip('Proteína', r.proteina),
+      chip('Feculento', r.feculento),
+      chip('Aceite', r.aceite),
+    ];
   }
 
   constructor() {
