@@ -121,6 +121,15 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       dashboard: plantas distintas de la semana contra una meta de 30, con las
       comidas propias que más sumarían.
 
+- [x] **Guía.** El spec está en
+      [`docs/superpowers/specs/2026-10-08-guia-design.md`](docs/superpowers/specs/2026-10-08-guia-design.md).
+      Pestaña `/guia` con 15 reglas cortas, cada una con su fuente: planes de
+      nutricionista (inferidas, como "un solo plato con carbos por día": así
+      son 20 de 21 días de los planes), GAPA, el libro (sólo lo medible) y
+      sugeridas. Cada usuario oculta las que no le sirven —sin borrarlas— y
+      agrega las suyas; todo va en la clave `guia`, sincronizada y en la
+      sección Ajustes del backup.
+
 ## En curso / pendiente
 
 - [ ] **Recetario.** Diseñado y sin implementar. El spec está en
@@ -161,6 +170,12 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
         colapsable o un selector; los mismos chips los usa el selector del
         día (`filtrarComidas` en `meal.service.ts`), así que el cambio sirve
         para los dos.
+
+- [ ] **Chequeos de la guía contra la semana.** Uno por regla, calculados
+      sobre el plan como `catalogo/plantas.ts`: primero "carbos dos veces el
+      mismo día" (dos platos del día con `feculentos` o `pan`) y "carne roja
+      más de 3". Para la carne roja hace falta distinguirla en el catálogo:
+      hoy `carnesHuevos` mezcla vaca, pollo, pescado y huevo.
 
 - [ ] **Después del catálogo.** Lo que el spec dejó fuera de alcance:
       **calorías** (un campo kcal/100 g en `EntradaCatalogo`, de la tabla de

@@ -1,7 +1,7 @@
 # Guía: las reglas de comer bien, a la vista
 
 Fecha: 2026-10-08
-Estado: diseñado, sin implementar
+Estado: implementado
 
 ## Qué resuelve
 
