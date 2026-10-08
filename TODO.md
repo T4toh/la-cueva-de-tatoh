@@ -139,6 +139,14 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
         [`docs/hosting-imagenes.md`](docs/hosting-imagenes.md). Trabado en dar
         de alta la cuenta de R2, que pide tarjeta.
 
+- [ ] **Catálogo de ingredientes, porciones y plantas por semana.** Diseñado
+      y sin implementar. El spec está en
+      [`docs/superpowers/specs/2026-10-08-catalogo-ingredientes-design.md`](docs/superpowers/specs/2026-10-08-catalogo-ingredientes-design.md).
+      Un catálogo base en el código más uno propio por usuario: normaliza
+      ingredientes y tags, sugiere la porción por persona según las GAPA y
+      cuenta las plantas distintas de la semana. Primer paso antes de
+      implementar: corregir las recetas cargadas a cantidades por persona.
+
 - [ ] **Configurador del landing.** Hoy el orden de las secciones está escrito
       a mano en `projects/perfil-personal/src/app/componentes/landing/landing.html`.
       Lo mínimo es subir los libros; lo bueno sería reordenar los bloques sin
