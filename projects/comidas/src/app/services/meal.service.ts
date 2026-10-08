@@ -38,10 +38,9 @@ import {
 // Las cantidades se escriben a mano y vienen de todas las formas: '2', '0.5',
 // '1/2', '1 1/2', '2 tazas'. Una sola gramática para todas, porque hasta ahora
 // había tres regex distintas y la de cargar desde Firestore aplastaba '1/2' a
-// '1' antes de que ninguna de las otras la viera.
-// ponytail: sin coma decimal — '1,5' se lee como 1. Si alguna vez importa,
-// normalizar la coma a punto antes de parsear.
-const CANTIDAD = /^\s*(?:(\d+)\s+)?(\d+(?:\.\d+)?)(?:\s*\/\s*(\d+))?/;
+// '1' antes de que ninguna de las otras la viera. La coma decimal vale igual
+// que el punto: acá se escribe '1,5'.
+const CANTIDAD = /^\s*(?:(\d+)\s+)?(\d+(?:[.,]\d+)?)(?:\s*\/\s*(\d+))?/;
 
 export type CantidadParseada = {
   // El número resuelto: '1 1/2' da 1.5.
@@ -68,9 +67,10 @@ export function parseQuantity(quantity: string): CantidadParseada | null {
   }
 
   // parseFloat('1/2') devuelve 1: hay que dividir a mano, no alcanza con leer.
+  const numero = Number(numerador.replace(',', '.'));
   const valor = denominador
-    ? Number(entero ?? 0) + Number(numerador) / divisor
-    : Number(numerador);
+    ? Number(entero ?? 0) + numero / divisor
+    : numero;
 
   return {
     valor,
@@ -331,6 +331,17 @@ export class MealService {
   private readonly MIGRATION_DISH_FORMAT_KEY = 'comidas_migration_dish_format';
   private readonly MIGRATION_SPLIT_UNIT_KEY = 'comidas_migration_split_unit';
   private readonly ALIAS_KEY = 'comidas_alias';
+  private readonly POR_REVOCAR_KEY = 'comidas_por_revocar';
+  // Links huérfanos que todavía no se confirmaron revocados. Una vez que el
+  // `publicId` salió de `meals`, éste es el único lado donde queda el puntero,
+  // y en memoria no alcanza: un borrado que falló, o que quedó colgado sin red
+  // —Firestore corre sin cache persistente—, se perdía al cerrar la pestaña.
+  private readonly porRevocar = new Set<string>(
+    JSON.parse(localStorage.getItem(this.POR_REVOCAR_KEY) ?? '[]') as string[]
+  );
+  // Los que tienen un `deleteDoc` en curso. Sin red quedan colgados, y cada
+  // cambio de `meals` encolaría otro borrado del mismo documento.
+  private readonly revocando = new Set<string>();
   readonly alias = signal<string>(localStorage.getItem(this.ALIAS_KEY) ?? '');
   private scheduleMigrationOccurred = false;
   readonly migrationOccurred = signal<boolean>(false);
@@ -434,6 +445,11 @@ export class MealService {
       if (user && user.uid !== this.uidSincronizado) {
         this.uidSincronizado = user.uid;
         this.escuchar(user.uid);
+      }
+      if (user) {
+        // Al arrancar y en cada refresco del token: lo anotado en otra
+        // apertura no espera a que se toque una comida.
+        untracked(() => this.revocarPendientes());
       }
       if (user === null) {
         // Sin sesión, lo retenido mientras auth resolvía no tiene a quién ir,
@@ -615,22 +631,50 @@ export class MealService {
   }
 
   // Revoca los documentos públicos que se quedaron sin puntero.
-  //
-  // ponytail: el reintento cuelga del próximo cambio de `meals`. Si el
-  // usuario importa un backup sin conexión y no vuelve a tocar una comida, el
-  // link queda vivo. Salida: reintentar también al recuperar la sesión.
   private despublicarHuerfanos(meals: Meal[]): void {
     for (const publicId of huerfanos(this.publicados, meals)) {
       this.espejo.delete(publicId);
-      this.recetasPublicas.despublicar(publicId).catch((e) => {
-        // `publicId` ya no está en ningún `Meal`, así que este set es el
-        // único lado donde queda el puntero: devolverlo es lo que deja
-        // reintentar en el próximo cambio de `meals`. Sin eso el documento
-        // queda vivo y sólo se borra desde la consola de Firebase.
-        this.publicados.add(publicId);
-        console.error('Error despublicando una receta huérfana:', e);
-      });
+      this.porRevocar.add(publicId);
     }
+    this.revocarPendientes();
+  }
+
+  // Corre en cada cambio de `meals` y cada vez que hay sesión. Un id sale de
+  // la lista sólo cuando el documento ya no existe; si no, el documento queda
+  // vivo y sólo se borra desde la consola de Firebase.
+  private revocarPendientes(): void {
+    this.guardarPorRevocar();
+    for (const publicId of this.porRevocar) {
+      if (this.revocando.has(publicId)) {
+        continue;
+      }
+      this.revocando.add(publicId);
+      this.recetasPublicas
+        .despublicar(publicId)
+        .then(() => this.olvidarRevocacion(publicId))
+        .catch((e: { code?: string }) => {
+          // Las reglas leen `resource.data`, así que borrar uno que ya no
+          // existe da `permission-denied`: no hay nada que reintentar.
+          if (e?.code === 'permission-denied') {
+            this.olvidarRevocacion(publicId);
+          } else {
+            console.error('Error despublicando una receta huérfana:', e);
+          }
+        })
+        .finally(() => this.revocando.delete(publicId));
+    }
+  }
+
+  private olvidarRevocacion(publicId: string): void {
+    this.porRevocar.delete(publicId);
+    this.guardarPorRevocar();
+  }
+
+  private guardarPorRevocar(): void {
+    localStorage.setItem(
+      this.POR_REVOCAR_KEY,
+      JSON.stringify(Array.from(this.porRevocar))
+    );
   }
 
   private sincronizarPublicadas(meals: Meal[]): void {
