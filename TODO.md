@@ -147,6 +147,16 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       cuenta las plantas distintas de la semana. Primer paso antes de
       implementar: corregir las recetas cargadas a cantidades por persona.
 
+- [ ] **Listado de comidas, más usable.** Pedido después de cargar las 121
+      comidas de la nutri: con esa cantidad el listado de `/meals` no escala.
+  - [ ] **Buscar por texto**: nombre, y de paso ingredientes.
+  - [ ] **Contador**: cuántas comidas hay, y cuántas muestra el filtro activo.
+  - [ ] **Tags que no coman la pantalla.** Hoy los chips de filtro van todos
+        arriba y en el celular empujan el listado fuera de la vista. Algo
+        colapsable o un selector; los mismos chips los usa el selector del
+        día (`filtrarComidas` en `meal.service.ts`), así que el cambio sirve
+        para los dos.
+
 - [ ] **Configurador del landing.** Hoy el orden de las secciones está escrito
       a mano en `projects/perfil-personal/src/app/componentes/landing/landing.html`.
       Lo mínimo es subir los libros; lo bueno sería reordenar los bloques sin
