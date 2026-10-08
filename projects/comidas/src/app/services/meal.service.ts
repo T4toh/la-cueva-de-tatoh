@@ -1083,11 +1083,14 @@ export class MealService {
     return data ? (JSON.parse(data) as EntradaCatalogo[]) : [];
   }
 
-  // Una entrada por nombre normalizado: guardar otra vez la reemplaza.
+  // Una entrada por nombre normalizado: guardar otra vez la reemplaza. Lo
+  // guardado conserva los acentos —es lo que aparece en el autocompletado y
+  // termina en la receta—; `normalizar` es sólo para comparar.
   guardarEnCatalogo(entrada: EntradaCatalogo): void {
-    const nombre = normalizar(entrada.nombre);
+    const nombre = entrada.nombre.trim().toLowerCase();
+    const clave = normalizar(nombre);
     this.catalogoPropio.update((actual) => [
-      ...actual.filter((e) => normalizar(e.nombre) !== nombre),
+      ...actual.filter((e) => normalizar(e.nombre) !== clave),
       { ...entrada, nombre },
     ]);
   }

@@ -51,6 +51,15 @@ describe('clasificar', () => {
     expect(clasificar('limones', indice)?.nombre).toBe('limón');
   });
 
+  it('entiende el singular de una entrada escrita en plural', () => {
+    const plurales = indexar([
+      { nombre: 'garbanzos', grupo: 'feculentos', unidad: 'g', legumbre: true },
+      { nombre: 'nueces', grupo: 'aceitesSemillas', unidad: 'puñado' },
+    ]);
+    expect(clasificar('garbanzo', plurales)?.nombre).toBe('garbanzos');
+    expect(clasificar('Nuez', plurales)?.nombre).toBe('nueces');
+  });
+
   it('no clasifica por coincidencia parcial', () => {
     expect(clasificar('salsa de tomate', indice)).toBeNull();
     expect(clasificar('zanahoria rallada', indice)).toBeNull();
@@ -105,13 +114,20 @@ describe('sugerencias', () => {
     expect(r).not.toContainEqual({ nombre: 'pechuga' });
   });
 
-  it('busca también por sinónimo', () => {
-    expect(sugerencias('perita', base, [])).toEqual([{ nombre: 'tomate', grupo: 'hortalizas' }]);
+  it('por sinónimo sugiere el sinónimo, no el canónico: puede ser otro producto', () => {
+    expect(sugerencias('perita', base, [])).toEqual([{ nombre: 'tomate perita', grupo: 'hortalizas' }]);
+    const aceites: EntradaCatalogo[] = [
+      { nombre: 'aceite de oliva', sinonimos: ['aceite de girasol'], grupo: 'aceitesSemillas', unidad: 'cda' },
+    ];
+    expect(sugerencias('aceite de gir', aceites, ['aceite de girasol'])).toEqual([
+      { nombre: 'aceite de girasol', grupo: 'aceitesSemillas' },
+    ]);
   });
 
   it('no sugiere con menos de dos letras ni lo que ya está escrito igual', () => {
     expect(sugerencias('t', base, [])).toEqual([]);
-    expect(sugerencias('tomate', base, [])).toEqual([]);
+    // Lo ya escrito no vuelve; un sinónimo más específico sí.
+    expect(sugerencias('tomate', base, [])).toEqual([{ nombre: 'tomate perita', grupo: 'hortalizas' }]);
   });
 });
 
@@ -137,6 +153,19 @@ describe('entradaPropia', () => {
     expect(entradaPropia('kale', null, { ...valores, porcion: '1,5' }).porcion).toBe(1.5);
     expect(entradaPropia('kale', null, { ...valores, porcion: 'mucho' })).not.toHaveProperty('porcion');
     expect(entradaPropia('kale', null, { ...valores, porcion: '0' })).not.toHaveProperty('porcion');
+  });
+
+  it('corregir la porción conserva legumbre y planta de la entrada', () => {
+    const lentejas = entradaPropia('lentejas', base[3], { grupo: 'feculentos', unidad: 'g', porcion: '100' });
+    expect(lentejas.legumbre).toBe(true);
+    const aceite = entradaPropia('aceite de oliva', base[4], { grupo: 'aceitesSemillas', unidad: 'cda', porcion: '2' });
+    expect(aceite.planta).toBe(false);
+  });
+
+  it('cambiar de grupo descarta las excepciones del grupo anterior', () => {
+    const r = entradaPropia('lentejas', base[3], { grupo: 'hortalizas', unidad: 'g', porcion: '' });
+    expect(r).not.toHaveProperty('legumbre');
+    expect(r).not.toHaveProperty('planta');
   });
 
   it('sin unidad queda en "unidad"', () => {

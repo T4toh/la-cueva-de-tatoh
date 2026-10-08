@@ -417,6 +417,13 @@ describe('MealService: catálogo propio', () => {
     expect(JSON.parse(localStorage.getItem('comidas_catalogo_propio')!)).toHaveLength(1);
   });
 
+  it('guardar conserva los acentos del nombre', () => {
+    const service = TestBed.inject(MealService);
+    service.guardarEnCatalogo({ nombre: ' Brócoli Ñato ', grupo: 'hortalizas', unidad: 'unidad' });
+
+    expect(service.catalogoPropio()[0].nombre).toBe('brócoli ñato');
+  });
+
   it('el índice reconoce lo propio y lo propio corrige el base', () => {
     const service = TestBed.inject(MealService);
     service.guardarEnCatalogo({ nombre: 'huevo', grupo: 'carnesHuevos', unidad: 'unidad', porcion: 2 });

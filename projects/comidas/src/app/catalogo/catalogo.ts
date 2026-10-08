@@ -93,12 +93,16 @@ export function indexar(entradas: readonly EntradaCatalogo[]): IndiceCatalogo {
 }
 
 // En castellano el plural de vocal suma -s (tomates) y el de consonante -es
-// (limones), y de la palabra sola no se sabe cuál fue: se prueban los dos.
+// (limones), y de la palabra sola no se sabe cuál fue: se prueban los dos, en
+// las dos direcciones, porque el catálogo tiene entradas en singular (tomate)
+// y en plural (garbanzos). La -z pasa a -ces (nuez, nueces).
 function candidatos(clave: string): string[] {
   const palabras = clave.split(' ');
   const sinS = palabras.map((p) => (p.length > 3 && p.endsWith('s') ? p.slice(0, -1) : p));
   const sinEs = palabras.map((p) => (p.length > 4 && p.endsWith('es') ? p.slice(0, -2) : p));
-  return [clave, sinS.join(' '), sinEs.join(' ')];
+  const conS = palabras.map((p) => p + 's');
+  const conEs = palabras.map((p) => (p.endsWith('z') ? p.slice(0, -1) + 'ces' : p + 'es'));
+  return [clave, sinS, sinEs, conS, conEs].map((c) => (Array.isArray(c) ? c.join(' ') : c));
 }
 
 // Sin coincidencias parciales a propósito: "salsa de tomate" no es tomate. Lo
@@ -129,10 +133,16 @@ export function sugerencias(
   if (q.length < 2) {
     return [];
   }
-  const delCatalogo = entradas
-    .filter((e) => normalizar(e.nombre) !== q)
-    .filter((e) => [e.nombre, ...(e.sinonimos ?? [])].some((n) => normalizar(n).includes(q)))
-    .map((e) => ({ nombre: e.nombre, grupo: e.grupo }));
+  // Se sugiere el texto que coincidió, nombre o sinónimo, y no siempre el
+  // canónico: varios sinónimos son otro producto ("aceite de girasol" es
+  // aceite de oliva para el catálogo, no para la lista de compras). El
+  // sinónimo clasifica a la misma entrada, así que porción y plantas no
+  // cambian.
+  const delCatalogo = entradas.flatMap((e) =>
+    [e.nombre, ...(e.sinonimos ?? [])]
+      .filter((n) => normalizar(n) !== q && normalizar(n).includes(q))
+      .map((nombre) => ({ nombre, grupo: e.grupo }))
+  );
   const indice = indexar(entradas);
   const sueltos = propios
     .filter((n) => normalizar(n) !== q && normalizar(n).includes(q))
@@ -150,9 +160,15 @@ export function entradaPropia(
   valores: { grupo: Grupo; unidad: string; porcion: string }
 ): EntradaCatalogo {
   const porcion = Number(valores.porcion.trim().replace(',', '.'));
+  // Las excepciones de la entrada valen para su grupo: corregir la porción
+  // de las lentejas no puede sacarlas de legumbres, pero pasarlas a
+  // hortalizas sí.
+  const mismoGrupo = existente?.grupo === valores.grupo;
   return {
     nombre: existente?.nombre ?? nombreFila.trim(),
     ...(existente?.sinonimos ? { sinonimos: existente.sinonimos } : {}),
+    ...(mismoGrupo && existente?.planta !== undefined ? { planta: existente.planta } : {}),
+    ...(mismoGrupo && existente?.legumbre ? { legumbre: true } : {}),
     grupo: valores.grupo,
     unidad: valores.unidad.trim() || 'unidad',
     ...(porcion > 0 ? { porcion } : {}),
