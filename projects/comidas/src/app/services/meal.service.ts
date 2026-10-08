@@ -21,6 +21,7 @@ import { AuthService } from './auth.service';
 import { ColaDeGuardado } from './cola-de-guardado';
 import { DialogService } from './dialog.service';
 import { RecetaPublicaService } from './receta-publica.service';
+import { CLAVES_BACKUP, filtrarSecciones, SeccionBackup } from './backup';
 import {
   DaySchedule,
   Dish,
@@ -224,22 +225,11 @@ export function huerfanos(previos: Set<string>, meals: Meal[]): string[] {
   return Array.from(previos).filter((publicId) => !vigentes.has(publicId));
 }
 
-// Las claves que un backup puede traer. `version` no está: se escribe pero no
-// se lee nunca, así que un archivo que sólo tenga eso no es un backup.
-const CLAVES_BACKUP = [
-  'meals',
-  'schedules',
-  'tags',
-  'ingredientTags',
-  'extraItems',
-  'extraItemsHistory',
-  'overrides',
-  'checkedItems',
-  'alias',
-  'pantry',
-  'pantryGroups',
-  'familySettings',
-];
+function sinPublicId(meal: Meal): Meal {
+  const copia = { ...meal };
+  delete copia.publicId;
+  return copia;
+}
 
 // Un JSON válido no es un backup. Sin esto, elegir el archivo equivocado no
 // avisaba nada: no había ninguna clave que aplicar y el cartel decía
@@ -306,8 +296,8 @@ export class MealService {
   private readonly espejo = new Map<string, string>();
   // Los `publicId` que `meals` tenía la última vez que el effect corrió. Los
   // cuatro caminos que pisan `meals` entero (la descarga de
-  // `syncFromFirestore`, y los merges de `importMeals`, `applyImportedMeals`
-  // e `importData`) pueden dejar caer uno sin despublicarlo; el diff contra
+  // `syncFromFirestore`, `applyImportedMeals`, `reemplazarComidas` e
+  // `importData`) pueden dejar caer uno sin despublicarlo; el diff contra
   // este set es lo que los cubre a los cuatro sin un guard en cada uno.
   //
   // Arranca vacío y no hace falta sembrarlo: la primera corrida del effect
@@ -1967,46 +1957,6 @@ export class MealService {
     window.URL.revokeObjectURL(url);
   }
 
-  exportMeals(): void {
-    const data = { meals: this.meals(), version: '1.0' };
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: 'application/json',
-    });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `comidas-meals-${new Date().toISOString().split('T')[0]}.json`;
-    link.click();
-    window.URL.revokeObjectURL(url);
-  }
-
-  importMeals(jsonContent: string): void {
-    try {
-      const normalized = this.parseMealsInput(jsonContent);
-      if (!normalized) {
-        this.dialogService.alert(
-          'Error',
-          'El archivo no contiene comidas válidas.'
-        );
-        return;
-      }
-      const existing = this.meals();
-      const existingMap = new Map(existing.map((m) => [m.id, m]));
-      normalized.forEach((m) => existingMap.set(m.id, m));
-      this.meals.set(Array.from(existingMap.values()));
-      this.dialogService.alert(
-        'Importación',
-        `Se importaron ${normalized.length} comida(s) correctamente.`
-      );
-    } catch (error) {
-      console.error('Error al importar comidas:', error);
-      this.dialogService.alert(
-        'Error',
-        'El archivo no tiene un formato válido.'
-      );
-    }
-  }
-
   // Parsea un JSON de comidas (array crudo o { meals: [...] }), normaliza
   // cantidades y asegura un id en cada comida. Lanza si el JSON es inválido.
   parseMealsInput(jsonContent: string): Meal[] | null {
@@ -2034,10 +1984,15 @@ export class MealService {
       .toLowerCase();
   }
 
-  // Busca una comida existente por nombre normalizado (los JSON pegados/IA
-  // suelen no traer id).
-  findMealByName(name: string): Meal | undefined {
-    const target = this.normalizeName(name);
+  // La comida que una importada vendría a reemplazar: primero por id —un
+  // archivo exportado de acá los trae—, después por nombre normalizado, que
+  // es lo único que traen los JSON armados a mano o por una IA.
+  buscarExistente(meal: Pick<Meal, 'id' | 'name'>): Meal | undefined {
+    const porId = meal.id ? this.meals().find((m) => m.id === meal.id) : undefined;
+    if (porId) {
+      return porId;
+    }
+    const target = this.normalizeName(meal.name);
     return this.meals().find((m) => this.normalizeName(m.name) === target);
   }
 
@@ -2058,19 +2013,24 @@ export class MealService {
         continue;
       }
       if (action === 'replace') {
-        const existing =
-          (meal.id && byId.has(meal.id)
-            ? current[byId.get(meal.id)!]
-            : this.findMealByName(meal.name)) ?? null;
+        const existing = this.buscarExistente(meal);
         if (existing) {
           const idx = byId.get(existing.id)!;
-          current[idx] = { ...meal, id: existing.id };
+          // El link público es de la comida que ya existe, no del archivo:
+          // perderlo acá lo revocaría en la barrida de huérfanos.
+          current[idx] = {
+            ...sinPublicId(meal),
+            id: existing.id,
+            ...(existing.publicId ? { publicId: existing.publicId } : {}),
+          };
           imported++;
           continue;
         }
         // Sin match para reemplazar: cae a "nuevo".
       }
-      const fresh = { ...meal, id: this.generateId() };
+      // Una comida nueva no hereda el link de otra: dos comidas con el mismo
+      // `publicId` se pisarían el documento público.
+      const fresh = { ...sinPublicId(meal), id: this.generateId() };
       current.push(fresh);
       byId.set(fresh.id, current.length - 1);
       imported++;
@@ -2080,35 +2040,10 @@ export class MealService {
     return imported;
   }
 
-  // Resumen de conteos de un backup completo, para preview antes de restaurar.
-  parseBackupSummary(jsonContent: string): {
-    valid: boolean;
-    counts?: Record<string, number>;
-  } {
-    try {
-      const data = JSON.parse(jsonContent);
-      if (!data || typeof data !== 'object') {
-        return { valid: false };
-      }
-      const len = (v: unknown): number =>
-        Array.isArray(v)
-          ? v.length
-          : v && typeof v === 'object'
-            ? Object.keys(v).length
-            : 0;
-      return {
-        valid: true,
-        counts: {
-          Comidas: len(data.meals),
-          Planificaciones: len(data.schedules),
-          Etiquetas: len(data.tags),
-          Despensa: len(data.pantry),
-          Ajustes: data.familySettings ? 1 : 0,
-        },
-      };
-    } catch {
-      return { valid: false };
-    }
+  // Reemplaza la lista entera por la importada, ids incluidos. Es lo que
+  // limpia duplicados: un merge por fila no saca lo que ya sobraba.
+  reemplazarComidas(meals: Meal[]): void {
+    this.meals.set(this.normalizeMealQuantities(meals));
   }
 
   generateLLMPrompt(): string {
@@ -2144,8 +2079,8 @@ export class MealService {
 
   // Restaura un backup completo. **Reemplaza** cada clave que venga en el
   // archivo —no mergea— y los efectos suben lo reemplazado a Firestore, así
-  // que se propaga a los demás dispositivos. Para tocar sólo las comidas, y
-  // mergeando por id, está `importMeals`.
+  // que se propaga a los demás dispositivos. Con `secciones`, sólo las claves
+  // de esas secciones (ver `backup.ts`); el resto del archivo se ignora.
   //
   // Se arma todo antes de tocar un solo signal. Antes aplicaba mientras
   // parseaba: un archivo que reventaba en la mitad dejaba unas claves
@@ -2158,14 +2093,14 @@ export class MealService {
   // `version` se escribe pero no se lee, ni acá ni nunca: el contrato real es
   // por forma, campo por campo. Un backup viejo entra igual y uno nuevo en una
   // app vieja entra ignorando lo que no conoce.
-  importData(jsonContent: string): void {
+  importData(jsonContent: string, secciones?: readonly SeccionBackup[]): void {
     let aplicar: (() => void)[];
     try {
       const data = JSON.parse(jsonContent);
       if (!pareceBackup(data)) {
         throw new Error('El JSON no tiene ninguna clave de backup.');
       }
-      aplicar = this.prepararImport(data);
+      aplicar = this.prepararImport(secciones ? filtrarSecciones(data, secciones) : data);
     } catch (error) {
       console.error('Error al importar:', error);
       this.dialogService.alert(
