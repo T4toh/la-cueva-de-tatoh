@@ -589,8 +589,6 @@ export const LIBROS: Libro[] = [
       'And for someone who has spent his entire life knowing so little of the',
       'world beyond Earth, there is a lot left to discover.',
     ].join('\n'),
-    // Falta Google Play: ya tiene su `@case` en logo-tienda, así que darlo de
-    // alta es agregar la entrada con su URL.
     tiendas: [
       {
         nombre: 'Amazon',
@@ -606,6 +604,11 @@ export const LIBROS: Libro[] = [
         nombre: 'Kobo',
         url: 'https://www.kobo.com/ar/en/ebook/deployment-10',
         logo: 'kobo',
+      },
+      {
+        nombre: 'Google Play',
+        url: 'https://play.google.com/store/books/details?id=xdMIEgAAQBAJ',
+        logo: 'google-play',
       },
     ],
   },
@@ -637,6 +640,11 @@ export const LIBROS: Libro[] = [
         nombre: 'Amazon',
         url: 'https://www.amazon.com/dp/B0HJN8WX3R',
         logo: 'amazon',
+      },
+      {
+        nombre: 'Google Play',
+        url: 'https://play.google.com/store/books/details?id=XYcMEgAAQBAJ',
+        logo: 'google-play',
       },
     ],
   },
