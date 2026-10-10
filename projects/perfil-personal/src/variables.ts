@@ -447,9 +447,9 @@ export type Tienda = {
 };
 
 // Los perfiles de autor que muestra el navegador de arriba, uno por tienda.
-// Es una lista y no un link suelto para que sumar Google Play cuando exista el
-// listado sea agregar una entrada. Una tienda sin URL no va acá: preferimos
-// que no se dibuje antes que un link muerto.
+// Es una lista y no un link suelto para que sumar una tienda sea agregar una
+// entrada. Una tienda sin URL no va acá: preferimos que no se dibuje antes
+// que un link muerto.
 export const TIENDAS_AUTOR: Tienda[] = [
   {
     nombre: 'Amazon',
@@ -472,6 +472,15 @@ export const TIENDAS_AUTOR: Tienda[] = [
       'https://www.kobo.com/ar/en/search?query=ignacio%20mart%C3%ADn%20arano&ac=1&' +
       'acp=ignacio%20mart%C3%ADn%20arano&ac.author=ignacio%20mart%C3%ADn%20arano',
     logo: 'kobo',
+  },
+  {
+    // Play Books tampoco tiene página de autor: es la búsqueda por nombre.
+    // Al momento de agregarla (2026-10-10, el día que aprobaron la cuenta)
+    // todavía no devolvía los libros; va igual para no hacer un release
+    // sólo por esto cuando indexe.
+    nombre: 'Google Play',
+    url: 'https://play.google.com/store/search?q=Ignacio%20Mart%C3%ADn%20Arano&c=books',
+    logo: 'google-play',
   },
 ];
 
@@ -589,8 +598,6 @@ export const LIBROS: Libro[] = [
       'And for someone who has spent his entire life knowing so little of the',
       'world beyond Earth, there is a lot left to discover.',
     ].join('\n'),
-    // Falta Google Play: ya tiene su `@case` en logo-tienda, así que darlo de
-    // alta es agregar la entrada con su URL.
     tiendas: [
       {
         nombre: 'Amazon',
@@ -606,6 +613,11 @@ export const LIBROS: Libro[] = [
         nombre: 'Kobo',
         url: 'https://www.kobo.com/ar/en/ebook/deployment-10',
         logo: 'kobo',
+      },
+      {
+        nombre: 'Google Play',
+        url: 'https://play.google.com/store/books/details?id=xdMIEgAAQBAJ',
+        logo: 'google-play',
       },
     ],
   },
@@ -637,6 +649,11 @@ export const LIBROS: Libro[] = [
         nombre: 'Amazon',
         url: 'https://www.amazon.com/dp/B0HJN8WX3R',
         logo: 'amazon',
+      },
+      {
+        nombre: 'Google Play',
+        url: 'https://play.google.com/store/books/details?id=XYcMEgAAQBAJ',
+        logo: 'google-play',
       },
     ],
   },
