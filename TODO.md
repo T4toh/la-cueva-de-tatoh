@@ -202,6 +202,65 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       del cálculo, pero los dos cuelgan de un `mealId` real. Decidir si es un
       tipo de `Dish` sin `mealId` o un puñado de comidas especiales fijas.
 
+- [ ] **Preparaciones: salsas, alioli y lo que se usa en otras comidas.** Un
+      tilde en el editor que marque la comida como preparación —ya hay una
+      cargada así: "Salsa blanca diet"—. Una preparación no es un plato: no
+      tendría que ofrecerse en el selector del día, y el listado la muestra
+      aparte o con un chip. Lo que la hace útil es poder usarla en otra comida
+      como ingrediente: al armar la lista de compras se expande a sus
+      ingredientes, escalados por la cantidad que se use. Falta decidir cómo
+      se referencia desde la otra comida —un `mealId` en el `Ingredient`,
+      no el nombre, para que renombrarla no rompa nada— y qué pasa si se
+      borra una preparación que otra comida usa.
+
+- [ ] **Armador de semanas.** Un botón que llena los slots vacíos del plan
+      respetando lo ya elegido y las salidas. Sin IA: por cada slot, puntaje a
+      cada comida candidata y la mejor con algo de azar para que no salga
+      siempre la misma semana. El puntaje sale de lo que ya hay —los chequeos
+      de la guía (carbos una vez por día, carne roja ≤3, pescado ≥2), plantas
+      nuevas para la semana (`comidasQueSuman`), no repetir lo de las últimas
+      semanas (el historial de `schedules`), tags de estación
+      ("otoño-invierno", "primavera")— y cada elección muestra por qué la
+      eligió. Depende de los chequeos de la guía, que son el mismo cálculo.
+      Metadata que falta: carne roja / blanca / pescado en el catálogo, si la
+      comida es plato principal, guarnición o desayuno (hoy son tags sueltos
+      y desparejos), y el rating si existe.
+
+- [ ] **Lista de compras en cantidades que se compran.** Las comidas de la
+      nutri vienen por porción —1/4 de brócoli, 1/2 cebolla, 30 g de
+      mozzarella— y la lista suma eso tal cual, así que pide cosas que no
+      existen en la verdulería. La cantidad de la receta está bien; lo que
+      falta es redondear el **total de la semana** a lo que se compra. Una
+      unidad de compra en `EntradaCatalogo` (brócoli: 1 unidad; carne: de a
+      250 g; huevos: de a 6; mozzarella: de a 100 g; arroz: paquete de 500 g)
+      y en `shoppingListGrouped` el total se redondea para arriba a ese paso,
+      mostrando lo que se usa al lado ("1 brócoli · usás 3/4"). Lo que no está
+      en el catálogo queda como hoy, y el catálogo propio puede corregir el
+      paso como ya corrige la porción. El copiar sale con lo redondeado. De
+      paso: hoy se agrupa por nombre crudo, así que "Huevo" y "huevos" son dos
+      renglones; con el catálogo se puede agrupar por entrada (sinónimos y
+      plurales). Caso real: la lista pidió 6,5 huevos, de recetas con 1/2 y
+      3/4 de huevo (tartas, albóndigas, pan de carne). Y "clara" va aparte,
+      cuando para comprar es un huevo más: la entrada de compra podría
+      apuntar a otra (clara → huevo). Para más adelante: que lo que sobra (el 1/4 de brócoli) vaya
+      a la despensa y lo descuente la semana siguiente.
+      Lo que sobra también es una sugerencia: "te sobra 1/4 de brócoli → Tarta
+      de brócoli, Revuelto de brócoli", en la lista o en el plan, como
+      `comidasQueSuman` hace con las plantas. Es el mismo puntaje que usaría
+      el armador de semanas: aprovechar lo que ya se compra suma.
+
+- [ ] **Rehacer la impresión.** Hay tres —plan semanal, lista de compras y
+      listado de comidas, cada una con su `@media print`— y no se usa
+      ninguna. Lo que sí se usa es "copiar" de la lista de compras: texto con
+      el formato de WhatsApp, agrupado por tag y sin lo ya tildado. O sea, lo
+      que sirve es *compartir*, no papel. Antes de rediseñar, decidir cuál
+      sobrevive: el plan semanal tiene sentido en papel (en la heladera, A4
+      horizontal, una hoja); la lista de compras ya tiene su camino en el
+      copiar; el listado de comidas en papel es la receta, no la grilla de
+      121. Lo que no se use, se borra. Del lado de compartir: el plan
+      también como texto, y `navigator.share` donde exista, que ya usa el
+      diálogo de la receta pública.
+
 - [ ] **Configurador del landing.** Hoy el orden de las secciones está escrito
       a mano en `projects/perfil-personal/src/app/componentes/landing/landing.html`.
       Lo mínimo es subir los libros; lo bueno sería reordenar los bloques sin
