@@ -91,13 +91,20 @@
                   type="checkbox"
                   [checked]="item.checked"
                   [id]="item.name + (group.tag?.id || 'untagged')"
-                  (change)="mealService.toggleItemCheck(item.name)"
+                  (change)="marcar(item.name)"
                 />
                 <label
                   class="item-label"
                   [for]="item.name + (group.tag?.id || 'untagged')"
                 >
-                  <span class="name">{{ item.name }}</span>
+                  <span class="name">
+                    {{ item.name }}
+                    @if (item.checked && item.sobra) {
+                      <span class="detalle">sobró {{ item.sobra }} → despensa</span>
+                    } @else if (!item.checked && item.usas) {
+                      <span class="detalle">usás {{ item.usas }}</span>
+                    }
+                  </span>
                 </label>
                 <div class="tag-chip-container">
                   <lib-tag
@@ -223,4 +230,5 @@
       </div>
     }
   </div>
+  <p aria-live="polite" class="aviso-despensa">{{ aviso() }}</p>
 </div>
