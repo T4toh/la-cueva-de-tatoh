@@ -75,6 +75,7 @@ export class MealEditorComponent implements OnInit {
     grupo: ['hortalizas' as Grupo],
     unidad: [''],
     porcion: [''],
+    compra: [''],
   });
 
   readonly tagsSugeridos = computed(() => {
@@ -92,6 +93,7 @@ export class MealEditorComponent implements OnInit {
       grupo: entrada?.grupo ?? 'hortalizas',
       unidad: entrada?.unidad ?? unit ?? '',
       porcion: entrada?.porcion !== undefined ? String(entrada.porcion) : '',
+      compra: entrada?.compra !== undefined ? String(entrada.compra) : '',
     });
     this.clasificando.set(index);
   }
@@ -99,12 +101,13 @@ export class MealEditorComponent implements OnInit {
   guardarClasificacion(): void {
     const index = this.clasificando();
     const { name } = this.ingredients.at(index).value as { name: string };
-    const { grupo, unidad, porcion } = this.clasificacion.getRawValue();
+    const { grupo, unidad, porcion, compra } = this.clasificacion.getRawValue();
     this.mealService.guardarEnCatalogo(
       entradaPropia(name, this.entradaDe(name), {
         grupo: grupo ?? 'hortalizas',
         unidad: unidad ?? '',
         porcion: porcion ?? '',
+        compra: compra ?? '',
       })
     );
     this.clasificando.set(-1);

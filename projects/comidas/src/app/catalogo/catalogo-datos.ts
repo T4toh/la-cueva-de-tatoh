@@ -191,7 +191,7 @@ export const CATALOGO: readonly EntradaCatalogo[] = [
     ...CARNE,
   },
   { nombre: 'atún', sinonimos: ['atun al natural', 'atun en lata'], ...CARNE },
-  { nombre: 'huevo', grupo: 'carnesHuevos', unidad: 'unidad', porcion: 1 },
+  { nombre: 'huevo', grupo: 'carnesHuevos', unidad: 'unidad', porcion: 1, compra: 6 },
   { nombre: 'clara', sinonimos: ['clara de huevo'], grupo: 'carnesHuevos', unidad: 'unidad' },
 
   // Aceites, semillas y frutas secas.
