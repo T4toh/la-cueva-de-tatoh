@@ -147,6 +147,16 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       ocultas la línea no aparece. Pendiente para cuando existan los chequeos:
       que priorice la regla que la semana no está cumpliendo.
 
+- [x] **Lista de compras en cantidades que se compran.** La lista pedía 6,5
+      huevos y 3/4 de brócoli. Ahora agrupa por entrada del catálogo ("Huevo"
+      y "huevos" son un renglón), resta la despensa y redondea lo que falta:
+      lo que se cuenta al entero de arriba, y con paso de compra en el
+      catálogo (`compra`, huevo de a 6) al múltiplo. El renglón dice "usás
+      0.75 unidad". Al tildar, la compra queda congelada y lo que sobra entra
+      a la despensa con un aviso; destildar o limpiar la semana lo saca. De
+      paso, la suma dejó de mezclar unidades (100 g + 1 unidad daba 101).
+      Spec: [`docs/superpowers/specs/2026-10-14-compras-redondeadas-design.md`](docs/superpowers/specs/2026-10-14-compras-redondeadas-design.md).
+
 ## En curso / pendiente
 
 - [ ] **Recetario.** Diseñado y sin implementar. El spec está en
@@ -226,28 +236,13 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       comida es plato principal, guarnición o desayuno (hoy son tags sueltos
       y desparejos), y el rating si existe.
 
-- [ ] **Lista de compras en cantidades que se compran.** Las comidas de la
-      nutri vienen por porción —1/4 de brócoli, 1/2 cebolla, 30 g de
-      mozzarella— y la lista suma eso tal cual, así que pide cosas que no
-      existen en la verdulería. La cantidad de la receta está bien; lo que
-      falta es redondear el **total de la semana** a lo que se compra. Una
-      unidad de compra en `EntradaCatalogo` (brócoli: 1 unidad; carne: de a
-      250 g; huevos: de a 6; mozzarella: de a 100 g; arroz: paquete de 500 g)
-      y en `shoppingListGrouped` el total se redondea para arriba a ese paso,
-      mostrando lo que se usa al lado ("1 brócoli · usás 3/4"). Lo que no está
-      en el catálogo queda como hoy, y el catálogo propio puede corregir el
-      paso como ya corrige la porción. El copiar sale con lo redondeado. De
-      paso: hoy se agrupa por nombre crudo, así que "Huevo" y "huevos" son dos
-      renglones; con el catálogo se puede agrupar por entrada (sinónimos y
-      plurales). Caso real: la lista pidió 6,5 huevos, de recetas con 1/2 y
-      3/4 de huevo (tartas, albóndigas, pan de carne). Y "clara" va aparte,
-      cuando para comprar es un huevo más: la entrada de compra podría
-      apuntar a otra (clara → huevo). Para más adelante: que lo que sobra (el 1/4 de brócoli) vaya
-      a la despensa y lo descuente la semana siguiente.
-      Lo que sobra también es una sugerencia: "te sobra 1/4 de brócoli → Tarta
-      de brócoli, Revuelto de brócoli", en la lista o en el plan, como
-      `comidasQueSuman` hace con las plantas. Es el mismo puntaje que usaría
-      el armador de semanas: aprovechar lo que ya se compra suma.
+- [ ] **Lista de compras: lo que quedó afuera del redondeo.** Dos cosas del
+      ítem de cantidades que se compran (hecho, arriba): "clara" se compra
+      como huevo —la entrada de compra apuntaría a otra (clara → huevo)—, y lo
+      que sobra como sugerencia: "te sobra 1/4 de brócoli → Tarta de brócoli,
+      Revuelto de brócoli", en la lista o en el plan, como `comidasQueSuman`
+      hace con las plantas. Es el mismo puntaje que usaría el armador de
+      semanas: aprovechar lo que ya se compra suma.
 
 - [ ] **Rehacer la impresión.** Hay tres —plan semanal, lista de compras y
       listado de comidas, cada una con su `@media print`— y no se usa

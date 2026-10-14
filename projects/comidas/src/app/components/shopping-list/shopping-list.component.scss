@@ -421,7 +421,8 @@
   }
 
   .chip {
-    background: var(--accent-strong);
+    background: var(--accent);
+    color: var(--fg-on-accent);
     padding: 4px 8px;
     border-radius: 16px;
     font-size: 0.85rem;
@@ -432,7 +433,7 @@
     button {
       background: none;
       border: none;
-      color: var(--danger);
+      color: inherit;
       cursor: pointer;
       padding: 0;
       font-weight: bold;
@@ -515,5 +516,39 @@
         color: black !important;
       }
     }
+  }
+}
+
+// Abajo del nombre: al lado, en el teléfono lo tapa el chip de la etiqueta.
+.detalle {
+  display: block;
+  color: var(--fg-secondary);
+  font-size: 0.8rem;
+}
+
+// Siempre en el DOM: una región aria-live que aparece junto con su texto no
+// siempre se anuncia.
+.aviso-despensa {
+  position: fixed;
+  bottom: 5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: var(--accent-strong);
+  color: var(--fg-on-accent-strong);
+  font-size: 0.9rem;
+  pointer-events: none;
+  transition: opacity 0.2s;
+
+  &:empty {
+    opacity: 0;
+  }
+}
+
+@media print {
+  .aviso-despensa {
+    display: none;
   }
 }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  aComprar,
   clasificar,
   combinar,
   EntradaCatalogo,
@@ -149,6 +150,15 @@ describe('entradaPropia', () => {
     });
   });
 
+  it('guarda el paso de compra si viene, y lo omite vacío', () => {
+    expect(entradaPropia('kale', null, { ...valores, compra: '2' })).toEqual({
+      nombre: 'kale', grupo: 'hortalizas', unidad: 'atado', compra: 2,
+    });
+    expect(entradaPropia('kale', null, { ...valores, compra: ' ' })).toEqual({
+      nombre: 'kale', grupo: 'hortalizas', unidad: 'atado',
+    });
+  });
+
   it('la porción acepta coma y se ignora si no es un número positivo', () => {
     expect(entradaPropia('kale', null, { ...valores, porcion: '1,5' }).porcion).toBe(1.5);
     expect(entradaPropia('kale', null, { ...valores, porcion: 'mucho' })).not.toHaveProperty('porcion');
@@ -170,5 +180,44 @@ describe('entradaPropia', () => {
 
   it('sin unidad queda en "unidad"', () => {
     expect(entradaPropia('kale', null, { ...valores, unidad: '  ' }).unidad).toBe('unidad');
+  });
+});
+
+describe('aComprar', () => {
+  const huevo: EntradaCatalogo = { nombre: 'huevo', grupo: 'carnesHuevos', unidad: 'unidad', compra: 6 };
+  const carne: EntradaCatalogo = { nombre: 'carne picada', grupo: 'carnesHuevos', unidad: 'g', compra: 250 };
+
+  it('lo que se cuenta va al entero de arriba', () => {
+    expect(aComprar(0.75, 'unidad', null)).toBe(1);
+    expect(aComprar(6.5, '', null)).toBe(7);
+    expect(aComprar(0.5, 'atado', null)).toBe(1);
+    expect(aComprar(3, 'unidades', null)).toBe(3);
+  });
+
+  it('con paso de compra redondea al múltiplo', () => {
+    expect(aComprar(6.5, 'unidad', huevo)).toBe(12);
+    expect(aComprar(300, 'g', carne)).toBe(500);
+    expect(aComprar(250, 'g', carne)).toBe(250);
+  });
+
+  it('el paso sólo vale en la unidad de la entrada', () => {
+    // "2 unidades de carne picada" no se compra de a 250 unidades.
+    expect(aComprar(2, 'unidad', carne)).toBe(2);
+  });
+
+  it('lo que no se cuenta queda como está', () => {
+    expect(aComprar(30, 'g', null)).toBe(30);
+    expect(aComprar(0.5, 'taza', null)).toBe(0.5);
+    expect(aComprar(1.5, 'cda', null)).toBe(1.5);
+  });
+
+  it('nada que comprar es cero', () => {
+    expect(aComprar(0, 'unidad', null)).toBe(0);
+    expect(aComprar(-1, 'unidad', huevo)).toBe(0);
+  });
+
+  it('el error de coma flotante no compra una unidad de más', () => {
+    // 0.1 * 3 * 10 es 3.0000000000000004.
+    expect(aComprar(0.1 * 3 * 10, 'unidad', null)).toBe(3);
   });
 });

@@ -2,6 +2,7 @@ import {
   Component,
   inject,
   OnInit,
+  signal,
 } from '@angular/core';
 
 import {
@@ -30,6 +31,10 @@ export class ShoppingListComponent implements OnInit {
   tagForm: FormGroup;
   showTagForm = false;
   showExtraForm = false;
+
+  // El aviso de lo que entró o salió de la despensa al tildar. Se borra solo.
+  readonly aviso = signal('');
+  private avisoTimer?: ReturnType<typeof setTimeout>;
 
   constructor() {
     this.extraItemForm = this.fb.group({
@@ -64,6 +69,16 @@ export class ShoppingListComponent implements OnInit {
       this.tagForm.reset({ color: '#000000' });
       this.showTagForm = false;
     }
+  }
+
+  marcar(nombre: string): void {
+    const aviso = this.mealService.toggleItemCheck(nombre);
+    if (!aviso) {
+      return;
+    }
+    this.aviso.set(aviso);
+    clearTimeout(this.avisoTimer);
+    this.avisoTimer = setTimeout(() => this.aviso.set(''), 3000);
   }
 
   updateItemTag(itemName: string, event: Event): void {
@@ -120,9 +135,11 @@ export class ShoppingListComponent implements OnInit {
     quantity: string;
     unit?: string;
     quantityOverride?: string;
+    usas?: string;
     checked?: boolean;
   }): void {
-    const quantity = this.displayQty(item);
+    // Lo que se usa de la despensa, no lo redondeado a lo que se compra.
+    const quantity = item.usas ?? this.displayQty(item);
     this.mealService.subtractFromPantry(item.name, quantity);
     // If pantry only partially covers the need, persist the remaining as a stored
     // override so the cart doesn't revert to the full quantity after pantry is depleted.

@@ -23,6 +23,8 @@ import { DialogService } from './dialog.service';
 import { RecetaPublicaService } from './receta-publica.service';
 import { CLAVES_BACKUP, filtrarSecciones, SeccionBackup } from './backup';
 import {
+  aComprar,
+  clasificar,
   combinar,
   EntradaCatalogo,
   indexar,
@@ -32,6 +34,7 @@ import {
 import { CATALOGO } from '../catalogo/catalogo-datos';
 import { GUIA_VACIA, GuiaPropia, normalizarGuia } from '../guia/guia';
 import {
+  CompraRegistrada,
   DaySchedule,
   Dish,
   DishMealType,
@@ -112,6 +115,11 @@ export function multiplyQuantity(quantity: string, factor: number): string {
     return quantity;
   }
   return `${parseFloat((parsed.valor * factor).toFixed(2))}${parsed.resto}`;
+}
+
+function conUnidad(valor: number, unidad: string): string {
+  const numero = parseFloat(valor.toFixed(2));
+  return unidad ? `${numero} ${unidad}` : `${numero}`;
 }
 
 // Garantiza que cada comida tenga un id. Las comidas que entran por restaurar
@@ -334,6 +342,7 @@ export class MealService {
   private readonly FAMILY_SETTINGS_KEY = 'comidas_family_settings';
   private readonly QUANTITY_OVERRIDES_KEY = 'comidas_quantity_overrides';
   private readonly CHECKED_ITEMS_KEY = 'comidas_checked_items';
+  private readonly COMPRAS_KEY = 'comidas_compras';
   private readonly LAST_UPDATED_KEY = 'comidas_last_updated';
   private readonly PANTRY_KEY = 'comidas_pantry';
   private readonly PANTRY_GROUPS_KEY = 'comidas_pantry_groups';
@@ -403,6 +412,10 @@ export class MealService {
     this.loadCheckedItems()
   );
 
+  // Por semana y por renglón: lo congelado al tildar. Un renglón tildado con
+  // registro no resta la despensa, porque su propia sobra ya está ahí.
+  readonly compras = signal<Record<string, Record<string, CompraRegistrada>>>(this.loadCompras());
+
   readonly pantry = signal<PantryItem[]>(this.loadPantry());
   readonly pantryGroups = signal<PantryGroup[]>(this.loadPantryGroups());
   // Lo que el usuario agregó o corrigió del catálogo base. Ver
@@ -413,6 +426,9 @@ export class MealService {
   readonly catalogoPropio = signal<EntradaCatalogo[]>(this.loadCatalogoPropio());
   readonly catalogoEfectivo = computed(() => combinar(CATALOGO, this.catalogoPropio()));
   readonly indiceCatalogo = computed<IndiceCatalogo>(() => indexar(this.catalogoEfectivo()));
+  private readonly indiceNombres = computed<IndiceCatalogo>(() =>
+    indexar(this.catalogoEfectivo().map((e) => ({ ...e, sinonimos: undefined })))
+  );
   readonly todayTimestamp = signal<number>(this.getTodayTimestamp());
 
   // Decide qué pasa con una escritura que cae durante una sincronización.
@@ -559,6 +575,13 @@ export class MealService {
       localStorage.setItem(this.CHECKED_ITEMS_KEY, JSON.stringify(data));
       if (this.cola.debeGuardarAhora('checkedItems')) {
         this.saveToFirestore('checkedItems', data);
+      }
+    });
+    effect(() => {
+      const data = this.compras();
+      localStorage.setItem(this.COMPRAS_KEY, JSON.stringify(data));
+      if (this.cola.debeGuardarAhora('compras')) {
+        this.saveToFirestore('compras', data);
       }
     });
     effect(() => {
@@ -852,6 +875,7 @@ export class MealService {
       extraItemsHistory: (v) => this.extraItemsHistory.set(v as ShoppingItem[]),
       overrides: (v) => this.quantityOverrides.set(v as Record<string, string>),
       checkedItems: (v) => this.checkedItems.set(v as Record<string, string[]>),
+      compras: (v) => this.compras.set(v as Record<string, Record<string, CompraRegistrada>>),
       pantry: (v) =>
         this.pantry.set(this.normalizePantryQuantities(v as PantryItem[])),
       pantryGroups: (v) => this.pantryGroups.set(v as PantryGroup[]),
@@ -902,6 +926,7 @@ export class MealService {
       extraItemsHistory: this.extraItemsHistory(),
       overrides: this.quantityOverrides(),
       checkedItems: this.checkedItems(),
+      compras: this.compras(),
       pantry: this.pantry(),
       pantryGroups: this.pantryGroups(),
       catalogoPropio: this.catalogoPropio(),
@@ -1095,6 +1120,11 @@ export class MealService {
 
   private loadCheckedItems(): Record<string, string[]> {
     const data = localStorage.getItem(this.CHECKED_ITEMS_KEY);
+    return data ? JSON.parse(data) : {};
+  }
+
+  private loadCompras(): Record<string, Record<string, CompraRegistrada>> {
+    const data = localStorage.getItem(this.COMPRAS_KEY);
     return data ? JSON.parse(data) : {};
   }
 
@@ -1605,13 +1635,26 @@ export class MealService {
 
   overrideQuantity(ingredientName: string, newQuantity: string): void {
     const weekKey = this.formatDateKey(this.currentWeekStart());
-    const key = `${weekKey}_${ingredientName.toLowerCase().trim()}`;
+    const key = `${weekKey}_${this.claveCompra(ingredientName)}`;
     this.quantityOverrides.update((o) => ({ ...o, [key]: newQuantity }));
   }
 
   clearOverrides(): void {
     this.refreshTodayTimestamp();
     const weekKey = this.formatDateKey(this.currentWeekStart());
+    // Deshace lo que sobró y entró a la despensa, como destildar todo: si no,
+    // limpiar y volver a tildar duplica la sobra.
+    const semana = this.compras()[weekKey] ?? {};
+    Object.entries(semana).forEach(([key, { sobra }]) => {
+      if (sobra) {
+        this.subtractFromPantry(key, sobra);
+      }
+    });
+    this.compras.update((c) => {
+      const resto = { ...c };
+      delete resto[weekKey];
+      return resto;
+    });
     this.quantityOverrides.update((o) => {
       const newOverrides = { ...o };
       Object.keys(newOverrides).forEach((key) => {
@@ -1628,21 +1671,84 @@ export class MealService {
     });
   }
 
-  toggleItemCheck(name: string): void {
+  // La clave de un renglón de la lista: la entrada del catálogo si la
+  // reconoce, así "Huevo" y "huevos" son uno; si no, el nombre crudo, como
+  // antes. Ver docs/superpowers/specs/2026-10-14-compras-redondeadas-design.md
+  // Sólo nombre, singular y plural: varios sinónimos del catálogo son otro
+  // producto para la lista (aceite de girasol no es aceite de oliva).
+  private claveCompra(nombre: string): string {
+    const entrada = clasificar(nombre, this.indiceNombres());
+    return (entrada?.nombre ?? nombre).toLowerCase().trim();
+  }
+
+  // Devuelve el aviso de lo que entró o salió de la despensa, o null.
+  toggleItemCheck(name: string): string | null {
     const weekKey = this.formatDateKey(this.currentWeekStart());
-    const itemName = name.toLowerCase().trim();
+    const key = this.claveCompra(name);
+    const isChecked = (this.checkedItems()[weekKey] || []).includes(key);
+    const aviso = isChecked
+      ? this.deshacerCompra(weekKey, key, name)
+      : this.registrarCompra(weekKey, key);
 
     this.checkedItems.update((prev) => {
       const currentChecked = prev[weekKey] || [];
-      const isChecked = currentChecked.includes(itemName);
-
       return {
         ...prev,
         [weekKey]: isChecked
-          ? currentChecked.filter((n) => n !== itemName)
-          : [...currentChecked, itemName],
+          ? currentChecked.filter((n) => n !== key)
+          : [...currentChecked, key],
       };
     });
+    return aviso;
+  }
+
+  // Congela el renglón como se ve ahora. Lo que la despensa ya cubre, o lo
+  // que no tiene cantidad, no deja registro.
+  private registrarCompra(weekKey: string, key: string): string | null {
+    const renglon = this.shoppingList().find((i) => this.claveCompra(i.name) === key);
+    if (!renglon || renglon.checked) {
+      return null;
+    }
+    const compra = renglon.quantityOverride ?? [renglon.quantity, renglon.unit].filter(Boolean).join(' ');
+    if (!((parseNumericQuantity(compra)?.value ?? 0) > 0)) {
+      return null;
+    }
+    // Si la despensa lo tiene en otra unidad, sumarle la sobra la deja como
+    // texto ("200 g + 0.25 unidad") que después no se puede restar.
+    const sobra = renglon.sobra && this.cabeEnDespensa(key, renglon.sobra) ? renglon.sobra : '';
+    this.compras.update((c) => ({ ...c, [weekKey]: { ...(c[weekKey] ?? {}), [key]: { compra, sobra } } }));
+    if (!sobra) {
+      return null;
+    }
+    this.addToPantry(renglon.name, sobra);
+    return `${renglon.name}: +${sobra} a la despensa`;
+  }
+
+  private cabeEnDespensa(key: string, cantidad: string): boolean {
+    const entrada = this.pantry().find((p) => this.claveCompra(p.name) === key);
+    if (!entrada) {
+      return true;
+    }
+    const tengo = parseNumericQuantity(entrada.quantity);
+    const sumo = parseNumericQuantity(cantidad);
+    return !!tengo && !!sumo && (tengo.unit === sumo.unit || !tengo.unit || !sumo.unit);
+  }
+
+  private deshacerCompra(weekKey: string, key: string, nombre: string): string | null {
+    const registro = this.compras()[weekKey]?.[key];
+    if (!registro) {
+      return null;
+    }
+    this.compras.update((c) => {
+      const semana = { ...(c[weekKey] ?? {}) };
+      delete semana[key];
+      return { ...c, [weekKey]: semana };
+    });
+    if (!registro.sobra) {
+      return null;
+    }
+    this.subtractFromPantry(key, registro.sobra);
+    return `${nombre}: \u2212${registro.sobra} de la despensa`;
   }
 
   readonly shoppingListGrouped = computed(() => {
@@ -1653,9 +1759,7 @@ export class MealService {
     const weekStart = this.currentWeekStart();
     const weekKey = this.formatDateKey(weekStart);
     const tagMap = this.ingredientTags();
-    const overrides = this.quantityOverrides();
     const weekChecked = this.checkedItems()[weekKey] || [];
-    const pantryItems = this.pantry();
 
     currentSchedule.forEach((day, index) => {
       const dayDate = new Date(weekStart);
@@ -1669,14 +1773,12 @@ export class MealService {
           const meal = allMeals.find((m) => m.id === dish.mealId);
           if (meal && meal.includeInShoppingList !== false) {
             meal.ingredients.forEach((ing) => {
-              const key = ing.name.toLowerCase().trim();
-              const quantity = multiplyQuantity(ing.quantity, dish.portions);
               items.push({
                 ...ing,
-                quantity,
-                tagId: tagMap[key],
+                quantity: multiplyQuantity(ing.quantity, dish.portions),
+                tagId: tagMap[ing.name.toLowerCase().trim()],
                 isExtra: false,
-                checked: weekChecked.includes(key),
+                checked: weekChecked.includes(this.claveCompra(ing.name)),
               });
             });
           }
@@ -1689,29 +1791,26 @@ export class MealService {
     });
 
     this.currentExtraItems().forEach((extra) => {
-      const key = extra.name.toLowerCase().trim();
       items.push({
         ...extra,
-        tagId: extra.tagId || tagMap[key],
-        checked: weekChecked.includes(key),
+        tagId: extra.tagId || tagMap[extra.name.toLowerCase().trim()],
+        checked: weekChecked.includes(this.claveCompra(extra.name)),
       });
     });
 
-    const aggregated: { [key: string]: ShoppingItem } = {};
+    // Por renglón, una parte por unidad: 100 g + 1 unidad + 2 unidad es
+    // "100 g + 3 unidad". Sin unidad se suma a cualquiera.
+    const porClave: { [key: string]: ShoppingItem[] } = {};
     items.forEach((item) => {
-      const key = item.name.toLowerCase().trim();
-      if (aggregated[key]) {
-        aggregated[key].quantity = this.addQuantities(
-          aggregated[key].quantity,
-          item.quantity
-        );
-        if (!aggregated[key].tagId && item.tagId) {
-          aggregated[key].tagId = item.tagId;
-        }
+      const partes = (porClave[this.claveCompra(item.name)] ??= []);
+      const misma = partes.find((p) => !p.unit || !item.unit || p.unit === item.unit);
+      if (misma) {
+        this.sumarAlRenglon(misma, item);
       } else {
-        aggregated[key] = { ...item };
+        partes.push({ ...item });
       }
     });
+    const aggregated = Object.values(porClave).map((partes) => this.unirPartes(partes));
 
     const groups: ShoppingListGroup[] = this.tags().map((tag) => ({
       tag,
@@ -1720,33 +1819,8 @@ export class MealService {
     const uncategorizedGroup: ShoppingListGroup = { tag: null, items: [] };
     groups.push(uncategorizedGroup);
 
-    Object.values(aggregated).forEach((item) => {
-      const overrideKey = `${weekKey}_${item.name.toLowerCase().trim()}`;
-      if (overrides[overrideKey]) {
-        item.quantityOverride = overrides[overrideKey];
-      }
-
-      const pantryEntry = pantryItems.find(
-        (p) => p.name.toLowerCase().trim() === item.name.toLowerCase().trim()
-      );
-      if (pantryEntry) {
-        const parsedPantry = parseNumericQuantity(pantryEntry.quantity);
-        if (parsedPantry?.value !== 0) {
-          const effectiveQuantity = item.quantityOverride || item.quantity;
-          const { remaining, covered } = this.subtractPantryFromNeeded(
-            effectiveQuantity,
-            pantryEntry.quantity
-          );
-          item.pantryQuantity = pantryEntry.quantity;
-          item.inPantry = true;
-          if (covered) {
-            item.checked = true;
-          } else {
-            item.quantityOverride = remaining;
-          }
-        }
-      }
-
+    aggregated.forEach((item) => {
+      this.ajustarRenglon(item, weekKey);
       const group = item.tagId
         ? groups.find((g) => g.tag?.id === item.tagId)
         : null;
@@ -1755,6 +1829,83 @@ export class MealService {
 
     return groups.filter((g) => g.items.length > 0);
   });
+
+  // Desde la migración que separó la unidad, `quantity` es sólo el número:
+  // sin mirar `unit`, 100 g y 1 unidad del mismo ingrediente sumaban 101.
+  private sumarAlRenglon(renglon: ShoppingItem, item: ShoppingItem): void {
+    renglon.quantity = this.addQuantities(renglon.quantity, item.quantity);
+    renglon.unit = renglon.unit || item.unit;
+    if (!renglon.tagId && item.tagId) {
+      renglon.tagId = item.tagId;
+    }
+  }
+
+  // Unidades distintas no se suman ni se redondean: quedan como texto.
+  private unirPartes(partes: ShoppingItem[]): ShoppingItem {
+    if (partes.length === 1) {
+      return partes[0];
+    }
+    return {
+      ...partes[0],
+      quantity: partes.map((p) => [p.quantity, p.unit].filter(Boolean).join(' ')).join(' + '),
+      unit: '',
+      tagId: partes.find((p) => p.tagId)?.tagId,
+    };
+  }
+
+  // Lo pisado a mano gana; si no, lo que falta después de la despensa se
+  // redondea a lo que se compra. Lo cubierto por la despensa no se compra.
+  private ajustarRenglon(item: ShoppingItem, weekKey: string): void {
+    const key = this.claveCompra(item.name);
+    const registro = this.compras()[weekKey]?.[key];
+    if (registro) {
+      item.quantityOverride = registro.compra;
+      item.sobra = registro.sobra || undefined;
+      item.checked = true;
+      return;
+    }
+    const manual = this.quantityOverrides()[`${weekKey}_${key}`];
+    if (manual) {
+      item.quantityOverride = manual;
+    }
+    const cubierto = this.restarDespensa(item, key);
+    if (!manual && !cubierto) {
+      this.redondear(item);
+    }
+  }
+
+  // Devuelve si la despensa cubre todo el renglón.
+  private restarDespensa(item: ShoppingItem, key: string): boolean {
+    const pantryEntry = this.pantry().find((p) => this.claveCompra(p.name) === key);
+    if (!pantryEntry || parseNumericQuantity(pantryEntry.quantity)?.value === 0) {
+      return false;
+    }
+    const effectiveQuantity = item.quantityOverride || [item.quantity, item.unit].filter(Boolean).join(' ');
+    const { remaining, covered } = this.subtractPantryFromNeeded(effectiveQuantity, pantryEntry.quantity);
+    item.pantryQuantity = pantryEntry.quantity;
+    item.inPantry = true;
+    if (covered) {
+      item.checked = true;
+    } else {
+      item.quantityOverride = remaining;
+    }
+    return covered;
+  }
+
+  private redondear(item: ShoppingItem): void {
+    const falta = item.quantityOverride ?? [item.quantity, item.unit].filter(Boolean).join(' ');
+    const parsed = parseNumericQuantity(falta);
+    if (!parsed) {
+      return;
+    }
+    const compra = aComprar(parsed.value, parsed.unit, clasificar(item.name, this.indiceCatalogo()));
+    if (compra === parsed.value) {
+      return;
+    }
+    item.usas = falta;
+    item.quantityOverride = conUnidad(compra, parsed.unit);
+    item.sobra = conUnidad(compra - parsed.value, parsed.unit);
+  }
 
   readonly shoppingList = computed(() =>
     this.shoppingListGrouped().flatMap((g) => g.items)
@@ -1774,12 +1925,12 @@ export class MealService {
   }
 
   addToPantry(name: string, quantity: string, groupId?: string): void {
-    const key = name.toLowerCase().trim();
+    const key = this.claveCompra(name);
     this.pantry.update((items) => {
-      const existing = items.find((i) => i.name.toLowerCase().trim() === key);
+      const existing = items.find((i) => this.claveCompra(i.name) === key);
       if (existing) {
         return items.map((i) =>
-          i.name.toLowerCase().trim() === key
+          i === existing
             ? { ...i, quantity: this.addQuantities(i.quantity, quantity) }
             : i
         );
@@ -1814,11 +1965,14 @@ export class MealService {
   }
 
   subtractFromPantry(name: string, amount: string): void {
-    const key = name.toLowerCase().trim();
+    const key = this.claveCompra(name);
     let didSubtract = false;
+    // Sólo la primera: con dos entradas del mismo ingrediente ("Huevo" y
+    // "huevos", de antes de agrupar por catálogo) se restaba de las dos.
+    const primera = this.pantry().find((i) => this.claveCompra(i.name) === key);
     this.pantry.update((items) =>
       items.map((i) => {
-        if (i.name.toLowerCase().trim() !== key) {
+        if (i !== primera) {
           return i;
         }
         const parsed = parseNumericQuantity(i.quantity);
@@ -1846,31 +2000,16 @@ export class MealService {
     }
   }
 
+  // Cubierto lo decide la lista, que ya restó la despensa una vez: volver a
+  // restarla acá tildaba renglones que no estaban cubiertos. Tilda sin pasar
+  // por `registrarCompra`: lo que cubre la despensa no se compra ni sobra.
   private autoCheckIfCovered(key: string): void {
-    const pantryEntry = this.pantry().find(
-      (p) => p.name.toLowerCase().trim() === key
-    );
-    if (!pantryEntry) {
+    const weekKey = this.formatDateKey(this.currentWeekStart());
+    const renglon = this.shoppingList().find((s) => this.claveCompra(s.name) === key);
+    if (!renglon?.checked || (this.checkedItems()[weekKey] || []).includes(key)) {
       return;
     }
-    const parsedPantry = parseNumericQuantity(pantryEntry.quantity);
-    if (parsedPantry?.value === 0) {
-      return;
-    }
-    const shoppingItem = this.shoppingList().find(
-      (s) => s.name.toLowerCase().trim() === key
-    );
-    if (!shoppingItem || shoppingItem.checked) {
-      return;
-    }
-    const needed = shoppingItem.quantityOverride || shoppingItem.quantity;
-    const { covered } = this.subtractPantryFromNeeded(
-      needed,
-      pantryEntry.quantity
-    );
-    if (covered) {
-      this.toggleItemCheck(shoppingItem.name);
-    }
+    this.checkedItems.update((prev) => ({ ...prev, [weekKey]: [...(prev[weekKey] || []), key] }));
   }
 
   clearPantry(): void {
@@ -1923,14 +2062,14 @@ export class MealService {
     const pantryItems = this.pantry();
     this.shoppingList().forEach((item) => {
       const pantryEntry = pantryItems.find(
-        (p) => p.name.toLowerCase().trim() === item.name.toLowerCase().trim()
+        (p) => this.claveCompra(p.name) === this.claveCompra(item.name)
       );
       if (pantryEntry) {
         const parsedPantry = parseNumericQuantity(pantryEntry.quantity);
         if (parsedPantry?.value === 0) {
           return;
         }
-        const needed = item.quantityOverride || item.quantity;
+        const needed = item.usas ?? item.quantityOverride ?? item.quantity;
         const { remaining, covered } = this.subtractPantryFromNeeded(
           needed,
           pantryEntry.quantity
@@ -2247,6 +2386,10 @@ export class MealService {
     if (data['checkedItems']) {
       const v = data['checkedItems'] as Record<string, string[]>;
       pasos.push(() => this.checkedItems.set(v));
+    }
+    if (data['compras']) {
+      const v = data['compras'] as Record<string, Record<string, CompraRegistrada>>;
+      pasos.push(() => this.compras.set(v));
     }
     // Los backups anteriores a la 1.4 no lo traen: sin la guarda, restaurar
     // uno viejo borraría el alias actual en vez de dejarlo como está.

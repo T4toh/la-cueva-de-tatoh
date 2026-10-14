@@ -20,7 +20,7 @@ const SECCIONES: Seccion[] = [
   {
     seccion: 'compras',
     etiqueta: 'Compras',
-    claves: ['tags', 'ingredientTags', 'extraItems', 'extraItemsHistory', 'overrides', 'checkedItems'],
+    claves: ['tags', 'ingredientTags', 'extraItems', 'extraItemsHistory', 'overrides', 'checkedItems', 'compras'],
   },
   { seccion: 'despensa', etiqueta: 'Despensa', claves: ['pantry', 'pantryGroups'], cuenta: 'pantry', unidad: 'items' },
   { seccion: 'ajustes', etiqueta: 'Ajustes', claves: ['familySettings', 'alias', 'guia'] },

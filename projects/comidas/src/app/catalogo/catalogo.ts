@@ -22,6 +22,9 @@ export type EntradaCatalogo = {
   porcion?: number;
   // La porción no sale literal de las GAPA (ej. carnes: "la palma de la mano").
   estimada?: boolean;
+  // Paso de compra, en `unidad`: huevos de a 6, carne de a 250 g. Sin valor,
+  // lo que se cuenta va al entero de arriba y lo demás queda como está.
+  compra?: number;
   // Sólo cuando contradice al grupo: aceite de oliva no, perejil sí.
   planta?: boolean;
   // Dentro de `feculentos`. Legumbre + cereal reemplaza a la carne.
@@ -157,9 +160,10 @@ export function sugerencias(
 export function entradaPropia(
   nombreFila: string,
   existente: EntradaCatalogo | null,
-  valores: { grupo: Grupo; unidad: string; porcion: string }
+  valores: { grupo: Grupo; unidad: string; porcion: string; compra?: string }
 ): EntradaCatalogo {
   const porcion = Number(valores.porcion.trim().replace(',', '.'));
+  const compra = Number((valores.compra ?? '').trim().replace(',', '.'));
   // Las excepciones de la entrada valen para su grupo: corregir la porción
   // de las lentejas no puede sacarlas de legumbres, pero pasarlas a
   // hortalizas sí.
@@ -172,5 +176,26 @@ export function entradaPropia(
     grupo: valores.grupo,
     unidad: valores.unidad.trim() || 'unidad',
     ...(porcion > 0 ? { porcion } : {}),
+    ...(compra > 0 ? { compra } : {}),
   };
+}
+
+// Las unidades que se compran enteras aunque la receta pida un pedazo.
+const CONTABLES = new Set(['', 'unidad', 'unidades', 'atado', 'atados']);
+// Sin esto, 3.0000000000000004 compraría 4.
+const TOLERANCIA = 1e-9;
+
+// Cuánto se compra para cubrir `necesario`, en la misma unidad. Ver
+// docs/superpowers/specs/2026-10-14-compras-redondeadas-design.md
+export function aComprar(necesario: number, unidad: string, entrada: EntradaCatalogo | null): number {
+  if (necesario <= 0) {
+    return 0;
+  }
+  const clave = normalizar(unidad);
+  const mismaUnidad = !clave || clave === normalizar(entrada?.unidad ?? '');
+  const paso = entrada?.compra && mismaUnidad ? entrada.compra : CONTABLES.has(clave) ? 1 : 0;
+  if (!paso) {
+    return necesario;
+  }
+  return Math.ceil(necesario / paso - TOLERANCIA) * paso;
 }
