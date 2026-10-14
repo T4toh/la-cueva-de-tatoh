@@ -34,6 +34,7 @@ import {
 import { CATALOGO } from '../catalogo/catalogo-datos';
 import { GUIA_VACIA, GuiaPropia, normalizarGuia } from '../guia/guia';
 import {
+  CompraRegistrada,
   DaySchedule,
   Dish,
   DishMealType,
@@ -341,6 +342,7 @@ export class MealService {
   private readonly FAMILY_SETTINGS_KEY = 'comidas_family_settings';
   private readonly QUANTITY_OVERRIDES_KEY = 'comidas_quantity_overrides';
   private readonly CHECKED_ITEMS_KEY = 'comidas_checked_items';
+  private readonly COMPRAS_KEY = 'comidas_compras';
   private readonly LAST_UPDATED_KEY = 'comidas_last_updated';
   private readonly PANTRY_KEY = 'comidas_pantry';
   private readonly PANTRY_GROUPS_KEY = 'comidas_pantry_groups';
@@ -409,6 +411,10 @@ export class MealService {
   readonly checkedItems = signal<Record<string, string[]>>(
     this.loadCheckedItems()
   );
+
+  // Por semana y por renglón: lo congelado al tildar. Un renglón tildado con
+  // registro no resta la despensa, porque su propia sobra ya está ahí.
+  readonly compras = signal<Record<string, Record<string, CompraRegistrada>>>(this.loadCompras());
 
   readonly pantry = signal<PantryItem[]>(this.loadPantry());
   readonly pantryGroups = signal<PantryGroup[]>(this.loadPantryGroups());
@@ -566,6 +572,13 @@ export class MealService {
       localStorage.setItem(this.CHECKED_ITEMS_KEY, JSON.stringify(data));
       if (this.cola.debeGuardarAhora('checkedItems')) {
         this.saveToFirestore('checkedItems', data);
+      }
+    });
+    effect(() => {
+      const data = this.compras();
+      localStorage.setItem(this.COMPRAS_KEY, JSON.stringify(data));
+      if (this.cola.debeGuardarAhora('compras')) {
+        this.saveToFirestore('compras', data);
       }
     });
     effect(() => {
@@ -859,6 +872,7 @@ export class MealService {
       extraItemsHistory: (v) => this.extraItemsHistory.set(v as ShoppingItem[]),
       overrides: (v) => this.quantityOverrides.set(v as Record<string, string>),
       checkedItems: (v) => this.checkedItems.set(v as Record<string, string[]>),
+      compras: (v) => this.compras.set(v as Record<string, Record<string, CompraRegistrada>>),
       pantry: (v) =>
         this.pantry.set(this.normalizePantryQuantities(v as PantryItem[])),
       pantryGroups: (v) => this.pantryGroups.set(v as PantryGroup[]),
@@ -909,6 +923,7 @@ export class MealService {
       extraItemsHistory: this.extraItemsHistory(),
       overrides: this.quantityOverrides(),
       checkedItems: this.checkedItems(),
+      compras: this.compras(),
       pantry: this.pantry(),
       pantryGroups: this.pantryGroups(),
       catalogoPropio: this.catalogoPropio(),
@@ -1102,6 +1117,11 @@ export class MealService {
 
   private loadCheckedItems(): Record<string, string[]> {
     const data = localStorage.getItem(this.CHECKED_ITEMS_KEY);
+    return data ? JSON.parse(data) : {};
+  }
+
+  private loadCompras(): Record<string, Record<string, CompraRegistrada>> {
+    const data = localStorage.getItem(this.COMPRAS_KEY);
     return data ? JSON.parse(data) : {};
   }
 
@@ -1619,6 +1639,19 @@ export class MealService {
   clearOverrides(): void {
     this.refreshTodayTimestamp();
     const weekKey = this.formatDateKey(this.currentWeekStart());
+    // Deshace lo que sobró y entró a la despensa, como destildar todo: si no,
+    // limpiar y volver a tildar duplica la sobra.
+    const semana = this.compras()[weekKey] ?? {};
+    Object.entries(semana).forEach(([key, { sobra }]) => {
+      if (sobra) {
+        this.subtractFromPantry(key, sobra);
+      }
+    });
+    this.compras.update((c) => {
+      const resto = { ...c };
+      delete resto[weekKey];
+      return resto;
+    });
     this.quantityOverrides.update((o) => {
       const newOverrides = { ...o };
       Object.keys(newOverrides).forEach((key) => {
@@ -1643,21 +1676,62 @@ export class MealService {
     return (entrada?.nombre ?? nombre).toLowerCase().trim();
   }
 
-  toggleItemCheck(name: string): void {
+  // Devuelve el aviso de lo que entró o salió de la despensa, o null.
+  toggleItemCheck(name: string): string | null {
     const weekKey = this.formatDateKey(this.currentWeekStart());
-    const itemName = this.claveCompra(name);
+    const key = this.claveCompra(name);
+    const isChecked = (this.checkedItems()[weekKey] || []).includes(key);
+    const aviso = isChecked
+      ? this.deshacerCompra(weekKey, key, name)
+      : this.registrarCompra(weekKey, key);
 
     this.checkedItems.update((prev) => {
       const currentChecked = prev[weekKey] || [];
-      const isChecked = currentChecked.includes(itemName);
-
       return {
         ...prev,
         [weekKey]: isChecked
-          ? currentChecked.filter((n) => n !== itemName)
-          : [...currentChecked, itemName],
+          ? currentChecked.filter((n) => n !== key)
+          : [...currentChecked, key],
       };
     });
+    return aviso;
+  }
+
+  // Congela el renglón como se ve ahora. Lo que la despensa ya cubre, o lo
+  // que no tiene cantidad, no deja registro.
+  private registrarCompra(weekKey: string, key: string): string | null {
+    const renglon = this.shoppingList().find((i) => this.claveCompra(i.name) === key);
+    if (!renglon || renglon.checked) {
+      return null;
+    }
+    const compra = renglon.quantityOverride ?? [renglon.quantity, renglon.unit].filter(Boolean).join(' ');
+    if (!((parseNumericQuantity(compra)?.value ?? 0) > 0)) {
+      return null;
+    }
+    const sobra = renglon.sobra ?? '';
+    this.compras.update((c) => ({ ...c, [weekKey]: { ...(c[weekKey] ?? {}), [key]: { compra, sobra } } }));
+    if (!sobra) {
+      return null;
+    }
+    this.addToPantry(renglon.name, sobra);
+    return `${renglon.name}: +${sobra} a la despensa`;
+  }
+
+  private deshacerCompra(weekKey: string, key: string, nombre: string): string | null {
+    const registro = this.compras()[weekKey]?.[key];
+    if (!registro) {
+      return null;
+    }
+    this.compras.update((c) => {
+      const semana = { ...(c[weekKey] ?? {}) };
+      delete semana[key];
+      return { ...c, [weekKey]: semana };
+    });
+    if (!registro.sobra) {
+      return null;
+    }
+    this.subtractFromPantry(key, registro.sobra);
+    return `${nombre}: \u2212${registro.sobra} de la despensa`;
   }
 
   readonly shoppingListGrouped = computed(() => {
@@ -1756,6 +1830,13 @@ export class MealService {
   // redondea a lo que se compra. Lo cubierto por la despensa no se compra.
   private ajustarRenglon(item: ShoppingItem, weekKey: string): void {
     const key = this.claveCompra(item.name);
+    const registro = this.compras()[weekKey]?.[key];
+    if (registro) {
+      item.quantityOverride = registro.compra;
+      item.sobra = registro.sobra || undefined;
+      item.checked = true;
+      return;
+    }
     const manual = this.quantityOverrides()[`${weekKey}_${key}`];
     if (manual) {
       item.quantityOverride = manual;
@@ -2290,6 +2371,10 @@ export class MealService {
     if (data['checkedItems']) {
       const v = data['checkedItems'] as Record<string, string[]>;
       pasos.push(() => this.checkedItems.set(v));
+    }
+    if (data['compras']) {
+      const v = data['compras'] as Record<string, Record<string, CompraRegistrada>>;
+      pasos.push(() => this.compras.set(v));
     }
     // Los backups anteriores a la 1.4 no lo traen: sin la guarda, restaurar
     // uno viejo borraría el alias actual en vez de dejarlo como está.

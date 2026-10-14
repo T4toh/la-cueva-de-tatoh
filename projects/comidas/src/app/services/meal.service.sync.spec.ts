@@ -11,7 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Meal, ShoppingItem } from '../models/meal.model';
 import { AuthService } from './auth.service';
-import { MealService, pareceBackup } from './meal.service';
+import { MealService, pareceBackup, parseNumericQuantity } from './meal.service';
 import { RecetaPublicaService } from './receta-publica.service';
 
 vi.mock('@angular/fire/firestore', async (importOriginal) => {
@@ -594,6 +594,84 @@ describe('MealService: lista de compras redondeada', () => {
     const r = renglon(service, 'Brócoli')!;
     expect(r.quantityOverride).toBe('0.5');
     expect(r.usas).toBeUndefined();
+  });
+
+  const enDespensa = (service: MealService, nombre: string): number =>
+    parseNumericQuantity(
+      service.pantry().find((p) => p.name.toLowerCase() === nombre.toLowerCase())?.quantity ?? '0'
+    )?.value ?? 0;
+
+  it('tildar manda la sobra a la despensa y congela el renglón', () => {
+    const service = TestBed.inject(MealService);
+    service.addExtraItem('Brócoli', '0.75', undefined, 'unidad');
+
+    expect(service.toggleItemCheck('Brócoli')).toBe('Brócoli: +0.25 unidad a la despensa');
+    expect(enDespensa(service, 'Brócoli')).toBe(0.25);
+    // Con la sobra en la despensa, el renglón no se recalcula: sigue en 1.
+    const r = renglon(service, 'Brócoli')!;
+    expect(r.checked).toBe(true);
+    expect(r.quantityOverride).toBe('1 unidad');
+    expect(r.sobra).toBe('0.25 unidad');
+  });
+
+  it('destildar saca la sobra, y tildar y destildar varias veces no acumula', () => {
+    const service = TestBed.inject(MealService);
+    service.addExtraItem('Brócoli', '0.75', undefined, 'unidad');
+
+    for (let i = 0; i < 3; i++) {
+      service.toggleItemCheck('Brócoli');
+      expect(service.toggleItemCheck('Brócoli')).toBe('Brócoli: \u22120.25 unidad de la despensa');
+    }
+
+    expect(enDespensa(service, 'Brócoli')).toBe(0);
+    expect(renglon(service, 'Brócoli')!.checked).toBe(false);
+    expect(renglon(service, 'Brócoli')!.quantityOverride).toBe('1 unidad');
+  });
+
+  it('lo que la despensa cubre se tilda sin registro ni sobra', () => {
+    const service = TestBed.inject(MealService);
+    service.addToPantry('brócoli', '1 unidad');
+    service.addExtraItem('Brócoli', '0.75', undefined, 'unidad');
+
+    expect(service.toggleItemCheck('Brócoli')).toBeNull();
+    expect(enDespensa(service, 'Brócoli')).toBe(1);
+    expect(service.compras()).toEqual({});
+  });
+
+  it('lo pisado a mano se compra tal cual y no deja sobra', () => {
+    const service = TestBed.inject(MealService);
+    service.addExtraItem('Brócoli', '0.75', undefined, 'unidad');
+    service.overrideQuantity('Brócoli', '2 unidad');
+
+    expect(service.toggleItemCheck('Brócoli')).toBeNull();
+    expect(enDespensa(service, 'Brócoli')).toBe(0);
+    expect(renglon(service, 'Brócoli')!.quantityOverride).toBe('2 unidad');
+  });
+
+  it('limpiar la semana deshace las sobras', () => {
+    const service = TestBed.inject(MealService);
+    service.addExtraItem('Brócoli', '0.75', undefined, 'unidad');
+    service.toggleItemCheck('Brócoli');
+
+    service.clearOverrides();
+
+    expect(enDespensa(service, 'Brócoli')).toBe(0);
+    expect(renglon(service, 'Brócoli')!.checked).toBe(false);
+  });
+
+  it('las compras se guardan y viajan en el backup', async () => {
+    const service = TestBed.inject(MealService);
+    service.addExtraItem('Brócoli', '0.75', undefined, 'unidad');
+    service.toggleItemCheck('Brócoli');
+    await asentar();
+
+    const guardado = JSON.parse(localStorage.getItem('comidas_compras')!) as Record<string, unknown>;
+    expect(Object.values(guardado)).toEqual([{ 'brócoli': { compra: '1 unidad', sobra: '0.25 unidad' } }]);
+
+    const compras = { '2026-01-05': { huevo: { compra: '12 unidad', sobra: '5.5 unidad' } } };
+    service.importData(JSON.stringify({ compras }));
+    expect(service.compras()).toEqual(compras);
+    expect(pareceBackup({ compras: {} })).toBe(true);
   });
 
   it('gramos sin paso quedan como están', () => {

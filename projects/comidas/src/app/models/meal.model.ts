@@ -92,3 +92,7 @@ export type ShoppingListGroup = {
   tag: ShoppingTag | null;
   items: ShoppingItem[];
 };
+
+// Lo que se compró al tildar un renglón y lo que sobró y entró a la despensa.
+// Ver docs/superpowers/specs/2026-10-14-compras-redondeadas-design.md
+export type CompraRegistrada = { compra: string; sobra: string };
