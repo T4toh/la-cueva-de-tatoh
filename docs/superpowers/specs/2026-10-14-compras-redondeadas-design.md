@@ -75,8 +75,10 @@ y sin sobra.
 
 Hoy `shoppingListGrouped` agrupa por nombre crudo en minúscula: "Huevo" y
 "huevos" son dos renglones, y redondear cada uno por separado compra de más.
-Pasa a agrupar por `clasificar(nombre, indiceCatalogo())?.nombre`, y lo que el
-catálogo no reconoce sigue agrupando por nombre crudo. El renglón muestra el
+Pasa a agrupar por la entrada del catálogo reconocida **sólo por su nombre,
+en singular o plural** —no por sinónimos: varios son otro producto para la
+lista (aceite de girasol no es aceite de oliva)—, y lo que no se reconoce así
+sigue agrupando por nombre crudo. El renglón muestra el
 nombre del primer ingrediente que entra (el canónico del catálogo está en
 minúscula: "huevo").
 

@@ -426,6 +426,9 @@ export class MealService {
   readonly catalogoPropio = signal<EntradaCatalogo[]>(this.loadCatalogoPropio());
   readonly catalogoEfectivo = computed(() => combinar(CATALOGO, this.catalogoPropio()));
   readonly indiceCatalogo = computed<IndiceCatalogo>(() => indexar(this.catalogoEfectivo()));
+  private readonly indiceNombres = computed<IndiceCatalogo>(() =>
+    indexar(this.catalogoEfectivo().map((e) => ({ ...e, sinonimos: undefined })))
+  );
   readonly todayTimestamp = signal<number>(this.getTodayTimestamp());
 
   // Decide qué pasa con una escritura que cae durante una sincronización.
@@ -1671,8 +1674,10 @@ export class MealService {
   // La clave de un renglón de la lista: la entrada del catálogo si la
   // reconoce, así "Huevo" y "huevos" son uno; si no, el nombre crudo, como
   // antes. Ver docs/superpowers/specs/2026-10-14-compras-redondeadas-design.md
+  // Sólo nombre, singular y plural: varios sinónimos del catálogo son otro
+  // producto para la lista (aceite de girasol no es aceite de oliva).
   private claveCompra(nombre: string): string {
-    const entrada = clasificar(nombre, this.indiceCatalogo());
+    const entrada = clasificar(nombre, this.indiceNombres());
     return (entrada?.nombre ?? nombre).toLowerCase().trim();
   }
 
@@ -1708,13 +1713,25 @@ export class MealService {
     if (!((parseNumericQuantity(compra)?.value ?? 0) > 0)) {
       return null;
     }
-    const sobra = renglon.sobra ?? '';
+    // Si la despensa lo tiene en otra unidad, sumarle la sobra la deja como
+    // texto ("200 g + 0.25 unidad") que después no se puede restar.
+    const sobra = renglon.sobra && this.cabeEnDespensa(key, renglon.sobra) ? renglon.sobra : '';
     this.compras.update((c) => ({ ...c, [weekKey]: { ...(c[weekKey] ?? {}), [key]: { compra, sobra } } }));
     if (!sobra) {
       return null;
     }
     this.addToPantry(renglon.name, sobra);
     return `${renglon.name}: +${sobra} a la despensa`;
+  }
+
+  private cabeEnDespensa(key: string, cantidad: string): boolean {
+    const entrada = this.pantry().find((p) => this.claveCompra(p.name) === key);
+    if (!entrada) {
+      return true;
+    }
+    const tengo = parseNumericQuantity(entrada.quantity);
+    const sumo = parseNumericQuantity(cantidad);
+    return !!tengo && !!sumo && (tengo.unit === sumo.unit || !tengo.unit || !sumo.unit);
   }
 
   private deshacerCompra(weekKey: string, key: string, nombre: string): string | null {
@@ -1781,15 +1798,19 @@ export class MealService {
       });
     });
 
-    const aggregated: { [key: string]: ShoppingItem } = {};
+    // Por renglón, una parte por unidad: 100 g + 1 unidad + 2 unidad es
+    // "100 g + 3 unidad". Sin unidad se suma a cualquiera.
+    const porClave: { [key: string]: ShoppingItem[] } = {};
     items.forEach((item) => {
-      const key = this.claveCompra(item.name);
-      if (aggregated[key]) {
-        this.sumarAlRenglon(aggregated[key], item);
+      const partes = (porClave[this.claveCompra(item.name)] ??= []);
+      const misma = partes.find((p) => !p.unit || !item.unit || p.unit === item.unit);
+      if (misma) {
+        this.sumarAlRenglon(misma, item);
       } else {
-        aggregated[key] = { ...item };
+        partes.push({ ...item });
       }
     });
+    const aggregated = Object.values(porClave).map((partes) => this.unirPartes(partes));
 
     const groups: ShoppingListGroup[] = this.tags().map((tag) => ({
       tag,
@@ -1798,7 +1819,7 @@ export class MealService {
     const uncategorizedGroup: ShoppingListGroup = { tag: null, items: [] };
     groups.push(uncategorizedGroup);
 
-    Object.values(aggregated).forEach((item) => {
+    aggregated.forEach((item) => {
       this.ajustarRenglon(item, weekKey);
       const group = item.tagId
         ? groups.find((g) => g.tag?.id === item.tagId)
@@ -1812,18 +1833,24 @@ export class MealService {
   // Desde la migración que separó la unidad, `quantity` es sólo el número:
   // sin mirar `unit`, 100 g y 1 unidad del mismo ingrediente sumaban 101.
   private sumarAlRenglon(renglon: ShoppingItem, item: ShoppingItem): void {
-    const unidad = renglon.unit ?? '';
-    const otra = item.unit ?? '';
-    if (unidad === otra || !unidad || !otra) {
-      renglon.quantity = this.addQuantities(renglon.quantity, item.quantity);
-      renglon.unit = unidad || otra;
-    } else {
-      renglon.quantity = `${renglon.quantity} ${unidad} + ${item.quantity} ${otra}`;
-      renglon.unit = '';
-    }
+    renglon.quantity = this.addQuantities(renglon.quantity, item.quantity);
+    renglon.unit = renglon.unit || item.unit;
     if (!renglon.tagId && item.tagId) {
       renglon.tagId = item.tagId;
     }
+  }
+
+  // Unidades distintas no se suman ni se redondean: quedan como texto.
+  private unirPartes(partes: ShoppingItem[]): ShoppingItem {
+    if (partes.length === 1) {
+      return partes[0];
+    }
+    return {
+      ...partes[0],
+      quantity: partes.map((p) => [p.quantity, p.unit].filter(Boolean).join(' ')).join(' + '),
+      unit: '',
+      tagId: partes.find((p) => p.tagId)?.tagId,
+    };
   }
 
   // Lo pisado a mano gana; si no, lo que falta después de la despensa se
@@ -1940,9 +1967,12 @@ export class MealService {
   subtractFromPantry(name: string, amount: string): void {
     const key = this.claveCompra(name);
     let didSubtract = false;
+    // Sólo la primera: con dos entradas del mismo ingrediente ("Huevo" y
+    // "huevos", de antes de agrupar por catálogo) se restaba de las dos.
+    const primera = this.pantry().find((i) => this.claveCompra(i.name) === key);
     this.pantry.update((items) =>
       items.map((i) => {
-        if (this.claveCompra(i.name) !== key) {
+        if (i !== primera) {
           return i;
         }
         const parsed = parseNumericQuantity(i.quantity);
@@ -1970,31 +2000,16 @@ export class MealService {
     }
   }
 
+  // Cubierto lo decide la lista, que ya restó la despensa una vez: volver a
+  // restarla acá tildaba renglones que no estaban cubiertos. Tilda sin pasar
+  // por `registrarCompra`: lo que cubre la despensa no se compra ni sobra.
   private autoCheckIfCovered(key: string): void {
-    const pantryEntry = this.pantry().find(
-      (p) => this.claveCompra(p.name) === key
-    );
-    if (!pantryEntry) {
+    const weekKey = this.formatDateKey(this.currentWeekStart());
+    const renglon = this.shoppingList().find((s) => this.claveCompra(s.name) === key);
+    if (!renglon?.checked || (this.checkedItems()[weekKey] || []).includes(key)) {
       return;
     }
-    const parsedPantry = parseNumericQuantity(pantryEntry.quantity);
-    if (parsedPantry?.value === 0) {
-      return;
-    }
-    const shoppingItem = this.shoppingList().find(
-      (s) => this.claveCompra(s.name) === key
-    );
-    if (!shoppingItem || shoppingItem.checked) {
-      return;
-    }
-    const needed = shoppingItem.quantityOverride || shoppingItem.quantity;
-    const { covered } = this.subtractPantryFromNeeded(
-      needed,
-      pantryEntry.quantity
-    );
-    if (covered) {
-      this.toggleItemCheck(shoppingItem.name);
-    }
+    this.checkedItems.update((prev) => ({ ...prev, [weekKey]: [...(prev[weekKey] || []), key] }));
   }
 
   clearPantry(): void {

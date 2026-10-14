@@ -674,6 +674,64 @@ describe('MealService: lista de compras redondeada', () => {
     expect(pareceBackup({ compras: {} })).toBe(true);
   });
 
+  it('restar de la despensa sin cubrir no tilda ni acredita sobra', () => {
+    const service = TestBed.inject(MealService);
+    service.addToPantry('huevo', '9 unidad');
+    service.addExtraItem('Huevo', '8', undefined, 'unidad');
+
+    service.subtractFromPantry('huevo', '2 unidad');
+
+    expect(enDespensa(service, 'huevo')).toBe(7);
+    expect(service.compras()).toEqual({});
+    // Quedan 7 y hacen falta 8: no está cubierto.
+    expect(renglon(service, 'Huevo')!.checked).toBe(false);
+  });
+
+  it('con la despensa en otra unidad, tildar y destildar no la toca', () => {
+    const service = TestBed.inject(MealService);
+    service.addToPantry('brócoli', '200 g');
+    service.addExtraItem('Brócoli', '0.75', undefined, 'unidad');
+
+    for (let i = 0; i < 3; i++) {
+      service.toggleItemCheck('Brócoli');
+      service.toggleItemCheck('Brócoli');
+    }
+
+    expect(service.pantry()[0].quantity).toBe('200 g');
+  });
+
+  it('tres ingredientes con dos unidades suman cada unidad aparte', () => {
+    const service = TestBed.inject(MealService);
+    service.addExtraItem('Queso', '100', undefined, 'g');
+    service.addExtraItem('queso', '1', undefined, 'unidad');
+    service.addExtraItem('queso', '2', undefined, 'unidad');
+
+    const r = renglon(service, 'Queso')!;
+    expect(r.quantity).toBe('100 g + 3 unidad');
+    expect(r.unit).toBe('');
+  });
+
+  it('un sinónimo que es otro producto no se junta en el mismo renglón', () => {
+    const service = TestBed.inject(MealService);
+    service.addExtraItem('Aceite de oliva', '2', undefined, 'cda');
+    service.addExtraItem('Aceite de girasol', '3', undefined, 'cda');
+
+    expect(renglon(service, 'Aceite de oliva')!.quantity).toBe('2');
+    expect(renglon(service, 'Aceite de girasol')!.quantity).toBe('3');
+  });
+
+  it('restar de la despensa toca una sola entrada aunque haya dos del mismo ingrediente', () => {
+    const service = TestBed.inject(MealService);
+    service.pantry.set([
+      { name: 'Huevo', quantity: '6 unidad' },
+      { name: 'huevos', quantity: '6 unidad' },
+    ]);
+
+    service.subtractFromPantry('huevo', '6 unidad');
+
+    expect(service.pantry().map((p) => p.quantity)).toEqual(['0 unidad', '6 unidad']);
+  });
+
   it('gramos sin paso quedan como están', () => {
     const service = TestBed.inject(MealService);
     service.addExtraItem('Mozzarella', '30', undefined, 'g');
