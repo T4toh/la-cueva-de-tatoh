@@ -9,7 +9,7 @@ import {
 } from '@angular/fire/firestore';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Meal } from '../models/meal.model';
+import { Meal, ShoppingItem } from '../models/meal.model';
 import { AuthService } from './auth.service';
 import { MealService, pareceBackup } from './meal.service';
 import { RecetaPublicaService } from './receta-publica.service';
@@ -514,5 +514,94 @@ describe('MealService: guía', () => {
 
     service.importData(JSON.stringify({ guia: { propias: [], ocultas: ['anotar'] } }));
     expect(service.guia().ocultas).toEqual(['anotar']);
+  });
+});
+
+describe('MealService: lista de compras redondeada', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: Firestore, useValue: {} },
+        { provide: AuthService, useValue: { currentUser: signal(null) } },
+      ],
+    });
+  });
+
+  afterEach(() => localStorage.clear());
+
+  const renglon = (service: MealService, nombre: string): ShoppingItem | undefined =>
+    service.shoppingList().find((i) => i.name.toLowerCase() === nombre.toLowerCase());
+
+  it('lo que se cuenta se compra entero y dice cuánto se usa', () => {
+    const service = TestBed.inject(MealService);
+    service.addExtraItem('Brócoli', '0.75', undefined, 'unidad');
+
+    const r = renglon(service, 'Brócoli')!;
+    expect(r.quantityOverride).toBe('1 unidad');
+    expect(r.usas).toBe('0.75 unidad');
+    expect(r.sobra).toBe('0.25 unidad');
+  });
+
+  it('"Huevo" y "huevos" son un renglón, redondeado una vez con el paso del catálogo', () => {
+    const service = TestBed.inject(MealService);
+    service.addExtraItem('Huevo', '3.5', undefined, 'unidad');
+    service.addExtraItem('huevos', '3', undefined, 'unidad');
+
+    const huevos = service.shoppingList().filter((i) => i.name.toLowerCase().startsWith('huevo'));
+    expect(huevos).toHaveLength(1);
+    expect(huevos[0].quantityOverride).toBe('12 unidad');
+    expect(huevos[0].usas).toBe('6.5 unidad');
+  });
+
+  it('dos unidades distintas no se suman ni se redondean', () => {
+    const service = TestBed.inject(MealService);
+    service.addExtraItem('Queso', '100', undefined, 'g');
+    service.addExtraItem('queso', '1', undefined, 'unidad');
+
+    const r = renglon(service, 'Queso')!;
+    expect(r.quantity).toBe('100 g + 1 unidad');
+    expect(r.quantityOverride).toBeUndefined();
+    expect(r.usas).toBeUndefined();
+  });
+
+  it('primero resta la despensa y después redondea', () => {
+    const service = TestBed.inject(MealService);
+    service.addToPantry('brócoli', '0.5 unidad');
+    service.addExtraItem('Brócoli', '0.75', undefined, 'unidad');
+
+    const r = renglon(service, 'Brócoli')!;
+    expect(r.quantityOverride).toBe('1 unidad');
+    expect(r.usas).toBe('0.25 unidad');
+    expect(r.sobra).toBe('0.75 unidad');
+  });
+
+  it('la despensa cubre aunque el nombre esté en otra forma', () => {
+    const service = TestBed.inject(MealService);
+    service.addToPantry('huevos', '6 unidad');
+    service.addExtraItem('Huevo', '4', undefined, 'unidad');
+
+    const r = renglon(service, 'Huevo')!;
+    expect(r.checked).toBe(true);
+    expect(r.usas).toBeUndefined();
+  });
+
+  it('la cantidad pisada a mano gana sobre el redondeo', () => {
+    const service = TestBed.inject(MealService);
+    service.addExtraItem('Brócoli', '0.75', undefined, 'unidad');
+    service.overrideQuantity('Brócoli', '0.5');
+
+    const r = renglon(service, 'Brócoli')!;
+    expect(r.quantityOverride).toBe('0.5');
+    expect(r.usas).toBeUndefined();
+  });
+
+  it('gramos sin paso quedan como están', () => {
+    const service = TestBed.inject(MealService);
+    service.addExtraItem('Mozzarella', '30', undefined, 'g');
+
+    const r = renglon(service, 'Mozzarella')!;
+    expect(r.quantityOverride).toBeUndefined();
+    expect(r.usas).toBeUndefined();
   });
 });

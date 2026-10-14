@@ -23,6 +23,8 @@ import { DialogService } from './dialog.service';
 import { RecetaPublicaService } from './receta-publica.service';
 import { CLAVES_BACKUP, filtrarSecciones, SeccionBackup } from './backup';
 import {
+  aComprar,
+  clasificar,
   combinar,
   EntradaCatalogo,
   indexar,
@@ -112,6 +114,11 @@ export function multiplyQuantity(quantity: string, factor: number): string {
     return quantity;
   }
   return `${parseFloat((parsed.valor * factor).toFixed(2))}${parsed.resto}`;
+}
+
+function conUnidad(valor: number, unidad: string): string {
+  const numero = parseFloat(valor.toFixed(2));
+  return unidad ? `${numero} ${unidad}` : `${numero}`;
 }
 
 // Garantiza que cada comida tenga un id. Las comidas que entran por restaurar
@@ -1605,7 +1612,7 @@ export class MealService {
 
   overrideQuantity(ingredientName: string, newQuantity: string): void {
     const weekKey = this.formatDateKey(this.currentWeekStart());
-    const key = `${weekKey}_${ingredientName.toLowerCase().trim()}`;
+    const key = `${weekKey}_${this.claveCompra(ingredientName)}`;
     this.quantityOverrides.update((o) => ({ ...o, [key]: newQuantity }));
   }
 
@@ -1628,9 +1635,17 @@ export class MealService {
     });
   }
 
+  // La clave de un renglón de la lista: la entrada del catálogo si la
+  // reconoce, así "Huevo" y "huevos" son uno; si no, el nombre crudo, como
+  // antes. Ver docs/superpowers/specs/2026-10-14-compras-redondeadas-design.md
+  private claveCompra(nombre: string): string {
+    const entrada = clasificar(nombre, this.indiceCatalogo());
+    return (entrada?.nombre ?? nombre).toLowerCase().trim();
+  }
+
   toggleItemCheck(name: string): void {
     const weekKey = this.formatDateKey(this.currentWeekStart());
-    const itemName = name.toLowerCase().trim();
+    const itemName = this.claveCompra(name);
 
     this.checkedItems.update((prev) => {
       const currentChecked = prev[weekKey] || [];
@@ -1653,9 +1668,7 @@ export class MealService {
     const weekStart = this.currentWeekStart();
     const weekKey = this.formatDateKey(weekStart);
     const tagMap = this.ingredientTags();
-    const overrides = this.quantityOverrides();
     const weekChecked = this.checkedItems()[weekKey] || [];
-    const pantryItems = this.pantry();
 
     currentSchedule.forEach((day, index) => {
       const dayDate = new Date(weekStart);
@@ -1669,14 +1682,12 @@ export class MealService {
           const meal = allMeals.find((m) => m.id === dish.mealId);
           if (meal && meal.includeInShoppingList !== false) {
             meal.ingredients.forEach((ing) => {
-              const key = ing.name.toLowerCase().trim();
-              const quantity = multiplyQuantity(ing.quantity, dish.portions);
               items.push({
                 ...ing,
-                quantity,
-                tagId: tagMap[key],
+                quantity: multiplyQuantity(ing.quantity, dish.portions),
+                tagId: tagMap[ing.name.toLowerCase().trim()],
                 isExtra: false,
-                checked: weekChecked.includes(key),
+                checked: weekChecked.includes(this.claveCompra(ing.name)),
               });
             });
           }
@@ -1689,25 +1700,18 @@ export class MealService {
     });
 
     this.currentExtraItems().forEach((extra) => {
-      const key = extra.name.toLowerCase().trim();
       items.push({
         ...extra,
-        tagId: extra.tagId || tagMap[key],
-        checked: weekChecked.includes(key),
+        tagId: extra.tagId || tagMap[extra.name.toLowerCase().trim()],
+        checked: weekChecked.includes(this.claveCompra(extra.name)),
       });
     });
 
     const aggregated: { [key: string]: ShoppingItem } = {};
     items.forEach((item) => {
-      const key = item.name.toLowerCase().trim();
+      const key = this.claveCompra(item.name);
       if (aggregated[key]) {
-        aggregated[key].quantity = this.addQuantities(
-          aggregated[key].quantity,
-          item.quantity
-        );
-        if (!aggregated[key].tagId && item.tagId) {
-          aggregated[key].tagId = item.tagId;
-        }
+        this.sumarAlRenglon(aggregated[key], item);
       } else {
         aggregated[key] = { ...item };
       }
@@ -1721,32 +1725,7 @@ export class MealService {
     groups.push(uncategorizedGroup);
 
     Object.values(aggregated).forEach((item) => {
-      const overrideKey = `${weekKey}_${item.name.toLowerCase().trim()}`;
-      if (overrides[overrideKey]) {
-        item.quantityOverride = overrides[overrideKey];
-      }
-
-      const pantryEntry = pantryItems.find(
-        (p) => p.name.toLowerCase().trim() === item.name.toLowerCase().trim()
-      );
-      if (pantryEntry) {
-        const parsedPantry = parseNumericQuantity(pantryEntry.quantity);
-        if (parsedPantry?.value !== 0) {
-          const effectiveQuantity = item.quantityOverride || item.quantity;
-          const { remaining, covered } = this.subtractPantryFromNeeded(
-            effectiveQuantity,
-            pantryEntry.quantity
-          );
-          item.pantryQuantity = pantryEntry.quantity;
-          item.inPantry = true;
-          if (covered) {
-            item.checked = true;
-          } else {
-            item.quantityOverride = remaining;
-          }
-        }
-      }
-
+      this.ajustarRenglon(item, weekKey);
       const group = item.tagId
         ? groups.find((g) => g.tag?.id === item.tagId)
         : null;
@@ -1755,6 +1734,70 @@ export class MealService {
 
     return groups.filter((g) => g.items.length > 0);
   });
+
+  // Desde la migración que separó la unidad, `quantity` es sólo el número:
+  // sin mirar `unit`, 100 g y 1 unidad del mismo ingrediente sumaban 101.
+  private sumarAlRenglon(renglon: ShoppingItem, item: ShoppingItem): void {
+    const unidad = renglon.unit ?? '';
+    const otra = item.unit ?? '';
+    if (unidad === otra || !unidad || !otra) {
+      renglon.quantity = this.addQuantities(renglon.quantity, item.quantity);
+      renglon.unit = unidad || otra;
+    } else {
+      renglon.quantity = `${renglon.quantity} ${unidad} + ${item.quantity} ${otra}`;
+      renglon.unit = '';
+    }
+    if (!renglon.tagId && item.tagId) {
+      renglon.tagId = item.tagId;
+    }
+  }
+
+  // Lo pisado a mano gana; si no, lo que falta después de la despensa se
+  // redondea a lo que se compra. Lo cubierto por la despensa no se compra.
+  private ajustarRenglon(item: ShoppingItem, weekKey: string): void {
+    const key = this.claveCompra(item.name);
+    const manual = this.quantityOverrides()[`${weekKey}_${key}`];
+    if (manual) {
+      item.quantityOverride = manual;
+    }
+    const cubierto = this.restarDespensa(item, key);
+    if (!manual && !cubierto) {
+      this.redondear(item);
+    }
+  }
+
+  // Devuelve si la despensa cubre todo el renglón.
+  private restarDespensa(item: ShoppingItem, key: string): boolean {
+    const pantryEntry = this.pantry().find((p) => this.claveCompra(p.name) === key);
+    if (!pantryEntry || parseNumericQuantity(pantryEntry.quantity)?.value === 0) {
+      return false;
+    }
+    const effectiveQuantity = item.quantityOverride || [item.quantity, item.unit].filter(Boolean).join(' ');
+    const { remaining, covered } = this.subtractPantryFromNeeded(effectiveQuantity, pantryEntry.quantity);
+    item.pantryQuantity = pantryEntry.quantity;
+    item.inPantry = true;
+    if (covered) {
+      item.checked = true;
+    } else {
+      item.quantityOverride = remaining;
+    }
+    return covered;
+  }
+
+  private redondear(item: ShoppingItem): void {
+    const falta = item.quantityOverride ?? [item.quantity, item.unit].filter(Boolean).join(' ');
+    const parsed = parseNumericQuantity(falta);
+    if (!parsed) {
+      return;
+    }
+    const compra = aComprar(parsed.value, parsed.unit, clasificar(item.name, this.indiceCatalogo()));
+    if (compra === parsed.value) {
+      return;
+    }
+    item.usas = falta;
+    item.quantityOverride = conUnidad(compra, parsed.unit);
+    item.sobra = conUnidad(compra - parsed.value, parsed.unit);
+  }
 
   readonly shoppingList = computed(() =>
     this.shoppingListGrouped().flatMap((g) => g.items)
@@ -1774,12 +1817,12 @@ export class MealService {
   }
 
   addToPantry(name: string, quantity: string, groupId?: string): void {
-    const key = name.toLowerCase().trim();
+    const key = this.claveCompra(name);
     this.pantry.update((items) => {
-      const existing = items.find((i) => i.name.toLowerCase().trim() === key);
+      const existing = items.find((i) => this.claveCompra(i.name) === key);
       if (existing) {
         return items.map((i) =>
-          i.name.toLowerCase().trim() === key
+          i === existing
             ? { ...i, quantity: this.addQuantities(i.quantity, quantity) }
             : i
         );
@@ -1814,11 +1857,11 @@ export class MealService {
   }
 
   subtractFromPantry(name: string, amount: string): void {
-    const key = name.toLowerCase().trim();
+    const key = this.claveCompra(name);
     let didSubtract = false;
     this.pantry.update((items) =>
       items.map((i) => {
-        if (i.name.toLowerCase().trim() !== key) {
+        if (this.claveCompra(i.name) !== key) {
           return i;
         }
         const parsed = parseNumericQuantity(i.quantity);
@@ -1848,7 +1891,7 @@ export class MealService {
 
   private autoCheckIfCovered(key: string): void {
     const pantryEntry = this.pantry().find(
-      (p) => p.name.toLowerCase().trim() === key
+      (p) => this.claveCompra(p.name) === key
     );
     if (!pantryEntry) {
       return;
@@ -1858,7 +1901,7 @@ export class MealService {
       return;
     }
     const shoppingItem = this.shoppingList().find(
-      (s) => s.name.toLowerCase().trim() === key
+      (s) => this.claveCompra(s.name) === key
     );
     if (!shoppingItem || shoppingItem.checked) {
       return;
@@ -1923,14 +1966,14 @@ export class MealService {
     const pantryItems = this.pantry();
     this.shoppingList().forEach((item) => {
       const pantryEntry = pantryItems.find(
-        (p) => p.name.toLowerCase().trim() === item.name.toLowerCase().trim()
+        (p) => this.claveCompra(p.name) === this.claveCompra(item.name)
       );
       if (pantryEntry) {
         const parsedPantry = parseNumericQuantity(pantryEntry.quantity);
         if (parsedPantry?.value === 0) {
           return;
         }
-        const needed = item.quantityOverride || item.quantity;
+        const needed = item.usas ?? item.quantityOverride ?? item.quantity;
         const { remaining, covered } = this.subtractPantryFromNeeded(
           needed,
           pantryEntry.quantity

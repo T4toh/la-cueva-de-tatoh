@@ -82,6 +82,10 @@ export type ShoppingItem = {
   quantityOverride?: string;
   inPantry?: boolean;
   pantryQuantity?: string;
+  // Lo que falta, sin redondear: sólo cuando lo que se compra es distinto.
+  usas?: string;
+  // Lo que se compra de más, con unidad. Al tildar va a la despensa.
+  sobra?: string;
 } & Ingredient;
 
 export type ShoppingListGroup = {
