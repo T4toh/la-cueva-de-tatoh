@@ -1,7 +1,7 @@
 # Lista de compras en cantidades que se compran, y lo que sobra a la despensa
 
 Fecha: 2026-10-14
-Estado: diseñado
+Estado: implementado
 
 ## Qué resuelve
 
@@ -77,7 +77,8 @@ Hoy `shoppingListGrouped` agrupa por nombre crudo en minúscula: "Huevo" y
 "huevos" son dos renglones, y redondear cada uno por separado compra de más.
 Pasa a agrupar por `clasificar(nombre, indiceCatalogo())?.nombre`, y lo que el
 catálogo no reconoce sigue agrupando por nombre crudo. El renglón muestra el
-nombre canónico de la entrada.
+nombre del primer ingrediente que entra (el canónico del catálogo está en
+minúscula: "huevo").
 
 Lo que es por semana (`checkedItems`, `quantityOverrides`, `compras`) pasa a
 esa clave. Costo aceptado: en la semana en curso, un tilde u override guardado
@@ -102,8 +103,10 @@ redondea.
 
 ### Cómo se ve
 
-- Renglón: **"Brócoli 1 · usás 3/4"**. El "· usás" sólo aparece cuando la
-  compra difiere de lo que falta.
+- Renglón: **"Brócoli 1 unidad"**, con "usás 0.75 unidad" abajo del nombre
+  sólo cuando la compra difiere de lo que falta. Las cantidades van en
+  decimales, como en el resto de la app; los "1/4" de este spec son de
+  lectura.
 - "Copiar" (WhatsApp) sale con lo redondeado, sin el "usás".
 
 ## 2. Tildar congela lo comprado y manda la sobra a la despensa
