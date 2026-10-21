@@ -157,6 +157,7 @@
                       <div class="dish-row-top">
                         <a
                           class="meal-link"
+                          [class.is-placeholder]="isPlaceholder(dish.mealId)"
                           [queryParams]="{ action: 'replace', index: $index }"
                           [routerLink]="['/schedule', day.dayName, 'desayuno']"
                         >
@@ -178,19 +179,21 @@
                               )
                             "
                           />
-                          <input
-                            class="exclude-check"
-                            title="Sumar a compras"
-                            type="checkbox"
-                            [checked]="!dish.excluded"
-                            (change)="
-                              toggleDishExclusion(
-                                day.dayName,
-                                'desayuno',
-                                $index
-                              )
-                            "
-                          />
+                          @if (!isPlaceholder(dish.mealId)) {
+                            <input
+                              class="exclude-check"
+                              title="Sumar a compras"
+                              type="checkbox"
+                              [checked]="!dish.excluded"
+                              (change)="
+                                toggleDishExclusion(
+                                  day.dayName,
+                                  'desayuno',
+                                  $index
+                                )
+                              "
+                            />
+                          }
                           <button
                             class="btn-clear-slot"
                             title="Quitar plato"
@@ -281,6 +284,7 @@
                       <div class="dish-row-top">
                         <a
                           class="meal-link"
+                          [class.is-placeholder]="isPlaceholder(dish.mealId)"
                           [queryParams]="{ action: 'replace', index: $index }"
                           [routerLink]="['/schedule', day.dayName, 'almuerzo']"
                         >
@@ -302,19 +306,21 @@
                               )
                             "
                           />
-                          <input
-                            class="exclude-check"
-                            title="Sumar a compras"
-                            type="checkbox"
-                            [checked]="!dish.excluded"
-                            (change)="
-                              toggleDishExclusion(
-                                day.dayName,
-                                'almuerzo',
-                                $index
-                              )
-                            "
-                          />
+                          @if (!isPlaceholder(dish.mealId)) {
+                            <input
+                              class="exclude-check"
+                              title="Sumar a compras"
+                              type="checkbox"
+                              [checked]="!dish.excluded"
+                              (change)="
+                                toggleDishExclusion(
+                                  day.dayName,
+                                  'almuerzo',
+                                  $index
+                                )
+                              "
+                            />
+                          }
                           <button
                             class="btn-clear-slot"
                             title="Quitar plato"
@@ -428,6 +434,7 @@
                       <div class="dish-row-top">
                         <a
                           class="meal-link"
+                          [class.is-placeholder]="isPlaceholder(dish.mealId)"
                           [queryParams]="{ action: 'replace', index: $index }"
                           [routerLink]="['/schedule', day.dayName, 'cena']"
                         >
@@ -449,15 +456,17 @@
                               )
                             "
                           />
-                          <input
-                            class="exclude-check"
-                            title="Sumar a compras"
-                            type="checkbox"
-                            [checked]="!dish.excluded"
-                            (change)="
-                              toggleDishExclusion(day.dayName, 'cena', $index)
-                            "
-                          />
+                          @if (!isPlaceholder(dish.mealId)) {
+                            <input
+                              class="exclude-check"
+                              title="Sumar a compras"
+                              type="checkbox"
+                              [checked]="!dish.excluded"
+                              (change)="
+                                toggleDishExclusion(day.dayName, 'cena', $index)
+                              "
+                            />
+                          }
                           <button
                             class="btn-clear-slot"
                             title="Quitar plato"

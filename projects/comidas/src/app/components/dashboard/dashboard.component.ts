@@ -61,13 +61,13 @@ export class DashboardComponent {
     return this.getMealName(dishes[0].mealId);
   }
 
+  isPlaceholder(mealId: string): boolean {
+    return this.mealService.getMeal(mealId)?.includeInShoppingList === false;
+  }
+
   isFirstDishPlaceholder(day: DaySchedule, type: DishMealType): boolean {
     const dishes = day[type];
-    if (dishes.length === 0) {
-      return false;
-    }
-    const meal = this.mealService.getMeal(dishes[0].mealId);
-    return meal ? meal.includeInShoppingList === false : false;
+    return dishes.length > 0 && this.isPlaceholder(dishes[0].mealId);
   }
 
   async clearWeek(): Promise<void> {
