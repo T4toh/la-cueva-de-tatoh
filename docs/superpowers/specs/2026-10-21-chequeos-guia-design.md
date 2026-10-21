@@ -1,7 +1,7 @@
 # Chequeos de la guía contra la semana
 
 Fecha: 2026-10-21
-Estado: diseñado
+Estado: implementado
 
 ## Qué resuelve
 
