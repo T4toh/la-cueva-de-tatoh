@@ -40,13 +40,13 @@ describe('plantasDeLaSemana', () => {
     expect(r.sinClasificar).toEqual(['kale']);
   });
 
-  it('ignora platos excluidos, comidas borradas y nombres vacíos', () => {
+  it('cuenta platos fuera de compras e ignora comidas borradas y nombres vacíos', () => {
     const r = plantasDeLaSemana(
       [dia([{ mealId: 'c', excluded: true }, { mealId: 'borrada' }, { mealId: 'b' }])],
       meals,
       indice
     );
-    expect(r.plantas).toEqual(['tomate', 'zanahoria']);
+    expect(r.plantas).toEqual(['lentejas', 'tomate', 'zanahoria']);
     expect(r.sinClasificar).toEqual([]);
   });
 });

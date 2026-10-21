@@ -27,14 +27,16 @@ function plantasDe(meal: Meal, indice: IndiceCatalogo, sinClasificar?: Set<strin
   return plantas;
 }
 
-// Los campos de texto libre (postres, colación) no cuentan.
+// Los campos de texto libre (postres, colación) no cuentan. `excluded` sólo
+// saca el plato de las compras —ya está en casa, son sobras, se comió afuera—:
+// se come igual.
 export function plantasDeLaSemana(semana: DaySchedule[], meals: Meal[], indice: IndiceCatalogo): PlantasSemana {
   const porId = new Map(meals.map((m) => [m.id, m]));
   const plantas = new Set<string>();
   const sinClasificar = new Set<string>();
   for (const dia of semana) {
     for (const plato of [...dia.desayuno, ...dia.almuerzo, ...dia.cena]) {
-      const meal = plato.excluded ? undefined : porId.get(plato.mealId);
+      const meal = porId.get(plato.mealId);
       if (meal) {
         plantasDe(meal, indice, sinClasificar).forEach((p) => plantas.add(p));
       }
