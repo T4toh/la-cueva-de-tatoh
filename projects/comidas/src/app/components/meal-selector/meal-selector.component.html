@@ -6,6 +6,9 @@
       <button class="btn-secondary" routerLink="/" type="button">
         Volver sin cambios
       </button>
+      <button class="btn-secondary" type="button" (click)="selectMeal(mealService.comidaAfuera())">
+        Comida afuera
+      </button>
       <button class="btn-danger" type="button" (click)="clearSelection()">
         Borrar y dejar vacío
       </button>

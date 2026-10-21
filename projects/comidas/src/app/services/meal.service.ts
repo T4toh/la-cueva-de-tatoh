@@ -53,6 +53,8 @@ import {
 // había tres regex distintas y la de cargar desde Firestore aplastaba '1/2' a
 // '1' antes de que ninguna de las otras la viera. La coma decimal vale igual
 // que el punto: acá se escribe '1,5'.
+const ID_AFUERA = 'afuera';
+
 const CANTIDAD = /^\s*(?:(\d+)\s+)?(\d+(?:[.,]\d+)?)(?:\s*\/\s*(\d+))?/;
 
 export type CantidadParseada = {
@@ -1291,6 +1293,19 @@ export class MealService {
   addMeal(meal: Omit<Meal, 'id'>): void {
     const newMeal: Meal = { ...meal, id: this.generateId() };
     this.meals.update((current) => [...current, newMeal]);
+  }
+
+  // El placeholder genérico para comer afuera sin saber qué. Id fijo: se
+  // reusa aunque el usuario le cambie el nombre, y si lo borra se vuelve a
+  // crear. Sin ingredientes no suma plantas; fuera de compras, no suma lista.
+  comidaAfuera(): string {
+    if (!this.getMeal(ID_AFUERA)) {
+      this.meals.update((current) => [
+        ...current,
+        { id: ID_AFUERA, name: 'Comida afuera', ingredients: [], includeInShoppingList: false },
+      ]);
+    }
+    return ID_AFUERA;
   }
 
   updateMeal(id: string, updatedMeal: Partial<Meal>): void {
