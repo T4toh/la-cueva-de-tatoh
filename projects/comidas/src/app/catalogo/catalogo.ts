@@ -40,7 +40,7 @@ export type EntradaCatalogo = {
 
 export type Carne = 'roja' | 'blanca' | 'pescado';
 
-export const ETIQUETA_CARNE: Record<Carne, string> = { roja: 'roja', blanca: 'blanca', pescado: 'pescado' };
+export const ETIQUETA_CARNE: Record<Carne, string> = { roja: 'carne roja', blanca: 'carne blanca', pescado: 'pescado' };
 
 export type IndiceCatalogo = ReadonlyMap<string, EntradaCatalogo>;
 

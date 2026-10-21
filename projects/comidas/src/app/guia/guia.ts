@@ -146,13 +146,21 @@ export function tipDelDia(reglas: readonly Regla[], fecha: Date, salto: number):
 }
 
 // El tip del plan: si la semana no cumple alguna de las reglas que se ven, la
-// primera de ésas; el "Otro" sigue con la rotación de siempre.
+// primera de ésas. El "Otro" sigue con la rotación de siempre sin ella: si
+// no, cada tanto el primer "Otro" la repetía y parecía no hacer nada.
 export function tipDelPlan(
   reglas: readonly Regla[],
   incumplidas: readonly string[],
   fecha: Date,
   salto: number
 ): Regla | null {
-  const incumplida = salto === 0 ? incumplidas.map((id) => reglas.find((r) => r.id === id)).find((r) => !!r) : null;
-  return incumplida ?? tipDelDia(reglas, fecha, salto);
+  const incumplida = incumplidas.map((id) => reglas.find((r) => r.id === id)).find((r) => !!r);
+  if (!incumplida) {
+    return tipDelDia(reglas, fecha, salto);
+  }
+  if (salto === 0) {
+    return incumplida;
+  }
+  const resto = reglas.filter((r) => r !== incumplida);
+  return tipDelDia(resto.length ? resto : reglas, fecha, salto);
 }

@@ -106,8 +106,8 @@ describe('tipDelPlan', () => {
     expect(tipDelPlan(reglas, ['x', 'c', 'b'], fecha, 0)?.id).toBe('c');
   });
 
-  it('con salto mayor a 0 vuelve a la rotación de tipDelDia', () => {
-    expect(tipDelPlan(reglas, ['c'], fecha, 1)).toBe(tipDelDia(reglas, fecha, 1));
+  it('con salto mayor a 0 vuelve a la rotación de tipDelDia, sin la incumplida', () => {
+    expect(tipDelPlan(reglas, ['c'], fecha, 1)).toBe(tipDelDia(reglas.slice(0, 2), fecha, 1));
   });
 
   it('una incumplida oculta no cuenta', () => {
@@ -116,5 +116,12 @@ describe('tipDelPlan', () => {
 
   it('sin reglas no hay tip', () => {
     expect(tipDelPlan([], ['a'], fecha, 0)).toBeNull();
+  });
+
+  it('"Otro" después de la incumplida nunca vuelve a mostrarla', () => {
+    for (let d = 1; d <= 30; d++) {
+      const f = new Date(2026, 9, d);
+      expect(tipDelPlan(reglas, ['b'], f, 1)?.id, `día ${d}`).not.toBe('b');
+    }
   });
 });
