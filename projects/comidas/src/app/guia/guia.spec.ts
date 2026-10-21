@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { armarGuia, normalizarGuia, Regla, REGLAS, tipDelDia } from './guia';
+import { armarGuia, normalizarGuia, Regla, REGLAS, tipDelDia, tipDelPlan } from './guia';
 
 describe('REGLAS', () => {
   it('cada regla base tiene id único, texto y una fuente que no es propia', () => {
@@ -95,5 +95,26 @@ describe('tipDelDia', () => {
 
   it('sin reglas no hay tip', () => {
     expect(tipDelDia([], new Date(), 0)).toBeNull();
+  });
+});
+
+describe('tipDelPlan', () => {
+  const reglas: Regla[] = ['a', 'b', 'c'].map((id) => ({ id, texto: id, fuente: 'sugerida' }));
+  const fecha = new Date(2026, 9, 21, 12);
+
+  it('con salto 0 muestra la primera incumplida que esté entre las reglas', () => {
+    expect(tipDelPlan(reglas, ['x', 'c', 'b'], fecha, 0)?.id).toBe('c');
+  });
+
+  it('con salto mayor a 0 vuelve a la rotación de tipDelDia', () => {
+    expect(tipDelPlan(reglas, ['c'], fecha, 1)).toBe(tipDelDia(reglas, fecha, 1));
+  });
+
+  it('una incumplida oculta no cuenta', () => {
+    expect(tipDelPlan(reglas, ['oculta'], fecha, 0)).toBe(tipDelDia(reglas, fecha, 0));
+  });
+
+  it('sin reglas no hay tip', () => {
+    expect(tipDelPlan([], ['a'], fecha, 0)).toBeNull();
   });
 });

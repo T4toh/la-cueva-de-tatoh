@@ -144,3 +144,15 @@ export function tipDelDia(reglas: readonly Regla[], fecha: Date, salto: number):
   const dia = Math.round(Date.UTC(fecha.getFullYear(), fecha.getMonth(), fecha.getDate()) / 86_400_000);
   return reglas[(dia + salto) % reglas.length];
 }
+
+// El tip del plan: si la semana no cumple alguna de las reglas que se ven, la
+// primera de ésas; el "Otro" sigue con la rotación de siempre.
+export function tipDelPlan(
+  reglas: readonly Regla[],
+  incumplidas: readonly string[],
+  fecha: Date,
+  salto: number
+): Regla | null {
+  const incumplida = salto === 0 ? incumplidas.map((id) => reglas.find((r) => r.id === id)).find((r) => !!r) : null;
+  return incumplida ?? tipDelDia(reglas, fecha, salto);
+}

@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { comidasQueSuman, META_PLANTAS, plantasDeLaSemana } from '../../catalogo/plantas';
-import { armarGuia, REGLAS, tipDelDia } from '../../guia/guia';
+import { armarGuia, REGLAS, tipDelPlan } from '../../guia/guia';
+import { chequearSemana, MAX_CARNE_ROJA, META_CARNE_BLANCA, MIN_PESCADO } from '../../guia/chequeos';
 import { RouterModule } from '@angular/router';
 import { MealService } from '../../services/meal.service';
 import { DialogService } from '../../services/dialog.service';
@@ -33,16 +34,32 @@ export class DashboardComponent {
     comidasQueSuman(new Set(this.plantas().plantas), this.mealService.meals(), this.mealService.indiceCatalogo())
   );
 
-  // Las reglas candidatas son las que se ven en /guia, en ese orden: propias y
-  // base sin las ocultas. El salto no se guarda: al recargar vuelve el del día.
+  readonly maxRoja = MAX_CARNE_ROJA;
+  readonly minPescado = MIN_PESCADO;
+  readonly metaBlanca = META_CARNE_BLANCA;
+  readonly chequeo = computed(() =>
+    chequearSemana(this.mealService.schedule(), this.mealService.meals(), this.mealService.indiceCatalogo())
+  );
+
+  // Las reglas que se ven en /guia, en ese orden: propias y base sin las
+  // ocultas. Una oculta no se chequea ni sale de tip.
+  readonly reglasVisibles = computed(() =>
+    armarGuia(REGLAS, this.mealService.guia()).grupos.flatMap((g) => g.reglas)
+  );
+  // El salto no se guarda: al recargar vuelve el del día, o la regla que la
+  // semana no cumple.
   readonly saltoTip = signal(0);
   readonly tip = computed(() =>
-    tipDelDia(
-      armarGuia(REGLAS, this.mealService.guia()).grupos.flatMap((g) => g.reglas),
-      new Date(),
-      this.saltoTip()
-    )
+    tipDelPlan(this.reglasVisibles(), this.chequeo().incumplidas, new Date(), this.saltoTip())
   );
+
+  chequeoVisible(id: string): boolean {
+    return this.reglasVisibles().some((r) => r.id === id);
+  }
+
+  dosCarbos(dayName: string): boolean {
+    return this.chequeo().diasConDosCarbos.includes(dayName);
+  }
 
   getMealName(id: string): string {
     const meal = this.mealService.getMeal(id);
