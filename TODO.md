@@ -218,6 +218,19 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
         [`docs/hosting-imagenes.md`](docs/hosting-imagenes.md). Trabado en dar
         de alta la cuenta de R2, que pide tarjeta.
 
+- [ ] **Chequeo de carbos: dos dudas para la nutri.** Salieron de probarlo
+      con una semana real (miércoles: ensalada de porotos a la noche;
+      jueves: ensalada de lentejas y tortilla).
+      1. ¿Las legumbres cuentan como carbo? Hoy sí —están en `feculentos`—,
+         pero las GAPA también las tratan como proteína con un cereal, y una
+         ensalada de lentejas no es un plato de fideos. Si no cuentan, es
+         sacarlas de `conCarbos` en `guia/chequeos.ts` (y del chip del editor,
+         que tiene que decir lo mismo).
+      2. ¿Importan los carbos en comidas seguidas aunque crucen de día (cena
+         del miércoles + almuerzo del jueves)? Hoy la regla es por día, como
+         en los planes. Sería una regla nueva, sin fuente todavía, y no sabe
+         si lo que sigue es una comida liviana que lo compensa.
+
 - [ ] **Después del catálogo.** Lo que el spec dejó fuera de alcance:
       **calorías y fibra** (campos kcal/100 g y fibra/100 g en
       `EntradaCatalogo`, de la tabla de composición argentina; la fibra para
