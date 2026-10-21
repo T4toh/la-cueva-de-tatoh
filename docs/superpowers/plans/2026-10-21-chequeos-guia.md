@@ -265,8 +265,9 @@ git commit -m "feat(comidas): el plan marca carbos dos veces y cuenta las carnes
 
 **Files:**
 - Modify: `TODO.md`
+- Modify: `docs/superpowers/specs/2026-10-21-chequeos-guia-design.md` (`Estado: implementado`)
 
-- [ ] **Step 1:** Pasar "Chequeos de la guía contra la semana" a *Hecho*, en el estilo de los otros ítems: qué hace, el link al spec, y lo que quedó afuera (los demás chequeos; `menor` sin control en el formulario). En "Después del catálogo", sacar las frecuencias de las GAPA, que ya están. En "Tips de la guía en el plan", quitar el "Pendiente para cuando existan los chequeos". Si quedó algún `ponytail:` nuevo en el código, sumarlo a la tabla de deuda técnica.
+- [ ] **Step 1:** En el spec, `Estado: implementado`. Pasar "Chequeos de la guía contra la semana" a *Hecho*, en el estilo de los otros ítems: qué hace, el link al spec, y lo que quedó afuera (los demás chequeos; `menor` sin control en el formulario). En "Después del catálogo", sacar las frecuencias de las GAPA, que ya están. En "Tips de la guía en el plan", quitar el "Pendiente para cuando existan los chequeos". Si quedó algún `ponytail:` nuevo en el código, sumarlo a la tabla de deuda técnica.
 - [ ] **Step 2: Commit**
 
 ```bash
