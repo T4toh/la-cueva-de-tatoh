@@ -650,6 +650,25 @@ input:checked + .slider:before {
   }
 }
 
+.carnes {
+  margin: 0.25rem 0 0;
+  color: var(--fg-secondary);
+  font-size: 0.85rem;
+}
+
+.excede {
+  color: var(--warning);
+}
+
+.marca-dia {
+  margin: 0;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.25rem;
+  background: var(--warning-muted);
+  color: var(--warning);
+  font-size: 0.85rem;
+}
+
 .tip {
   display: flex;
   flex-wrap: wrap;
@@ -679,6 +698,8 @@ input:checked + .slider:before {
 
 @media print {
   .plantas,
+  .carnes,
+  .marca-dia,
   .tip,
   .panel-plantas {
     display: none;

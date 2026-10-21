@@ -25,6 +25,13 @@
         <button class="plantas" type="button" (click)="verPlantas.set(!verPlantas())">
           {{ plantas().plantas.length }} de {{ metaPlantas }} plantas
         </button>
+        @if (chequeoVisible('frecuencia-carnes')) {
+          @let c = chequeo().carnes;
+          <p class="carnes">
+            Pescado {{ c.pescado }} de {{ minPescado }} · Blanca {{ c.blanca }} de {{ metaBlanca }} ·
+            <span [class.excede]="c.roja > maxRoja">Roja {{ c.roja }} de {{ maxRoja }}</span>
+          </p>
+        }
       </div>
       <button class="btn-nav" type="button" (click)="mealService.nextWeek()">
         &gt;
@@ -146,6 +153,9 @@
         [texto]="day.dayName + (isToday(day.dayName) ? ' (Hoy)' : '')"
       >
         <div class="meal-slots">
+          @if (chequeoVisible('un-carbo-por-dia') && dosCarbos(day.dayName)) {
+            <p class="marca-dia">Carbos en almuerzo y cena</p>
+          }
           <!-- Desayuno -->
           @if (mealService.visibleMeals().breakfast) {
             <div class="slot">

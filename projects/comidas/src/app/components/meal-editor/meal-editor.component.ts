@@ -16,9 +16,11 @@ import {
 } from '../../services/compartir.service';
 import { Meal, Paso } from '../../models/meal.model';
 import {
+  Carne,
   clasificar,
   EntradaCatalogo,
   entradaPropia,
+  ETIQUETA_CARNE,
   ETIQUETA_GRUPO,
   Grupo,
   Sugerencia,
@@ -67,6 +69,7 @@ export class MealEditorComponent implements OnInit {
   );
 
   readonly etiquetaGrupo = ETIQUETA_GRUPO;
+  readonly carnes = Object.entries(ETIQUETA_CARNE) as [Carne, string][];
 
   // La fila que se está clasificando, o -1. Una sola a la vez.
   readonly clasificando = signal<number>(-1);
@@ -76,6 +79,8 @@ export class MealEditorComponent implements OnInit {
     unidad: [''],
     porcion: [''],
     compra: [''],
+    // '' es "ninguna": se guarda como null.
+    carne: ['' as Carne | ''],
   });
 
   readonly tagsSugeridos = computed(() => {
@@ -94,6 +99,7 @@ export class MealEditorComponent implements OnInit {
       unidad: entrada?.unidad ?? unit ?? '',
       porcion: entrada?.porcion !== undefined ? String(entrada.porcion) : '',
       compra: entrada?.compra !== undefined ? String(entrada.compra) : '',
+      carne: entrada?.carne ?? '',
     });
     this.clasificando.set(index);
   }
@@ -101,13 +107,14 @@ export class MealEditorComponent implements OnInit {
   guardarClasificacion(): void {
     const index = this.clasificando();
     const { name } = this.ingredients.at(index).value as { name: string };
-    const { grupo, unidad, porcion, compra } = this.clasificacion.getRawValue();
+    const { grupo, unidad, porcion, compra, carne } = this.clasificacion.getRawValue();
     this.mealService.guardarEnCatalogo(
       entradaPropia(name, this.entradaDe(name), {
         grupo: grupo ?? 'hortalizas',
         unidad: unidad ?? '',
         porcion: porcion ?? '',
         compra: compra ?? '',
+        carne: carne || null,
       })
     );
     this.clasificando.set(-1);

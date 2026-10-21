@@ -31,6 +31,21 @@ describe('CATALOGO', () => {
     expect(CATALOGO.filter((e) => e.legumbre && e.grupo !== 'feculentos')).toEqual([]);
   });
 
+  it('toda carne del base dice qué tipo es, y huevo y clara no', () => {
+    const tipo = (n: string): unknown => CATALOGO.find((e) => e.nombre === n)?.carne;
+    for (const n of ['carne vacuna', 'carne picada', 'lomo', 'cerdo']) {
+      expect(tipo(n), n).toBe('roja');
+    }
+    expect(tipo('pechuga de pollo')).toBe('blanca');
+    for (const n of ['pescado', 'atún']) {
+      expect(tipo(n), n).toBe('pescado');
+    }
+    for (const n of ['huevo', 'clara']) {
+      expect(tipo(n), n).toBeUndefined();
+    }
+    expect(CATALOGO.filter((e) => e.menor).map((e) => e.nombre).sort()).toEqual(['maicena', 'pan rallado']);
+  });
+
   // Los ingredientes de las recetas reales (las del usuario y las de los
   // planes de referencia). Si alguno deja de clasificarse, se rompió un
   // sinónimo.

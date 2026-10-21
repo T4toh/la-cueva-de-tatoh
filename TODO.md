@@ -144,8 +144,8 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       `tipDelDia(reglas, fecha, salto)` en `guia/guia.ts`: la misma regla todo
       el día —contado en fecha local, no UTC—, de las que se ven en `/guia`
       (propias y base sin ocultas). El salto del "Otro" no se guarda. Con todas
-      ocultas la línea no aparece. Pendiente para cuando existan los chequeos:
-      que priorice la regla que la semana no está cumpliendo.
+      ocultas la línea no aparece. Si la semana no cumple alguna regla
+      chequeada, el tip es ésa (ver *Chequeos de la guía*, abajo).
 
 - [x] **Lista de compras en cantidades que se compran.** La lista pedía 6,5
       huevos y 3/4 de brócoli. Ahora agrupa por entrada del catálogo ("Huevo"
@@ -167,6 +167,25 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       sin ingredientes, creado la primera vez y reusado aunque se renombre.
       No suma a la lista; a las plantas suma sólo lo que tenga cargado, porque
       el contador ahora cuenta los platos fuera de compras —se comen igual—.
+
+- [x] **Chequeos de la guía contra la semana.** El spec está en
+      [`docs/superpowers/specs/2026-10-21-chequeos-guia-design.md`](docs/superpowers/specs/2026-10-21-chequeos-guia-design.md).
+      Marcan y ya, no bloquean nada. Un día con carbos en almuerzo y cena
+      lleva la marca "Carbos en almuerzo y cena" —el desayuno no cuenta, las
+      legumbres sí—, y bajo el contador de plantas va "Pescado 1 de 2 ·
+      Blanca 2 de 2 · Roja 1 de 3", con la roja marcada al pasar de 3. Si la
+      semana no cumple una, el tip del plan es ésa. La unidad es la comida,
+      no el plato: en modo familiar dos platos con carbos en la misma cena son
+      una vez. Una regla oculta en `/guia` no se chequea, que es toda la
+      configuración: cada uno tiene problemas distintos.
+      El cálculo es puro (`guia/chequeos.ts`) para que lo use el armador de
+      semanas. Para hacerlo, el catálogo suma `carne` (roja / blanca /
+      pescado; el cerdo como roja) y `menor` —maicena y pan rallado no hacen
+      un plato con carbos, tampoco en el chip del editor—. El formulario de
+      clasificar tiene un select de tipo de carne, y `combinar` le hereda
+      `carne` a una corrección propia vieja de una carne del base. Afuera:
+      los demás chequeos (medio plato de verdura, fermentado, día
+      vegetariano) y un control para `menor` en el formulario.
 
 ## En curso / pendiente
 
@@ -199,19 +218,20 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
         [`docs/hosting-imagenes.md`](docs/hosting-imagenes.md). Trabado en dar
         de alta la cuenta de R2, que pide tarjeta.
 
-- [ ] **Chequeos de la guía contra la semana.** Uno por regla, calculados
-      sobre el plan como `catalogo/plantas.ts`, y que el tip del plan
-      priorice la regla que no se cumple: primero "carbos dos veces el
-      mismo día" (dos platos del día con `feculentos` o `pan`) y "carne roja
-      más de 3". Para la carne roja hace falta distinguirla en el catálogo:
-      hoy `carnesHuevos` mezcla vaca, pollo, pescado y huevo.
+- [ ] **Chequeo de carbos: ¿importan las comidas seguidas entre días?**
+      Salió de probarlo con una semana real: ensalada de porotos el miércoles
+      a la noche, y ensalada de lentejas y tortilla el jueves. Hoy la regla es
+      por día, como en los planes, así que sólo se marca el jueves. Contar la
+      cena del miércoles + el almuerzo del jueves sería una regla nueva, sin
+      fuente todavía, y no sabe si lo que sigue es una comida liviana que lo
+      compensa. Para consultar con la nutri. (Que las legumbres cuentan como
+      carbo ya está decidido: son carbos, por más nobles que sean.)
 
 - [ ] **Después del catálogo.** Lo que el spec dejó fuera de alcance:
       **calorías y fibra** (campos kcal/100 g y fibra/100 g en
       `EntradaCatalogo`, de la tabla de composición argentina; la fibra para
-      la meta del libro: 25 g/día mujeres, 38 g/día hombres) y las **frecuencias semanales de las GAPA**
-      (pescado ≥2, carnes blancas 2, rojas ≤3), que se calculan igual que las
-      plantas en `catalogo/plantas.ts`.
+      la meta del libro: 25 g/día mujeres, 38 g/día hombres). Las frecuencias
+      semanales de las GAPA ya están: son los chequeos de la guía.
 
 - [ ] **Preparaciones: salsas, alioli y lo que se usa en otras comidas.** Un
       tilde en el editor que marque la comida como preparación —ya hay una
