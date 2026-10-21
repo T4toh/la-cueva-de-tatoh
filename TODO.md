@@ -157,6 +157,17 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       paso, la suma dejó de mezclar unidades (100 g + 1 unidad daba 101).
       Spec: [`docs/superpowers/specs/2026-10-14-compras-redondeadas-design.md`](docs/superpowers/specs/2026-10-14-compras-redondeadas-design.md).
 
+- [x] **Comidas sin cocinar: asado, afuera, delivery.** No hizo falta un tipo
+      nuevo de `Dish`: un placeholder es cualquier comida con "Sumar a compras"
+      destildado (`isPlaceholder` en el dashboard), así que asado o delivery
+      son comidas que cada uno se crea así. En el plan se ven en cursiva con
+      borde punteado y sin el check de compras, en modo individual y familiar.
+      Para el caso de todos los días, el selector tiene un botón **Comida
+      afuera** que pone un placeholder genérico de un clic: id fijo `afuera`,
+      sin ingredientes, creado la primera vez y reusado aunque se renombre.
+      No suma a la lista; a las plantas suma sólo lo que tenga cargado, porque
+      el contador ahora cuenta los platos fuera de compras —se comen igual—.
+
 ## En curso / pendiente
 
 - [ ] **Recetario.** Diseñado y sin implementar. El spec está en
@@ -201,16 +212,6 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       la meta del libro: 25 g/día mujeres, 38 g/día hombres) y las **frecuencias semanales de las GAPA**
       (pescado ≥2, carnes blancas 2, rojas ≤3), que se calculan igual que las
       plantas en `catalogo/plantas.ts`.
-
-- [ ] **Comidas sin cocinar: asado, afuera, delivery.** Un marcador para el
-      slot del día que diga "esta vez no se cocina" sin inventar una receta:
-      asado, comer afuera, en lo de alguien, pedido. Tiene que verse en el
-      plan y en la impresión, no sumar a la lista de compras y no contar para
-      las plantas de la semana (o contar sólo si se le cargan ingredientes).
-      Ojo con lo que ya existe y no es esto: `Dish.label` es una nota libre
-      por plato (se imprime como "– texto") y `Dish.excluded` saca un plato
-      del cálculo, pero los dos cuelgan de un `mealId` real. Decidir si es un
-      tipo de `Dish` sin `mealId` o un puñado de comidas especiales fijas.
 
 - [ ] **Preparaciones: salsas, alioli y lo que se usa en otras comidas.** Un
       tilde en el editor que marque la comida como preparación —ya hay una
