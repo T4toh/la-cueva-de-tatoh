@@ -72,6 +72,19 @@ describe('resumenPlato', () => {
     expect(resumenPlato(plato('lentejas'), indice).proteina).toBe(false);
   });
 
+  it('lo `menor` no hace feculento al plato ni es el cereal de legumbre + cereal', () => {
+    const i = indexar([
+      { nombre: 'pan rallado', grupo: 'pan', unidad: 'g', menor: true },
+      { nombre: 'maicena', grupo: 'feculentos', unidad: 'cda', menor: true },
+      { nombre: 'lentejas', grupo: 'feculentos', unidad: 'g', legumbre: true },
+      { nombre: 'pollo', grupo: 'carnesHuevos', unidad: 'g' },
+    ]);
+    expect(resumenPlato(plato('pollo', 'pan rallado'), i).feculento).toBe(false);
+    const lentejas = resumenPlato(plato('lentejas', 'maicena'), i);
+    expect(lentejas.feculento).toBe(true); // por las lentejas
+    expect(lentejas.proteina).toBe(false);
+  });
+
   it('ignora nombres vacíos y lo que no se clasifica', () => {
     expect(resumenPlato(plato('', 'dragonfruit', 'huevo'), indice).clasificados).toBe(1);
   });

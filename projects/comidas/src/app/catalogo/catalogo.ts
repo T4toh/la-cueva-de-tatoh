@@ -29,7 +29,18 @@ export type EntradaCatalogo = {
   planta?: boolean;
   // Dentro de `feculentos`. Legumbre + cereal reemplaza a la carne.
   legumbre?: boolean;
+  // Dentro de `carnesHuevos`. Sin valor no cuenta para las frecuencias
+  // (huevo); `null` es el "ninguna" que eligió el usuario en una propia, y no
+  // hereda de la base en `combinar`.
+  carne?: Carne | null;
+  // Va en poca cantidad dentro de otra cosa —espesa, reboza—: no hace de la
+  // comida una con carbos.
+  menor?: boolean;
 };
+
+export type Carne = 'roja' | 'blanca' | 'pescado';
+
+export const ETIQUETA_CARNE: Record<Carne, string> = { roja: 'roja', blanca: 'blanca', pescado: 'pescado' };
 
 export type IndiceCatalogo = ReadonlyMap<string, EntradaCatalogo>;
 
@@ -80,7 +91,22 @@ export function combinar(
   propio: readonly EntradaCatalogo[]
 ): EntradaCatalogo[] {
   const propios = new Set(propio.map((e) => normalizar(e.nombre)));
-  return [...base.filter((e) => !propios.has(normalizar(e.nombre))), ...propio];
+  const porNombre = new Map(base.map((e) => [normalizar(e.nombre), e]));
+  // Una propia guardada antes de que existieran `carne` y `menor` (alguien
+  // corrigió la porción de la carne vacuna) los perdería en silencio: los
+  // toma de la base que reemplaza mientras siga en el mismo grupo.
+  const heredar = (e: EntradaCatalogo): EntradaCatalogo => {
+    const b = porNombre.get(normalizar(e.nombre));
+    if (!b || b.grupo !== e.grupo) {
+      return e;
+    }
+    return {
+      ...e,
+      ...(e.carne === undefined && b.carne !== undefined ? { carne: b.carne } : {}),
+      ...(e.menor === undefined && b.menor !== undefined ? { menor: b.menor } : {}),
+    };
+  };
+  return [...base.filter((e) => !propios.has(normalizar(e.nombre))), ...propio.map(heredar)];
 }
 
 // Nombre y sinónimos normalizados → entrada. Una clave repetida queda con la
@@ -154,25 +180,34 @@ export function sugerencias(
   return [...delCatalogo, ...sueltos].slice(0, max);
 }
 
+// Las excepciones de la entrada valen para su grupo: corregir la porción de
+// las lentejas no puede sacarlas de legumbres, pero pasarlas a hortalizas sí.
+function excepciones(existente: EntradaCatalogo | null, grupo: Grupo): Partial<EntradaCatalogo> {
+  if (existente?.grupo !== grupo) {
+    return {};
+  }
+  return {
+    ...(existente.planta !== undefined ? { planta: existente.planta } : {}),
+    ...(existente.legumbre ? { legumbre: true } : {}),
+    ...(existente.menor ? { menor: true } : {}),
+  };
+}
+
 // Lo que guarda el formulario de "clasificar" del editor. Con una entrada
 // existente se queda con su nombre canónico y sus sinónimos, así la propia
 // reemplaza a la del base en `combinar`; sin ella, toma el nombre de la fila.
 export function entradaPropia(
   nombreFila: string,
   existente: EntradaCatalogo | null,
-  valores: { grupo: Grupo; unidad: string; porcion: string; compra?: string }
+  valores: { grupo: Grupo; unidad: string; porcion: string; compra?: string; carne?: Carne | null }
 ): EntradaCatalogo {
   const porcion = Number(valores.porcion.trim().replace(',', '.'));
   const compra = Number((valores.compra ?? '').trim().replace(',', '.'));
-  // Las excepciones de la entrada valen para su grupo: corregir la porción
-  // de las lentejas no puede sacarlas de legumbres, pero pasarlas a
-  // hortalizas sí.
-  const mismoGrupo = existente?.grupo === valores.grupo;
   return {
     nombre: existente?.nombre ?? nombreFila.trim(),
     ...(existente?.sinonimos ? { sinonimos: existente.sinonimos } : {}),
-    ...(mismoGrupo && existente?.planta !== undefined ? { planta: existente.planta } : {}),
-    ...(mismoGrupo && existente?.legumbre ? { legumbre: true } : {}),
+    ...excepciones(existente, valores.grupo),
+    ...(valores.grupo === 'carnesHuevos' && valores.carne !== undefined ? { carne: valores.carne } : {}),
     grupo: valores.grupo,
     unidad: valores.unidad.trim() || 'unidad',
     ...(porcion > 0 ? { porcion } : {}),

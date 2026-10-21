@@ -204,6 +204,14 @@
                   <option [value]="g">{{ etiquetaGrupo[g] }}</option>
                 }
               </select>
+              @if (clasificacion.value.grupo === 'carnesHuevos') {
+                <select aria-label="Tipo de carne" formControlName="carne">
+                  @for (c of carnes; track c[0]) {
+                    <option [value]="c[0]">{{ c[1] }}</option>
+                  }
+                  <option value="">ninguna</option>
+                </select>
+              }
               <input formControlName="unidad" placeholder="Unidad" type="text" />
               <input formControlName="porcion" placeholder="Porción (opcional)" type="text" />
               <input formControlName="compra" placeholder="Se compra de a (opcional)" type="text" />

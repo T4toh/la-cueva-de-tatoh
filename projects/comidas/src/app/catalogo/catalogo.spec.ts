@@ -89,6 +89,23 @@ describe('combinar', () => {
     expect(clasificar('tomate perita', i)?.nombre).toBe('tomate cherry');
     expect(clasificar('tomate', i)?.nombre).toBe('tomate');
   });
+
+  it('una propia vieja sin `carne` hereda la de la base que reemplaza, con el mismo grupo', () => {
+    const b: EntradaCatalogo[] = [{ nombre: 'carne vacuna', grupo: 'carnesHuevos', unidad: 'g', carne: 'roja' }];
+    const p: EntradaCatalogo[] = [{ nombre: 'carne vacuna', grupo: 'carnesHuevos', unidad: 'g', porcion: 200 }];
+    expect(combinar(b, p)).toEqual([{ ...p[0], carne: 'roja' }]);
+  });
+
+  it('no hereda `carne` si la propia cambió de grupo o dijo "ninguna"', () => {
+    const b: EntradaCatalogo[] = [{ nombre: 'atún', grupo: 'carnesHuevos', unidad: 'g', carne: 'pescado' }];
+    expect(combinar(b, [{ nombre: 'atún', grupo: 'condimentos', unidad: 'g' }])[0].carne).toBeUndefined();
+    expect(combinar(b, [{ nombre: 'atún', grupo: 'carnesHuevos', unidad: 'g', carne: null }])[0].carne).toBeNull();
+  });
+
+  it('hereda `menor` con el mismo grupo', () => {
+    const b: EntradaCatalogo[] = [{ nombre: 'maicena', grupo: 'feculentos', unidad: 'cda', menor: true }];
+    expect(combinar(b, [{ nombre: 'Maicena', grupo: 'feculentos', unidad: 'g' }])[0].menor).toBe(true);
+  });
 });
 
 describe('esPlanta', () => {
@@ -176,6 +193,19 @@ describe('entradaPropia', () => {
     const r = entradaPropia('lentejas', base[3], { grupo: 'hortalizas', unidad: 'g', porcion: '' });
     expect(r).not.toHaveProperty('legumbre');
     expect(r).not.toHaveProperty('planta');
+  });
+
+  it('guarda `carne` sólo en carnesHuevos, y "ninguna" como null', () => {
+    const v = { unidad: 'g', porcion: '' };
+    expect(entradaPropia('vacío', null, { ...v, grupo: 'carnesHuevos', carne: 'roja' }).carne).toBe('roja');
+    expect(entradaPropia('vacío', null, { ...v, grupo: 'carnesHuevos', carne: null }).carne).toBeNull();
+    expect(entradaPropia('vacío', null, { ...v, grupo: 'hortalizas', carne: 'roja' })).not.toHaveProperty('carne');
+  });
+
+  it('conserva `menor` si el grupo no cambia', () => {
+    const maicena: EntradaCatalogo = { nombre: 'maicena', grupo: 'feculentos', unidad: 'cda', menor: true };
+    expect(entradaPropia('maicena', maicena, { grupo: 'feculentos', unidad: 'g', porcion: '' }).menor).toBe(true);
+    expect(entradaPropia('maicena', maicena, { grupo: 'pan', unidad: 'g', porcion: '' })).not.toHaveProperty('menor');
   });
 
   it('sin unidad queda en "unidad"', () => {

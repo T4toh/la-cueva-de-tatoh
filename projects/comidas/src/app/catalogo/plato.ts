@@ -70,12 +70,15 @@ export function resumenPlato(ingredientes: Pick<Ingredient, 'name'>[], indice: I
     .map((i) => clasificar(i.name, indice))
     .filter((e): e is EntradaCatalogo => e !== null);
   const hay = (f: (e: EntradaCatalogo) => boolean): boolean => entradas.some(f);
+  // La maicena de una salsa o el pan rallado de una milanesa no hacen un
+  // plato con carbos, ni el cereal de legumbre + cereal.
   const legumbreYCereal =
-    hay((e) => e.grupo === 'feculentos' && !!e.legumbre) && hay((e) => e.grupo === 'feculentos' && !e.legumbre);
+    hay((e) => e.grupo === 'feculentos' && !!e.legumbre) &&
+    hay((e) => e.grupo === 'feculentos' && !e.legumbre && !e.menor);
   return {
     verdura: hay((e) => e.grupo === 'hortalizas'),
     proteina: hay((e) => e.grupo === 'carnesHuevos') || legumbreYCereal,
-    feculento: hay((e) => e.grupo === 'feculentos' || e.grupo === 'pan'),
+    feculento: hay((e) => (e.grupo === 'feculentos' || e.grupo === 'pan') && !e.menor),
     aceite: hay((e) => e.grupo === 'aceitesSemillas'),
     clasificados: entradas.length,
   };
