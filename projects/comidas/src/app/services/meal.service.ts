@@ -472,6 +472,19 @@ export class MealService {
   constructor() {
     this.loadFamilySettings();
 
+    // La PWA queda abierta de fondo días enteros: al volver (cambio de pestaña
+    // o salir del fondo en el celu) y si cambió el día, vuelve a la semana
+    // actual. Sin esto el lunes seguía mostrando la semana pasada.
+    document.addEventListener('visibilitychange', () => {
+      const antes = this.todayTimestamp();
+      if (document.visibilityState === 'visible') {
+        this.refreshTodayTimestamp();
+        if (this.todayTimestamp() !== antes) {
+          this.goToCurrentWeek();
+        }
+      }
+    });
+
     if (this.scheduleMigrationOccurred) {
       this.migrationOccurred.set(true);
     }
