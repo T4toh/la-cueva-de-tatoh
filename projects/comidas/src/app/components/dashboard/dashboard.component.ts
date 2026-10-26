@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { afterRenderEffect, Component, computed, inject, signal } from '@angular/core';
 import { comidasQueSuman, META_PLANTAS, plantasDeLaSemana } from '../../catalogo/plantas';
 import { armarGuia, REGLAS, tipDelPlan } from '../../guia/guia';
 import { chequearSemana, MAX_CARNE_ROJA, META_CARNE_BLANCA, MIN_PESCADO } from '../../guia/chequeos';
@@ -14,6 +14,11 @@ import {
 import { Icon, Panel } from 'componentes';
 import { FormsModule } from '@angular/forms';
 
+// El día al que ya se llevó la vista. Vive fuera del componente para que
+// volver del selector de comidas no salte a hoy: sólo al abrir la app y
+// cuando cambia el día.
+let diaMostrado = 0;
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -24,6 +29,16 @@ import { FormsModule } from '@angular/forms';
 export class DashboardComponent {
   mealService = inject(MealService);
   private dialogService = inject(DialogService);
+
+  // En el celu los días van en una columna y hoy puede quedar muy abajo.
+  private readonly irAHoy = afterRenderEffect(() => {
+    const hoy = this.mealService.todayTimestamp();
+    if (hoy === diaMostrado || !matchMedia('(max-width: 600px)').matches) {
+      return;
+    }
+    diaMostrado = hoy;
+    document.querySelector('.day-panel.is-today')?.scrollIntoView({ block: 'start' });
+  });
 
   readonly metaPlantas = META_PLANTAS;
   readonly verPlantas = signal(false);
