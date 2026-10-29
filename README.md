@@ -8,7 +8,7 @@ Cloudflare distintos.
 | Proyecto | Qué es | Dónde vive |
 |----------|--------|-----------|
 | [`perfil-personal`](projects/perfil-personal) | Portfolio, blog y fichas de libros. Prerenderizado (SSG), PWA. | [tatoh.ar](https://tatoh.ar) |
-| [`comidas`](projects/comidas) | Planificador de comidas y lista de compras. Firebase (Auth + Firestore), PWA, y app Android vía Capacitor. | [comidas.tatoh.ar](https://comidas.tatoh.ar) |
+| [`comidas`](projects/comidas) | Planificador de comidas y lista de compras. Firebase (Auth + Firestore), PWA. | [comidas.tatoh.ar](https://comidas.tatoh.ar) |
 | [`componentes`](projects/componentes) | Librería de widgets compartidos (`ng-packagr`), consumida como `from 'componentes'`. | se publica a `dist/componentes` |
 
 Stack: Angular 22, TypeScript 6, pnpm, Vitest, ESLint flat config, Cloudflare
@@ -46,9 +46,6 @@ pnpm check:libros              # post-build: verifica los og: de libros y rutas
 ng serve comidas               # una app puntual (requiere componentes buildeado)
 ng build <proyecto>
 ng lint <proyecto>
-
-pnpm build:comidas:android     # build + cap sync android
-pnpm open:android              # build + sync + abre Android Studio
 ```
 
 ## Deploy

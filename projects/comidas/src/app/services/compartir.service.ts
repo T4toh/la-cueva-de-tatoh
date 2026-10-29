@@ -16,9 +16,8 @@ export function armarLink(
   return `${origin}${rutaPublica(nombre, alias, publicId)}`;
 }
 
-// El navegador puede no tener la Web Share API: no está en Firefox de escritorio
-// ni en el WebView de Android, que es el que corre la app de Capacitor. Sin ella
-// el diálogo queda como estaba —copiar y abrir—, que es el piso que ya andaba.
+// El navegador puede no tener la Web Share API: no está en Firefox de escritorio.
+// Sin ella el diálogo queda como estaba —copiar y abrir—, que es el piso que ya andaba.
 export function soportaCompartirNativo(nav: unknown): boolean {
   return !!nav && typeof nav === 'object' && 'share' in nav;
 }

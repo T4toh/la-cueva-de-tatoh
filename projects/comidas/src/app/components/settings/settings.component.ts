@@ -4,7 +4,6 @@ import {
   signal,
 } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
-import { Capacitor } from '@capacitor/core';
 
 import { MealService } from '../../services/meal.service';
 import { AuthService } from '../../services/auth.service';
@@ -23,7 +22,6 @@ export class SettingsComponent {
   private dialogService = inject(DialogService);
   mealService = inject(MealService);
   authService = inject(AuthService);
-  isAndroid = Capacitor.getPlatform() === 'android';
   readonly promptCopied = signal(false);
   readonly importOpen = signal(false);
   async refreshData(): Promise<void> {
