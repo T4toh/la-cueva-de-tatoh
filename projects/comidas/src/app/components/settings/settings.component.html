@@ -1,98 +1,95 @@
 <div class="settings-container">
   <h1>Configuración</h1>
 
-  <!-- Auth Panel - Oculto en Android -->
-  @if (!isAndroid) {
-    <lib-panel
-      [colorFondo]="'var(--bg-surface)'"
-      [colorTexto]="'var(--fg-primary)'"
-      [sombreado]="true"
-      [texto]="'Sincronización en la Nube'"
-    >
-      @if (authService.user$ | async; as user) {
-        <div class="settings-content">
-          <div class="actions">
-            <p>
-              Conectado como:
-              <strong>{{ user.email }}</strong>
-            </p>
+  <lib-panel
+    [colorFondo]="'var(--bg-surface)'"
+    [colorTexto]="'var(--fg-primary)'"
+    [sombreado]="true"
+    [texto]="'Sincronización en la Nube'"
+  >
+    @if (authService.user$ | async; as user) {
+      <div class="settings-content">
+        <div class="actions">
+          <p>
+            Conectado como:
+            <strong>{{ user.email }}</strong>
+          </p>
 
-            <div class="sync-status">
-              @switch (mealService.syncStatus()) {
-                @case ('synced') {
-                  <span class="status-badge synced">
-                    <lib-icon name="check" [size]="14" />
-                    <span>Sincronizado</span>
-                  </span>
-                }
-                @case ('loading') {
-                  <span class="status-badge loading">
-                    <lib-icon name="refresh-cw" [size]="14" />
-                    <span>Sincronizando...</span>
-                  </span>
-                }
-                @case ('error') {
-                  <span class="status-badge error">
-                    <lib-icon name="triangle-alert" [size]="14" />
-                    <span>Error de sincronización</span>
-                  </span>
-                }
-                @case ('offline') {
-                  <span class="status-badge offline">
-                    <lib-icon name="wifi-off" [size]="14" />
-                    <span>Sin conexión</span>
-                  </span>
-                }
+          <div class="sync-status">
+            @switch (mealService.syncStatus()) {
+              @case ('synced') {
+                <span class="status-badge synced">
+                  <lib-icon name="check" [size]="14" />
+                  <span>Sincronizado</span>
+                </span>
               }
-              <p class="last-updated">
-                Última actualización: {{ mealService.getLastUpdatedDisplay() }}
-              </p>
-            </div>
-
-            <label class="alias">
-              <span>Nombre para las recetas compartidas</span>
-              <input
-                maxlength="30"
-                placeholder="Sin nombre"
-                type="text"
-                [value]="mealService.alias()"
-                (change)="mealService.alias.set($any($event.target).value)"
-              />
-              <small>Aparece en el link y en la ficha. Vacío, no se muestra autor.</small>
-            </label>
-
-            <button class="btn-secondary" type="button" (click)="refreshData()">
-              <lib-icon name="refresh-cw" [size]="16" />
-              <span>Descargar de la Nube</span>
-            </button>
-            <button class="btn-secondary" type="button" (click)="forceUpload()">
-              <lib-icon name="upload" [size]="16" />
-              <span>Subir a la Nube</span>
-            </button>
-            <button class="btn-danger" type="button" (click)="logout()">
-              Cerrar Sesión
-            </button>
-          </div>
-        </div>
-      } @else {
-        <div class="settings-content">
-          <div class="actions">
-            <p>
-              Inicia sesión con Google para guardar y sincronizar tus comidas en
-              la nube de forma gratuita.
+              @case ('loading') {
+                <span class="status-badge loading">
+                  <lib-icon name="refresh-cw" [size]="14" />
+                  <span>Sincronizando...</span>
+                </span>
+              }
+              @case ('error') {
+                <span class="status-badge error">
+                  <lib-icon name="triangle-alert" [size]="14" />
+                  <span>Error de sincronización</span>
+                </span>
+              }
+              @case ('offline') {
+                <span class="status-badge offline">
+                  <lib-icon name="wifi-off" [size]="14" />
+                  <span>Sin conexión</span>
+                </span>
+              }
+            }
+            <p class="last-updated">
+              Última actualización: {{ mealService.getLastUpdatedDisplay() }}
             </p>
-            <button
-              class="btn-google"
-              type="button"
-              (click)="authService.loginWithGoogle()"
-            >
-              Iniciar sesión con Google
-            </button>
           </div>
+
+          <label class="alias">
+            <span>Nombre para las recetas compartidas</span>
+            <input
+              maxlength="30"
+              placeholder="Sin nombre"
+              type="text"
+              [value]="mealService.alias()"
+              (change)="mealService.alias.set($any($event.target).value)"
+            />
+            <small>Aparece en el link y en la ficha. Vacío, no se muestra autor.</small>
+          </label>
+
+          <button class="btn-secondary" type="button" (click)="refreshData()">
+            <lib-icon name="refresh-cw" [size]="16" />
+            <span>Descargar de la Nube</span>
+          </button>
+          <button class="btn-secondary" type="button" (click)="forceUpload()">
+            <lib-icon name="upload" [size]="16" />
+            <span>Subir a la Nube</span>
+          </button>
+          <button class="btn-danger" type="button" (click)="logout()">
+            Cerrar Sesión
+          </button>
         </div>
-      }
-    </lib-panel>
-  }
+      </div>
+    } @else {
+      <div class="settings-content">
+        <div class="actions">
+          <p>
+            Inicia sesión con Google para guardar y sincronizar tus comidas en
+            la nube de forma gratuita.
+          </p>
+          <button
+            class="btn-google"
+            type="button"
+            (click)="authService.loginWithGoogle()"
+          >
+            Iniciar sesión con Google
+          </button>
+        </div>
+      </div>
+    }
+  </lib-panel>
 
   <lib-panel
     [colorFondo]="'var(--bg-surface)'"

@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Angular 22 monorepo (single `angular.json`) managed with **pnpm**. The `preinstall` script enforces pnpm — using `npm install` will fail. Source lives under `projects/`:
 
 - `projects/perfil-personal` — application. Personal portfolio + blog. Uses `ngx-markdown` + `prismjs` for rendered posts. PWA. Selector prefix `app`.
-- `projects/comidas` — application. Meal planning app, Firebase-backed (Auth + Firestore, project id `la-cueva-comidas`). PWA. Also wrapped as an Android app via Capacitor (`appId: com.tatoh.comidas`). Selector prefix `app`.
+- `projects/comidas` — application. Meal planning app, Firebase-backed (Auth + Firestore, project id `la-cueva-comidas`). PWA. Selector prefix `app`.
 - `projects/componentes` — Angular library built with `ng-packagr`. Selector prefix `lib`. Public surface is `projects/componentes/src/public-api.ts` — every reusable widget (avatar, panel, skill-bar, tag, redes, boton, generador-qr, libro, dialogo) must be re-exported there. Apps import it as `from 'componentes'` via the `tsconfig.json` path alias `componentes → ./dist/componentes`.
 
 Because the library is consumed through `dist/componentes`, **`ng build componentes` must run before any app build, dev server, or test that imports it** — `pnpm build` already orders things correctly, but ad-hoc `ng serve <app>` after pulling fresh code requires a prior library build.
@@ -27,14 +27,7 @@ pnpm watch            # ng build --watch development
 ng serve comidas      # serve a specific app (requires componentes built first)
 ng build <project>    # build a specific project
 ng lint <project>     # lint a specific project
-```
-
-Comidas → Android (Capacitor):
-
-```bash
-pnpm build:comidas             # production build to dist/comidas/browser
-pnpm build:comidas:android     # build + cap sync android
-pnpm open:android              # build + sync + open Android Studio
+pnpm build:comidas    # production build to dist/comidas/browser
 ```
 
 ## Deployment layout (Cloudflare Workers)

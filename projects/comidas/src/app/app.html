@@ -32,7 +32,7 @@
     </a>
 
     <!-- Auth & Config Logic -->
-    @if (!isAndroid) { @if (authService.user$ | async; as user) {
+    @if (authService.user$ | async; as user) {
     <!-- Logged in: Avatar replaces the config button -->
     <a
       class="auth-link"
@@ -65,12 +65,6 @@
       <span class="icon"><lib-icon name="user" [size]="18" /></span>
       <span class="text">Entrar</span>
     </button>
-    } } @else {
-    <!-- Android: Solo mostrar config sin login -->
-    <a routerLink="/settings" routerLinkActive="active" title="Configuración">
-      <span class="icon"><lib-icon name="settings" [size]="18" /></span>
-      <span class="text">Config</span>
-    </a>
     }
 
     <!-- Ultima tab: hereda el layout del nav (fila en desktop, icono sobre

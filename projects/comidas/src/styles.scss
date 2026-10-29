@@ -27,8 +27,8 @@ body.modal-open .app-container {
 }
 
 :root {
-  // Safe area insets al 75%. Propias de comidas: es la unica que corre
-  // envuelta en Capacitor.
+  // Safe area insets al 75%. Propias de comidas: es la unica que se instala
+  // como app.
   --safe-area-top: calc(env(safe-area-inset-top) * 0.75);
   --safe-area-bottom: calc(env(safe-area-inset-bottom) * 0.75);
   --safe-area-left: calc(env(safe-area-inset-left) * 0.75);

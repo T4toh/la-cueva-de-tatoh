@@ -104,10 +104,6 @@ temp/
 firebase-debug.log
 firestore-debug.log
 
-# Capacitor
-ios/App/
-android/app/
-
 # Local Netlify folder
 .netlify
 

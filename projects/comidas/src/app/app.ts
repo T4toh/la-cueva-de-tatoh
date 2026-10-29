@@ -10,7 +10,6 @@ import {
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { AsyncPipe } from '@angular/common';
 import { filter } from 'rxjs';
-import { Capacitor } from '@capacitor/core';
 import { UpdateService } from './services/update.service';
 import { AuthService } from './services/auth.service';
 import { Dialogo, Footer, Icon, TemaService } from 'componentes';
@@ -34,7 +33,6 @@ export class AppComponent implements OnInit, AfterViewInit {
   // el servicio no corría hasta entrar ahí.
   readonly tema = inject(TemaService);
   private router = inject(Router);
-  isAndroid = Capacitor.getPlatform() === 'android';
 
   // La ruta pública (/r/...) esconde el <nav> entero en el template, así que
   // deja de ser estático: la consulta tiene que ser { static: false } o

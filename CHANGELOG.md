@@ -4,6 +4,49 @@ Todos los cambios notables a este proyecto se documentan en este archivo. El for
 
 ## [Unreleased]
 
+### Added
+
+#### Comidas
+
+- **La lista de compras pide lo que se vende.** Las comidas van por porción y la lista sumaba eso tal cual: "6,5 huevos", "0,75 brócoli". Ahora `aComprar` redondea para arriba al paso de compra del catálogo (`EntradaCatalogo.compra`: huevos de a 6, carne de a 250 g) o, sin paso, lo contable al entero; gramos, tazas y cucharadas quedan como están. El orden es despensa primero y redondeo después, y un `quantityOverride` manual gana sin redondear. El paso se carga en el formulario de clasificar del editor y queda en el catálogo propio; el base sólo trae el del huevo.
+- **La lista agrupa por catálogo.** "Huevo" y "huevos" eran dos renglones y redondear cada uno compraba de más. Agrupa por la entrada del catálogo reconocida sólo por nombre, singular o plural —no por sinónimos: aceite de girasol no es aceite de oliva— y lo demás sigue por nombre crudo. Lo que es por semana (tildes, overrides) pasa a esa clave sin migración: un tilde de la semana en curso con un nombre que ahora agrupa distinto se pierde una vez. Lo permanente —etiquetas, despensa— no cambia de clave.
+- **Tildar congela lo comprado y manda la sobra a la despensa.** Sin congelar, la sobra que entra a la despensa la restaba la misma lista y el renglón se recalculaba solo. Ahora tildar guarda `{ compra, sobra }` en `compras`, suma la sobra a la despensa y lo avisa ("Brócoli: +… a la despensa"); destildar la resta y "Limpiar" deshace las de la semana. `compras` se sincroniza y va en el backup.
+- **El renglón dice cuánto se usa.** "usás …" bajo el nombre cuando lo comprado difiere de lo que falta, y el aviso de la despensa en un `aria-live`. "Copiar" sale con lo redondeado.
+- **Chequeos de la guía sobre la semana.** `guia/chequeos.ts`, funciones puras para el futuro armador de semanas. El plan marca el día con carbos en almuerzo y cena (`un-carbo-por-dia`) y cuenta "Pescado 1 de 2 · Blanca 2 de 2 · Roja 1 de 3" (`frecuencia-carnes`), con la roja en `--warning` cuando pasa de 3. La unidad es la comida, no el plato; cuentan los platos fuera de compras, "Comida afuera" no suma, y una regla oculta en `/guia` no se chequea. Si la semana incumple una regla, el tip del plan la muestra primero y "Otro" sigue con el resto.
+- **El catálogo distingue carne roja, blanca y pescado.** `EntradaCatalogo.carne` en el base (el cerdo como roja, como dice la OMS) y un `<select>` de tipo en el formulario de clasificar para lo que el base no tiene, como vacío u osobuco. `menor` marca lo que va en poca cantidad —maicena, pan rallado— para que no haga de una milanesa un plato con carbos, también en el chip del editor. Una corrección propia de una carne del base hereda el tipo si no lo trae.
+- **Botón "Comida afuera"** para marcar un bloque del plan con un clic. Es un placeholder genérico con id fijo, sin ingredientes y fuera de compras: no suma a la lista ni a las plantas.
+- **El plan abre en hoy.** En el celu arranca scrolleado al día de hoy, al abrir y cuando cambia el día; volver del selector no salta. Y la semana se recalcula al volver la PWA del fondo si cambió el día: abierta desde el viernes, el lunes seguía mostrando la semana pasada.
+
+#### Perfil Personal
+
+- **Deployment y La Ciudad de Las Luces en Google Play**, con el perfil de autor en la fila de tiendas. Play no tiene página de autor: el link es la búsqueda por nombre, que hoy todavía no los devuelve.
+- **Post de tModManager**: lo que cambió de la v0.23.4 a la v0.24.0. Lleva la fecha de la release.
+- **Íconos propios de La Cueva y de Comidas**, de la misma familia que tWriter y tModManager. Reemplazan la foto como favicon e íconos de la PWA de perfil-personal y el logo de Angular en comidas; el avatar y el `og:image` siguen con la foto. Fuente en `icon.svg` de cada app.
+
+### Changed
+
+#### Perfil Personal
+
+- **Las tarjetas del landing muestran el ícono de la app** en vez del genérico de lucide, como ya hacía Utilidades → Apps. tWriter, tModManager y Comidas suman su logo, y el mod manager pasa a llamarse tModManager y aparece una sola vez, como App.
+- **Las apps deprecadas van aparte.** `Apk.deprecado` las manda a una grilla "Deprecadas" al fondo de Utilidades → Apps y las saca del landing; antes Kanji no Ryoushi era la primera tarjeta.
+
+### Fixed
+
+#### Comidas
+
+- **La despensa se restaba dos veces.** Tildar un renglón cubierto volvía a restar la despensa que la lista ya había restado, y tildaba renglones que no estaban cubiertos.
+- **Unidades distintas del mismo ingrediente ya no se suman.** Desde que la unidad vive en `Ingredient.unit`, "100" g más "1" unidad daba 101. Ahora suma cada unidad aparte ("100 g + 3 unidad") y ese renglón no se redondea. Y si la despensa tiene el ingrediente en otra unidad, tildar y destildar no la toca: sumarle la sobra la dejaba como texto que después no se podía restar.
+- **Restar de la despensa toca una sola entrada** aunque haya dos del mismo ingrediente, "Huevo" y "huevos" de antes de agrupar por catálogo.
+- **El contador de plantas cuenta los platos fuera de compras.** Destildar "Sumar a compras" sólo saca el plato de la lista: son sobras o se comió afuera, y se come igual.
+- **Los placeholders en modo familiar se ven como tales**, en cursiva y sin el check de compras, como en modo individual.
+- **Chips de ítems y sugerencias de ingredientes legibles en claro.** Los chips usaban `--accent-strong` sin color de texto y pasan a `--accent` con `--fg-on-accent`; las sugerencias usaban `--color-bg`, que no existe en el tema, y caían siempre en el fondo oscuro de respaldo.
+
+### Removed
+
+#### Comidas
+
+- **Capacitor.** Comidas en Android es la PWA instalada desde Chrome: se actualiza con cada deploy y el login de Google funciona tal cual, cosa que en el WebView de Capacitor pedía login nativo. Se van `@capacitor/*` —`@capacitor/assets` incluido, que no usaba nadie y traía un `@capacitor/cli` 5—, `capacitor.config.ts`, los scripts `cap:*`, `build:comidas:android` y `open:android`, el `StatusBar` nativo de `main.ts`, las ramas `isAndroid` que escondían el login y la sincronización, y la sección de Capacitor de los `.gitignore`.
+
 ## [1.8.0] - 2026-10-08
 
 Comidas aprende algo de nutrición —un catálogo de ingredientes con porciones, las plantas distintas de la semana y una guía de reglas cortas que asoma en el plan—, el listado aguanta cien comidas, y la sincronización entre dispositivos deja de perder escrituras. En perfil-personal, un libro nuevo, muestras gratis en EPUB y un service worker que trae el deploy nuevo en la primera recarga.
