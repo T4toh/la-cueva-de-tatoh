@@ -23,7 +23,8 @@ describe('textoPorGondola', () => {
       { tag: null, items: [item('Jabón', '1', { isExtra: true, dias: [] })] },
     ] as ShoppingListGroup[];
     expect(textoPorGondola(grupos, RANGO, cantidad)).toBe(
-      `🛒 *Lista de Compras* (${RANGO})\n\n*VERDULERÍA*\n• Cebolla: 3 u (lun, mar, mié)\n\n*OTROS*\n• Jabón: 1\n\n${PIE}`,
+      `🛒 *Lista de Compras* (${RANGO})\n\n*VERDULERÍA*\n• Cebolla: 3 u (lun, mar, mié)\n\n` +
+        `*OTROS*\n• Jabón: 1\n\n${PIE}`,
     );
   });
 
@@ -42,7 +43,13 @@ describe('textoPorDia', () => {
       platos: ['Fideos con brócoli', 'Ensalada de lentejas'],
       items: [item('Brócoli', '1 u'), item('Fideos', '250 g'), item('Sal', '1', { checked: true })],
     },
-    { fecha: '2026-11-10', dia: 'Martes', diaDelMes: 10, platos: ['Pollo'], items: [item('Pollo', '1', { checked: true })] },
+    {
+      fecha: '2026-11-10',
+      dia: 'Martes',
+      diaDelMes: 10,
+      platos: ['Pollo'],
+      items: [item('Pollo', '1', { checked: true })],
+    },
     { fecha: '2026-11-11', dia: 'Miércoles', diaDelMes: 11, platos: [], items: [item('Pan', '2')] },
     { fecha: null, dia: null, diaDelMes: null, platos: [], items: [item('Jabón', '1')] },
   ];
@@ -57,7 +64,7 @@ describe('textoPorDia', () => {
   });
 
   it('todo tildado devuelve null', () => {
-    const todo = [{ ...dias[1] }];
+    const todo = [dias[1]];
     expect(textoPorDia(todo, RANGO, cantidad)).toBeNull();
   });
 });

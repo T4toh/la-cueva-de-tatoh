@@ -552,3 +552,25 @@
     display: none;
   }
 }
+
+.vistas {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+
+  button {
+    flex: 1;
+    background: var(--bg-tint);
+    color: var(--fg-primary);
+
+    &[aria-pressed='true'] {
+      background: var(--accent);
+      color: var(--fg-on-accent);
+    }
+  }
+}
+
+// Un display explícito le gana al atributo hidden: sin esto la vista que no es sigue a la vista.
+[hidden] {
+  display: none !important;
+}

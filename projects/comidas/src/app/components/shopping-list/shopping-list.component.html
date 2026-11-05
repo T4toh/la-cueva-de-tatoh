@@ -73,7 +73,31 @@
     </form>
   }
 
-  <div class="list-groups">
+  <div aria-label="Vista de la lista" class="vistas" role="group">
+    <button
+      type="button"
+      [attr.aria-pressed]="vista() === 'gondola'"
+      (click)="elegirVista('gondola')"
+    >
+      Por góndola
+    </button>
+    <button
+      type="button"
+      [attr.aria-pressed]="vista() === 'dia'"
+      (click)="elegirVista('dia')"
+    >
+      Por día
+    </button>
+  </div>
+
+  <app-lista-por-dia
+    [cantidad]="displayQty"
+    [dias]="mealService.listaPorDia()"
+    [hidden]="vista() !== 'dia'"
+    (marcar)="marcarParte($event.nombre, $event.fecha)"
+  />
+
+  <div class="list-groups" [hidden]="vista() === 'dia'">
     @for (
       group of mealService.shoppingListGrouped();
       track group.tag?.id || 'untagged'
@@ -99,6 +123,7 @@
                 >
                   <span class="name">
                     {{ item.name }}
+                    <app-dias-chips [comprados]="item.diasComprados" [dias]="item.dias" />
                     @if (item.checked && item.sobra) {
                       <span class="detalle">sobró {{ item.sobra }} → despensa</span>
                     } @else if (!item.checked && item.usas) {

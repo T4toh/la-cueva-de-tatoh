@@ -11,15 +11,19 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { ShoppingItem } from '../../models/meal.model';
 import { MealService } from '../../services/meal.service';
 import { Icon, Tag } from 'componentes';
-import { textoPorGondola } from '../../compras/copiar';
+import { textoPorDia, textoPorGondola } from '../../compras/copiar';
+import { diaCorto } from '../../compras/partes';
+import { DiasChips } from './dias-chips.component';
+import { ListaPorDia } from './lista-por-dia.component';
 import { DialogService } from '../../services/dialog.service';
 
 @Component({
   selector: 'app-shopping-list',
   standalone: true,
-  imports: [ReactiveFormsModule, Tag, Icon],
+  imports: [ReactiveFormsModule, Tag, Icon, ListaPorDia, DiasChips],
   templateUrl: './shopping-list.component.html',
   styleUrls: ['./shopping-list.component.scss'],
 })
@@ -36,6 +40,10 @@ export class ShoppingListComponent implements OnInit {
   // El aviso de lo que entró o salió de la despensa al tildar. Se borra solo.
   readonly aviso = signal('');
   private avisoTimer?: ReturnType<typeof setTimeout>;
+
+  // La vista se recuerda por dispositivo; localStorage puede no estar o tirar.
+  private static readonly VISTA_KEY = 'comidas_vista_lista';
+  readonly vista = signal<'gondola' | 'dia'>(ShoppingListComponent.vistaGuardada());
 
   constructor() {
     this.extraItemForm = this.fb.group({
@@ -72,8 +80,37 @@ export class ShoppingListComponent implements OnInit {
     }
   }
 
+  private static vistaGuardada(): 'gondola' | 'dia' {
+    try {
+      return localStorage.getItem(ShoppingListComponent.VISTA_KEY) === 'dia' ? 'dia' : 'gondola';
+    } catch {
+      return 'gondola';
+    }
+  }
+
+  diasComprados(dias: string[]): string {
+    return dias.map(diaCorto).join(', ');
+  }
+
+  elegirVista(vista: 'gondola' | 'dia'): void {
+    this.vista.set(vista);
+    try {
+      localStorage.setItem(ShoppingListComponent.VISTA_KEY, vista);
+    } catch {
+      // Sin almacenamiento, la elección dura lo que dure la pantalla.
+    }
+  }
+
   marcar(nombre: string): void {
-    const aviso = this.mealService.toggleItemCheck(nombre);
+    this.mostrarAviso(this.mealService.toggleItemCheck(nombre));
+  }
+
+  // fecha null es la parte manual: la que no tiene día.
+  marcarParte(nombre: string, fecha: string | null): void {
+    this.mostrarAviso(this.mealService.toggleItemCheck(nombre, fecha));
+  }
+
+  private mostrarAviso(aviso: string | null): void {
     if (!aviso) {
       return;
     }
@@ -218,11 +255,12 @@ export class ShoppingListComponent implements OnInit {
       return;
     }
 
-    const text = textoPorGondola(
-      this.mealService.shoppingListGrouped(),
-      this.mealService.weekRangeDisplay(),
-      (item) => this.displayQty(item)
-    );
+    const rango = this.mealService.weekRangeDisplay();
+    const cantidad = (item: ShoppingItem): string => this.displayQty(item);
+    const text =
+      this.vista() === 'dia'
+        ? textoPorDia(this.mealService.listaPorDia(), rango, cantidad)
+        : textoPorGondola(this.mealService.shoppingListGrouped(), rango, cantidad);
 
     if (text === null) {
       this.dialogService.alert(

@@ -1,0 +1,24 @@
+@for (dia of dias(); track dia.fecha ?? 'manual') {
+  <section class="dia">
+    <h3>{{ dia.dia ? dia.dia + ' ' + dia.diaDelMes : 'Sin día' }}</h3>
+    @if (dia.platos.length) {
+      <p class="platos">{{ dia.platos.join(' · ') }}</p>
+    }
+    @for (item of dia.items; track item.name) {
+      <div class="item">
+        <input
+          type="checkbox"
+          [checked]="item.checked"
+          [id]="'dia-' + dia.fecha + '-' + item.name"
+          (change)="marcar.emit({ nombre: item.name, fecha: dia.fecha })"
+        />
+        <label [for]="'dia-' + dia.fecha + '-' + item.name">
+          <span class="name">{{ item.name }}</span>
+          <span class="cantidad">{{ cantidad()(item) }}</span>
+        </label>
+      </div>
+    }
+  </section>
+} @empty {
+  <p class="empty">No hay items en la lista.</p>
+}
