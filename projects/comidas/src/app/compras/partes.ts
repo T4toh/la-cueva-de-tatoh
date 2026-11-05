@@ -2,6 +2,8 @@
 // ingrediente un día puntual. Puras, para que la lista y las compras
 // registradas compartan las mismas claves.
 
+import { ShoppingItem } from '../models/meal.model';
+
 export type ParteCompra = {
   clave: string;
   nombre: string;
@@ -13,6 +15,16 @@ export type ParteCompra = {
   unit?: string;
   tagId?: string;
   platos: string[];
+};
+
+// Un día de la vista por día: sus platos y una parte por ingrediente. El de
+// los manuales va último, con todo en null.
+export type DiaLista = {
+  fecha: string | null;
+  dia: string | null;
+  diaDelMes: number | null;
+  platos: string[];
+  items: ShoppingItem[];
 };
 
 // Mismo criterio que `aComprar`: sin esto, 0.30000000000000004 dejaría un resto.

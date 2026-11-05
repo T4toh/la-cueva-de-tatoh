@@ -32,7 +32,7 @@ import {
   normalizar,
 } from '../catalogo/catalogo';
 import { CATALOGO } from '../catalogo/catalogo-datos';
-import { claveParte, estaTildada, ParteCompra, repartirDespensa } from '../compras/partes';
+import { claveParte, DiaLista, estaTildada, ParteCompra, repartirDespensa } from '../compras/partes';
 import { GUIA_VACIA, GuiaPropia, normalizarGuia } from '../guia/guia';
 import {
   CompraRegistrada,
@@ -57,6 +57,16 @@ import {
 const ID_AFUERA = 'afuera';
 
 const CANTIDAD = /^\s*(?:(\d+)\s+)?(\d+(?:[.,]\d+)?)(?:\s*\/\s*(\d+))?/;
+
+// Lo que dice de cada parte de un renglón `leerRenglon`. `registroDe` devuelve
+// la clave del registro en `compras`; `faltas` es por parte de `sinRegistro`.
+type LecturaRenglon = {
+  registroDe: (p: ParteCompra) => string | undefined;
+  tildada: (p: ParteCompra) => boolean;
+  faltaDe: (p: ParteCompra) => number | null;
+  sinRegistro: ParteCompra[];
+  faltas: number[] | null;
+};
 
 export type CantidadParseada = {
   // El número resuelto: '1 1/2' da 1.5.
@@ -1676,7 +1686,8 @@ export class MealService {
     const semana = this.compras()[weekKey] ?? {};
     Object.entries(semana).forEach(([key, { sobra }]) => {
       if (sobra) {
-        this.subtractFromPantry(key, sobra);
+        // La clave del registro es `clave@fecha`; la despensa va por clave.
+        this.subtractFromPantry(key.replace(/@[^@]*$/, ''), sobra);
       }
     });
     this.compras.update((c) => {
@@ -1710,47 +1721,71 @@ export class MealService {
     return (entrada?.nombre ?? nombre).toLowerCase().trim();
   }
 
-  // Devuelve el aviso de lo que entró o salió de la despensa, o null.
-  toggleItemCheck(name: string): string | null {
+  // Sin `fecha` es el renglón entero (vista por góndola); si no, esa parte, y
+  // null es la manual. Devuelve el aviso de lo que entró o salió de la
+  // despensa, o null. Ver docs/superpowers/specs/2026-11-05-lista-por-dia-design.md
+  toggleItemCheck(name: string, fecha?: string | null): string | null {
     const weekKey = this.formatDateKey(this.currentWeekStart());
-    const key = this.claveCompra(name);
-    const isChecked = (this.checkedItems()[weekKey] || []).includes(key);
-    const aviso = isChecked
-      ? this.deshacerCompra(weekKey, key, name)
-      : this.registrarCompra(weekKey, key);
-
-    this.checkedItems.update((prev) => {
-      const currentChecked = prev[weekKey] || [];
-      return {
-        ...prev,
-        [weekKey]: isChecked
-          ? currentChecked.filter((n) => n !== key)
-          : [...currentChecked, key],
-      };
-    });
+    const clave = this.claveCompra(name);
+    const partes = this.partesPorClave().get(clave) ?? [];
+    const elegidas = fecha === undefined ? partes : partes.filter((p) => p.fecha === fecha);
+    if (!elegidas.length) {
+      return null;
+    }
+    const lectura = this.leerRenglon(partes, weekKey);
+    const marcada = (p: ParteCompra): boolean => lectura.tildada(p) || !!lectura.registroDe(p);
+    // El renglón se destilda cuando se ve tildado, también si lo tilda la
+    // despensa; una parte, cuando tiene tilde o registro.
+    const destildar = fecha === undefined ? this.armarRenglon(partes, weekKey).checked : marcada(elegidas[0]);
+    const aviso = destildar
+      ? this.deshacerCompra(weekKey, partes, elegidas.filter(marcada), lectura)
+      : this.registrarCompra(weekKey, elegidas.filter((p) => !marcada(p)), lectura, fecha === undefined);
+    // Lo pisado a mano era para un conjunto de días que ya no es el mismo.
+    const override = `${weekKey}_${clave}`;
+    if (override in this.quantityOverrides()) {
+      this.quantityOverrides.update((o) => {
+        const resto = { ...o };
+        delete resto[override];
+        return resto;
+      });
+    }
     return aviso;
   }
 
-  // Congela el renglón como se ve ahora. Lo que la despensa ya cubre, o lo
-  // que no tiene cantidad, no deja registro.
-  private registrarCompra(weekKey: string, key: string): string | null {
-    const renglon = this.shoppingList().find((i) => this.claveCompra(i.name) === key);
-    if (!renglon || renglon.checked) {
+  // Lo que se tilda junto es una compra: congela la suma de lo que le falta a
+  // esas partes, redondeada (o lo pisado a mano, si es el renglón entero), bajo
+  // la clave de la primera, con las demás en `dias`. Sin cantidad, o si la
+  // despensa lo cubre, se tilda sin registro.
+  private registrarCompra(
+    weekKey: string,
+    partes: ParteCompra[],
+    lectura: LecturaRenglon,
+    entero: boolean
+  ): string | null {
+    if (!partes.length) {
       return null;
     }
-    const compra = renglon.quantityOverride ?? [renglon.quantity, renglon.unit].filter(Boolean).join(' ');
-    if (!((parseNumericQuantity(compra)?.value ?? 0) > 0)) {
+    const clave = partes[0].clave;
+    const keys = partes.map((p) => claveParte(clave, p.fecha));
+    const item = this.sumarPorUnidad(partes.map((p) => ({ name: p.nombre, quantity: p.quantity, unit: p.unit })));
+    const manual = entero ? this.quantityOverrides()[`${weekKey}_${clave}`] : undefined;
+    this.ajustarRenglon(item, clave, manual, lectura.faltas && partes.map((p) => lectura.faltaDe(p) ?? 0));
+    this.checkedItems.update((prev) => ({ ...prev, [weekKey]: [...new Set([...(prev[weekKey] ?? []), ...keys])] }));
+    const compra = item.quantityOverride ?? [item.quantity, item.unit].filter(Boolean).join(' ');
+    if (item.checked || !((parseNumericQuantity(compra)?.value ?? 0) > 0)) {
       return null;
     }
     // Si la despensa lo tiene en otra unidad, sumarle la sobra la deja como
     // texto ("200 g + 0.25 unidad") que después no se puede restar.
-    const sobra = renglon.sobra && this.cabeEnDespensa(key, renglon.sobra) ? renglon.sobra : '';
-    this.compras.update((c) => ({ ...c, [weekKey]: { ...(c[weekKey] ?? {}), [key]: { compra, sobra } } }));
+    const sobra = item.sobra && this.cabeEnDespensa(clave, item.sobra) ? item.sobra : '';
+    const [primera, ...dias] = keys;
+    const registro: CompraRegistrada = dias.length ? { compra, sobra, dias } : { compra, sobra };
+    this.compras.update((c) => ({ ...c, [weekKey]: { ...(c[weekKey] ?? {}), [primera]: registro } }));
     if (!sobra) {
       return null;
     }
-    this.addToPantry(renglon.name, sobra);
-    return `${renglon.name}: +${sobra} a la despensa`;
+    this.addToPantry(item.name, sobra);
+    return `${item.name}: +${sobra} a la despensa`;
   }
 
   private cabeEnDespensa(key: string, cantidad: string): boolean {
@@ -1763,21 +1798,45 @@ export class MealService {
     return !!tengo && !!sumo && (tengo.unit === sumo.unit || !tengo.unit || !sumo.unit);
   }
 
-  private deshacerCompra(weekKey: string, key: string, nombre: string): string | null {
-    const registro = this.compras()[weekKey]?.[key];
-    if (!registro) {
+  // Destildar una parte de una compra la deshace entera: resta la sobra una
+  // vez y destilda todas sus partes. Una clave pelada sin registro tildaba el
+  // renglón entero: la reemplazan las de las partes que siguen tildadas.
+  private deshacerCompra(
+    weekKey: string,
+    partes: ParteCompra[],
+    elegidas: ParteCompra[],
+    lectura: LecturaRenglon
+  ): string | null {
+    const clave = partes[0].clave;
+    const semana = this.compras()[weekKey] ?? {};
+    const registros = [...new Set(elegidas.flatMap((p) => lectura.registroDe(p) ?? []))];
+    const quitar = new Set([
+      ...elegidas.map((p) => claveParte(clave, p.fecha)),
+      ...registros.flatMap((k) => [k, ...(semana[k].dias ?? [])]),
+    ]);
+    const reponer = (this.checkedItems()[weekKey] ?? []).includes(clave) && !quitar.has(clave)
+      ? partes.map((p) => claveParte(clave, p.fecha)).filter((k) => !quitar.has(k))
+      : [];
+    quitar.add(clave);
+    // El registro sale antes de restar: la despensa se reparte como va a
+    // quedar, y estas partes siguen tildadas para que no las tilde sola.
+    if (registros.length) {
+      this.compras.update((c) => {
+        const resto = { ...(c[weekKey] ?? {}) };
+        registros.forEach((k) => delete resto[k]);
+        return { ...c, [weekKey]: resto };
+      });
+    }
+    const sobras = registros.map((k) => semana[k].sobra).filter(Boolean);
+    sobras.forEach((sobra) => this.subtractFromPantry(clave, sobra));
+    this.checkedItems.update((prev) => ({
+      ...prev,
+      [weekKey]: [...(prev[weekKey] ?? []).filter((k) => !quitar.has(k)), ...reponer],
+    }));
+    if (!sobras.length) {
       return null;
     }
-    this.compras.update((c) => {
-      const semana = { ...(c[weekKey] ?? {}) };
-      delete semana[key];
-      return { ...c, [weekKey]: semana };
-    });
-    if (!registro.sobra) {
-      return null;
-    }
-    this.subtractFromPantry(key, registro.sobra);
-    return `${nombre}: \u2212${registro.sobra} de la despensa`;
+    return `${partes[0].nombre}: \u2212${sobras.reduce((x, y) => this.addQuantities(x, y))} de la despensa`;
   }
 
   // Lo que se necesita de cada ingrediente cada día, desde hoy. Lo de dos
@@ -1843,12 +1902,18 @@ export class MealService {
     });
   }
 
-  readonly shoppingListGrouped = computed(() => {
-    const weekKey = this.formatDateKey(this.currentWeekStart());
+  // Las partes de cada renglón, en orden de fecha y las manuales al final.
+  private readonly partesPorClave = computed(() => {
     const porClave = new Map<string, ParteCompra[]>();
     this.partesSemana().forEach((parte) => {
       porClave.set(parte.clave, [...(porClave.get(parte.clave) ?? []), parte]);
     });
+    return porClave;
+  });
+
+  readonly shoppingListGrouped = computed(() => {
+    const weekKey = this.formatDateKey(this.currentWeekStart());
+    const porClave = this.partesPorClave();
 
     const groups: ShoppingListGroup[] = this.tags().map((tag) => ({
       tag,
@@ -1906,28 +1971,40 @@ export class MealService {
     };
   }
 
-  // Un renglón de la vista por góndola a partir de sus partes, en orden de
-  // fecha. Una clave pelada en los tildes o en las compras es de antes de
-  // partir por día y vale por todas las partes.
-  private armarRenglon(partes: ParteCompra[], weekKey: string): ShoppingItem {
+  // Cómo está cada parte de un renglón: con qué registro se compró (el suyo,
+  // el de otra que la tiene en `dias`, o uno pelado de antes de partir por
+  // día), si está tildada, y cuánto le falta repartida la despensa entre las
+  // que no tienen registro: su sobra ya está ahí.
+  private leerRenglon(partes: ParteCompra[], weekKey: string): LecturaRenglon {
     const clave = partes[0].clave;
     const semana = this.compras()[weekKey] ?? {};
     const tildadas = this.checkedItems()[weekKey] ?? [];
-    const registroDe = partes.map((p) => {
+    const registroDe = (p: ParteCompra): string | undefined => {
       const key = claveParte(clave, p.fecha);
-      return semana[clave] ?? semana[key] ?? Object.values(semana).find((r) => r.dias?.includes(key));
-    });
-    // Las partes con registro no restan despensa: su sobra ya está ahí.
-    const sinRegistro = partes.filter((_, i) => !registroDe[i]);
+      return [clave, key].find((k) => semana[k]) ?? Object.keys(semana).find((k) => semana[k].dias?.includes(key));
+    };
+    const sinRegistro = partes.filter((p) => !registroDe(p));
     const faltas = this.repartir(sinRegistro, clave);
-    const faltaDe = (p: ParteCompra): number | null => faltas?.[sinRegistro.indexOf(p)] ?? null;
+    return {
+      registroDe,
+      tildada: (p) => estaTildada(clave, p.fecha, tildadas),
+      faltaDe: (p) => faltas?.[sinRegistro.indexOf(p)] ?? null,
+      sinRegistro,
+      faltas,
+    };
+  }
+
+  // Un renglón de la vista por góndola a partir de sus partes, en orden de
+  // fecha.
+  private armarRenglon(partes: ParteCompra[], weekKey: string): ShoppingItem {
+    const clave = partes[0].clave;
+    const semana = this.compras()[weekKey] ?? {};
+    const { registroDe, tildada, faltaDe, sinRegistro, faltas } = this.leerRenglon(partes, weekKey);
     // Con cantidad pisada a mano, lo que cubre la despensa se decide sobre
     // esa cantidad (en `restarDespensa`), no sobre lo de las recetas.
     const manual = this.quantityOverrides()[`${weekKey}_${clave}`];
-    const pendientes = sinRegistro.filter(
-      (p) => !estaTildada(clave, p.fecha, tildadas) && (!!manual || faltaDe(p) !== 0)
-    );
-    const comprada = (p: ParteCompra, i: number): boolean => !!registroDe[i] || estaTildada(clave, p.fecha, tildadas);
+    const pendientes = sinRegistro.filter((p) => !tildada(p) && (!!manual || faltaDe(p) !== 0));
+    const comprada = (p: ParteCompra): boolean => !!registroDe(p) || tildada(p);
     const conDia = (ps: ParteCompra[]): string[] => ps.flatMap((p) => (p.dia ? [p.dia] : []));
 
     // Con algo pendiente se muestra eso; si no, el renglón entero, como antes.
@@ -1942,7 +2019,7 @@ export class MealService {
       dias: conDia(pendientes),
       diasComprados: conDia(partes.filter(comprada)),
     };
-    const registros = [...new Set(registroDe.filter((r) => !!r))];
+    const registros = [...new Set(partes.flatMap((p) => registroDe(p) ?? []))].map((k) => semana[k]);
     if (!pendientes.length && registros.length) {
       // Con una sola compra queda como antes: lo congelado al tildar.
       const sobras = registros.map((r) => r.sobra).filter(Boolean);
@@ -1951,6 +2028,47 @@ export class MealService {
       return item;
     }
     this.ajustarRenglon(item, clave, manual, faltas && muestra.map((p) => faltaDe(p) ?? 0));
+    return item;
+  }
+
+  // La vista por día: cada parte con lo que le falta, redondeado por sí sola,
+  // ordenadas por tag como la vista por góndola. Los manuales, al final.
+  readonly listaPorDia = computed<DiaLista[]>(() => {
+    const weekKey = this.formatDateKey(this.currentWeekStart());
+    const tags = this.tags();
+    const orden = (tagId?: string): number => {
+      const i = tags.findIndex((t) => t.id === tagId);
+      return i < 0 ? tags.length : i;
+    };
+    const porFecha = new Map<string | null, DiaLista>();
+    this.partesSemana().forEach((p) => {
+      const dia: DiaLista = porFecha.get(p.fecha)
+        ?? { fecha: p.fecha, dia: p.dia, diaDelMes: p.diaDelMes, platos: [], items: [] };
+      porFecha.set(p.fecha, dia);
+      dia.platos.push(...p.platos.filter((plato) => !dia.platos.includes(plato)));
+    });
+    this.partesPorClave().forEach((partes) => {
+      const lectura = this.leerRenglon(partes, weekKey);
+      partes.forEach((p) => porFecha.get(p.fecha)?.items.push(this.parteEnLista(p, lectura)));
+    });
+    const dias = [...porFecha.values()];
+    dias.forEach((d) => d.items.sort((a, b) => orden(a.tagId) - orden(b.tagId)));
+    return dias;
+  });
+
+  private parteEnLista(p: ParteCompra, lectura: LecturaRenglon): ShoppingItem {
+    const falta = lectura.faltaDe(p);
+    const item: ShoppingItem = {
+      name: p.nombre,
+      quantity: falta ? `${falta}` : p.quantity,
+      unit: p.unit,
+      tagId: p.tagId,
+      isExtra: p.fecha === null,
+      checked: lectura.tildada(p) || !!lectura.registroDe(p) || falta === 0,
+    };
+    if (!item.checked) {
+      this.redondear(item);
+    }
     return item;
   }
 
@@ -2132,16 +2250,25 @@ export class MealService {
     }
   }
 
-  // Cubierto lo decide la lista, que ya restó la despensa una vez: volver a
-  // restarla acá tildaba renglones que no estaban cubiertos. Tilda sin pasar
-  // por `registrarCompra`: lo que cubre la despensa no se compra ni sobra.
+  // Cubierto lo decide el reparto de la lista, que ya restó la despensa una
+  // vez: volver a restarla acá tildaba renglones que no estaban cubiertos.
+  // Tilda sin pasar por `registrarCompra`: lo que cubre la despensa no se
+  // compra ni sobra. Con cantidad pisada a mano, cubre si cubre el renglón.
   private autoCheckIfCovered(key: string): void {
     const weekKey = this.formatDateKey(this.currentWeekStart());
-    const renglon = this.shoppingList().find((s) => this.claveCompra(s.name) === key);
-    if (!renglon?.checked || (this.checkedItems()[weekKey] || []).includes(key)) {
+    const partes = this.partesPorClave().get(key);
+    if (!partes) {
       return;
     }
-    this.checkedItems.update((prev) => ({ ...prev, [weekKey]: [...(prev[weekKey] || []), key] }));
+    const { tildada, registroDe, faltaDe } = this.leerRenglon(partes, weekKey);
+    const manual = this.quantityOverrides()[`${weekKey}_${key}`];
+    const entero = this.armarRenglon(partes, weekKey).checked;
+    const cubiertas = partes
+      .filter((p) => !tildada(p) && !registroDe(p) && (entero || (!manual && faltaDe(p) === 0)))
+      .map((p) => claveParte(key, p.fecha));
+    if (cubiertas.length) {
+      this.checkedItems.update((prev) => ({ ...prev, [weekKey]: [...(prev[weekKey] ?? []), ...cubiertas] }));
+    }
   }
 
   clearPantry(): void {

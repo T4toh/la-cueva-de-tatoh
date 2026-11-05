@@ -136,7 +136,6 @@ export class ShoppingListComponent implements OnInit {
     unit?: string;
     quantityOverride?: string;
     usas?: string;
-    checked?: boolean;
   }): void {
     // Lo que se usa de la despensa, no lo redondeado a lo que se compra.
     const quantity = item.usas ?? this.displayQty(item);
@@ -146,7 +145,10 @@ export class ShoppingListComponent implements OnInit {
     if (item.quantityOverride) {
       this.mealService.overrideQuantity(item.name, item.quantityOverride);
     }
-    if (!item.checked) {
+    // El renglón de ahora, no el de antes de restar: si ya se ve tildado,
+    // tildarlo lo destildaría, y con él los días ya comprados.
+    const renglon = this.mealService.shoppingList().find((i) => i.name === item.name);
+    if (renglon && !renglon.checked) {
       this.mealService.toggleItemCheck(item.name);
     }
   }
