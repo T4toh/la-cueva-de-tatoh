@@ -843,6 +843,23 @@ describe('MealService: lista por día', () => {
     expect(lunes.diaDelMes).toBe(service.currentWeekStart().getDate());
   });
 
+  it('lo pisado a mano por encima de lo que cubre la despensa sigue pendiente', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    service.setMeal('Lunes', 'almuerzo', plato(service, 'Tarta', 'Cebolla', '0.5', 'unidad'));
+    service.addToPantry('cebolla', '1 unidad');
+    service.overrideQuantity('Cebolla', '3 unidad');
+
+    const r = renglon(service, 'cebolla')!;
+    expect(r.checked).toBe(false);
+    expect(r.quantityOverride).toBe('2 unidad');
+    expect(r.dias).toEqual(['Lunes']);
+
+    service.toggleItemCheck('Cebolla');
+    expect(Object.values(service.compras())).toEqual([{ cebolla: { compra: '2 unidad', sobra: '' } }]);
+    expect(renglon(service, 'cebolla')!.checked).toBe(true);
+  });
+
   it('una clave pelada de antes tilda todas las partes del renglón', () => {
     const service = TestBed.inject(MealService);
     desdeElLunes(service);

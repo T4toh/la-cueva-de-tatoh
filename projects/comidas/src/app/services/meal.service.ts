@@ -1921,7 +1921,12 @@ export class MealService {
     const sinRegistro = partes.filter((_, i) => !registroDe[i]);
     const faltas = this.repartir(sinRegistro, clave);
     const faltaDe = (p: ParteCompra): number | null => faltas?.[sinRegistro.indexOf(p)] ?? null;
-    const pendientes = sinRegistro.filter((p) => !estaTildada(clave, p.fecha, tildadas) && faltaDe(p) !== 0);
+    // Con cantidad pisada a mano, lo que cubre la despensa se decide sobre
+    // esa cantidad (en `restarDespensa`), no sobre lo de las recetas.
+    const manual = this.quantityOverrides()[`${weekKey}_${clave}`];
+    const pendientes = sinRegistro.filter(
+      (p) => !estaTildada(clave, p.fecha, tildadas) && (!!manual || faltaDe(p) !== 0)
+    );
     const comprada = (p: ParteCompra, i: number): boolean => !!registroDe[i] || estaTildada(clave, p.fecha, tildadas);
     const conDia = (ps: ParteCompra[]): string[] => ps.flatMap((p) => (p.dia ? [p.dia] : []));
 
@@ -1945,7 +1950,7 @@ export class MealService {
       item.sobra = sobras.length ? sobras.reduce((a, b) => this.addQuantities(a, b)) : undefined;
       return item;
     }
-    this.ajustarRenglon(item, clave, weekKey, faltas && muestra.map((p) => faltaDe(p) ?? 0));
+    this.ajustarRenglon(item, clave, manual, faltas && muestra.map((p) => faltaDe(p) ?? 0));
     return item;
   }
 
@@ -1966,8 +1971,7 @@ export class MealService {
 
   // Lo pisado a mano gana; si no, lo que falta después de la despensa se
   // redondea a lo que se compra. Lo cubierto por la despensa no se compra.
-  private ajustarRenglon(item: ShoppingItem, key: string, weekKey: string, faltas: number[] | null): void {
-    const manual = this.quantityOverrides()[`${weekKey}_${key}`];
+  private ajustarRenglon(item: ShoppingItem, key: string, manual: string | undefined, faltas: number[] | null): void {
     if (manual) {
       item.quantityOverride = manual;
     }
