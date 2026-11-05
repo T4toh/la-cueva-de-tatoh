@@ -1737,9 +1737,14 @@ export class MealService {
     // El renglón se destilda cuando se ve tildado, también si lo tilda la
     // despensa; una parte, cuando tiene tilde o registro.
     const destildar = fecha === undefined ? this.armarRenglon(partes, weekKey).checked : marcada(elegidas[0]);
+    // Un renglón que se ve tildado sólo por la despensa no tiene nada que destildar.
+    const cambian = elegidas.filter((p) => marcada(p) === destildar);
+    if (!cambian.length) {
+      return null;
+    }
     const aviso = destildar
-      ? this.deshacerCompra(weekKey, partes, elegidas.filter(marcada), lectura)
-      : this.registrarCompra(weekKey, elegidas.filter((p) => !marcada(p)), lectura, fecha === undefined);
+      ? this.deshacerCompra(weekKey, partes, cambian, lectura)
+      : this.registrarCompra(weekKey, cambian, lectura, fecha === undefined);
     // Lo pisado a mano era para un conjunto de días que ya no es el mismo.
     const override = `${weekKey}_${clave}`;
     if (override in this.quantityOverrides()) {
@@ -1762,9 +1767,6 @@ export class MealService {
     lectura: LecturaRenglon,
     entero: boolean
   ): string | null {
-    if (!partes.length) {
-      return null;
-    }
     const clave = partes[0].clave;
     const keys = partes.map((p) => claveParte(clave, p.fecha));
     const item = this.sumarPorUnidad(partes.map((p) => ({ name: p.nombre, quantity: p.quantity, unit: p.unit })));
@@ -1984,7 +1986,18 @@ export class MealService {
       return [clave, key].find((k) => semana[k]) ?? Object.keys(semana).find((k) => semana[k].dias?.includes(key));
     };
     const sinRegistro = partes.filter((p) => !registroDe(p));
-    const faltas = this.repartir(sinRegistro, clave);
+    // Lo que una compra tomó de la despensa sigue tomado: su sobra se calculó
+    // sobre lo que faltaba después de la despensa, así que en la despensa
+    // está la sobra pero no la parte que cubrió. Si no se descuenta, esa parte
+    // vuelve a cubrir el día siguiente.
+    const valor = (q: string): number => parseNumericQuantity(q)?.value ?? 0;
+    const tomado = [...new Set(partes.flatMap((p) => registroDe(p) ?? []))].reduce((total, k) => {
+      const necesita = partes
+        .filter((p) => registroDe(p) === k)
+        .reduce((n, p) => n + valor([p.quantity, p.unit].filter(Boolean).join(' ')), 0);
+      return total + Math.max(0, necesita + valor(semana[k].sobra) - valor(semana[k].compra));
+    }, 0);
+    const faltas = this.repartir(sinRegistro, clave, tomado);
     return {
       registroDe,
       tildada: (p) => estaTildada(clave, p.fecha, tildadas),
@@ -2075,7 +2088,7 @@ export class MealService {
   // La despensa cubre las partes en orden de fecha. Null si no hay nada que
   // repartir o si las unidades no se pueden restar entre sí: ahí se queda
   // como antes, sin restar.
-  private repartir(partes: ParteCompra[], clave: string): number[] | null {
+  private repartir(partes: ParteCompra[], clave: string, tomado: number): number[] | null {
     const entrada = this.despensaDe(clave);
     const tengo = entrada && parseNumericQuantity(entrada.quantity);
     const necesito = partes.map((p) => parseNumericQuantity([p.quantity, p.unit].filter(Boolean).join(' ')));
@@ -2084,7 +2097,7 @@ export class MealService {
     if (!tengo || valores.length !== partes.length || unidades.size > 1) {
       return null;
     }
-    return repartirDespensa(valores.map((n) => n.value), Math.max(0, tengo.value));
+    return repartirDespensa(valores.map((n) => n.value), Math.max(0, tengo.value - tomado));
   }
 
   // Lo pisado a mano gana; si no, lo que falta después de la despensa se
