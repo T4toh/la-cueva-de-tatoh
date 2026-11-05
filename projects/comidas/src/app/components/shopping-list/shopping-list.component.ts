@@ -15,7 +15,6 @@ import { ShoppingItem } from '../../models/meal.model';
 import { MealService } from '../../services/meal.service';
 import { Icon, Tag } from 'componentes';
 import { textoPorDia, textoPorGondola } from '../../compras/copiar';
-import { diaCorto } from '../../compras/partes';
 import { DiasChips } from './dias-chips.component';
 import { ListaPorDia } from './lista-por-dia.component';
 import { DialogService } from '../../services/dialog.service';
@@ -86,10 +85,6 @@ export class ShoppingListComponent implements OnInit {
     } catch {
       return 'gondola';
     }
-  }
-
-  diasComprados(dias: string[]): string {
-    return dias.map(diaCorto).join(', ');
   }
 
   elegirVista(vista: 'gondola' | 'dia'): void {

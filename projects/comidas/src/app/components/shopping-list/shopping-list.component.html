@@ -237,7 +237,7 @@
   }
 
   <!-- Vista exclusiva para impresión (Correctamente ubicada fuera de los loops) -->
-  <div class="print-only-section">
+  <div class="print-only-section" [hidden]="vista() === 'dia'">
     <h1>Lista de Compras</h1>
     <h2 class="print-date-range">{{ mealService.weekRangeDisplay() }}</h2>
 

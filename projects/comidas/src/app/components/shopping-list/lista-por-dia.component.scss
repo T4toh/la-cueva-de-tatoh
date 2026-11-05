@@ -1,7 +1,56 @@
-:host {
+.pantalla {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+.impresion {
+  display: none;
+}
+
+@media print {
+  .pantalla {
+    display: none;
+  }
+
+  .impresion {
+    display: block;
+    color: black;
+
+    h1 {
+      text-align: center;
+    }
+  }
+
+  .print-dia {
+    margin-bottom: 15pt;
+    page-break-inside: avoid;
+
+    h3 {
+      margin: 0 0 3pt;
+      border-bottom: 1px solid black;
+      text-transform: uppercase;
+      font-size: 12pt;
+    }
+
+    p {
+      margin: 0 0 5pt;
+      font-style: italic;
+      font-size: 10pt;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    li {
+      padding: 3pt 0;
+      font-size: 11pt;
+      border-bottom: 1px solid #ccc;
+    }
+  }
 }
 
 .dia {

@@ -457,7 +457,8 @@
     color: black !important;
   }
 
-  .shopping-list-container > *:not(.print-only-section) {
+  // La lista por día trae su propia versión para papel; lo demás se oculta.
+  .shopping-list-container > *:not(.print-only-section):not(app-lista-por-dia:not([hidden])) {
     display: none !important;
   }
 
@@ -478,6 +479,11 @@
       color: black !important;
       margin-bottom: 20pt;
     }
+  }
+
+  // Sin esto el display:block de arriba le gana al hidden de la vista por día.
+  .print-only-section[hidden] {
+    display: none !important;
   }
 
   .print-group {

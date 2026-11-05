@@ -8,7 +8,7 @@ import { diaCorto } from '../../compras/partes';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @for (d of dias() ?? []; track d) {
-      <span class="dia-chip">{{ d.slice(0, 3) }}</span>
+      <span class="dia-chip">{{ capitalizado(d) }}</span>
     }
     @if (comprados()?.length && dias()?.length) {
       <span class="detalle">ya compraste {{ comprados()!.map(corto).join(', ') }}</span>
@@ -38,4 +38,8 @@ export class DiasChips {
   readonly dias = input<string[]>();
   readonly comprados = input<string[]>();
   protected readonly corto = diaCorto;
+  protected capitalizado(dia: string): string {
+    const c = diaCorto(dia);
+    return c.charAt(0).toUpperCase() + c.slice(1);
+  }
 }
