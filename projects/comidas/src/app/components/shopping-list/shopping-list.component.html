@@ -94,7 +94,8 @@
     [cantidad]="displayQty"
     [dias]="mealService.listaPorDia()"
     [hidden]="vista() !== 'dia'"
-    (marcar)="marcarParte($event.nombre, $event.fecha)"
+    [rango]="mealService.weekRangeDisplay()"
+    (marcar)="marcarParte($event.nombre, $event.fecha, $event.casilla)"
   />
 
   <div class="list-groups" [hidden]="vista() === 'dia'">
@@ -115,7 +116,7 @@
                   type="checkbox"
                   [checked]="item.checked"
                   [id]="item.name + (group.tag?.id || 'untagged')"
-                  (change)="marcar(item.name)"
+                  (change)="marcar(item.name, $event)"
                 />
                 <label
                   class="item-label"

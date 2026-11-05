@@ -105,4 +105,8 @@ export type CompraRegistrada = {
   // Las otras partes que entraron en la misma compra, cuando se tildaron juntas
   // desde la vista por góndola. Destildar cualquiera deshace la compra entera.
   dias?: string[];
+  // Lo que la compra tomó de la despensa al registrarla ('0.5 unidad'). Sigue
+  // tomado aunque sus días pasen; sin él (registros de antes) se calcula con
+  // las partes que queden. No se guarda cuando es 0.
+  usa?: string;
 };

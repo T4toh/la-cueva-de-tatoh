@@ -13,6 +13,13 @@ import { DiaLista } from '../../compras/partes';
 export class ListaPorDia {
   readonly dias = input.required<DiaLista[]>();
   readonly cantidad = input.required<(item: ShoppingItem) => string>();
-  // fecha null es la parte manual ("Sin día").
-  readonly marcar = output<{ nombre: string; fecha: string | null }>();
+  // La semana, para el encabezado impreso: el mismo que el de góndola.
+  readonly rango = input.required<string>();
+  // fecha null es la parte manual ("Sin día"). `casilla` va para que el padre
+  // la acomode si el clic no cambió nada.
+  readonly marcar = output<{ nombre: string; fecha: string | null; casilla: HTMLInputElement }>();
+
+  protected cambiar(nombre: string, fecha: string | null, event: Event): void {
+    this.marcar.emit({ nombre, fecha, casilla: event.target as HTMLInputElement });
+  }
 }

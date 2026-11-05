@@ -25,6 +25,9 @@ describe('repartirDespensa', () => {
   it('no se pasa de largo por coma flotante', () => {
     expect(repartirDespensa([0.1, 0.2], 0.3)).toEqual([0, 0]);
   });
+  it('lo que falta sale sin ruido de coma flotante', () => {
+    expect(repartirDespensa([0.6], 0.5)).toEqual([0.1]);
+  });
 });
 describe('diaCorto', () => {
   it('abrevia con tilde', () => {

@@ -96,13 +96,19 @@ export class ShoppingListComponent implements OnInit {
     }
   }
 
-  marcar(nombre: string): void {
+  // Un clic que no cambia el ítem (lo cubre la despensa) no cambia el
+  // `[checked]`, y Angular no corrige la casilla que el navegador ya dio vuelta.
+  marcar(nombre: string, event: Event): void {
     this.mostrarAviso(this.mealService.toggleItemCheck(nombre));
+    const item = this.mealService.shoppingList().find((i) => i.name === nombre);
+    (event.target as HTMLInputElement).checked = !!item?.checked;
   }
 
   // fecha null es la parte manual: la que no tiene día.
-  marcarParte(nombre: string, fecha: string | null): void {
+  marcarParte(nombre: string, fecha: string | null, casilla: HTMLInputElement): void {
     this.mostrarAviso(this.mealService.toggleItemCheck(nombre, fecha));
+    const dia = this.mealService.listaPorDia().find((d) => d.fecha === fecha);
+    casilla.checked = !!dia?.items.find((i) => i.name === nombre)?.checked;
   }
 
   private mostrarAviso(aviso: string | null): void {

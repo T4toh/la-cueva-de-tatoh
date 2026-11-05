@@ -11,7 +11,7 @@
           type="checkbox"
           [checked]="item.checked"
           [id]="'dia-' + dia.fecha + '-' + item.name"
-          (change)="marcar.emit({ nombre: item.name, fecha: dia.fecha })"
+          (change)="cambiar(item.name, dia.fecha, $event)"
         />
         <label [for]="'dia-' + dia.fecha + '-' + item.name">
           <span class="name">{{ item.name }}</span>
@@ -28,6 +28,7 @@
 <!-- Papel: blanco y negro, sin tema. Sólo se ve al imprimir. -->
 <div class="impresion">
   <h1>Lista de Compras</h1>
+  <h2 class="print-date-range">{{ rango() }}</h2>
   @for (dia of dias(); track dia.fecha ?? 'manual') {
     <div class="print-dia">
       <h3>{{ dia.dia ? dia.dia + ' ' + dia.diaDelMes : 'Sin día' }}</h3>

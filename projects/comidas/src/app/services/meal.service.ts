@@ -32,7 +32,7 @@ import {
   normalizar,
 } from '../catalogo/catalogo';
 import { CATALOGO } from '../catalogo/catalogo-datos';
-import { claveParte, DiaLista, estaTildada, ParteCompra, repartirDespensa } from '../compras/partes';
+import { claveParte, DiaLista, estaTildada, ParteCompra, repartirDespensa, sinRuido } from '../compras/partes';
 import { GUIA_VACIA, GuiaPropia, normalizarGuia } from '../guia/guia';
 import {
   CompraRegistrada,
@@ -128,6 +128,11 @@ export function multiplyQuantity(quantity: string, factor: number): string {
     return quantity;
   }
   return `${parseFloat((parsed.valor * factor).toFixed(2))}${parsed.resto}`;
+}
+
+// Se pueden sumar o restar: misma unidad, o una de las dos sin unidad.
+function mismaUnidad(a: { unit: string }, b: { unit: string }): boolean {
+  return a.unit === b.unit || !a.unit || !b.unit;
 }
 
 function conUnidad(valor: number, unidad: string): string {
@@ -1687,7 +1692,7 @@ export class MealService {
     Object.entries(semana).forEach(([key, { sobra }]) => {
       if (sobra) {
         // La clave del registro es `clave@fecha`; la despensa va por clave.
-        this.subtractFromPantry(key.replace(/@[^@]*$/, ''), sobra);
+        this.restarDeDespensa(key.replace(/@[^@]*$/, ''), sobra);
       }
     });
     this.compras.update((c) => {
@@ -1782,6 +1787,11 @@ export class MealService {
     const sobra = item.sobra && this.cabeEnDespensa(clave, item.sobra) ? item.sobra : '';
     const [primera, ...dias] = keys;
     const registro: CompraRegistrada = dias.length ? { compra, sobra, dias } : { compra, sobra };
+    const usa = this.usoDe(partes, registro);
+    if (usa > 0) {
+      const unidad = parseNumericQuantity(compra)?.unit || parseNumericQuantity(this.textoDe(partes[0]))?.unit;
+      registro.usa = unidad ? `${usa} ${unidad}` : `${usa}`;
+    }
     this.compras.update((c) => ({ ...c, [weekKey]: { ...(c[weekKey] ?? {}), [primera]: registro } }));
     if (!sobra) {
       return null;
@@ -1797,7 +1807,7 @@ export class MealService {
     }
     const tengo = parseNumericQuantity(entrada.quantity);
     const sumo = parseNumericQuantity(cantidad);
-    return !!tengo && !!sumo && (tengo.unit === sumo.unit || !tengo.unit || !sumo.unit);
+    return !!tengo && !!sumo && mismaUnidad(tengo, sumo);
   }
 
   // Destildar una parte de una compra la deshace entera: resta la sobra una
@@ -1830,7 +1840,8 @@ export class MealService {
       });
     }
     const sobras = registros.map((k) => semana[k].sobra).filter(Boolean);
-    sobras.forEach((sobra) => this.subtractFromPantry(clave, sobra));
+    // Sin autotildar: lo que la despensa parece cubrir ahora no se compró.
+    sobras.forEach((sobra) => this.restarDeDespensa(clave, sobra));
     this.checkedItems.update((prev) => ({
       ...prev,
       [weekKey]: [...(prev[weekKey] ?? []).filter((k) => !quitar.has(k)), ...reponer],
@@ -1989,14 +2000,12 @@ export class MealService {
     // Lo que una compra tomó de la despensa sigue tomado: su sobra se calculó
     // sobre lo que faltaba después de la despensa, así que en la despensa
     // está la sobra pero no la parte que cubrió. Si no se descuenta, esa parte
-    // vuelve a cubrir el día siguiente.
-    const valor = (q: string): number => parseNumericQuantity(q)?.value ?? 0;
-    const tomado = [...new Set(partes.flatMap((p) => registroDe(p) ?? []))].reduce((total, k) => {
-      const necesita = partes
-        .filter((p) => registroDe(p) === k)
-        .reduce((n, p) => n + valor([p.quantity, p.unit].filter(Boolean).join(' ')), 0);
-      return total + Math.max(0, necesita + valor(semana[k].sobra) - valor(semana[k].compra));
-    }, 0);
+    // vuelve a cubrir el día siguiente. Cuentan todas las compras de la
+    // semana, también las de días que ya pasaron.
+    const tengo = parseNumericQuantity(this.despensaDe(clave)?.quantity ?? '');
+    const tomado = Object.entries(semana)
+      .filter(([k]) => k.replace(/@[^@]*$/, '') === clave)
+      .reduce((total, [k, r]) => total + this.tomadoPor(r, partes.filter((p) => registroDe(p) === k), tengo), 0);
     const faltas = this.repartir(sinRegistro, clave, tomado);
     return {
       registroDe,
@@ -2005,6 +2014,32 @@ export class MealService {
       sinRegistro,
       faltas,
     };
+  }
+
+  // Lo que necesitaban esas partes, más lo que sobró, menos lo que se compró:
+  // lo que la compra sacó de la despensa.
+  private usoDe(partes: ParteCompra[], registro: CompraRegistrada): number {
+    const valor = (q: string): number => parseNumericQuantity(q)?.value ?? 0;
+    const necesita = partes.reduce((n, p) => n + valor(this.textoDe(p)), 0);
+    return sinRuido(Math.max(0, necesita + valor(registro.sobra) - valor(registro.compra)));
+  }
+
+  // Lo guardado al registrar, si está en la unidad de la despensa. Los
+  // registros de antes, sin `usa`, se calculan con las partes que queden.
+  private tomadoPor(
+    registro: CompraRegistrada,
+    partes: ParteCompra[],
+    tengo: { unit: string } | null
+  ): number {
+    if (registro.usa === undefined) {
+      return this.usoDe(partes, registro);
+    }
+    const usa = parseNumericQuantity(registro.usa);
+    return usa && tengo && mismaUnidad(usa, tengo) ? usa.value : 0;
+  }
+
+  private textoDe(p: ParteCompra): string {
+    return [p.quantity, p.unit].filter(Boolean).join(' ');
   }
 
   // Un renglón de la vista por góndola a partir de sus partes, en orden de
@@ -2074,7 +2109,8 @@ export class MealService {
     const item: ShoppingItem = {
       name: p.nombre,
       quantity: falta ? `${falta}` : p.quantity,
-      unit: p.unit,
+      // En datos viejos la unidad está sólo en el texto ('300 g').
+      unit: falta ? p.unit || parseNumericQuantity(p.quantity)?.unit : p.unit,
       tagId: p.tagId,
       isExtra: p.fecha === null,
       checked: lectura.tildada(p) || !!lectura.registroDe(p) || falta === 0,
@@ -2091,7 +2127,7 @@ export class MealService {
   private repartir(partes: ParteCompra[], clave: string, tomado: number): number[] | null {
     const entrada = this.despensaDe(clave);
     const tengo = entrada && parseNumericQuantity(entrada.quantity);
-    const necesito = partes.map((p) => parseNumericQuantity([p.quantity, p.unit].filter(Boolean).join(' ')));
+    const necesito = partes.map((p) => parseNumericQuantity(this.textoDe(p)));
     const valores = necesito.filter((n) => !!n);
     const unidades = new Set([tengo, ...valores].map((q) => q && q.unit).filter(Boolean));
     if (!tengo || valores.length !== partes.length || unidades.size > 1) {
@@ -2147,7 +2183,7 @@ export class MealService {
     if (!faltas) {
       return { remaining: needed, covered: false };
     }
-    const total = faltas.reduce((a, b) => a + b, 0);
+    const total = sinRuido(faltas.reduce((a, b) => a + b, 0));
     if (total <= 0) {
       return { remaining: '0', covered: true };
     }
@@ -2228,6 +2264,14 @@ export class MealService {
   }
 
   subtractFromPantry(name: string, amount: string): void {
+    if (this.restarDeDespensa(name, amount)) {
+      this.autoCheckIfCovered(this.claveCompra(name));
+    }
+  }
+
+  // Resta sin tildar nada: deshacer una compra no es la despensa cubriendo.
+  // Devuelve si restó (con unidades que no se restan, no toca nada).
+  private restarDeDespensa(name: string, amount: string): boolean {
     const key = this.claveCompra(name);
     let didSubtract = false;
     // Sólo la primera: con dos entradas del mismo ingrediente ("Huevo" y
@@ -2240,13 +2284,7 @@ export class MealService {
         }
         const parsed = parseNumericQuantity(i.quantity);
         const parsedAmount = parseNumericQuantity(amount);
-        const unitsCompatible =
-          parsed &&
-          parsedAmount &&
-          (parsed.unit === parsedAmount.unit ||
-            !parsed.unit ||
-            !parsedAmount.unit);
-        if (unitsCompatible && parsed && parsedAmount) {
+        if (parsed && parsedAmount && mismaUnidad(parsed, parsedAmount)) {
           didSubtract = true;
           const remaining = Math.max(0, parsed.value - parsedAmount.value);
           const unit = parsed.unit || parsedAmount.unit;
@@ -2258,9 +2296,7 @@ export class MealService {
         return i;
       })
     );
-    if (didSubtract) {
-      this.autoCheckIfCovered(key);
-    }
+    return didSubtract;
   }
 
   // Cubierto lo decide el reparto de la lista, que ya restó la despensa una

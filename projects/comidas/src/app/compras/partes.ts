@@ -30,6 +30,11 @@ export type DiaLista = {
 // Mismo criterio que `aComprar`: sin esto, 0.30000000000000004 dejaría un resto.
 const TOLERANCIA = 1e-9;
 
+// Lo que se muestra y se copia: sin esto 0.6 − 0.5 se ve 0.09999999999999998.
+export function sinRuido(n: number): number {
+  return parseFloat(n.toFixed(6));
+}
+
 export function claveParte(clave: string, fecha: string | null): string {
   return `${clave}@${fecha ?? 'manual'}`;
 }
@@ -46,7 +51,7 @@ export function repartirDespensa(necesario: number[], disponible: number): numbe
     const cubierto = Math.min(n, resto);
     resto -= cubierto;
     const falta = n - cubierto;
-    return falta <= TOLERANCIA ? 0 : falta;
+    return falta <= TOLERANCIA ? 0 : sinRuido(falta);
   });
 }
 

@@ -969,12 +969,98 @@ describe('MealService: lista por día', () => {
     // Quedan 0.25 + 1 − 0.75 = 0.5 para el martes, que necesita 0.6.
     const r = renglon(service, 'cebolla')!;
     expect(r).toMatchObject({ checked: false, dias: ['Martes'], quantityOverride: '1 unidad' });
-    expect(parseNumericQuantity(r.usas!)!.value).toBeCloseTo(0.1);
+    expect(r.usas).toBe('0.1 unidad');
     const [, martes] = service.listaPorDia();
     expect(martes.items[0]).toMatchObject({ checked: false, quantityOverride: '1 unidad' });
 
     service.toggleItemCheck('cebolla', lunes);
     expect(enDespensa(service, 'cebolla')).toBe(0.25);
+  });
+
+  it('lo que un día pasado tomó de la despensa sigue tomado', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    service.setMeal('Lunes', 'almuerzo', plato(service, 'Tarta', 'cebolla', '1', 'unidad'));
+    service.setMeal('Martes', 'almuerzo', plato(service, 'Salsa', 'cebolla', '0.5', 'unidad'));
+    service.setMeal('Viernes', 'almuerzo', plato(service, 'Sopa', 'cebolla', '0.5', 'unidad'));
+    service.addToPantry('cebolla', '0.5 unidad');
+    const lunes = fecha(service, 'Lunes');
+
+    // El lunes usa 0.5 de la despensa, compra 1 y sobra 0.5: quedan 0.5 para el martes.
+    service.toggleItemCheck('cebolla', lunes);
+    expect(service.compras()[semana(service)][`cebolla@${lunes}`]).toEqual({
+      compra: '1 unidad', sobra: '0.5 unidad', usa: '0.5 unidad',
+    });
+    expect(enDespensa(service, 'cebolla')).toBe(1);
+    expect(renglon(service, 'cebolla')).toMatchObject({ checked: false, dias: ['Viernes'] });
+
+    // Pasado el lunes su parte ya no está, pero lo que tomó sigue tomado.
+    desdeElLunes(service, 1);
+    expect(renglon(service, 'cebolla')).toMatchObject({ checked: false, dias: ['Viernes'] });
+    const viernes = service.listaPorDia().find((d) => d.dia === 'Viernes')!;
+    expect(viernes.items[0].checked).toBe(false);
+
+    // Y deshacerlo (desde el lunes, que pasado ya no tiene parte) devuelve la despensa.
+    desdeElLunes(service);
+    service.toggleItemCheck('cebolla', lunes);
+    expect(enDespensa(service, 'cebolla')).toBe(0.5);
+    expect(service.compras()[semana(service)]).toEqual({});
+  });
+
+  it('un registro de antes, sin usa, sigue calculándose con sus partes', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    dosCebollas(service, '1', '0.5');
+    service.addToPantry('cebolla', '0.75 unidad');
+    const lunes = fecha(service, 'Lunes');
+    service.checkedItems.set({ [semana(service)]: [`cebolla@${lunes}`] });
+    service.compras.set({ [semana(service)]: { [`cebolla@${lunes}`]: { compra: '1 unidad', sobra: '0.5 unidad' } } });
+
+    // Con su parte presente toma 1 + 0.5 − 1 = 0.5: al martes le quedan 0.25.
+    expect(renglon(service, 'cebolla')).toMatchObject({ checked: false, dias: ['Martes'] });
+
+    // Pasado el lunes, sin parte ni usa, no toma nada: como antes.
+    desdeElLunes(service, 1);
+    expect(renglon(service, 'cebolla')!.checked).toBe(true);
+  });
+
+  it('un usa en otra unidad que la despensa no cuenta', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    dosCebollas(service, '1', '0.5');
+    service.addToPantry('cebolla', '0.5 unidad');
+    const lunes = `cebolla@${fecha(service, 'Lunes')}`;
+    service.compras.set({ [semana(service)]: { [lunes]: { compra: '1 kg', sobra: '', usa: '0.5 kg' } } });
+    desdeElLunes(service, 1);
+
+    expect(renglon(service, 'cebolla')!.checked).toBe(true);
+  });
+
+  it('destildar una compra no tilda sola otro día que la despensa parece cubrir', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    service.setMeal('Lunes', 'almuerzo', plato(service, 'Tarta', 'cebolla', '0.5', 'unidad'));
+    service.setMeal('Viernes', 'almuerzo', plato(service, 'Sopa', 'cebolla', '1', 'unidad'));
+    service.addToPantry('cebolla', '0.9 unidad');
+    const viernes = fecha(service, 'Viernes');
+
+    service.toggleItemCheck('cebolla', viernes);
+    service.toggleItemCheck('cebolla', viernes);
+
+    expect(enDespensa(service, 'cebolla')).toBe(0.9);
+    expect(service.compras()[semana(service)]).toEqual({});
+    expect(service.checkedItems()[semana(service)]).toEqual([]);
+  });
+
+  it('la vista por día no pierde la unidad que sólo está en el texto', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    service.addMeal({ name: 'Tarta', ingredients: [{ name: 'Queso', quantity: '300 g' }] });
+    service.setMeal('Lunes', 'almuerzo', service.meals().find((m) => m.name === 'Tarta')!.id);
+    service.addToPantry('queso', '100 g');
+
+    const [lunes] = service.listaPorDia();
+    expect([lunes.items[0].quantity, lunes.items[0].unit].filter(Boolean).join(' ')).toBe('200 g');
   });
 
   it('un clic que no cambia nada no borra lo pisado a mano', () => {
