@@ -13,6 +13,7 @@ import {
 } from '@angular/forms';
 import { MealService } from '../../services/meal.service';
 import { Icon, Tag } from 'componentes';
+import { textoPorGondola } from '../../compras/copiar';
 import { DialogService } from '../../services/dialog.service';
 
 @Component({
@@ -217,33 +218,19 @@ export class ShoppingListComponent implements OnInit {
       return;
     }
 
-    let text = `🛒 *Lista de Compras* (${this.mealService.weekRangeDisplay()})\n\n`;
-    let hasItems = false;
+    const text = textoPorGondola(
+      this.mealService.shoppingListGrouped(),
+      this.mealService.weekRangeDisplay(),
+      (item) => this.displayQty(item)
+    );
 
-    this.mealService.shoppingListGrouped().forEach((group) => {
-      const remainingItems = group.items.filter((item) => !item.checked);
-
-      if (remainingItems.length > 0) {
-        hasItems = true;
-        const groupName = group.tag ? group.tag.name.toUpperCase() : 'OTROS';
-        text += `*${groupName}*\n`;
-        remainingItems.forEach((item) => {
-          const quantity = this.displayQty(item);
-          text += `• ${item.name}: ${quantity}\n`;
-        });
-        text += '\n';
-      }
-    });
-
-    if (!hasItems) {
+    if (text === null) {
       this.dialogService.alert(
         'Lista vacía',
         'No hay items pendientes para copiar.'
       );
       return;
     }
-
-    text += '_Generado por Comidas - La Cueva de Tatoh_';
 
     navigator.clipboard
       .writeText(text)
