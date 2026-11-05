@@ -77,6 +77,7 @@
     <button
       type="button"
       [attr.aria-pressed]="vista() === 'gondola'"
+      [class]="vista() === 'gondola' ? 'btn-primary' : 'btn-secondary'"
       (click)="elegirVista('gondola')"
     >
       Por góndola
@@ -84,6 +85,7 @@
     <button
       type="button"
       [attr.aria-pressed]="vista() === 'dia'"
+      [class]="vista() === 'dia' ? 'btn-primary' : 'btn-secondary'"
       (click)="elegirVista('dia')"
     >
       Por día

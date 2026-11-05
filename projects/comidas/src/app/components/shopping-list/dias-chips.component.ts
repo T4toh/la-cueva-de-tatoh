@@ -22,7 +22,7 @@ import { diaCorto } from '../../compras/partes';
       border-radius: 999px;
       background: var(--accent-muted);
       color: var(--fg-primary);
-      font-size: 0.7rem;
+      font-size: var(--fs-caption);
       line-height: 1.4;
     }
 
