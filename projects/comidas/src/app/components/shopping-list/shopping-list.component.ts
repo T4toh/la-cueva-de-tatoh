@@ -11,14 +11,18 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { ShoppingItem } from '../../models/meal.model';
 import { MealService } from '../../services/meal.service';
 import { Icon, Tag } from 'componentes';
+import { textoPorDia, textoPorGondola } from '../../compras/copiar';
+import { DiasChips } from './dias-chips.component';
+import { ListaPorDia } from './lista-por-dia.component';
 import { DialogService } from '../../services/dialog.service';
 
 @Component({
   selector: 'app-shopping-list',
   standalone: true,
-  imports: [ReactiveFormsModule, Tag, Icon],
+  imports: [ReactiveFormsModule, Tag, Icon, ListaPorDia, DiasChips],
   templateUrl: './shopping-list.component.html',
   styleUrls: ['./shopping-list.component.scss'],
 })
@@ -35,6 +39,10 @@ export class ShoppingListComponent implements OnInit {
   // El aviso de lo que entró o salió de la despensa al tildar. Se borra solo.
   readonly aviso = signal('');
   private avisoTimer?: ReturnType<typeof setTimeout>;
+
+  // La vista se recuerda por dispositivo; localStorage puede no estar o tirar.
+  private static readonly VISTA_KEY = 'comidas_vista_lista';
+  readonly vista = signal<'gondola' | 'dia'>(ShoppingListComponent.vistaGuardada());
 
   constructor() {
     this.extraItemForm = this.fb.group({
@@ -71,8 +79,39 @@ export class ShoppingListComponent implements OnInit {
     }
   }
 
-  marcar(nombre: string): void {
-    const aviso = this.mealService.toggleItemCheck(nombre);
+  private static vistaGuardada(): 'gondola' | 'dia' {
+    try {
+      return localStorage.getItem(ShoppingListComponent.VISTA_KEY) === 'dia' ? 'dia' : 'gondola';
+    } catch {
+      return 'gondola';
+    }
+  }
+
+  elegirVista(vista: 'gondola' | 'dia'): void {
+    this.vista.set(vista);
+    try {
+      localStorage.setItem(ShoppingListComponent.VISTA_KEY, vista);
+    } catch {
+      // Sin almacenamiento, la elección dura lo que dure la pantalla.
+    }
+  }
+
+  // Un clic que no cambia el ítem (lo cubre la despensa) no cambia el
+  // `[checked]`, y Angular no corrige la casilla que el navegador ya dio vuelta.
+  marcar(nombre: string, event: Event): void {
+    this.mostrarAviso(this.mealService.toggleItemCheck(nombre));
+    const item = this.mealService.shoppingList().find((i) => i.name === nombre);
+    (event.target as HTMLInputElement).checked = !!item?.checked;
+  }
+
+  // fecha null es la parte manual: la que no tiene día.
+  marcarParte(nombre: string, fecha: string | null, casilla: HTMLInputElement): void {
+    this.mostrarAviso(this.mealService.toggleItemCheck(nombre, fecha));
+    const dia = this.mealService.listaPorDia().find((d) => d.fecha === fecha);
+    casilla.checked = !!dia?.items.find((i) => i.name === nombre)?.checked;
+  }
+
+  private mostrarAviso(aviso: string | null): void {
     if (!aviso) {
       return;
     }
@@ -136,7 +175,6 @@ export class ShoppingListComponent implements OnInit {
     unit?: string;
     quantityOverride?: string;
     usas?: string;
-    checked?: boolean;
   }): void {
     // Lo que se usa de la despensa, no lo redondeado a lo que se compra.
     const quantity = item.usas ?? this.displayQty(item);
@@ -146,7 +184,10 @@ export class ShoppingListComponent implements OnInit {
     if (item.quantityOverride) {
       this.mealService.overrideQuantity(item.name, item.quantityOverride);
     }
-    if (!item.checked) {
+    // El renglón de ahora, no el de antes de restar: si ya se ve tildado,
+    // tildarlo lo destildaría, y con él los días ya comprados.
+    const renglon = this.mealService.shoppingList().find((i) => i.name === item.name);
+    if (renglon && !renglon.checked) {
       this.mealService.toggleItemCheck(item.name);
     }
   }
@@ -215,33 +256,20 @@ export class ShoppingListComponent implements OnInit {
       return;
     }
 
-    let text = `🛒 *Lista de Compras* (${this.mealService.weekRangeDisplay()})\n\n`;
-    let hasItems = false;
+    const rango = this.mealService.weekRangeDisplay();
+    const cantidad = (item: ShoppingItem): string => this.displayQty(item);
+    const text =
+      this.vista() === 'dia'
+        ? textoPorDia(this.mealService.listaPorDia(), rango, cantidad)
+        : textoPorGondola(this.mealService.shoppingListGrouped(), rango, cantidad);
 
-    this.mealService.shoppingListGrouped().forEach((group) => {
-      const remainingItems = group.items.filter((item) => !item.checked);
-
-      if (remainingItems.length > 0) {
-        hasItems = true;
-        const groupName = group.tag ? group.tag.name.toUpperCase() : 'OTROS';
-        text += `*${groupName}*\n`;
-        remainingItems.forEach((item) => {
-          const quantity = this.displayQty(item);
-          text += `• ${item.name}: ${quantity}\n`;
-        });
-        text += '\n';
-      }
-    });
-
-    if (!hasItems) {
+    if (text === null) {
       this.dialogService.alert(
         'Lista vacía',
         'No hay items pendientes para copiar.'
       );
       return;
     }
-
-    text += '_Generado por Comidas - La Cueva de Tatoh_';
 
     navigator.clipboard
       .writeText(text)

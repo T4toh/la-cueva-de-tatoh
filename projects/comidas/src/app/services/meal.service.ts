@@ -32,6 +32,7 @@ import {
   normalizar,
 } from '../catalogo/catalogo';
 import { CATALOGO } from '../catalogo/catalogo-datos';
+import { claveParte, DiaLista, estaTildada, ParteCompra, repartirDespensa, sinRuido } from '../compras/partes';
 import { GUIA_VACIA, GuiaPropia, normalizarGuia } from '../guia/guia';
 import {
   CompraRegistrada,
@@ -56,6 +57,16 @@ import {
 const ID_AFUERA = 'afuera';
 
 const CANTIDAD = /^\s*(?:(\d+)\s+)?(\d+(?:[.,]\d+)?)(?:\s*\/\s*(\d+))?/;
+
+// Lo que dice de cada parte de un renglón `leerRenglon`. `registroDe` devuelve
+// la clave del registro en `compras`; `faltas` es por parte de `sinRegistro`.
+type LecturaRenglon = {
+  registroDe: (p: ParteCompra) => string | undefined;
+  tildada: (p: ParteCompra) => boolean;
+  faltaDe: (p: ParteCompra) => number | null;
+  sinRegistro: ParteCompra[];
+  faltas: number[] | null;
+};
 
 export type CantidadParseada = {
   // El número resuelto: '1 1/2' da 1.5.
@@ -117,6 +128,11 @@ export function multiplyQuantity(quantity: string, factor: number): string {
     return quantity;
   }
   return `${parseFloat((parsed.valor * factor).toFixed(2))}${parsed.resto}`;
+}
+
+// Se pueden sumar o restar: misma unidad, o una de las dos sin unidad.
+function mismaUnidad(a: { unit: string }, b: { unit: string }): boolean {
+  return a.unit === b.unit || !a.unit || !b.unit;
 }
 
 function conUnidad(valor: number, unidad: string): string {
@@ -1675,7 +1691,8 @@ export class MealService {
     const semana = this.compras()[weekKey] ?? {};
     Object.entries(semana).forEach(([key, { sobra }]) => {
       if (sobra) {
-        this.subtractFromPantry(key, sobra);
+        // La clave del registro es `clave@fecha`; la despensa va por clave.
+        this.restarDeDespensa(key.replace(/@[^@]*$/, ''), sobra);
       }
     });
     this.compras.update((c) => {
@@ -1709,47 +1726,78 @@ export class MealService {
     return (entrada?.nombre ?? nombre).toLowerCase().trim();
   }
 
-  // Devuelve el aviso de lo que entró o salió de la despensa, o null.
-  toggleItemCheck(name: string): string | null {
+  // Sin `fecha` es el renglón entero (vista por góndola); si no, esa parte, y
+  // null es la manual. Devuelve el aviso de lo que entró o salió de la
+  // despensa, o null. Ver docs/superpowers/specs/2026-11-05-lista-por-dia-design.md
+  toggleItemCheck(name: string, fecha?: string | null): string | null {
     const weekKey = this.formatDateKey(this.currentWeekStart());
-    const key = this.claveCompra(name);
-    const isChecked = (this.checkedItems()[weekKey] || []).includes(key);
-    const aviso = isChecked
-      ? this.deshacerCompra(weekKey, key, name)
-      : this.registrarCompra(weekKey, key);
-
-    this.checkedItems.update((prev) => {
-      const currentChecked = prev[weekKey] || [];
-      return {
-        ...prev,
-        [weekKey]: isChecked
-          ? currentChecked.filter((n) => n !== key)
-          : [...currentChecked, key],
-      };
-    });
+    const clave = this.claveCompra(name);
+    const partes = this.partesPorClave().get(clave) ?? [];
+    const elegidas = fecha === undefined ? partes : partes.filter((p) => p.fecha === fecha);
+    if (!elegidas.length) {
+      return null;
+    }
+    const lectura = this.leerRenglon(partes, weekKey);
+    const marcada = (p: ParteCompra): boolean => lectura.tildada(p) || !!lectura.registroDe(p);
+    // El renglón se destilda cuando se ve tildado, también si lo tilda la
+    // despensa; una parte, cuando tiene tilde o registro.
+    const destildar = fecha === undefined ? this.armarRenglon(partes, weekKey).checked : marcada(elegidas[0]);
+    // Un renglón que se ve tildado sólo por la despensa no tiene nada que destildar.
+    const cambian = elegidas.filter((p) => marcada(p) === destildar);
+    if (!cambian.length) {
+      return null;
+    }
+    const aviso = destildar
+      ? this.deshacerCompra(weekKey, partes, cambian, lectura)
+      : this.registrarCompra(weekKey, cambian, lectura, fecha === undefined);
+    // Lo pisado a mano era para un conjunto de días que ya no es el mismo.
+    const override = `${weekKey}_${clave}`;
+    if (override in this.quantityOverrides()) {
+      this.quantityOverrides.update((o) => {
+        const resto = { ...o };
+        delete resto[override];
+        return resto;
+      });
+    }
     return aviso;
   }
 
-  // Congela el renglón como se ve ahora. Lo que la despensa ya cubre, o lo
-  // que no tiene cantidad, no deja registro.
-  private registrarCompra(weekKey: string, key: string): string | null {
-    const renglon = this.shoppingList().find((i) => this.claveCompra(i.name) === key);
-    if (!renglon || renglon.checked) {
-      return null;
-    }
-    const compra = renglon.quantityOverride ?? [renglon.quantity, renglon.unit].filter(Boolean).join(' ');
-    if (!((parseNumericQuantity(compra)?.value ?? 0) > 0)) {
+  // Lo que se tilda junto es una compra: congela la suma de lo que le falta a
+  // esas partes, redondeada (o lo pisado a mano, si es el renglón entero), bajo
+  // la clave de la primera, con las demás en `dias`. Sin cantidad, o si la
+  // despensa lo cubre, se tilda sin registro.
+  private registrarCompra(
+    weekKey: string,
+    partes: ParteCompra[],
+    lectura: LecturaRenglon,
+    entero: boolean
+  ): string | null {
+    const clave = partes[0].clave;
+    const keys = partes.map((p) => claveParte(clave, p.fecha));
+    const item = this.sumarPorUnidad(partes.map((p) => ({ name: p.nombre, quantity: p.quantity, unit: p.unit })));
+    const manual = entero ? this.quantityOverrides()[`${weekKey}_${clave}`] : undefined;
+    this.ajustarRenglon(item, clave, manual, lectura.faltas && partes.map((p) => lectura.faltaDe(p) ?? 0));
+    this.checkedItems.update((prev) => ({ ...prev, [weekKey]: [...new Set([...(prev[weekKey] ?? []), ...keys])] }));
+    const compra = item.quantityOverride ?? [item.quantity, item.unit].filter(Boolean).join(' ');
+    if (item.checked || !((parseNumericQuantity(compra)?.value ?? 0) > 0)) {
       return null;
     }
     // Si la despensa lo tiene en otra unidad, sumarle la sobra la deja como
     // texto ("200 g + 0.25 unidad") que después no se puede restar.
-    const sobra = renglon.sobra && this.cabeEnDespensa(key, renglon.sobra) ? renglon.sobra : '';
-    this.compras.update((c) => ({ ...c, [weekKey]: { ...(c[weekKey] ?? {}), [key]: { compra, sobra } } }));
+    const sobra = item.sobra && this.cabeEnDespensa(clave, item.sobra) ? item.sobra : '';
+    const [primera, ...dias] = keys;
+    const registro: CompraRegistrada = dias.length ? { compra, sobra, dias } : { compra, sobra };
+    const usa = this.usoDe(partes, registro);
+    if (usa > 0) {
+      const unidad = parseNumericQuantity(compra)?.unit || parseNumericQuantity(this.textoDe(partes[0]))?.unit;
+      registro.usa = unidad ? `${usa} ${unidad}` : `${usa}`;
+    }
+    this.compras.update((c) => ({ ...c, [weekKey]: { ...(c[weekKey] ?? {}), [primera]: registro } }));
     if (!sobra) {
       return null;
     }
-    this.addToPantry(renglon.name, sobra);
-    return `${renglon.name}: +${sobra} a la despensa`;
+    this.addToPantry(item.name, sobra);
+    return `${item.name}: +${sobra} a la despensa`;
   }
 
   private cabeEnDespensa(key: string, cantidad: string): boolean {
@@ -1759,86 +1807,126 @@ export class MealService {
     }
     const tengo = parseNumericQuantity(entrada.quantity);
     const sumo = parseNumericQuantity(cantidad);
-    return !!tengo && !!sumo && (tengo.unit === sumo.unit || !tengo.unit || !sumo.unit);
+    return !!tengo && !!sumo && mismaUnidad(tengo, sumo);
   }
 
-  private deshacerCompra(weekKey: string, key: string, nombre: string): string | null {
-    const registro = this.compras()[weekKey]?.[key];
-    if (!registro) {
+  // Destildar una parte de una compra la deshace entera: resta la sobra una
+  // vez y destilda todas sus partes. Una clave pelada sin registro tildaba el
+  // renglón entero: la reemplazan las de las partes que siguen tildadas.
+  private deshacerCompra(
+    weekKey: string,
+    partes: ParteCompra[],
+    elegidas: ParteCompra[],
+    lectura: LecturaRenglon
+  ): string | null {
+    const clave = partes[0].clave;
+    const semana = this.compras()[weekKey] ?? {};
+    const registros = [...new Set(elegidas.flatMap((p) => lectura.registroDe(p) ?? []))];
+    const quitar = new Set([
+      ...elegidas.map((p) => claveParte(clave, p.fecha)),
+      ...registros.flatMap((k) => [k, ...(semana[k].dias ?? [])]),
+    ]);
+    const reponer = (this.checkedItems()[weekKey] ?? []).includes(clave) && !quitar.has(clave)
+      ? partes.map((p) => claveParte(clave, p.fecha)).filter((k) => !quitar.has(k))
+      : [];
+    quitar.add(clave);
+    // El registro sale antes de restar: la despensa se reparte como va a
+    // quedar, y estas partes siguen tildadas para que no las tilde sola.
+    if (registros.length) {
+      this.compras.update((c) => {
+        const resto = { ...(c[weekKey] ?? {}) };
+        registros.forEach((k) => delete resto[k]);
+        return { ...c, [weekKey]: resto };
+      });
+    }
+    const sobras = registros.map((k) => semana[k].sobra).filter(Boolean);
+    // Sin autotildar: lo que la despensa parece cubrir ahora no se compró.
+    sobras.forEach((sobra) => this.restarDeDespensa(clave, sobra));
+    this.checkedItems.update((prev) => ({
+      ...prev,
+      [weekKey]: [...(prev[weekKey] ?? []).filter((k) => !quitar.has(k)), ...reponer],
+    }));
+    if (!sobras.length) {
       return null;
     }
-    this.compras.update((c) => {
-      const semana = { ...(c[weekKey] ?? {}) };
-      delete semana[key];
-      return { ...c, [weekKey]: semana };
-    });
-    if (!registro.sobra) {
-      return null;
-    }
-    this.subtractFromPantry(key, registro.sobra);
-    return `${nombre}: \u2212${registro.sobra} de la despensa`;
+    return `${partes[0].nombre}: \u2212${sobras.reduce((x, y) => this.addQuantities(x, y))} de la despensa`;
   }
 
-  readonly shoppingListGrouped = computed(() => {
-    const items: ShoppingItem[] = [];
-    const currentSchedule = this.schedule();
+  // Lo que se necesita de cada ingrediente cada día, desde hoy. Lo de dos
+  // platos del mismo día es una parte; los ítems manuales, una sin día.
+  readonly partesSemana = computed<ParteCompra[]>(() => {
     const allMeals = this.meals();
     const today = new Date(this.todayTimestamp());
     const weekStart = this.currentWeekStart();
-    const weekKey = this.formatDateKey(weekStart);
     const tagMap = this.ingredientTags();
-    const weekChecked = this.checkedItems()[weekKey] || [];
+    const tagDe = (nombre: string): string | undefined => tagMap[nombre.toLowerCase().trim()];
+    const partes: ParteCompra[] = [];
 
-    currentSchedule.forEach((day, index) => {
+    this.schedule().forEach((day, index) => {
       const dayDate = new Date(weekStart);
       dayDate.setDate(weekStart.getDate() + index);
-
-      if (dayDate >= today) {
-        const processDish = (dish: Dish): void => {
-          if (dish.excluded) {
-            return;
-          }
-          const meal = allMeals.find((m) => m.id === dish.mealId);
-          if (meal && meal.includeInShoppingList !== false) {
-            meal.ingredients.forEach((ing) => {
-              items.push({
-                ...ing,
-                quantity: multiplyQuantity(ing.quantity, dish.portions),
-                tagId: tagMap[ing.name.toLowerCase().trim()],
-                isExtra: false,
-                checked: weekChecked.includes(this.claveCompra(ing.name)),
-              });
-            });
-          }
-        };
-
-        day.almuerzo.forEach(processDish);
-        day.desayuno.forEach(processDish);
-        day.cena.forEach(processDish);
+      if (dayDate < today) {
+        return;
       }
-    });
-
-    this.currentExtraItems().forEach((extra) => {
-      items.push({
-        ...extra,
-        tagId: extra.tagId || tagMap[extra.name.toLowerCase().trim()],
-        checked: weekChecked.includes(this.claveCompra(extra.name)),
+      const items: { item: ShoppingItem; plato?: string }[] = [];
+      [...day.almuerzo, ...day.desayuno, ...day.cena].forEach((dish) => {
+        const meal = dish.excluded ? undefined : allMeals.find((m) => m.id === dish.mealId);
+        if (!meal || meal.includeInShoppingList === false) {
+          return;
+        }
+        meal.ingredients.forEach((ing) => items.push({
+          item: { ...ing, quantity: multiplyQuantity(ing.quantity, dish.portions), tagId: tagDe(ing.name) },
+          plato: meal.name,
+        }));
       });
+      // Las etiquetas salen del día y no de `fecha`: `formatDateKey` usa
+      // toISOString y en UTC+ daría el día anterior.
+      const dia = { fecha: this.formatDateKey(dayDate), dia: day.dayName, diaDelMes: dayDate.getDate() };
+      partes.push(...this.armarPartes(items, dia));
     });
 
-    // Por renglón, una parte por unidad: 100 g + 1 unidad + 2 unidad es
-    // "100 g + 3 unidad". Sin unidad se suma a cualquiera.
-    const porClave: { [key: string]: ShoppingItem[] } = {};
-    items.forEach((item) => {
-      const partes = (porClave[this.claveCompra(item.name)] ??= []);
-      const misma = partes.find((p) => !p.unit || !item.unit || p.unit === item.unit);
-      if (misma) {
-        this.sumarAlRenglon(misma, item);
-      } else {
-        partes.push({ ...item });
+    const manuales = this.currentExtraItems().map((extra) => ({
+      item: { ...extra, tagId: extra.tagId || tagDe(extra.name) },
+    }));
+    partes.push(...this.armarPartes(manuales, { fecha: null, dia: null, diaDelMes: null }));
+    return partes;
+  });
+
+  private armarPartes(
+    items: { item: ShoppingItem; plato?: string }[],
+    dia: Pick<ParteCompra, 'fecha' | 'dia' | 'diaDelMes'>
+  ): ParteCompra[] {
+    const porClave = new Map<string, { items: ShoppingItem[]; platos: string[] }>();
+    items.forEach(({ item, plato }) => {
+      const clave = this.claveCompra(item.name);
+      const grupo = porClave.get(clave) ?? { items: [], platos: [] };
+      porClave.set(clave, grupo);
+      grupo.items.push(item);
+      if (plato && !grupo.platos.includes(plato)) {
+        grupo.platos.push(plato);
       }
     });
-    const aggregated = Object.values(porClave).map((partes) => this.unirPartes(partes));
+    return [...porClave].map(([clave, grupo]) => {
+      const suma = this.sumarPorUnidad(grupo.items);
+      return {
+        clave, nombre: suma.name, ...dia,
+        quantity: suma.quantity, unit: suma.unit, tagId: suma.tagId, platos: grupo.platos,
+      };
+    });
+  }
+
+  // Las partes de cada renglón, en orden de fecha y las manuales al final.
+  private readonly partesPorClave = computed(() => {
+    const porClave = new Map<string, ParteCompra[]>();
+    this.partesSemana().forEach((parte) => {
+      porClave.set(parte.clave, [...(porClave.get(parte.clave) ?? []), parte]);
+    });
+    return porClave;
+  });
+
+  readonly shoppingListGrouped = computed(() => {
+    const weekKey = this.formatDateKey(this.currentWeekStart());
+    const porClave = this.partesPorClave();
 
     const groups: ShoppingListGroup[] = this.tags().map((tag) => ({
       tag,
@@ -1847,8 +1935,8 @@ export class MealService {
     const uncategorizedGroup: ShoppingListGroup = { tag: null, items: [] };
     groups.push(uncategorizedGroup);
 
-    aggregated.forEach((item) => {
-      this.ajustarRenglon(item, weekKey);
+    porClave.forEach((partes) => {
+      const item = this.armarRenglon(partes, weekKey);
       const group = item.tagId
         ? groups.find((g) => g.tag?.id === item.tagId)
         : null;
@@ -1857,6 +1945,21 @@ export class MealService {
 
     return groups.filter((g) => g.items.length > 0);
   });
+
+  // Por renglón, una parte por unidad: 100 g + 1 unidad + 2 unidad es
+  // "100 g + 3 unidad". Sin unidad se suma a cualquiera.
+  private sumarPorUnidad(items: ShoppingItem[]): ShoppingItem {
+    const partes: ShoppingItem[] = [];
+    items.forEach((item) => {
+      const misma = partes.find((p) => !p.unit || !item.unit || p.unit === item.unit);
+      if (misma) {
+        this.sumarAlRenglon(misma, item);
+      } else {
+        partes.push({ ...item });
+      }
+    });
+    return this.unirPartes(partes);
+  }
 
   // Desde la migración que separó la unidad, `quantity` es sólo el número:
   // sin mirar `unit`, 100 g y 1 unidad del mismo ingrediente sumaban 101.
@@ -1881,35 +1984,187 @@ export class MealService {
     };
   }
 
+  // Cómo está cada parte de un renglón: con qué registro se compró (el suyo,
+  // el de otra que la tiene en `dias`, o uno pelado de antes de partir por
+  // día), si está tildada, y cuánto le falta repartida la despensa entre las
+  // que no tienen registro: su sobra ya está ahí.
+  private leerRenglon(partes: ParteCompra[], weekKey: string): LecturaRenglon {
+    const clave = partes[0].clave;
+    const semana = this.compras()[weekKey] ?? {};
+    const tildadas = this.checkedItems()[weekKey] ?? [];
+    const registroDe = (p: ParteCompra): string | undefined => {
+      const key = claveParte(clave, p.fecha);
+      return [clave, key].find((k) => semana[k]) ?? Object.keys(semana).find((k) => semana[k].dias?.includes(key));
+    };
+    const sinRegistro = partes.filter((p) => !registroDe(p));
+    // Lo que una compra tomó de la despensa sigue tomado: su sobra se calculó
+    // sobre lo que faltaba después de la despensa, así que en la despensa
+    // está la sobra pero no la parte que cubrió. Si no se descuenta, esa parte
+    // vuelve a cubrir el día siguiente. Cuentan todas las compras de la
+    // semana, también las de días que ya pasaron.
+    const tengo = parseNumericQuantity(this.despensaDe(clave)?.quantity ?? '');
+    const tomado = Object.entries(semana)
+      .filter(([k]) => k.replace(/@[^@]*$/, '') === clave)
+      .reduce((total, [k, r]) => total + this.tomadoPor(r, partes.filter((p) => registroDe(p) === k), tengo), 0);
+    const faltas = this.repartir(sinRegistro, clave, tomado);
+    return {
+      registroDe,
+      tildada: (p) => estaTildada(clave, p.fecha, tildadas),
+      faltaDe: (p) => faltas?.[sinRegistro.indexOf(p)] ?? null,
+      sinRegistro,
+      faltas,
+    };
+  }
+
+  // Lo que necesitaban esas partes, más lo que sobró, menos lo que se compró:
+  // lo que la compra sacó de la despensa.
+  private usoDe(partes: ParteCompra[], registro: CompraRegistrada): number {
+    const valor = (q: string): number => parseNumericQuantity(q)?.value ?? 0;
+    const necesita = partes.reduce((n, p) => n + valor(this.textoDe(p)), 0);
+    return sinRuido(Math.max(0, necesita + valor(registro.sobra) - valor(registro.compra)));
+  }
+
+  // Lo guardado al registrar, si está en la unidad de la despensa. Los
+  // registros de antes, sin `usa`, se calculan con las partes que queden.
+  private tomadoPor(
+    registro: CompraRegistrada,
+    partes: ParteCompra[],
+    tengo: { unit: string } | null
+  ): number {
+    if (registro.usa === undefined) {
+      return this.usoDe(partes, registro);
+    }
+    const usa = parseNumericQuantity(registro.usa);
+    return usa && tengo && mismaUnidad(usa, tengo) ? usa.value : 0;
+  }
+
+  private textoDe(p: ParteCompra): string {
+    return [p.quantity, p.unit].filter(Boolean).join(' ');
+  }
+
+  // Un renglón de la vista por góndola a partir de sus partes, en orden de
+  // fecha.
+  private armarRenglon(partes: ParteCompra[], weekKey: string): ShoppingItem {
+    const clave = partes[0].clave;
+    const semana = this.compras()[weekKey] ?? {};
+    const { registroDe, tildada, faltaDe, sinRegistro, faltas } = this.leerRenglon(partes, weekKey);
+    // Con cantidad pisada a mano, lo que cubre la despensa se decide sobre
+    // esa cantidad (en `restarDespensa`), no sobre lo de las recetas.
+    const manual = this.quantityOverrides()[`${weekKey}_${clave}`];
+    const pendientes = sinRegistro.filter((p) => !tildada(p) && (!!manual || faltaDe(p) !== 0));
+    const comprada = (p: ParteCompra): boolean => !!registroDe(p) || tildada(p);
+    const conDia = (ps: ParteCompra[]): string[] => ps.flatMap((p) => (p.dia ? [p.dia] : []));
+
+    // Con algo pendiente se muestra eso; si no, el renglón entero, como antes.
+    const muestra = pendientes.length ? pendientes : partes;
+    const item: ShoppingItem = {
+      ...this.sumarPorUnidad(muestra.map((p) => ({ name: p.nombre, quantity: p.quantity, unit: p.unit }))),
+      // Nombre y tag del renglón entero: tildar un día no lo cambia de góndola.
+      name: partes[0].nombre,
+      tagId: partes.find((p) => p.tagId)?.tagId,
+      isExtra: partes[0].fecha === null,
+      checked: !pendientes.length,
+      dias: conDia(pendientes),
+      diasComprados: conDia(partes.filter(comprada)),
+    };
+    const registros = [...new Set(partes.flatMap((p) => registroDe(p) ?? []))].map((k) => semana[k]);
+    if (!pendientes.length && registros.length) {
+      // Con una sola compra queda como antes: lo congelado al tildar.
+      const sobras = registros.map((r) => r.sobra).filter(Boolean);
+      item.quantityOverride = registros.map((r) => r.compra).reduce((a, b) => this.addQuantities(a, b));
+      item.sobra = sobras.length ? sobras.reduce((a, b) => this.addQuantities(a, b)) : undefined;
+      return item;
+    }
+    this.ajustarRenglon(item, clave, manual, faltas && muestra.map((p) => faltaDe(p) ?? 0));
+    return item;
+  }
+
+  // La vista por día: cada parte con lo que le falta, redondeado por sí sola,
+  // ordenadas por tag como la vista por góndola. Los manuales, al final.
+  readonly listaPorDia = computed<DiaLista[]>(() => {
+    const weekKey = this.formatDateKey(this.currentWeekStart());
+    const tags = this.tags();
+    const orden = (tagId?: string): number => {
+      const i = tags.findIndex((t) => t.id === tagId);
+      return i < 0 ? tags.length : i;
+    };
+    const porFecha = new Map<string | null, DiaLista>();
+    this.partesSemana().forEach((p) => {
+      const dia: DiaLista = porFecha.get(p.fecha)
+        ?? { fecha: p.fecha, dia: p.dia, diaDelMes: p.diaDelMes, platos: [], items: [] };
+      porFecha.set(p.fecha, dia);
+      dia.platos.push(...p.platos.filter((plato) => !dia.platos.includes(plato)));
+    });
+    this.partesPorClave().forEach((partes) => {
+      const lectura = this.leerRenglon(partes, weekKey);
+      partes.forEach((p) => porFecha.get(p.fecha)?.items.push(this.parteEnLista(p, lectura)));
+    });
+    const dias = [...porFecha.values()];
+    dias.forEach((d) => d.items.sort((a, b) => orden(a.tagId) - orden(b.tagId)));
+    return dias;
+  });
+
+  private parteEnLista(p: ParteCompra, lectura: LecturaRenglon): ShoppingItem {
+    const falta = lectura.faltaDe(p);
+    const item: ShoppingItem = {
+      name: p.nombre,
+      quantity: falta ? `${falta}` : p.quantity,
+      // En datos viejos la unidad está sólo en el texto ('300 g').
+      unit: falta ? p.unit || parseNumericQuantity(p.quantity)?.unit : p.unit,
+      tagId: p.tagId,
+      isExtra: p.fecha === null,
+      checked: lectura.tildada(p) || !!lectura.registroDe(p) || falta === 0,
+    };
+    if (!item.checked) {
+      this.redondear(item);
+    }
+    return item;
+  }
+
+  // La despensa cubre las partes en orden de fecha. Null si no hay nada que
+  // repartir o si las unidades no se pueden restar entre sí: ahí se queda
+  // como antes, sin restar.
+  private repartir(partes: ParteCompra[], clave: string, tomado: number): number[] | null {
+    const entrada = this.despensaDe(clave);
+    const tengo = entrada && parseNumericQuantity(entrada.quantity);
+    const necesito = partes.map((p) => parseNumericQuantity(this.textoDe(p)));
+    const valores = necesito.filter((n) => !!n);
+    const unidades = new Set([tengo, ...valores].map((q) => q && q.unit).filter(Boolean));
+    if (!tengo || valores.length !== partes.length || unidades.size > 1) {
+      return null;
+    }
+    return repartirDespensa(valores.map((n) => n.value), Math.max(0, tengo.value - tomado));
+  }
+
   // Lo pisado a mano gana; si no, lo que falta después de la despensa se
   // redondea a lo que se compra. Lo cubierto por la despensa no se compra.
-  private ajustarRenglon(item: ShoppingItem, weekKey: string): void {
-    const key = this.claveCompra(item.name);
-    const registro = this.compras()[weekKey]?.[key];
-    if (registro) {
-      item.quantityOverride = registro.compra;
-      item.sobra = registro.sobra || undefined;
-      item.checked = true;
-      return;
-    }
-    const manual = this.quantityOverrides()[`${weekKey}_${key}`];
+  private ajustarRenglon(item: ShoppingItem, key: string, manual: string | undefined, faltas: number[] | null): void {
     if (manual) {
       item.quantityOverride = manual;
     }
-    const cubierto = this.restarDespensa(item, key);
+    const cubierto = this.restarDespensa(item, key, faltas);
     if (!manual && !cubierto) {
       this.redondear(item);
     }
   }
 
-  // Devuelve si la despensa cubre todo el renglón.
-  private restarDespensa(item: ShoppingItem, key: string): boolean {
-    const pantryEntry = this.pantry().find((p) => this.claveCompra(p.name) === key);
-    if (!pantryEntry || parseNumericQuantity(pantryEntry.quantity)?.value === 0) {
+  private despensaDe(key: string): PantryItem | undefined {
+    const entrada = this.pantry().find((p) => this.claveCompra(p.name) === key);
+    return entrada && parseNumericQuantity(entrada.quantity)?.value !== 0 ? entrada : undefined;
+  }
+
+  // Devuelve si la despensa cubre todo lo que muestra el renglón. `faltas` es
+  // lo que le falta a cada parte ya repartida la despensa; lo pisado a mano
+  // se resta entero, como antes.
+  private restarDespensa(item: ShoppingItem, key: string, faltas: number[] | null): boolean {
+    const pantryEntry = this.despensaDe(key);
+    if (!pantryEntry) {
       return false;
     }
-    const effectiveQuantity = item.quantityOverride || [item.quantity, item.unit].filter(Boolean).join(' ');
-    const { remaining, covered } = this.subtractPantryFromNeeded(effectiveQuantity, pantryEntry.quantity);
+    const needed = [item.quantity, item.unit].filter(Boolean).join(' ');
+    const { remaining, covered } = item.quantityOverride
+      ? this.subtractPantryFromNeeded(item.quantityOverride, pantryEntry.quantity)
+      : this.sumarFaltas(needed, pantryEntry.quantity, faltas);
     item.pantryQuantity = pantryEntry.quantity;
     item.inPantry = true;
     if (covered) {
@@ -1918,6 +2173,22 @@ export class MealService {
       item.quantityOverride = remaining;
     }
     return covered;
+  }
+
+  private sumarFaltas(
+    needed: string,
+    inPantry: string,
+    faltas: number[] | null
+  ): { remaining: string; covered: boolean } {
+    if (!faltas) {
+      return { remaining: needed, covered: false };
+    }
+    const total = sinRuido(faltas.reduce((a, b) => a + b, 0));
+    if (total <= 0) {
+      return { remaining: '0', covered: true };
+    }
+    const unit = parseNumericQuantity(needed)?.unit || parseNumericQuantity(inPantry)?.unit;
+    return { remaining: unit ? `${total} ${unit}` : `${total}`, covered: false };
   }
 
   private redondear(item: ShoppingItem): void {
@@ -1993,6 +2264,14 @@ export class MealService {
   }
 
   subtractFromPantry(name: string, amount: string): void {
+    if (this.restarDeDespensa(name, amount)) {
+      this.autoCheckIfCovered(this.claveCompra(name));
+    }
+  }
+
+  // Resta sin tildar nada: deshacer una compra no es la despensa cubriendo.
+  // Devuelve si restó (con unidades que no se restan, no toca nada).
+  private restarDeDespensa(name: string, amount: string): boolean {
     const key = this.claveCompra(name);
     let didSubtract = false;
     // Sólo la primera: con dos entradas del mismo ingrediente ("Huevo" y
@@ -2005,13 +2284,7 @@ export class MealService {
         }
         const parsed = parseNumericQuantity(i.quantity);
         const parsedAmount = parseNumericQuantity(amount);
-        const unitsCompatible =
-          parsed &&
-          parsedAmount &&
-          (parsed.unit === parsedAmount.unit ||
-            !parsed.unit ||
-            !parsedAmount.unit);
-        if (unitsCompatible && parsed && parsedAmount) {
+        if (parsed && parsedAmount && mismaUnidad(parsed, parsedAmount)) {
           didSubtract = true;
           const remaining = Math.max(0, parsed.value - parsedAmount.value);
           const unit = parsed.unit || parsedAmount.unit;
@@ -2023,21 +2296,28 @@ export class MealService {
         return i;
       })
     );
-    if (didSubtract) {
-      this.autoCheckIfCovered(key);
-    }
+    return didSubtract;
   }
 
-  // Cubierto lo decide la lista, que ya restó la despensa una vez: volver a
-  // restarla acá tildaba renglones que no estaban cubiertos. Tilda sin pasar
-  // por `registrarCompra`: lo que cubre la despensa no se compra ni sobra.
+  // Cubierto lo decide el reparto de la lista, que ya restó la despensa una
+  // vez: volver a restarla acá tildaba renglones que no estaban cubiertos.
+  // Tilda sin pasar por `registrarCompra`: lo que cubre la despensa no se
+  // compra ni sobra. Con cantidad pisada a mano, cubre si cubre el renglón.
   private autoCheckIfCovered(key: string): void {
     const weekKey = this.formatDateKey(this.currentWeekStart());
-    const renglon = this.shoppingList().find((s) => this.claveCompra(s.name) === key);
-    if (!renglon?.checked || (this.checkedItems()[weekKey] || []).includes(key)) {
+    const partes = this.partesPorClave().get(key);
+    if (!partes) {
       return;
     }
-    this.checkedItems.update((prev) => ({ ...prev, [weekKey]: [...(prev[weekKey] || []), key] }));
+    const { tildada, registroDe, faltaDe } = this.leerRenglon(partes, weekKey);
+    const manual = this.quantityOverrides()[`${weekKey}_${key}`];
+    const entero = this.armarRenglon(partes, weekKey).checked;
+    const cubiertas = partes
+      .filter((p) => !tildada(p) && !registroDe(p) && (entero || (!manual && faltaDe(p) === 0)))
+      .map((p) => claveParte(key, p.fecha));
+    if (cubiertas.length) {
+      this.checkedItems.update((prev) => ({ ...prev, [weekKey]: [...(prev[weekKey] ?? []), ...cubiertas] }));
+    }
   }
 
   clearPantry(): void {

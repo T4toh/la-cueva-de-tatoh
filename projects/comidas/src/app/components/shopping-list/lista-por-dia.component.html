@@ -1,0 +1,45 @@
+<div class="pantalla">
+@for (dia of dias(); track dia.fecha ?? 'manual') {
+  <section class="dia">
+    <h3>{{ dia.dia ? dia.dia + ' ' + dia.diaDelMes : 'Sin día' }}</h3>
+    @if (dia.platos.length) {
+      <p class="platos">{{ dia.platos.join(' · ') }}</p>
+    }
+    @for (item of dia.items; track item.name) {
+      <div class="item">
+        <input
+          type="checkbox"
+          [checked]="item.checked"
+          [id]="'dia-' + dia.fecha + '-' + item.name"
+          (change)="cambiar(item.name, dia.fecha, $event)"
+        />
+        <label [for]="'dia-' + dia.fecha + '-' + item.name">
+          <span class="name">{{ item.name }}</span>
+          <span class="cantidad">{{ cantidad()(item) }}</span>
+        </label>
+      </div>
+    }
+  </section>
+} @empty {
+  <p class="empty">No hay items en la lista.</p>
+}
+
+</div>
+<!-- Papel: blanco y negro, sin tema. Sólo se ve al imprimir. -->
+<div class="impresion">
+  <h1>Lista de Compras</h1>
+  <h2 class="print-date-range">{{ rango() }}</h2>
+  @for (dia of dias(); track dia.fecha ?? 'manual') {
+    <div class="print-dia">
+      <h3>{{ dia.dia ? dia.dia + ' ' + dia.diaDelMes : 'Sin día' }}</h3>
+      @if (dia.platos.length) {
+        <p>{{ dia.platos.join(' · ') }}</p>
+      }
+      <ul>
+        @for (item of dia.items; track item.name) {
+          <li>[ ] {{ item.name }}: {{ cantidad()(item) }}</li>
+        }
+      </ul>
+    </div>
+  }
+</div>

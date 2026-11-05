@@ -73,7 +73,34 @@
     </form>
   }
 
-  <div class="list-groups">
+  <div aria-label="Vista de la lista" class="vistas" role="group">
+    <button
+      type="button"
+      [attr.aria-pressed]="vista() === 'gondola'"
+      [class]="vista() === 'gondola' ? 'btn-primary' : 'btn-secondary'"
+      (click)="elegirVista('gondola')"
+    >
+      Por góndola
+    </button>
+    <button
+      type="button"
+      [attr.aria-pressed]="vista() === 'dia'"
+      [class]="vista() === 'dia' ? 'btn-primary' : 'btn-secondary'"
+      (click)="elegirVista('dia')"
+    >
+      Por día
+    </button>
+  </div>
+
+  <app-lista-por-dia
+    [cantidad]="displayQty"
+    [dias]="mealService.listaPorDia()"
+    [hidden]="vista() !== 'dia'"
+    [rango]="mealService.weekRangeDisplay()"
+    (marcar)="marcarParte($event.nombre, $event.fecha, $event.casilla)"
+  />
+
+  <div class="list-groups" [hidden]="vista() === 'dia'">
     @for (
       group of mealService.shoppingListGrouped();
       track group.tag?.id || 'untagged'
@@ -91,7 +118,7 @@
                   type="checkbox"
                   [checked]="item.checked"
                   [id]="item.name + (group.tag?.id || 'untagged')"
-                  (change)="marcar(item.name)"
+                  (change)="marcar(item.name, $event)"
                 />
                 <label
                   class="item-label"
@@ -99,6 +126,7 @@
                 >
                   <span class="name">
                     {{ item.name }}
+                    <app-dias-chips [comprados]="item.diasComprados" [dias]="item.dias" />
                     @if (item.checked && item.sobra) {
                       <span class="detalle">sobró {{ item.sobra }} → despensa</span>
                     } @else if (!item.checked && item.usas) {
@@ -212,7 +240,7 @@
   }
 
   <!-- Vista exclusiva para impresión (Correctamente ubicada fuera de los loops) -->
-  <div class="print-only-section">
+  <div class="print-only-section" [hidden]="vista() === 'dia'">
     <h1>Lista de Compras</h1>
     <h2 class="print-date-range">{{ mealService.weekRangeDisplay() }}</h2>
 

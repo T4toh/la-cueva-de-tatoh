@@ -666,7 +666,7 @@ describe('MealService: lista de compras redondeada', () => {
     await asentar();
 
     const guardado = JSON.parse(localStorage.getItem('comidas_compras')!) as Record<string, unknown>;
-    expect(Object.values(guardado)).toEqual([{ 'brócoli': { compra: '1 unidad', sobra: '0.25 unidad' } }]);
+    expect(Object.values(guardado)).toEqual([{ 'brócoli@manual': { compra: '1 unidad', sobra: '0.25 unidad' } }]);
 
     const compras = { '2026-01-05': { huevo: { compra: '12 unidad', sobra: '5.5 unidad' } } };
     service.importData(JSON.stringify({ compras }));
@@ -739,5 +739,526 @@ describe('MealService: lista de compras redondeada', () => {
     const r = renglon(service, 'Mozzarella')!;
     expect(r.quantityOverride).toBeUndefined();
     expect(r.usas).toBeUndefined();
+  });
+});
+
+describe('MealService: lista por día', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: Firestore, useValue: {} },
+        { provide: AuthService, useValue: { currentUser: signal(null) } },
+      ],
+    });
+  });
+
+  afterEach(() => localStorage.clear());
+
+  const renglon = (service: MealService, nombre: string): ShoppingItem | undefined =>
+    service.shoppingList().find((i) => i.name.toLowerCase() === nombre.toLowerCase());
+
+  // Con hoy en el lunes cuentan los 7 días, sea el día que sea que corra el test.
+  const desdeElLunes = (service: MealService, dias = 0): void => {
+    const hoy = new Date(service.currentWeekStart());
+    hoy.setDate(hoy.getDate() + dias);
+    service.todayTimestamp.set(hoy.getTime());
+  };
+
+  const plato = (service: MealService, nombre: string, ingrediente: string, quantity: string, unit: string): string => {
+    service.addMeal({ name: nombre, ingredients: [{ name: ingrediente, quantity, unit }] });
+    return service.meals().find((m) => m.name === nombre)!.id;
+  };
+
+  const semana = (service: MealService): string => service.currentWeekStart().toISOString().split('T')[0];
+
+  const fecha = (service: MealService, dia: string): string =>
+    service.partesSemana().find((p) => p.dia === dia)!.fecha!;
+
+  const enDespensa = (service: MealService, nombre: string): number =>
+    parseNumericQuantity(service.pantry().find((p) => p.name.toLowerCase() === nombre)?.quantity ?? '0')?.value ?? 0;
+
+  const dosCebollas = (service: MealService, lunes: string, martes: string): void => {
+    service.setMeal('Lunes', 'almuerzo', plato(service, 'Tarta', 'cebolla', lunes, 'unidad'));
+    service.setMeal('Martes', 'almuerzo', plato(service, 'Salsa', 'cebolla', martes, 'unidad'));
+  };
+
+  const conCebollas = (service: MealService): void => {
+    service.setMeal('Lunes', 'almuerzo', plato(service, 'Tarta', 'Cebolla', '0.5', 'unidad'));
+    service.setMeal('Lunes', 'cena', plato(service, 'Guiso', 'cebolla', '0.5', 'unidad'));
+    service.setMeal('Martes', 'almuerzo', plato(service, 'Salsa', 'Cebolla', '0.5', 'unidad'));
+  };
+
+  it('el mismo ingrediente en dos días son dos partes, y en dos platos del mismo día una', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    conCebollas(service);
+
+    const partes = service.partesSemana().filter((p) => p.clave === 'cebolla');
+    expect(partes).toHaveLength(2);
+    expect(partes[0]).toMatchObject({ dia: 'Lunes', quantity: '1', unit: 'unidad', platos: ['Tarta', 'Guiso'] });
+    expect(partes[1]).toMatchObject({ dia: 'Martes', quantity: '0.5', unit: 'unidad', platos: ['Salsa'] });
+  });
+
+  it('excluded y los días pasados no aportan', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service, 2);
+    service.setMeal('Lunes', 'almuerzo', plato(service, 'Tarta', 'Cebolla', '0.5', 'unidad'));
+    service.setMeal('Jueves', 'almuerzo', plato(service, 'Guiso', 'Cebolla', '0.5', 'unidad'));
+    service.toggleDishExclusion('Jueves', 'almuerzo', 0);
+    service.setMeal('Viernes', 'cena', plato(service, 'Salsa', 'Cebolla', '0.5', 'unidad'));
+
+    expect(service.partesSemana().map((p) => p.dia)).toEqual(['Viernes']);
+  });
+
+  it('el renglón dice sus días pendientes', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    conCebollas(service);
+
+    expect(renglon(service, 'cebolla')!.dias).toEqual(['Lunes', 'Martes']);
+  });
+
+  it('la despensa cubre el día más cercano primero', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    service.setMeal('Lunes', 'almuerzo', plato(service, 'Tarta', 'Cebolla', '0.5', 'unidad'));
+    service.setMeal('Martes', 'almuerzo', plato(service, 'Salsa', 'Cebolla', '0.5', 'unidad'));
+    service.addToPantry('cebolla', '0.5 unidad');
+
+    const r = renglon(service, 'cebolla')!;
+    expect(r.checked).toBe(false);
+    expect(r.usas).toBe('0.5 unidad');
+    expect(r.quantityOverride).toBe('1 unidad');
+    expect(r.dias).toEqual(['Martes']);
+  });
+
+  it('unidades distintas entre días no se reparten ni rompen', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    service.setMeal('Lunes', 'almuerzo', plato(service, 'Tarta', 'Queso', '100', 'g'));
+    service.setMeal('Martes', 'almuerzo', plato(service, 'Pizza', 'Queso', '1', 'unidad'));
+    service.addToPantry('queso', '50 g');
+
+    const r = renglon(service, 'queso')!;
+    expect(r.quantityOverride ?? r.quantity).toBe('100 g + 1 unidad');
+    expect(r.checked).toBe(false);
+    expect(r.dias).toEqual(['Lunes', 'Martes']);
+  });
+
+  it('las etiquetas salen del día y no de la fecha', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    conCebollas(service);
+
+    const [lunes] = service.partesSemana();
+    expect(lunes.dia).toBe('Lunes');
+    expect(lunes.diaDelMes).toBe(service.currentWeekStart().getDate());
+  });
+
+  it('lo pisado a mano por encima de lo que cubre la despensa sigue pendiente', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    service.setMeal('Lunes', 'almuerzo', plato(service, 'Tarta', 'Cebolla', '0.5', 'unidad'));
+    service.addToPantry('cebolla', '1 unidad');
+    service.overrideQuantity('Cebolla', '3 unidad');
+
+    const r = renglon(service, 'cebolla')!;
+    expect(r.checked).toBe(false);
+    expect(r.quantityOverride).toBe('2 unidad');
+    expect(r.dias).toEqual(['Lunes']);
+
+    service.toggleItemCheck('Cebolla');
+    const lunes = `cebolla@${fecha(service, 'Lunes')}`;
+    expect(Object.values(service.compras())).toEqual([{ [lunes]: { compra: '2 unidad', sobra: '' } }]);
+    expect(renglon(service, 'cebolla')!.checked).toBe(true);
+  });
+
+  it('una clave pelada de antes tilda todas las partes del renglón', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    conCebollas(service);
+    service.checkedItems.set({ [semana(service)]: ['cebolla'] });
+
+    const r = renglon(service, 'cebolla')!;
+    expect(r.checked).toBe(true);
+    expect(r.dias).toEqual([]);
+    expect(r.diasComprados).toEqual(['Lunes', 'Martes']);
+  });
+
+  it('tildar un día manda su sobra y el día siguiente queda cubierto', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    dosCebollas(service, '0.5', '0.5');
+    const lunes = fecha(service, 'Lunes');
+
+    expect(service.toggleItemCheck('cebolla', lunes)).toBe('cebolla: +0.5 unidad a la despensa');
+    expect(service.compras()[semana(service)]).toEqual({
+      [`cebolla@${lunes}`]: { compra: '1 unidad', sobra: '0.5 unidad' },
+    });
+    expect(renglon(service, 'cebolla')!.checked).toBe(true);
+  });
+
+  it('tildar el renglón es una compra con dias, y destildar un día la deshace entera', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    service.setMeal('Lunes', 'almuerzo', plato(service, 'Tarta', 'cebolla', '0.5', 'unidad'));
+    service.setMeal('Viernes', 'almuerzo', plato(service, 'Salsa', 'cebolla', '1', 'unidad'));
+    const [lunes, viernes] = [fecha(service, 'Lunes'), fecha(service, 'Viernes')];
+
+    service.toggleItemCheck('cebolla');
+    expect(service.compras()[semana(service)]).toEqual({
+      [`cebolla@${lunes}`]: { compra: '2 unidad', sobra: '0.5 unidad', dias: [`cebolla@${viernes}`] },
+    });
+    expect(enDespensa(service, 'cebolla')).toBe(0.5);
+
+    service.toggleItemCheck('cebolla', viernes);
+    expect(enDespensa(service, 'cebolla')).toBe(0);
+    expect(service.compras()[semana(service)]).toEqual({});
+    expect((service.checkedItems()[semana(service)] ?? []).filter((k) => k.startsWith('cebolla'))).toEqual([]);
+  });
+
+  it('tildar y destildar en cualquier orden deja la despensa como estaba', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    dosCebollas(service, '0.5', '1');
+    service.addToPantry('cebolla', '0.25 unidad');
+    const [lunes, martes] = [fecha(service, 'Lunes'), fecha(service, 'Martes')];
+    const registros = (): string[] => Object.keys(service.compras()[semana(service)] ?? {});
+
+    // Lunes: le faltan 0.25, se compra 1 y sobran 0.75; al martes le sigue faltando.
+    service.toggleItemCheck('cebolla', lunes);
+    expect(enDespensa(service, 'cebolla')).toBe(1);
+    expect(registros()).toEqual([`cebolla@${lunes}`]);
+    expect(renglon(service, 'cebolla')).toMatchObject({ checked: false, dias: ['Martes'] });
+
+    // El renglón tilda lo que queda: el martes, como otra compra.
+    service.toggleItemCheck('cebolla');
+    expect(registros()).toEqual([`cebolla@${lunes}`, `cebolla@${martes}`]);
+    expect(renglon(service, 'cebolla')!.checked).toBe(true);
+
+    // Destildar el martes deshace esa compra y deja la del lunes.
+    service.toggleItemCheck('cebolla', martes);
+    expect(enDespensa(service, 'cebolla')).toBe(1);
+    expect(registros()).toEqual([`cebolla@${lunes}`]);
+    expect(renglon(service, 'cebolla')).toMatchObject({ checked: false, dias: ['Martes'] });
+
+    service.toggleItemCheck('cebolla', lunes);
+    expect(enDespensa(service, 'cebolla')).toBe(0.25);
+    expect(registros()).toEqual([]);
+
+    // Y de nuevo, destildando con el renglón entero.
+    service.toggleItemCheck('cebolla', lunes);
+    service.toggleItemCheck('cebolla');
+    service.toggleItemCheck('cebolla');
+    expect(enDespensa(service, 'cebolla')).toBe(0.25);
+    expect(registros()).toEqual([]);
+    expect(service.checkedItems()[semana(service)]).toEqual([]);
+  });
+
+  it('un día comprado sigue usando su parte de la despensa', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    dosCebollas(service, '0.75', '0.6');
+    service.addToPantry('cebolla', '0.25 unidad');
+    const lunes = fecha(service, 'Lunes');
+
+    service.toggleItemCheck('cebolla', lunes);
+    expect(enDespensa(service, 'cebolla')).toBe(0.75);
+
+    // Quedan 0.25 + 1 − 0.75 = 0.5 para el martes, que necesita 0.6.
+    const r = renglon(service, 'cebolla')!;
+    expect(r).toMatchObject({ checked: false, dias: ['Martes'], quantityOverride: '1 unidad' });
+    expect(r.usas).toBe('0.1 unidad');
+    const [, martes] = service.listaPorDia();
+    expect(martes.items[0]).toMatchObject({ checked: false, quantityOverride: '1 unidad' });
+
+    service.toggleItemCheck('cebolla', lunes);
+    expect(enDespensa(service, 'cebolla')).toBe(0.25);
+  });
+
+  it('lo que un día pasado tomó de la despensa sigue tomado', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    service.setMeal('Lunes', 'almuerzo', plato(service, 'Tarta', 'cebolla', '1', 'unidad'));
+    service.setMeal('Martes', 'almuerzo', plato(service, 'Salsa', 'cebolla', '0.5', 'unidad'));
+    service.setMeal('Viernes', 'almuerzo', plato(service, 'Sopa', 'cebolla', '0.5', 'unidad'));
+    service.addToPantry('cebolla', '0.5 unidad');
+    const lunes = fecha(service, 'Lunes');
+
+    // El lunes usa 0.5 de la despensa, compra 1 y sobra 0.5: quedan 0.5 para el martes.
+    service.toggleItemCheck('cebolla', lunes);
+    expect(service.compras()[semana(service)][`cebolla@${lunes}`]).toEqual({
+      compra: '1 unidad', sobra: '0.5 unidad', usa: '0.5 unidad',
+    });
+    expect(enDespensa(service, 'cebolla')).toBe(1);
+    expect(renglon(service, 'cebolla')).toMatchObject({ checked: false, dias: ['Viernes'] });
+
+    // Pasado el lunes su parte ya no está, pero lo que tomó sigue tomado.
+    desdeElLunes(service, 1);
+    expect(renglon(service, 'cebolla')).toMatchObject({ checked: false, dias: ['Viernes'] });
+    const viernes = service.listaPorDia().find((d) => d.dia === 'Viernes')!;
+    expect(viernes.items[0].checked).toBe(false);
+
+    // Y deshacerlo (desde el lunes, que pasado ya no tiene parte) devuelve la despensa.
+    desdeElLunes(service);
+    service.toggleItemCheck('cebolla', lunes);
+    expect(enDespensa(service, 'cebolla')).toBe(0.5);
+    expect(service.compras()[semana(service)]).toEqual({});
+  });
+
+  it('un registro de antes, sin usa, sigue calculándose con sus partes', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    dosCebollas(service, '1', '0.5');
+    service.addToPantry('cebolla', '0.75 unidad');
+    const lunes = fecha(service, 'Lunes');
+    service.checkedItems.set({ [semana(service)]: [`cebolla@${lunes}`] });
+    service.compras.set({ [semana(service)]: { [`cebolla@${lunes}`]: { compra: '1 unidad', sobra: '0.5 unidad' } } });
+
+    // Con su parte presente toma 1 + 0.5 − 1 = 0.5: al martes le quedan 0.25.
+    expect(renglon(service, 'cebolla')).toMatchObject({ checked: false, dias: ['Martes'] });
+
+    // Pasado el lunes, sin parte ni usa, no toma nada: como antes.
+    desdeElLunes(service, 1);
+    expect(renglon(service, 'cebolla')!.checked).toBe(true);
+  });
+
+  it('un usa en otra unidad que la despensa no cuenta', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    dosCebollas(service, '1', '0.5');
+    service.addToPantry('cebolla', '0.5 unidad');
+    const lunes = `cebolla@${fecha(service, 'Lunes')}`;
+    service.compras.set({ [semana(service)]: { [lunes]: { compra: '1 kg', sobra: '', usa: '0.5 kg' } } });
+    desdeElLunes(service, 1);
+
+    expect(renglon(service, 'cebolla')!.checked).toBe(true);
+  });
+
+  it('destildar una compra no tilda sola otro día que la despensa parece cubrir', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    service.setMeal('Lunes', 'almuerzo', plato(service, 'Tarta', 'cebolla', '0.5', 'unidad'));
+    service.setMeal('Viernes', 'almuerzo', plato(service, 'Sopa', 'cebolla', '1', 'unidad'));
+    service.addToPantry('cebolla', '0.9 unidad');
+    const viernes = fecha(service, 'Viernes');
+
+    service.toggleItemCheck('cebolla', viernes);
+    service.toggleItemCheck('cebolla', viernes);
+
+    expect(enDespensa(service, 'cebolla')).toBe(0.9);
+    expect(service.compras()[semana(service)]).toEqual({});
+    expect(service.checkedItems()[semana(service)]).toEqual([]);
+  });
+
+  it('la vista por día no pierde la unidad que sólo está en el texto', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    service.addMeal({ name: 'Tarta', ingredients: [{ name: 'Queso', quantity: '300 g' }] });
+    service.setMeal('Lunes', 'almuerzo', service.meals().find((m) => m.name === 'Tarta')!.id);
+    service.addToPantry('queso', '100 g');
+
+    const [lunes] = service.listaPorDia();
+    expect([lunes.items[0].quantity, lunes.items[0].unit].filter(Boolean).join(' ')).toBe('200 g');
+  });
+
+  it('un clic que no cambia nada no borra lo pisado a mano', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    service.setMeal('Lunes', 'almuerzo', plato(service, 'Tarta', 'cebolla', '0.5', 'unidad'));
+    service.addToPantry('cebolla', '2 unidad');
+    service.overrideQuantity('cebolla', '1 unidad');
+    expect(renglon(service, 'cebolla')!.checked).toBe(true);
+
+    expect(service.toggleItemCheck('cebolla')).toBeNull();
+
+    expect(service.quantityOverrides()[`${semana(service)}_cebolla`]).toBe('1 unidad');
+    expect(service.checkedItems()[semana(service)] ?? []).toEqual([]);
+  });
+
+  it('tildar todo, por partes o por renglón, y destildarlo vuelve a la despensa de antes', () => {
+    const secuencias: (string | undefined)[][] = [
+      ['Lunes', 'Martes', 'Viernes', 'Lunes', 'Martes', 'Viernes'],
+      ['Viernes', 'Lunes', undefined, 'Martes'],
+      [undefined, 'Martes', 'Lunes', undefined],
+      ['Martes', undefined, undefined],
+    ];
+    secuencias.forEach((secuencia) => {
+      localStorage.clear();
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          { provide: Firestore, useValue: {} },
+          { provide: AuthService, useValue: { currentUser: signal(null) } },
+        ],
+      });
+      const service = TestBed.inject(MealService);
+      desdeElLunes(service);
+      dosCebollas(service, '0.75', '0.5');
+      service.setMeal('Viernes', 'almuerzo', plato(service, 'Sopa', 'cebolla', '1.25', 'unidad'));
+      service.addToPantry('cebolla', '0.25 unidad');
+      secuencia.forEach((dia) => service.toggleItemCheck('cebolla', dia && fecha(service, dia)));
+      // Lo que quede tildado se destilda, parte por parte.
+      service.partesSemana().forEach((p) => {
+        const tildada = (service.checkedItems()[semana(service)] ?? []).includes(`cebolla@${p.fecha}`);
+        if (tildada) {
+          service.toggleItemCheck('cebolla', p.fecha);
+        }
+      });
+
+      expect(enDespensa(service, 'cebolla')).toBe(0.25);
+      expect(service.compras()[semana(service)] ?? {}).toEqual({});
+    });
+  });
+
+  it('tilde manual sin registro sigue consumiendo despensa', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    dosCebollas(service, '0.5', '0.5');
+    service.addToPantry('cebolla', '0.5 unidad');
+
+    expect(service.toggleItemCheck('cebolla', fecha(service, 'Lunes'))).toBeNull();
+
+    expect(service.compras()).toEqual({});
+    const r = renglon(service, 'cebolla')!;
+    expect(r.checked).toBe(false);
+    expect(r.dias).toEqual(['Martes']);
+  });
+
+  it('un manual con el mismo nombre no tilda las recetas', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    service.addExtraItem('Cebolla', '1');
+    service.setMeal('Lunes', 'almuerzo', plato(service, 'Tarta', 'cebolla', '0.5', 'unidad'));
+
+    service.toggleItemCheck('Cebolla', null);
+
+    expect(service.checkedItems()[semana(service)]).toEqual(['cebolla@manual']);
+    expect(renglon(service, 'cebolla')!.dias).toEqual(['Lunes']);
+  });
+
+  it('una clave de antes cuenta como todo, y destildar un día deja tildados los otros', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    dosCebollas(service, '0.5', '0.5');
+    service.checkedItems.set({ [semana(service)]: ['cebolla'] });
+    expect(renglon(service, 'cebolla')!.checked).toBe(true);
+
+    service.toggleItemCheck('cebolla', fecha(service, 'Lunes'));
+
+    expect(service.checkedItems()[semana(service)]).toEqual([`cebolla@${fecha(service, 'Martes')}`]);
+  });
+
+  it('un registro de antes se deshace entero desde cualquier día', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    dosCebollas(service, '0.5', '0.5');
+    service.addToPantry('cebolla', '0.5 unidad');
+    service.checkedItems.set({ [semana(service)]: ['cebolla'] });
+    service.compras.set({ [semana(service)]: { cebolla: { compra: '1 unidad', sobra: '0.5 unidad' } } });
+
+    service.toggleItemCheck('cebolla', fecha(service, 'Martes'));
+
+    expect(enDespensa(service, 'cebolla')).toBe(0);
+    expect(service.compras()[semana(service)]).toEqual({});
+    expect(service.checkedItems()[semana(service)]).toEqual([]);
+  });
+
+  it('tildar una parte borra el override del renglón', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    dosCebollas(service, '0.5', '0.5');
+    service.overrideQuantity('cebolla', '3 unidad');
+
+    service.toggleItemCheck('cebolla', fecha(service, 'Lunes'));
+
+    expect(service.quantityOverrides()[`${semana(service)}_cebolla`]).toBeUndefined();
+  });
+
+  it('compra que empezó un día pasado se deshace desde un día futuro', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    dosCebollas(service, '0.5', '0.25');
+    const martes = fecha(service, 'Martes');
+    service.toggleItemCheck('cebolla');
+    expect(enDespensa(service, 'cebolla')).toBe(0.25);
+
+    desdeElLunes(service, 1);
+    service.toggleItemCheck('cebolla', martes);
+
+    expect(enDespensa(service, 'cebolla')).toBe(0);
+    expect(service.compras()[semana(service)]).toEqual({});
+  });
+
+  it('una clave huérfana no tilda nada', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    dosCebollas(service, '1', '0.5');
+    service.toggleItemCheck('cebolla', fecha(service, 'Lunes'));
+
+    service.clearMeal('Lunes', 'almuerzo');
+
+    expect(service.partesSemana().map((p) => p.dia)).toEqual(['Martes']);
+    const r = renglon(service, 'cebolla')!;
+    expect(r.checked).toBe(false);
+    expect(r.dias).toEqual(['Martes']);
+    expect(r.diasComprados).toEqual([]);
+    expect(service.listaPorDia().map((d) => d.dia)).toEqual(['Martes']);
+  });
+
+  it('sin cantidad, tilda sin registro', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    service.setMeal('Lunes', 'almuerzo', plato(service, 'Ensalada', 'Sal', '', ''));
+    const key = `sal@${fecha(service, 'Lunes')}`;
+
+    service.toggleItemCheck('Sal', fecha(service, 'Lunes'));
+    expect(service.checkedItems()[semana(service)]).toEqual([key]);
+    expect(service.compras()).toEqual({});
+
+    service.toggleItemCheck('Sal', fecha(service, 'Lunes'));
+    expect(service.checkedItems()[semana(service)]).toEqual([]);
+  });
+
+  it('la despensa que alcanza tilda sus partes sin registro', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    dosCebollas(service, '0.5', '0.5');
+    service.addToPantry('cebolla', '2 unidad');
+
+    service.subtractFromPantry('cebolla', '1 unidad');
+
+    expect(service.checkedItems()[semana(service)]).toEqual([
+      `cebolla@${fecha(service, 'Lunes')}`, `cebolla@${fecha(service, 'Martes')}`,
+    ]);
+    expect(service.compras()).toEqual({});
+  });
+
+  it('listaPorDia agrupa por día en orden con sus platos', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    service.addTag('Verdulería', '#00ff00');
+    service.setIngredientTag('Cebolla', service.tags().at(-1)!.id);
+    service.setMeal('Martes', 'almuerzo', plato(service, 'Salsa', 'Cebolla', '0.5', 'unidad'));
+    service.addMeal({
+      name: 'Tarta',
+      ingredients: [
+        { name: 'Harina', quantity: '200', unit: 'g' },
+        { name: 'Cebolla', quantity: '0.75', unit: 'unidad' },
+      ],
+    });
+    service.setMeal('Lunes', 'almuerzo', service.meals().find((m) => m.name === 'Tarta')!.id);
+    service.addExtraItem('Servilletas', '1');
+
+    const dias = service.listaPorDia();
+    expect(dias.map((d) => [d.dia, d.platos])).toEqual([['Lunes', ['Tarta']], ['Martes', ['Salsa']], [null, []]]);
+    expect(dias[0]).toMatchObject({ fecha: fecha(service, 'Lunes'), diaDelMes: service.currentWeekStart().getDate() });
+    expect(dias[2].fecha).toBeNull();
+    // Con tag primero, sin tag al final; cada parte redondeada por sí sola.
+    expect(dias[0].items.map((i) => i.name)).toEqual(['Cebolla', 'Harina']);
+    expect(dias[0].items[0]).toMatchObject({ quantityOverride: '1 unidad', checked: false });
+    expect(dias[1].items[0]).toMatchObject({ quantityOverride: '1 unidad', usas: '0.5 unidad' });
+    expect(dias[2].items.map((i) => i.name)).toEqual(['Servilletas']);
   });
 });
