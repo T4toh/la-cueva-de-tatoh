@@ -32,6 +32,7 @@ import {
   normalizar,
 } from '../catalogo/catalogo';
 import { CATALOGO } from '../catalogo/catalogo-datos';
+import { claveParte, estaTildada, ParteCompra, repartirDespensa } from '../compras/partes';
 import { GUIA_VACIA, GuiaPropia, normalizarGuia } from '../guia/guia';
 import {
   CompraRegistrada,
@@ -1779,66 +1780,75 @@ export class MealService {
     return `${nombre}: \u2212${registro.sobra} de la despensa`;
   }
 
-  readonly shoppingListGrouped = computed(() => {
-    const items: ShoppingItem[] = [];
-    const currentSchedule = this.schedule();
+  // Lo que se necesita de cada ingrediente cada día, desde hoy. Lo de dos
+  // platos del mismo día es una parte; los ítems manuales, una sin día.
+  readonly partesSemana = computed<ParteCompra[]>(() => {
     const allMeals = this.meals();
     const today = new Date(this.todayTimestamp());
     const weekStart = this.currentWeekStart();
-    const weekKey = this.formatDateKey(weekStart);
     const tagMap = this.ingredientTags();
-    const weekChecked = this.checkedItems()[weekKey] || [];
+    const tagDe = (nombre: string): string | undefined => tagMap[nombre.toLowerCase().trim()];
+    const partes: ParteCompra[] = [];
 
-    currentSchedule.forEach((day, index) => {
+    this.schedule().forEach((day, index) => {
       const dayDate = new Date(weekStart);
       dayDate.setDate(weekStart.getDate() + index);
-
-      if (dayDate >= today) {
-        const processDish = (dish: Dish): void => {
-          if (dish.excluded) {
-            return;
-          }
-          const meal = allMeals.find((m) => m.id === dish.mealId);
-          if (meal && meal.includeInShoppingList !== false) {
-            meal.ingredients.forEach((ing) => {
-              items.push({
-                ...ing,
-                quantity: multiplyQuantity(ing.quantity, dish.portions),
-                tagId: tagMap[ing.name.toLowerCase().trim()],
-                isExtra: false,
-                checked: weekChecked.includes(this.claveCompra(ing.name)),
-              });
-            });
-          }
-        };
-
-        day.almuerzo.forEach(processDish);
-        day.desayuno.forEach(processDish);
-        day.cena.forEach(processDish);
+      if (dayDate < today) {
+        return;
       }
-    });
-
-    this.currentExtraItems().forEach((extra) => {
-      items.push({
-        ...extra,
-        tagId: extra.tagId || tagMap[extra.name.toLowerCase().trim()],
-        checked: weekChecked.includes(this.claveCompra(extra.name)),
+      const items: { item: ShoppingItem; plato?: string }[] = [];
+      [...day.almuerzo, ...day.desayuno, ...day.cena].forEach((dish) => {
+        const meal = dish.excluded ? undefined : allMeals.find((m) => m.id === dish.mealId);
+        if (!meal || meal.includeInShoppingList === false) {
+          return;
+        }
+        meal.ingredients.forEach((ing) => items.push({
+          item: { ...ing, quantity: multiplyQuantity(ing.quantity, dish.portions), tagId: tagDe(ing.name) },
+          plato: meal.name,
+        }));
       });
+      // Las etiquetas salen del día y no de `fecha`: `formatDateKey` usa
+      // toISOString y en UTC+ daría el día anterior.
+      const dia = { fecha: this.formatDateKey(dayDate), dia: day.dayName, diaDelMes: dayDate.getDate() };
+      partes.push(...this.armarPartes(items, dia));
     });
 
-    // Por renglón, una parte por unidad: 100 g + 1 unidad + 2 unidad es
-    // "100 g + 3 unidad". Sin unidad se suma a cualquiera.
-    const porClave: { [key: string]: ShoppingItem[] } = {};
-    items.forEach((item) => {
-      const partes = (porClave[this.claveCompra(item.name)] ??= []);
-      const misma = partes.find((p) => !p.unit || !item.unit || p.unit === item.unit);
-      if (misma) {
-        this.sumarAlRenglon(misma, item);
-      } else {
-        partes.push({ ...item });
+    const manuales = this.currentExtraItems().map((extra) => ({
+      item: { ...extra, tagId: extra.tagId || tagDe(extra.name) },
+    }));
+    partes.push(...this.armarPartes(manuales, { fecha: null, dia: null, diaDelMes: null }));
+    return partes;
+  });
+
+  private armarPartes(
+    items: { item: ShoppingItem; plato?: string }[],
+    dia: Pick<ParteCompra, 'fecha' | 'dia' | 'diaDelMes'>
+  ): ParteCompra[] {
+    const porClave = new Map<string, { items: ShoppingItem[]; platos: string[] }>();
+    items.forEach(({ item, plato }) => {
+      const clave = this.claveCompra(item.name);
+      const grupo = porClave.get(clave) ?? { items: [], platos: [] };
+      porClave.set(clave, grupo);
+      grupo.items.push(item);
+      if (plato && !grupo.platos.includes(plato)) {
+        grupo.platos.push(plato);
       }
     });
-    const aggregated = Object.values(porClave).map((partes) => this.unirPartes(partes));
+    return [...porClave].map(([clave, grupo]) => {
+      const suma = this.sumarPorUnidad(grupo.items);
+      return {
+        clave, nombre: suma.name, ...dia,
+        quantity: suma.quantity, unit: suma.unit, tagId: suma.tagId, platos: grupo.platos,
+      };
+    });
+  }
+
+  readonly shoppingListGrouped = computed(() => {
+    const weekKey = this.formatDateKey(this.currentWeekStart());
+    const porClave = new Map<string, ParteCompra[]>();
+    this.partesSemana().forEach((parte) => {
+      porClave.set(parte.clave, [...(porClave.get(parte.clave) ?? []), parte]);
+    });
 
     const groups: ShoppingListGroup[] = this.tags().map((tag) => ({
       tag,
@@ -1847,8 +1857,8 @@ export class MealService {
     const uncategorizedGroup: ShoppingListGroup = { tag: null, items: [] };
     groups.push(uncategorizedGroup);
 
-    aggregated.forEach((item) => {
-      this.ajustarRenglon(item, weekKey);
+    porClave.forEach((partes) => {
+      const item = this.armarRenglon(partes, weekKey);
       const group = item.tagId
         ? groups.find((g) => g.tag?.id === item.tagId)
         : null;
@@ -1857,6 +1867,21 @@ export class MealService {
 
     return groups.filter((g) => g.items.length > 0);
   });
+
+  // Por renglón, una parte por unidad: 100 g + 1 unidad + 2 unidad es
+  // "100 g + 3 unidad". Sin unidad se suma a cualquiera.
+  private sumarPorUnidad(items: ShoppingItem[]): ShoppingItem {
+    const partes: ShoppingItem[] = [];
+    items.forEach((item) => {
+      const misma = partes.find((p) => !p.unit || !item.unit || p.unit === item.unit);
+      if (misma) {
+        this.sumarAlRenglon(misma, item);
+      } else {
+        partes.push({ ...item });
+      }
+    });
+    return this.unirPartes(partes);
+  }
 
   // Desde la migración que separó la unidad, `quantity` es sólo el número:
   // sin mirar `unit`, 100 g y 1 unidad del mismo ingrediente sumaban 101.
@@ -1881,35 +1906,94 @@ export class MealService {
     };
   }
 
+  // Un renglón de la vista por góndola a partir de sus partes, en orden de
+  // fecha. Una clave pelada en los tildes o en las compras es de antes de
+  // partir por día y vale por todas las partes.
+  private armarRenglon(partes: ParteCompra[], weekKey: string): ShoppingItem {
+    const clave = partes[0].clave;
+    const semana = this.compras()[weekKey] ?? {};
+    const tildadas = this.checkedItems()[weekKey] ?? [];
+    const registroDe = partes.map((p) => {
+      const key = claveParte(clave, p.fecha);
+      return semana[clave] ?? semana[key] ?? Object.values(semana).find((r) => r.dias?.includes(key));
+    });
+    // Las partes con registro no restan despensa: su sobra ya está ahí.
+    const sinRegistro = partes.filter((_, i) => !registroDe[i]);
+    const faltas = this.repartir(sinRegistro, clave);
+    const faltaDe = (p: ParteCompra): number | null => faltas?.[sinRegistro.indexOf(p)] ?? null;
+    const pendientes = sinRegistro.filter((p) => !estaTildada(clave, p.fecha, tildadas) && faltaDe(p) !== 0);
+    const comprada = (p: ParteCompra, i: number): boolean => !!registroDe[i] || estaTildada(clave, p.fecha, tildadas);
+    const conDia = (ps: ParteCompra[]): string[] => ps.flatMap((p) => (p.dia ? [p.dia] : []));
+
+    // Con algo pendiente se muestra eso; si no, el renglón entero, como antes.
+    const muestra = pendientes.length ? pendientes : partes;
+    const item: ShoppingItem = {
+      ...this.sumarPorUnidad(muestra.map((p) => ({ name: p.nombre, quantity: p.quantity, unit: p.unit }))),
+      // Nombre y tag del renglón entero: tildar un día no lo cambia de góndola.
+      name: partes[0].nombre,
+      tagId: partes.find((p) => p.tagId)?.tagId,
+      isExtra: partes[0].fecha === null,
+      checked: !pendientes.length,
+      dias: conDia(pendientes),
+      diasComprados: conDia(partes.filter(comprada)),
+    };
+    const registros = [...new Set(registroDe.filter((r) => !!r))];
+    if (!pendientes.length && registros.length) {
+      // Con una sola compra queda como antes: lo congelado al tildar.
+      const sobras = registros.map((r) => r.sobra).filter(Boolean);
+      item.quantityOverride = registros.map((r) => r.compra).reduce((a, b) => this.addQuantities(a, b));
+      item.sobra = sobras.length ? sobras.reduce((a, b) => this.addQuantities(a, b)) : undefined;
+      return item;
+    }
+    this.ajustarRenglon(item, clave, weekKey, faltas && muestra.map((p) => faltaDe(p) ?? 0));
+    return item;
+  }
+
+  // La despensa cubre las partes en orden de fecha. Null si no hay nada que
+  // repartir o si las unidades no se pueden restar entre sí: ahí se queda
+  // como antes, sin restar.
+  private repartir(partes: ParteCompra[], clave: string): number[] | null {
+    const entrada = this.despensaDe(clave);
+    const tengo = entrada && parseNumericQuantity(entrada.quantity);
+    const necesito = partes.map((p) => parseNumericQuantity([p.quantity, p.unit].filter(Boolean).join(' ')));
+    const valores = necesito.filter((n) => !!n);
+    const unidades = new Set([tengo, ...valores].map((q) => q && q.unit).filter(Boolean));
+    if (!tengo || valores.length !== partes.length || unidades.size > 1) {
+      return null;
+    }
+    return repartirDespensa(valores.map((n) => n.value), Math.max(0, tengo.value));
+  }
+
   // Lo pisado a mano gana; si no, lo que falta después de la despensa se
   // redondea a lo que se compra. Lo cubierto por la despensa no se compra.
-  private ajustarRenglon(item: ShoppingItem, weekKey: string): void {
-    const key = this.claveCompra(item.name);
-    const registro = this.compras()[weekKey]?.[key];
-    if (registro) {
-      item.quantityOverride = registro.compra;
-      item.sobra = registro.sobra || undefined;
-      item.checked = true;
-      return;
-    }
+  private ajustarRenglon(item: ShoppingItem, key: string, weekKey: string, faltas: number[] | null): void {
     const manual = this.quantityOverrides()[`${weekKey}_${key}`];
     if (manual) {
       item.quantityOverride = manual;
     }
-    const cubierto = this.restarDespensa(item, key);
+    const cubierto = this.restarDespensa(item, key, faltas);
     if (!manual && !cubierto) {
       this.redondear(item);
     }
   }
 
-  // Devuelve si la despensa cubre todo el renglón.
-  private restarDespensa(item: ShoppingItem, key: string): boolean {
-    const pantryEntry = this.pantry().find((p) => this.claveCompra(p.name) === key);
-    if (!pantryEntry || parseNumericQuantity(pantryEntry.quantity)?.value === 0) {
+  private despensaDe(key: string): PantryItem | undefined {
+    const entrada = this.pantry().find((p) => this.claveCompra(p.name) === key);
+    return entrada && parseNumericQuantity(entrada.quantity)?.value !== 0 ? entrada : undefined;
+  }
+
+  // Devuelve si la despensa cubre todo lo que muestra el renglón. `faltas` es
+  // lo que le falta a cada parte ya repartida la despensa; lo pisado a mano
+  // se resta entero, como antes.
+  private restarDespensa(item: ShoppingItem, key: string, faltas: number[] | null): boolean {
+    const pantryEntry = this.despensaDe(key);
+    if (!pantryEntry) {
       return false;
     }
-    const effectiveQuantity = item.quantityOverride || [item.quantity, item.unit].filter(Boolean).join(' ');
-    const { remaining, covered } = this.subtractPantryFromNeeded(effectiveQuantity, pantryEntry.quantity);
+    const needed = [item.quantity, item.unit].filter(Boolean).join(' ');
+    const { remaining, covered } = item.quantityOverride
+      ? this.subtractPantryFromNeeded(item.quantityOverride, pantryEntry.quantity)
+      : this.sumarFaltas(needed, pantryEntry.quantity, faltas);
     item.pantryQuantity = pantryEntry.quantity;
     item.inPantry = true;
     if (covered) {
@@ -1918,6 +2002,22 @@ export class MealService {
       item.quantityOverride = remaining;
     }
     return covered;
+  }
+
+  private sumarFaltas(
+    needed: string,
+    inPantry: string,
+    faltas: number[] | null
+  ): { remaining: string; covered: boolean } {
+    if (!faltas) {
+      return { remaining: needed, covered: false };
+    }
+    const total = faltas.reduce((a, b) => a + b, 0);
+    if (total <= 0) {
+      return { remaining: '0', covered: true };
+    }
+    const unit = parseNumericQuantity(needed)?.unit || parseNumericQuantity(inPantry)?.unit;
+    return { remaining: unit ? `${total} ${unit}` : `${total}`, covered: false };
   }
 
   private redondear(item: ShoppingItem): void {

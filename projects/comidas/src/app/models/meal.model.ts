@@ -86,6 +86,10 @@ export type ShoppingItem = {
   usas?: string;
   // Lo que se compra de más, con unidad. Al tildar va a la despensa.
   sobra?: string;
+  // Los `dayName` de las partes del renglón que faltan comprar y de las ya
+  // tildadas, en orden. Ver docs/superpowers/specs/2026-11-05-lista-por-dia-design.md
+  dias?: string[];
+  diasComprados?: string[];
 } & Ingredient;
 
 export type ShoppingListGroup = {
@@ -95,4 +99,10 @@ export type ShoppingListGroup = {
 
 // Lo que se compró al tildar un renglón y lo que sobró y entró a la despensa.
 // Ver docs/superpowers/specs/2026-10-14-compras-redondeadas-design.md
-export type CompraRegistrada = { compra: string; sobra: string };
+export type CompraRegistrada = {
+  compra: string;
+  sobra: string;
+  // Las otras partes que entraron en la misma compra, cuando se tildaron juntas
+  // desde la vista por góndola. Destildar cualquiera deshace la compra entera.
+  dias?: string[];
+};

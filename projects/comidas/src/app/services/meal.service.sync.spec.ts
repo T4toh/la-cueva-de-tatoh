@@ -741,3 +741,117 @@ describe('MealService: lista de compras redondeada', () => {
     expect(r.usas).toBeUndefined();
   });
 });
+
+describe('MealService: lista por día', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: Firestore, useValue: {} },
+        { provide: AuthService, useValue: { currentUser: signal(null) } },
+      ],
+    });
+  });
+
+  afterEach(() => localStorage.clear());
+
+  const renglon = (service: MealService, nombre: string): ShoppingItem | undefined =>
+    service.shoppingList().find((i) => i.name.toLowerCase() === nombre.toLowerCase());
+
+  // Con hoy en el lunes cuentan los 7 días, sea el día que sea que corra el test.
+  const desdeElLunes = (service: MealService, dias = 0): void => {
+    const hoy = new Date(service.currentWeekStart());
+    hoy.setDate(hoy.getDate() + dias);
+    service.todayTimestamp.set(hoy.getTime());
+  };
+
+  const plato = (service: MealService, nombre: string, ingrediente: string, quantity: string, unit: string): string => {
+    service.addMeal({ name: nombre, ingredients: [{ name: ingrediente, quantity, unit }] });
+    return service.meals().find((m) => m.name === nombre)!.id;
+  };
+
+  const conCebollas = (service: MealService): void => {
+    service.setMeal('Lunes', 'almuerzo', plato(service, 'Tarta', 'Cebolla', '0.5', 'unidad'));
+    service.setMeal('Lunes', 'cena', plato(service, 'Guiso', 'cebolla', '0.5', 'unidad'));
+    service.setMeal('Martes', 'almuerzo', plato(service, 'Salsa', 'Cebolla', '0.5', 'unidad'));
+  };
+
+  it('el mismo ingrediente en dos días son dos partes, y en dos platos del mismo día una', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    conCebollas(service);
+
+    const partes = service.partesSemana().filter((p) => p.clave === 'cebolla');
+    expect(partes).toHaveLength(2);
+    expect(partes[0]).toMatchObject({ dia: 'Lunes', quantity: '1', unit: 'unidad', platos: ['Tarta', 'Guiso'] });
+    expect(partes[1]).toMatchObject({ dia: 'Martes', quantity: '0.5', unit: 'unidad', platos: ['Salsa'] });
+  });
+
+  it('excluded y los días pasados no aportan', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service, 2);
+    service.setMeal('Lunes', 'almuerzo', plato(service, 'Tarta', 'Cebolla', '0.5', 'unidad'));
+    service.setMeal('Jueves', 'almuerzo', plato(service, 'Guiso', 'Cebolla', '0.5', 'unidad'));
+    service.toggleDishExclusion('Jueves', 'almuerzo', 0);
+    service.setMeal('Viernes', 'cena', plato(service, 'Salsa', 'Cebolla', '0.5', 'unidad'));
+
+    expect(service.partesSemana().map((p) => p.dia)).toEqual(['Viernes']);
+  });
+
+  it('el renglón dice sus días pendientes', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    conCebollas(service);
+
+    expect(renglon(service, 'cebolla')!.dias).toEqual(['Lunes', 'Martes']);
+  });
+
+  it('la despensa cubre el día más cercano primero', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    service.setMeal('Lunes', 'almuerzo', plato(service, 'Tarta', 'Cebolla', '0.5', 'unidad'));
+    service.setMeal('Martes', 'almuerzo', plato(service, 'Salsa', 'Cebolla', '0.5', 'unidad'));
+    service.addToPantry('cebolla', '0.5 unidad');
+
+    const r = renglon(service, 'cebolla')!;
+    expect(r.checked).toBe(false);
+    expect(r.usas).toBe('0.5 unidad');
+    expect(r.quantityOverride).toBe('1 unidad');
+    expect(r.dias).toEqual(['Martes']);
+  });
+
+  it('unidades distintas entre días no se reparten ni rompen', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    service.setMeal('Lunes', 'almuerzo', plato(service, 'Tarta', 'Queso', '100', 'g'));
+    service.setMeal('Martes', 'almuerzo', plato(service, 'Pizza', 'Queso', '1', 'unidad'));
+    service.addToPantry('queso', '50 g');
+
+    const r = renglon(service, 'queso')!;
+    expect(r.quantityOverride ?? r.quantity).toBe('100 g + 1 unidad');
+    expect(r.checked).toBe(false);
+    expect(r.dias).toEqual(['Lunes', 'Martes']);
+  });
+
+  it('las etiquetas salen del día y no de la fecha', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    conCebollas(service);
+
+    const [lunes] = service.partesSemana();
+    expect(lunes.dia).toBe('Lunes');
+    expect(lunes.diaDelMes).toBe(service.currentWeekStart().getDate());
+  });
+
+  it('una clave pelada de antes tilda todas las partes del renglón', () => {
+    const service = TestBed.inject(MealService);
+    desdeElLunes(service);
+    conCebollas(service);
+    service.toggleItemCheck('Cebolla');
+
+    const r = renglon(service, 'cebolla')!;
+    expect(r.checked).toBe(true);
+    expect(r.dias).toEqual([]);
+    expect(r.diasComprados).toEqual(['Lunes', 'Martes']);
+  });
+});
