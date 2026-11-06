@@ -27,8 +27,8 @@ const firebaseConfig = {
 
 // App Check con reCAPTCHA Enterprise (dominio tatoh.ar), que es lo que protege
 // la cuota de Flash: la restricción de la API key por referer se falsifica.
-// TODO(antes del merge): poner el site key de la consola (App Check → app web).
-const RECAPTCHA_SITE_KEY = 'PENDIENTE';
+// Público como la API key: va en el bundle.
+const RECAPTCHA_SITE_KEY = '6Ld_fxEuAAAAADwBHM3MPQzbu-AsGO-7k5nPjIrv';
 
 // En localhost reCAPTCHA no valida: el SDK imprime un debug token en la
 // consola del navegador, que se registra a mano en Firebase Console.
