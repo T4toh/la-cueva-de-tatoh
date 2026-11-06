@@ -63,6 +63,11 @@ export function promptRevision(recetas: RecetaParaFlash[]): string {
     'Completar, no reescribir: no reemplaces ingredientes ni cambies el estilo del plato.',
     `Como máximo ${MAX_SUGERENCIAS} sugerencias por receta. Cada una con cantidad numérica por porción`,
     '(por ejemplo 1, 0.5 o 1/2), unidad si corresponde, y un motivo de una línea que diga dónde va.',
+    // Una preparación ("1 taza de ensalada verde") no se compra ni se suma a
+    // la lista. Armar el acompañamiento como plato aparte es otro trabajo.
+    'Cada sugerencia es un solo ingrediente concreto, de los que se compran: nunca una preparación',
+    'como "ensalada verde", "guarnición" o "salteado de verduras". Si proponés un acompañamiento,',
+    'desarmalo en sus ingredientes (por ejemplo lechuga y tomate, cada uno con su cantidad).',
     'Los campos "grupos" y "porcionReferencia" los calculó la app: son una ayuda, no la regla.',
     'Respondé una entrada por cada receta, con su id. Escribí en español rioplatense.',
     '',

@@ -82,6 +82,13 @@ describe('promptRevision', () => {
     expect(prompt).toContain('por una porción');
   });
 
+  it('pide ingredientes concretos, no preparaciones', () => {
+    // "1 taza de ensalada verde" no se puede comprar ni sumar a la lista.
+    const prompt = promptRevision([resumenParaFlash(okonomiyaki, indice)]);
+    expect(prompt).toContain('un solo ingrediente concreto');
+    expect(prompt).toContain('ensalada verde');
+  });
+
   it('da un criterio de plato lleno para almuerzo y cena', () => {
     // Sin esto, el modelo da por completa cualquier receta que tenga de todo
     // un poco: el okonomiyaki de media cebolla y una taza de repollo pasaba.

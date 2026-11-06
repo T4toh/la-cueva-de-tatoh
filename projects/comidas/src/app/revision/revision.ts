@@ -25,11 +25,17 @@ function hashTexto(texto: string): string {
   return hash.toString(16).padStart(8, '0');
 }
 
+// Subirla cuando cambia lo que se le pide a Flash (el prompt, el esquema): las
+// revisiones hechas con el pedido viejo quedan sin revisar y la próxima pasada
+// las rehace. 2: ingredientes concretos, no "ensalada verde".
+const VERSION_PEDIDO = 2;
+
 // Nombre, tags e ingredientes: lo que Flash ve. Los tags entran porque son lo
 // que le dice si algo es un postre. `checked`, la foto y "sumar a compras" no.
 export function firmaReceta(meal: Pick<Meal, 'name' | 'tags' | 'ingredients'>): string {
   return hashTexto(
     JSON.stringify([
+      VERSION_PEDIDO,
       meal.name.trim(),
       [...(meal.tags ?? [])].sort(),
       meal.ingredients.map((i) => [i.name.trim(), i.quantity, i.unit ?? '']),
