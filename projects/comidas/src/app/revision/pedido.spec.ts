@@ -81,6 +81,14 @@ describe('promptRevision', () => {
     expect(prompt).toContain('"id":"oko"');
     expect(prompt).toContain('por una porción');
   });
+
+  it('da un criterio de plato lleno para almuerzo y cena', () => {
+    // Sin esto, el modelo da por completa cualquier receta que tenga de todo
+    // un poco: el okonomiyaki de media cebolla y una taza de repollo pasaba.
+    const prompt = promptRevision([resumenParaFlash(okonomiyaki, indice)]);
+    expect(prompt).toContain('medio plato de verduras');
+    expect(prompt).toContain('aunque tenga de todo un poco');
+  });
 });
 
 describe('esquemaRespuesta', () => {

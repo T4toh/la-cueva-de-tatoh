@@ -54,6 +54,11 @@ export function promptRevision(recetas: RecetaParaFlash[]): string {
     'Las cantidades de cada receta son por una porción, para una persona.',
     'Para cada receta decidí si alcanza como comida para lo que es. Un postre, una salsa, una bebida',
     'o una colación no "quedan cortos" por no ser un almuerzo: juzgalos como lo que son.',
+    // El plato de las GAPA, el mismo que usa la guía. Sin una vara concreta el
+    // modelo da por completa cualquier receta que tenga de todo un poco.
+    'Un plato principal (almuerzo o cena) tiene que llenar un plato y dejar satisfecho a un adulto: como guía,',
+    'medio plato de verduras (más o menos 2 tazas), un cuarto de proteína y un cuarto de feculentos o legumbres.',
+    'Si las cantidades por porción no llegan a eso, la receta queda corta aunque tenga de todo un poco.',
     'Si una receta queda corta, sugerí cómo completarla: ingredientes para sumar adentro, arriba o al costado.',
     'Completar, no reescribir: no reemplaces ingredientes ni cambies el estilo del plato.',
     `Como máximo ${MAX_SUGERENCIAS} sugerencias por receta. Cada una con cantidad numérica por porción`,
