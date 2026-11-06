@@ -8,6 +8,10 @@ import { AuthService } from './auth.service';
 import { MealService } from './meal.service';
 
 const MODELO = 'gemini-flash-latest';
+// ponytail: el SDK espera 180 s por defecto y, con el modelo saturado, Google
+// tarda eso para terminar fallando. 90 s por tanda alcanza para 40 recetas;
+// subirlo si una tanda sana empieza a cortarse.
+const ESPERA_MS = 90_000;
 
 export type ResultadoRevision = { revisadas: number; error: string | null };
 
@@ -30,7 +34,7 @@ export class RevisionService {
     const modelo = getGenerativeModel(getAI(this.app, { backend: new GoogleAIBackend() }), {
       model: MODELO,
       generationConfig: { responseMimeType: 'application/json', responseSchema: esquemaRespuesta(ids) },
-    });
+    }, { timeout: ESPERA_MS });
     const respuesta = await modelo.generateContent(promptRevision(recetas));
     return JSON.parse(respuesta.response.text()) as unknown;
   };

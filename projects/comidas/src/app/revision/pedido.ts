@@ -181,6 +181,11 @@ export function mensajeDeError(error: unknown): string {
   if (/429|RESOURCE_EXHAUSTED|quota/i.test(mensaje)) {
     return 'Se terminó la cuota gratuita de Flash por hoy. Probá de nuevo mañana.';
   }
+  // En el plan gratuito Google corta con 500 "high demand" o 503 "Deadline
+  // expired" cuando el modelo está cargado; el abort es nuestro tope de espera.
+  if (/\b50[03]\b|UNAVAILABLE|high demand|Deadline|timed out|abort/i.test(mensaje)) {
+    return 'Flash está saturado ahora. Probá de nuevo en un rato.';
+  }
   if (error instanceof SyntaxError) {
     return 'Flash respondió algo que no se pudo leer. Probá de nuevo.';
   }

@@ -17,19 +17,12 @@
         [disabled]="!revision.puede() || revision.revisando() || revision.pendientes() === 0"
         (click)="revisar()"
       >
+        @if (revision.revisando()) {
+          <span aria-hidden="true" class="spinner"></span>
+        }
         {{ revision.revisando() ? 'Revisando…' : 'Revisar recetario' }}
       </button>
-      <p class="revision-estado" role="status">
-        @if (!revision.puede()) {
-          Iniciá sesión para revisar tu recetario
-        } @else if (mensajeRevision()) {
-          {{ mensajeRevision() }}
-        } @else if (revision.pendientes() === 0) {
-          No hay recetas sin revisar.
-        } @else {
-          {{ revision.pendientes() }} sin revisar
-        }
-      </p>
+      <p class="revision-estado" role="status">{{ estadoRevision() }}</p>
       <p class="revision-aviso">
         Flash, la IA de Google, mira qué recetas no llegan a ser una comida y sugiere cómo completarlas.
         En el plan gratuito, Google puede usar lo que se le manda para entrenar sus modelos: se mandan

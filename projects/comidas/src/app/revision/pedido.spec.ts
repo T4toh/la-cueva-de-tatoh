@@ -210,6 +210,13 @@ describe('mensajeDeError', () => {
     expect(mensajeDeError(new TypeError('Failed to fetch'))).toContain('conexión');
   });
 
+  it('reconoce el modelo saturado y el tiempo agotado', () => {
+    const saturado = 'Error fetching from https://x: [500 ] This model is currently experiencing high demand.';
+    expect(mensajeDeError(new Error(saturado))).toContain('saturado');
+    expect(mensajeDeError(new Error('[503 ] Deadline expired before operation could complete.'))).toContain('saturado');
+    expect(mensajeDeError(new Error('Request timed out after 60000ms'))).toContain('saturado');
+  });
+
   it('cualquier otro error da un mensaje genérico', () => {
     expect(mensajeDeError('raro')).toBe('No se pudo revisar el recetario. Probá de nuevo más tarde.');
   });

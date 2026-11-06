@@ -28,6 +28,19 @@ export class MealListComponent {
   // El resultado de la última pasada: cuántas revisó o por qué falló.
   readonly mensajeRevision = signal<string | null>(null);
 
+  // En el componente y no en el template: ahí ya está al límite de complejidad.
+  readonly estadoRevision = computed(() => {
+    const r = this.revision;
+    if (r.revisando()) {
+      return `Flash está leyendo ${r.pendientes()} recetas. Puede tardar un minuto.`;
+    }
+    if (!r.puede()) {
+      return 'Iniciá sesión para revisar tu recetario';
+    }
+    const pendientes = r.pendientes() === 0 ? 'No hay recetas sin revisar.' : `${r.pendientes()} sin revisar`;
+    return this.mensajeRevision() ?? pendientes;
+  });
+
   readonly selectedTag = signal<string | null>(null);
   readonly soloCompartidas = signal(false);
   readonly texto = signal('');
