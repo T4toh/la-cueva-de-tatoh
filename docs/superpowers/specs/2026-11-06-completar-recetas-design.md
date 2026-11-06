@@ -153,6 +153,11 @@ prueba a mano una vez contra el modelo real, en el 4200.
 - Reescribir recetas, cambiar pasos o reemplazar ingredientes.
 - Agregar porciones de verdura al catálogo. Es otra vía posible, pero no esta.
 - El armador de semanas y la lista "No como" (próximo spec).
+- **TODO: comidas y acompañamientos por separado.** Hoy una sugerencia "al
+  costado" se desarma en ingredientes que se suman a la receta. Lo que el
+  usuario quiere a futuro es que Flash pueda crear el acompañamiento como plato
+  propio y usarlo, pero eso necesita que el modelo distinga platos de
+  acompañamientos, algo que todavía no existe.
 
 ## Queda al builder
 
