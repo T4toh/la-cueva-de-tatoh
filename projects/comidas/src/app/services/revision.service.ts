@@ -7,7 +7,10 @@ import { aplicarRevisiones, recetasSinRevisar } from '../revision/revision';
 import { AuthService } from './auth.service';
 import { MealService } from './meal.service';
 
-const MODELO = 'gemini-flash-latest';
+// Lite y no `gemini-flash-latest`: el 2026-11-06 el Flash completo del plan
+// gratuito contestaba 500 "high demand" / 503 o no contestaba, y lite
+// respondía en 2 s con buen criterio una vez que el prompt da la vara del plato.
+const MODELO = 'gemini-flash-lite-latest';
 // ponytail: el SDK espera 180 s por defecto y, con el modelo saturado, Google
 // tarda eso para terminar fallando. 90 s por tanda alcanza para 40 recetas;
 // subirlo si una tanda sana empieza a cortarse.
