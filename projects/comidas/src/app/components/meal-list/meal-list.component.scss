@@ -49,6 +49,26 @@
   }
 }
 
+.revision {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1.5rem;
+
+  .revision-estado {
+    margin: 0;
+    color: var(--fg-secondary);
+  }
+
+  .revision-aviso {
+    flex-basis: 100%;
+    margin: 0;
+    color: var(--fg-muted);
+    font-size: var(--fs-caption);
+  }
+}
+
 // Multicolumna en vez de grid: cada tarjeta mide lo que su contenido y la de
 // abajo arranca ahí mismo, así no queda el hueco que dejaba una fila de grid
 // (que mide siempre lo que la tarjeta más alta). El precio es que el orden

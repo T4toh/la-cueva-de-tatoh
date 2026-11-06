@@ -36,6 +36,8 @@
          emitiendo (panel.html lo renderiza siempre que `colapsable` sea
          false, con o sin `texto`). -->
     <span class="meal-title">{{ meal().name }}</span>
+    <!-- `[hidden]` y no @if: el template ya está en el tope de complejidad. -->
+    <span class="para-completar" [hidden]="!paraCompletar()">Para completar</span>
     <div class="meal-content-wrapper">
       <div class="meal-info">
         <ul class="ingredient-list">

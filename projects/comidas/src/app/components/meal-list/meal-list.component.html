@@ -10,6 +10,33 @@
   </div>
 
   @if (mealService.meals().length > 0) {
+    <section class="revision">
+      <button
+        class="btn-secondary"
+        type="button"
+        [disabled]="!revision.puede() || revision.revisando() || revision.pendientes() === 0"
+        (click)="revisar()"
+      >
+        {{ revision.revisando() ? 'Revisando…' : 'Revisar recetario' }}
+      </button>
+      <p class="revision-estado" role="status">
+        @if (!revision.puede()) {
+          Iniciá sesión para revisar tu recetario
+        } @else if (mensajeRevision()) {
+          {{ mensajeRevision() }}
+        } @else if (revision.pendientes() === 0) {
+          No hay recetas sin revisar.
+        } @else {
+          {{ revision.pendientes() }} sin revisar
+        }
+      </p>
+      <p class="revision-aviso">
+        Flash, la IA de Google, mira qué recetas no llegan a ser una comida y sugiere cómo completarlas.
+        En el plan gratuito, Google puede usar lo que se le manda para entrenar sus modelos: se mandan
+        nombre, tags e ingredientes, y sólo cuando tocás el botón.
+      </p>
+    </section>
+
     <input
       #buscador
       aria-label="Buscar comida o ingrediente"

@@ -172,3 +172,19 @@
   gap: 0.2rem;
   margin-top: 0.5rem;
 }
+
+// Flash sugirió cómo completarla: las sugerencias se ven al abrir la receta.
+.para-completar {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: var(--warning-muted);
+  color: var(--fg-primary);
+  font-size: var(--fs-caption);
+
+  // El `display` de arriba le gana al `[hidden]` del navegador.
+  &[hidden] {
+    display: none;
+  }
+}

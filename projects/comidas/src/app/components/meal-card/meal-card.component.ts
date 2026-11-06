@@ -1,6 +1,7 @@
 import { Component, computed, input, output } from '@angular/core';
 
 import { Meal } from '../../models/meal.model';
+import { estadoRevision } from '../../revision/revision';
 import { tieneReceta } from '../../services/meal.service';
 import { Icon, Panel, Tag } from 'componentes';
 
@@ -26,6 +27,7 @@ export class MealCardComponent {
 
   readonly esReceta = computed(() => tieneReceta(this.meal()));
   readonly esCompartida = computed(() => !!this.meal().publicId);
+  readonly paraCompletar = computed(() => estadoRevision(this.meal()) === 'corta');
 
   onDelete(event: Event): void {
     event.stopPropagation();

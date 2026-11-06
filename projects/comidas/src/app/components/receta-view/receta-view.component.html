@@ -26,6 +26,29 @@
         </button>
       }
     </div>
+    @if (sugerencias().length > 0) {
+      <section class="completar">
+        <h2>Para completarla</h2>
+        <ul>
+          @for (s of sugerencias(); track $index) {
+            <li>
+              <div>
+                <strong>{{ s.quantity }}{{ s.unit ? ' ' + s.unit : '' }} {{ s.name }}</strong>
+                @if (s.motivo) {
+                  <span class="motivo">{{ s.motivo }}</span>
+                }
+              </div>
+              <button class="btn-secondary" type="button" (click)="sumar($index)">
+                Sumar
+              </button>
+            </li>
+          }
+        </ul>
+        <button class="btn-secondary" type="button" (click)="descartar()">
+          No, gracias
+        </button>
+      </section>
+    }
   </app-receta-detalle>
 } @else {
   <div class="no-existe">
