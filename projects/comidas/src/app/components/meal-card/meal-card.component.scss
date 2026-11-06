@@ -172,3 +172,27 @@
   gap: 0.2rem;
   margin-top: 0.5rem;
 }
+
+// Flash sugirió cómo completarla: lleva a la receta, donde están las sugerencias.
+.para-completar {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-sm);
+  background: var(--warning-muted);
+  color: var(--fg-primary);
+  font: inherit;
+  font-size: var(--fs-caption);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--warning);
+    color: var(--fg-on-accent);
+  }
+
+  // El `display` de arriba le gana al `[hidden]` del navegador.
+  &[hidden] {
+    display: none;
+  }
+}

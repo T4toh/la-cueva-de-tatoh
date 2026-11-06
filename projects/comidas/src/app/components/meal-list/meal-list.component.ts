@@ -9,6 +9,7 @@ import {
 } from '../../services/meal.service';
 import { MealCardComponent } from '../meal-card/meal-card.component';
 import { DialogService } from '../../services/dialog.service';
+import { RevisionService } from '../../services/revision.service';
 
 @Component({
   selector: 'app-meal-list',
@@ -22,6 +23,23 @@ export class MealListComponent {
   router = inject(Router);
   dialogService = inject(DialogService);
   compartirService = inject(CompartirService);
+  readonly revision = inject(RevisionService);
+
+  // El resultado de la última pasada: cuántas revisó o por qué falló.
+  readonly mensajeRevision = signal<string | null>(null);
+
+  // En el componente y no en el template: ahí ya está al límite de complejidad.
+  readonly estadoRevision = computed(() => {
+    const r = this.revision;
+    if (r.revisando()) {
+      return `Flash está leyendo ${r.pendientes()} recetas. Puede tardar un minuto.`;
+    }
+    if (!r.puede()) {
+      return 'Iniciá sesión para revisar tu recetario';
+    }
+    const pendientes = r.pendientes() === 0 ? 'No hay recetas sin revisar.' : `${r.pendientes()} sin revisar`;
+    return this.mensajeRevision() ?? pendientes;
+  });
 
   readonly selectedTag = signal<string | null>(null);
   readonly soloCompartidas = signal(false);
@@ -81,6 +99,13 @@ export class MealListComponent {
 
   compartirMeal(id: string): void {
     void this.compartirService.compartir(id);
+  }
+
+  async revisar(): Promise<void> {
+    this.mensajeRevision.set(null);
+    const { revisadas, error } = await this.revision.revisar();
+    const hechas = revisadas === 1 ? '1 receta revisada.' : `${revisadas} recetas revisadas.`;
+    this.mensajeRevision.set(error ? `${revisadas > 0 ? hechas + ' ' : ''}${error}` : hechas);
   }
 
   printRecipes(): void {

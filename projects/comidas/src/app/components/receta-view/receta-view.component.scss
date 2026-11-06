@@ -39,3 +39,41 @@
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+
+.completar {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--warning-muted);
+
+  h2 {
+    margin: 0 0 0.75rem;
+    font-size: var(--fs-h3);
+  }
+
+  ul {
+    margin: 0 0 0.75rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .motivo {
+    display: block;
+    color: var(--fg-secondary);
+    font-size: var(--fs-caption);
+  }
+
+  @media print {
+    display: none;
+  }
+}

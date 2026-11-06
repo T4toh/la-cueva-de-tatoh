@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { AppCheck } from '@angular/fire/app-check';
 import { Auth } from '@angular/fire/auth';
 import { Firestore } from '@angular/fire/firestore';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -15,5 +16,9 @@ describe('appConfig', () => {
   it('resuelve Auth y Firestore de @angular/fire', () => {
     expect(TestBed.inject(Auth)).toBeTruthy();
     expect(TestBed.inject(Firestore)).toBeTruthy();
+  });
+
+  it('resuelve AppCheck, que protege los pedidos a Flash', () => {
+    expect(TestBed.inject(AppCheck)).toBeTruthy();
   });
 });

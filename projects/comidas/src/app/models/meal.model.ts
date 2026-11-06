@@ -14,6 +14,23 @@ export type Paso = {
   foto?: string;
 };
 
+// Lo que Flash sugirió sumarle a una receta que no llega a ser una comida.
+// Ver docs/superpowers/specs/2026-11-06-completar-recetas-design.md
+export type SugerenciaReceta = {
+  name: string;
+  quantity: string;
+  unit?: string;
+  motivo: string;
+};
+
+// `firma` es la del contenido que se le mandó a Flash: si la receta cambió
+// desde entonces, la revisión no vale y la receta queda sin revisar.
+export type RevisionReceta = {
+  firma: string;
+  corta: boolean;
+  sugerencias: SugerenciaReceta[];
+};
+
 export type Meal = {
   id: string;
   name: string;
@@ -26,6 +43,7 @@ export type Meal = {
   foto?: string;
   // Si está, la receta tiene un documento en `recetasPublicas` y un link vivo.
   publicId?: string;
+  revision?: RevisionReceta;
 };
 
 export type MealType =

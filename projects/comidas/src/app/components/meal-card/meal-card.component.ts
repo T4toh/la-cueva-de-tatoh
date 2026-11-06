@@ -1,6 +1,7 @@
 import { Component, computed, input, output } from '@angular/core';
 
 import { Meal } from '../../models/meal.model';
+import { estadoRevision } from '../../revision/revision';
 import { tieneReceta } from '../../services/meal.service';
 import { Icon, Panel, Tag } from 'componentes';
 
@@ -17,6 +18,9 @@ export class MealCardComponent {
   readonly showEdit = input<boolean>(false);
   readonly showDuplicate = input<boolean>(false);
   readonly showCompartir = input<boolean>(false);
+  // Sólo donde la tarjeta puede llevar a la receta: la marca es el camino a
+  // las sugerencias, y en el selector del plan no hay adónde ir.
+  readonly showCompletar = input<boolean>(false);
   readonly delete = output<string>();
   readonly edit = output<string>();
   readonly duplicate = output<string>();
@@ -26,6 +30,7 @@ export class MealCardComponent {
 
   readonly esReceta = computed(() => tieneReceta(this.meal()));
   readonly esCompartida = computed(() => !!this.meal().publicId);
+  readonly paraCompletar = computed(() => this.showCompletar() && estadoRevision(this.meal()) === 'corta');
 
   onDelete(event: Event): void {
     event.stopPropagation();

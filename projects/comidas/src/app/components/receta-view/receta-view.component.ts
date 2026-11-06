@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { Icon } from 'componentes';
 
+import { descartarSugerencias, estadoRevision, sumarSugerencia } from '../../revision/revision';
 import { CompartirService } from '../../services/compartir.service';
 import { MealService } from '../../services/meal.service';
 import { RecetaDetalleComponent } from '../receta-detalle/receta-detalle.component';
@@ -26,8 +27,29 @@ export class RecetaViewComponent {
     this.mealService.meals().find((m) => m.id === this.mealId)
   );
 
+  // Sólo con la revisión vigente: si la receta cambió, las sugerencias
+  // hablaban de otra y no se muestran.
+  readonly sugerencias = computed(() => {
+    const meal = this.meal();
+    return meal && estadoRevision(meal) === 'corta' ? (meal.revision?.sugerencias ?? []) : [];
+  });
+
   readonly publicando = signal(false);
   readonly copiado = signal(false);
+
+  sumar(indice: number): void {
+    const meal = this.meal();
+    if (meal) {
+      this.mealService.updateMeal(meal.id, sumarSugerencia(meal, indice));
+    }
+  }
+
+  descartar(): void {
+    const meal = this.meal();
+    if (meal) {
+      this.mealService.updateMeal(meal.id, descartarSugerencias(meal));
+    }
+  }
 
   async publicar(): Promise<void> {
     if (this.publicando()) {

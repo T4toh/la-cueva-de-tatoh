@@ -49,6 +49,42 @@
   }
 }
 
+.revision {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1.5rem;
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  // El mismo de lib-boton: comidas usa sus propios botones, no ése.
+  .spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--border-default);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: girar 1s linear infinite;
+  }
+
+  .revision-estado {
+    margin: 0;
+    color: var(--fg-secondary);
+  }
+
+  .revision-aviso {
+    flex-basis: 100%;
+    margin: 0;
+    color: var(--fg-muted);
+    font-size: var(--fs-caption);
+  }
+}
+
 // Multicolumna en vez de grid: cada tarjeta mide lo que su contenido y la de
 // abajo arranca ahí mismo, así no queda el hueco que dejaba una fila de grid
 // (que mide siempre lo que la tarjeta más alta). El precio es que el orden
@@ -122,5 +158,11 @@
       padding-left: 20px;
       color: black !important;
     }
+  }
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
   }
 }
