@@ -4,6 +4,7 @@ import { indexar } from '../catalogo/catalogo';
 import { Meal } from '../models/meal.model';
 import {
   esquemaRespuesta,
+  mensajeDeError,
   Pedir,
   promptRevision,
   RecetaParaFlash,
@@ -186,5 +187,17 @@ describe('revisarEnTandas', () => {
     expect(llamadas).toBe(2);
     expect(resultados).toHaveLength(40);
     expect(error).toBe(falla);
+  });
+});
+
+describe('mensajeDeError', () => {
+  it('distingue cuota, respuesta ilegible y red', () => {
+    expect(mensajeDeError(new Error('[429 ] Resource has been exhausted (RESOURCE_EXHAUSTED)'))).toContain('cuota');
+    expect(mensajeDeError(new SyntaxError('Unexpected token'))).toContain('no se pudo leer');
+    expect(mensajeDeError(new TypeError('Failed to fetch'))).toContain('conexión');
+  });
+
+  it('cualquier otro error da un mensaje genérico', () => {
+    expect(mensajeDeError('raro')).toBe('No se pudo revisar el recetario. Probá de nuevo más tarde.');
   });
 });

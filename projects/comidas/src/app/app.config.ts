@@ -11,6 +11,7 @@ import { MarkdownModule } from 'ngx-markdown';
 import { routes } from './app.routes';
 import { provideServiceWorker } from '@angular/service-worker';
 import { getApp, initializeApp, provideFirebaseApp } from '@angular/fire/app';
+import { initializeAppCheck, provideAppCheck, ReCaptchaEnterpriseProvider } from '@angular/fire/app-check';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { initializeFirestore, provideFirestore } from '@angular/fire/firestore';
 
@@ -23,6 +24,17 @@ const firebaseConfig = {
   appId: '1:903793481064:web:8a994b1ac1d609a9ca72dd',
   measurementId: 'G-QBFY1KY9Q3',
 };
+
+// App Check con reCAPTCHA Enterprise (dominio tatoh.ar), que es lo que protege
+// la cuota de Flash: la restricción de la API key por referer se falsifica.
+// TODO(antes del merge): poner el site key de la consola (App Check → app web).
+const RECAPTCHA_SITE_KEY = 'PENDIENTE';
+
+// En localhost reCAPTCHA no valida: el SDK imprime un debug token en la
+// consola del navegador, que se registra a mano en Firebase Console.
+if (isDevMode()) {
+  (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN: boolean }).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+}
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -37,6 +49,12 @@ export const appConfig: ApplicationConfig = {
       registrationStrategy: 'registerWhenStable:30000',
     }),
     provideFirebaseApp(() => initializeApp(firebaseConfig)),
+    provideAppCheck(() =>
+      initializeAppCheck(getApp(), {
+        provider: new ReCaptchaEnterpriseProvider(RECAPTCHA_SITE_KEY),
+        isTokenAutoRefreshEnabled: true,
+      })
+    ),
     provideAuth(() => getAuth()),
     provideFirestore(() =>
       initializeFirestore(getApp(), {

@@ -1,4 +1,6 @@
-import { ObjectSchema, Schema } from 'firebase/ai';
+// De @angular/fire y no de 'firebase/ai': la app corre sobre el SDK que trae
+// @angular/fire (11.x); mezclar con el 12 deja dos registros de Firebase.
+import { ObjectSchema, Schema } from '@angular/fire/ai';
 
 import { clasificar, IndiceCatalogo } from '../catalogo/catalogo';
 import { resumenPlato, textoReferencia } from '../catalogo/plato';
@@ -167,4 +169,20 @@ export async function revisarEnTandas(
     }
   }
   return { resultados, error: null };
+}
+
+// El texto que ve el usuario cuando una pasada falla. Lo ya revisado se
+// guardó igual; esto sólo explica por qué faltan las demás.
+export function mensajeDeError(error: unknown): string {
+  const mensaje = error instanceof Error ? error.message : '';
+  if (/429|RESOURCE_EXHAUSTED|quota/i.test(mensaje)) {
+    return 'Se terminó la cuota gratuita de Flash por hoy. Probá de nuevo mañana.';
+  }
+  if (error instanceof SyntaxError) {
+    return 'Flash respondió algo que no se pudo leer. Probá de nuevo.';
+  }
+  if (error instanceof TypeError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+    return 'Sin conexión: revisá internet y probá de nuevo.';
+  }
+  return 'No se pudo revisar el recetario. Probá de nuevo más tarde.';
 }
