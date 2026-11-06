@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { Meal } from '../models/meal.model';
+import { normalizeQuantityToNumeric } from '../services/meal.service';
 import {
   aplicarRevisiones,
   descartarSugerencias,
@@ -137,6 +138,22 @@ describe('sumarSugerencia', () => {
   it('al sumar la última queda ok', () => {
     const una = sumarSugerencia(revisada(okonomiyaki(), true), 0);
     expect(estadoRevision(sumarSugerencia(una, 0))).toBe('ok');
+  });
+});
+
+describe('sumarSugerencia y la normalización al cargar', () => {
+  // `normalizeMealQuantities` toma un ingrediente sin la clave `unit` por
+  // formato viejo y le reescribe la cantidad ('1/2' → '0.5'): la firma cambia
+  // y la receta pierde las sugerencias que quedaban.
+  it('sin unidad guarda unit vacío y la cantidad tal como la deja la normalización', () => {
+    const sinUnidad = { name: 'palta', quantity: '1/2', motivo: 'arriba' };
+    const meal: Meal = {
+      ...okonomiyaki(),
+      revision: { firma: firmaReceta(okonomiyaki()), corta: true, sugerencias: [sinUnidad, zanahoria] },
+    };
+    const sumado = sumarSugerencia(meal, 0).ingredients.at(-1);
+    expect(sumado).toEqual({ name: 'palta', quantity: '1/2', unit: '' });
+    expect(normalizeQuantityToNumeric(sumado?.quantity ?? '')).toBe('1/2');
   });
 });
 

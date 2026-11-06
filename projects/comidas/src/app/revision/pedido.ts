@@ -99,8 +99,8 @@ function texto(x: unknown): string {
   return typeof x === 'string' ? x.trim() : '';
 }
 
-// Una cantidad que `parseQuantity` no entiende rompería la multiplicación en
-// compras, así que la sugerencia no se ofrece.
+// Una cantidad que `parseQuantity` no entiende entera rompería la
+// multiplicación en compras, así que la sugerencia no se ofrece.
 function sugerenciaValida(raw: unknown): SugerenciaReceta | null {
   if (!esObjeto(raw)) {
     return null;
@@ -108,7 +108,10 @@ function sugerenciaValida(raw: unknown): SugerenciaReceta | null {
   const name = texto(raw['name']);
   const quantity = texto(raw['quantity']);
   const unit = texto(raw['unit']);
-  if (!name || !parseQuantity(quantity)) {
+  // Con texto después del número ('2 cdas', '2-3') la normalización al cargar
+  // lo recorta, y la firma de la receta cambiaría sola.
+  const cantidad = parseQuantity(quantity);
+  if (!name || !cantidad || cantidad.resto.trim() !== '') {
     return null;
   }
   return { name, quantity, ...(unit ? { unit } : {}), motivo: texto(raw['motivo']) };

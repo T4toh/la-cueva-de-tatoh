@@ -71,7 +71,10 @@ export function sumarSugerencia(meal: Meal, indice: number): Meal {
     return meal;
   }
   const { name, quantity, unit } = sugerencia;
-  const ingredients = [...meal.ingredients, unit ? { name, quantity, unit } : { name, quantity }];
+  // `unit` siempre presente, como lo guarda el editor: sin la clave, la
+  // normalización al cargar lo toma por formato viejo y reescribe la cantidad,
+  // y con eso cambia la firma.
+  const ingredients = [...meal.ingredients, { name, quantity, unit: unit ?? '' }];
   return {
     ...meal,
     ingredients,

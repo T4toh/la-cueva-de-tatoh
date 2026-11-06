@@ -135,6 +135,19 @@ describe('validarRespuesta', () => {
     expect(validarRespuesta(raw, enviadas)[0].sugerencias.map((s) => s.name)).toEqual(['zanahoria']);
   });
 
+  it('descarta cantidades con texto después del número, que la normalización recortaría', () => {
+    const raw = {
+      recetas: [
+        {
+          id: 'oko',
+          corta: true,
+          sugerencias: [sugerencia('aceite', '2 cdas'), sugerencia('ajo', '2-3'), sugerencia('pan')],
+        },
+      ],
+    };
+    expect(validarRespuesta(raw, enviadas)[0].sugerencias.map((s) => s.name)).toEqual(['pan']);
+  });
+
   it('se queda con 3 sugerencias como máximo', () => {
     const sugerencias = ['a', 'b', 'c', 'd', 'e'].map((n) => sugerencia(n));
     const raw = { recetas: [{ id: 'oko', corta: true, sugerencias }] };

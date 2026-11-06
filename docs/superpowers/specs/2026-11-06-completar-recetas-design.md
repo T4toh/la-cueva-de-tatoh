@@ -51,7 +51,7 @@ Es para cualquier usuario, no para un plan de salud en particular.
   dijo "No, gracias", la marca se va. Una receta descartada no vuelve a
   marcarse hasta que se edite. *(Mi decisión: el usuario no contestó si la
   marca debía irse al rechazar. Elegí no insistir.)*
-- **Editar la receta a mano** en el editor (ingredientes, nombre o pasos)
+- **Editar la receta a mano** en el editor (nombre, tags o ingredientes)
   la deja *sin revisar*. Las sugerencias guardadas se descartan porque
   hablaban de otra receta. Se detecta comparando una firma del contenido
   que se le mandó a Flash contra el contenido actual. Entran en la firma el
