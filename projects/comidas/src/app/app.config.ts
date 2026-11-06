@@ -15,6 +15,8 @@ import { initializeAppCheck, provideAppCheck, ReCaptchaEnterpriseProvider } from
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { initializeFirestore, provideFirestore } from '@angular/fire/firestore';
 
+import { APP_CHECK_DEBUG_TOKEN } from './app-check-debug';
+
 const firebaseConfig = {
   apiKey: 'AIzaSyAcnGibMP9J5tdak-XsFcdZAXDSXKZN3tM',
   authDomain: 'la-cueva-comidas.firebaseapp.com',
@@ -30,10 +32,10 @@ const firebaseConfig = {
 // Público como la API key: va en el bundle.
 const RECAPTCHA_SITE_KEY = '6Ld_fxEuAAAAADwBHM3MPQzbu-AsGO-7k5nPjIrv';
 
-// En localhost reCAPTCHA no valida: el SDK imprime un debug token en la
-// consola del navegador, que se registra a mano en Firebase Console.
+// En localhost reCAPTCHA no valida: va un debug token (ver app-check-debug.ts).
 if (isDevMode()) {
-  (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN: boolean }).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+  (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN: string | true }).FIREBASE_APPCHECK_DEBUG_TOKEN =
+    APP_CHECK_DEBUG_TOKEN;
 }
 
 export const appConfig: ApplicationConfig = {

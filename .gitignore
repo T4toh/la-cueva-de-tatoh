@@ -50,3 +50,6 @@ Thumbs.db
 
 # Scratch de herramientas de desarrollo (superpowers)
 .superpowers/
+
+# Debug token de App Check (comidas): un secreto, no va al repo
+projects/comidas/src/app/app-check-debug.local.ts

@@ -215,7 +215,13 @@
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "projects/comidas/src/app/app-check-debug.ts",
+                  "with": "projects/comidas/src/app/app-check-debug.local.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"

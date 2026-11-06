@@ -103,14 +103,14 @@ Es para cualquier usuario, no para un plan de salud en particular.
   todo el proyecto. Sin sesión, el botón no se oculta: queda deshabilitado
   con "Iniciá sesión para revisar tu recetario". No frena a nadie que llame
   directo a la API. Eso lo hace el enforce.
-- **Enforce de App Check: postergado (2026-11-06).** La app ya manda tokens
-  de App Check, pero el enforce no está activo: el usuario prefirió no entrar
-  a la consola de Firebase ahora. Hasta activarlo, la única barrera para
-  usar AI Logic con la API key pública es la restricción por referer. Para
-  activarlo: registrar el debug token de localhost (App Check → Apps →
-  Manage debug tokens) y después App Check → APIs → *Firebase AI Logic API*
-  → Enforce. **Nunca** Firestore ni Authentication sin antes verificar en
-  las métricas que el tráfico de producción ya viene verificado.
+- **Enforce de App Check: activo desde 2026-11-06, hecho por API, sin la
+  consola.** En la API de App Check, AI Logic figura como el servicio
+  `firebaseml.googleapis.com`; `firebasevertexai.googleapis.com` da "Service
+  not supported". El debug token de localhost está registrado por API y vive
+  en `app-check-debug.local.ts`, que no se versiona y que `angular.json`
+  reemplaza en la config development. **Nunca** activar Firestore ni
+  Authentication sin antes verificar en las métricas que el tráfico de
+  producción ya viene verificado.
 - **Aviso en la UI**: en el free tier, Google puede usar los pedidos para
   entrenar. Es un texto informativo que está siempre junto al botón, visible y
   no en letra chica. No es un consentimiento con estado guardado: el
