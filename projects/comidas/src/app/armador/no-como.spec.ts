@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { CATALOGO } from '../catalogo/catalogo-datos';
 import { indexar } from '../catalogo/catalogo';
 import { Meal } from '../models/meal.model';
-import { chocaConNoComo, reconocido } from './no-como';
+import { chocaConNoComo, normalizarNoComo, reconocido } from './no-como';
 
 const indice = indexar(CATALOGO);
 
@@ -14,10 +14,25 @@ const comida = (...ingredientes: string[]): Meal => ({
 });
 
 describe('chocaConNoComo', () => {
-  it('"contiene" en los dos sentidos', () => {
+  it('el ingrediente contiene el término; al revés, sólo si es el mismo con plural', () => {
     expect(chocaConNoComo(comida('cebolla morada'), ['cebolla'], indice)).toBe(true);
-    expect(chocaConNoComo(comida('cebolla'), ['cebolla morada'], indice)).toBe(true);
+    expect(chocaConNoComo(comida('cebolla'), ['cebolla morada'], indice)).toBe(false);
     expect(chocaConNoComo(comida('tomate'), ['cebolla'], indice)).toBe(false);
+    expect(chocaConNoComo(comida('tomate'), ['tomates'], indice)).toBe(true);
+    expect(chocaConNoComo(comida('limón'), ['limones'], indice)).toBe(true);
+  });
+
+  it.each([
+    ['sal', 'salchichas'],
+    ['sal', 'salsa picante'],
+    ['pan', 'panceta'],
+    ['agua', 'aguacate'],
+    ['papa', 'papaya'],
+    ['ajo', 'ajonjolí'],
+    ['queso', 'queso azul'],
+    ['aceite de oliva', 'aceite de coco'],
+  ])('%s no choca con "%s": un término más largo no saca lo que contiene', (ingrediente, termino) => {
+    expect(chocaConNoComo(comida(ingrediente), [termino], indice)).toBe(false);
   });
 
   it('también contra el nombre y los sinónimos de la entrada', () => {
@@ -40,15 +55,27 @@ describe('chocaConNoComo', () => {
     expect(chocaConNoComo(comida('pollo'), ['carne roja'], indice)).toBe(false);
     expect(chocaConNoComo(comida('queso'), ['Lácteos'], indice)).toBe(true);
     expect(chocaConNoComo(comida('queso'), ['lácteo'], indice)).toBe(true);
+    expect(chocaConNoComo(comida('carne picada'), ['carnes rojas'], indice)).toBe(true);
+    expect(chocaConNoComo(comida('pollo'), ['carnes rojas'], indice)).toBe(false);
+    expect(chocaConNoComo(comida('pollo'), ['Carnes blancas'], indice)).toBe(true);
+    expect(chocaConNoComo(comida('carne picada'), ['carnes blancas'], indice)).toBe(false);
   });
 
   it('vacío no choca con nada', () => {
     expect(chocaConNoComo(comida('queso'), ['', '   '], indice)).toBe(false);
+    expect(chocaConNoComo(comida('', '  '), ['cebolla', 's'], indice)).toBe(false);
   });
 
   it('gluten sólo si está escrito', () => {
     expect(chocaConNoComo(comida('pan'), ['gluten'], indice)).toBe(false);
     expect(chocaConNoComo(comida('harina sin gluten'), ['gluten'], indice)).toBe(true);
+  });
+});
+
+describe('normalizarNoComo', () => {
+  it('recorta, descarta lo que no es texto y no repite, con la primera escritura', () => {
+    expect(normalizarNoComo([' Cebolla ', 3, 'cebolla', 'CEBOLLA', '', 'Ajo', 'ajó'])).toEqual(['Cebolla', 'Ajo']);
+    expect(normalizarNoComo('cebolla')).toEqual([]);
   });
 });
 

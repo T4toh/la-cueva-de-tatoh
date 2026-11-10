@@ -99,12 +99,17 @@ esta heurística sin cambiar el resto.
   picante) no se puede filtrar todavía: el input lo dice al escribirlo y sí
   se le pasa a Flash. *(mi decisión)*
 - Una comida choca si alguno de sus ingredientes coincide con alguna
-  entrada. Por ingrediente se compara, normalizado y por "contiene" en
-  cualquiera de los dos sentidos, el texto escrito, el nombre de su entrada
-  del catálogo y sus sinónimos. Así "cebolla" choca con "cebolla morada"
-  aunque sean entradas distintas del catálogo. Por categoría se compara con
-  el `grupo` y la `carne` de la entrada. *(mi decisión: el "contiene" acepta
-  algún falso positivo; es mejor sacar de más que sugerir lo que no come)*
+  entrada. Por ingrediente se compara, normalizado, el texto escrito, el
+  nombre de su entrada del catálogo y sus sinónimos: choca si alguno de esos
+  textos contiene la entrada ("cebolla" choca con "cebolla morada" aunque
+  sean entradas distintas del catálogo, "sal" con "salmón"), y al revés sólo
+  si la entrada es ese mismo texto en plural, con `s` o `es` ("tomates" choca
+  con "tomate", pero "salchichas" no con "sal" ni "queso azul" con "queso").
+  Por categoría se compara con el `grupo` y la `carne` de la entrada, también
+  en plural palabra por palabra ("carnes rojas"). *(mi decisión: el "contiene"
+  acepta algún falso positivo; es mejor sacar de más que sugerir lo que no
+  come)* *(decisión del controller tras la review: el inverso vaciaba el
+  recetario)*
 - La lista también se manda a Flash en *completar recetas*, que hoy tiene un
   `TODO` en `promptRevision` esperando esto.
 

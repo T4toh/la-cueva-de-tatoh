@@ -12,7 +12,8 @@ import {
 } from '../catalogo/catalogo';
 import { Meal } from '../models/meal.model';
 
-// Etiqueta normalizada (y su plural con s/es) → cómo se reconoce en una entrada.
+// Etiqueta normalizada (y su plural con s/es, palabra por palabra: "carnes rojas")
+// → cómo se reconoce en una entrada.
 type Coincide = (e: EntradaCatalogo) => boolean;
 
 const CATEGORIAS: ReadonlyMap<string, Coincide> = new Map(
@@ -27,13 +28,16 @@ const CATEGORIAS: ReadonlyMap<string, Coincide> = new Map(
     ]),
   ].flatMap(([etiqueta, coincide]): [string, Coincide][] => {
     const base = normalizar(etiqueta);
-    return [base, base + 's', base + 'es'].map((k): [string, Coincide] => [k, coincide]);
+    const plural = (suf: string): string => base.split(' ').map((p) => p + suf).join(' ');
+    return [base, plural('s'), plural('es')].map((k): [string, Coincide] => [k, coincide]);
   }),
 );
 
-// "Contiene" sobre texto normalizado, sin límite de palabra: es mejor sacar de
-// más (sal choca con salmón) que sugerir lo que no come. También cubre plurales.
-const contiene = (a: string, b: string): boolean => a.includes(b);
+// El texto contiene el término, sin límite de palabra: mejor sacar de más (sal
+// choca con salmón) que sugerir lo que no come. Al revés sólo con el plural
+// (tomates choca con tomate): si no, salchichas sacaba todo lo que lleva sal.
+const choca = (texto: string, t: string): boolean =>
+  texto.includes(t) || t === texto + 's' || t === texto + 'es';
 
 export function chocaConNoComo(meal: Meal, noComo: readonly string[], indice: IndiceCatalogo): boolean {
   const terminos = noComo.map(normalizar).filter((t) => t);
@@ -42,13 +46,12 @@ export function chocaConNoComo(meal: Meal, noComo: readonly string[], indice: In
   }
   return meal.ingredients.some((ing) => {
     const entrada = clasificar(ing.name, indice);
-    const textos = [ing.name, ...(entrada ? [entrada.nombre, ...(entrada.sinonimos ?? [])] : [])].map(normalizar);
+    const textos = [ing.name, ...(entrada ? [entrada.nombre, ...(entrada.sinonimos ?? [])] : [])]
+      .map(normalizar)
+      .filter((x) => x);
     return terminos.some((t) => {
       const categoria = CATEGORIAS.get(t);
-      return (
-        (categoria && entrada && categoria(entrada)) ||
-        textos.some((x) => contiene(x, t) || contiene(t, x))
-      );
+      return (categoria && entrada && categoria(entrada)) || textos.some((x) => choca(x, t));
     });
   });
 }
@@ -59,9 +62,20 @@ export function reconocido(texto: string, indice: IndiceCatalogo): boolean {
 }
 
 // Lo que llega de afuera (localStorage, la nube, un backup) queda como lista de
-// textos no vacíos: cualquier otra forma rompería el armador y se volvería a guardar.
+// textos no vacíos y sin repetir (gana la primera escritura): cualquier otra
+// forma rompería el armador y se volvería a guardar.
 export function normalizarNoComo(v: unknown): string[] {
-  return Array.isArray(v)
-    ? v.filter((t): t is string => typeof t === 'string').map((t) => t.trim()).filter((t) => t)
-    : [];
+  if (!Array.isArray(v)) {
+    return [];
+  }
+  const vistos = new Set<string>();
+  return v
+    .filter((t): t is string => typeof t === 'string')
+    .map((t) => t.trim())
+    .filter((t) => {
+      const clave = normalizar(t);
+      const nuevo = !!clave && !vistos.has(clave);
+      vistos.add(clave);
+      return nuevo;
+    });
 }
