@@ -12,7 +12,7 @@ export type PlantasSemana = {
   sinClasificar: string[];
 };
 
-function plantasDe(meal: Meal, indice: IndiceCatalogo, sinClasificar?: Set<string>): Set<string> {
+export function plantasDe(meal: Meal, indice: IndiceCatalogo, sinClasificar?: Set<string>): Set<string> {
   const plantas = new Set<string>();
   for (const ingrediente of meal.ingredients) {
     const entrada = clasificar(ingrediente.name, indice);
