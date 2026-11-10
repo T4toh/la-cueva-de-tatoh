@@ -137,7 +137,7 @@
     <button
       class="btn-secondary"
       type="button"
-      [disabled]="mealService.slotsParaCompletar().length === 0"
+      [disabled]="flash.armando() || mealService.slotsParaCompletar().length === 0"
       [title]="sinVacias()"
       (click)="completarSemana()"
     >

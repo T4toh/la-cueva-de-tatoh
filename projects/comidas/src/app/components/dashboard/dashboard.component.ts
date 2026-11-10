@@ -80,9 +80,15 @@ export class DashboardComponent implements OnDestroy {
   );
 
   async completarConFlash(): Promise<void> {
+    const semana = this.mealService.currentWeekStart().getTime();
     const r = await this.flash.completar();
-    this.estadoFlash.set(r.cambioSemana ? 'Cambiaste de semana mientras Flash pensaba: no puse nada.' : r.error ?? '');
-    this.resultado.set(r.cambioSemana || (r.error && r.puestos === 0) ? null : r);
+    // Lo que puso es de la semana que se completó: no se avisa en la que se ve ahora.
+    if (this.mealService.currentWeekStart().getTime() !== semana) {
+      this.estadoFlash.set(r.cambioSemana ? 'Cambiaste de semana mientras Flash pensaba: no puse nada.' : '');
+      return;
+    }
+    this.estadoFlash.set(r.error ?? '');
+    this.resultado.set(r.error && r.puestos === 0 ? null : r);
   }
 
   completarSemana(): void {
