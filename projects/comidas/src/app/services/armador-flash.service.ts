@@ -1,4 +1,4 @@
-import { computed, effect, inject, Injectable, isDevMode, signal, untracked } from '@angular/core';
+import { computed, effect, inject, Injectable, signal, untracked } from '@angular/core';
 import { FirebaseApp } from '@angular/fire/app';
 
 import { PAISES } from '../armador/estacion';
@@ -25,8 +25,10 @@ export class ArmadorFlashService {
   private readonly authService = inject(AuthService);
   private readonly pedir = pedirJsonDe(inject(FirebaseApp));
 
-  private readonly enCurso = signal(false);
-  readonly armando = this.enCurso.asReadonly();
+  // Qué pedido está en curso: cada botón dice "Armando" sólo si es el suyo.
+  private readonly enCurso = signal<'completar' | 'sugerir' | null>(null);
+  readonly armando = computed(() => this.enCurso() !== null);
+  readonly sugiriendo = computed(() => this.enCurso() === 'sugerir');
   // Sin sesión no se gasta la cuota del proyecto (igual que RevisionService).
   readonly puede = computed(() => !!this.authService.currentUser());
   private readonly sugeridas = signal<RecetaNueva[]>([]);
@@ -46,7 +48,7 @@ export class ArmadorFlashService {
     if (this.enCurso() || !this.puede()) {
       return sinResultado();
     }
-    this.enCurso.set(true);
+    this.enCurso.set('completar');
     const semana = this.semana();
     try {
       const r = await completarConFlash({
@@ -55,8 +57,9 @@ export class ArmadorFlashService {
         pedir: this.pedir,
         ...this.datos(),
       });
-      // Para ver en la consola por qué Flash eligió una cosa y quedó otra. Nunca en producción.
-      if (isDevMode() && r.diagnostico) {
+      // Para ver en la consola por qué Flash eligió una cosa y quedó otra. El
+      // diagnóstico sólo viene en desarrollo (isDevMode, en flujo-flash).
+      if (r.diagnostico) {
         console.debug('Respuesta de Flash', r.diagnostico.crudo);
         console.table(r.diagnostico.filas);
       }
@@ -69,7 +72,7 @@ export class ArmadorFlashService {
     } catch (error) {
       return { ...sinResultado(), error: mensajeDeError(error, ERROR_ARMADOR) };
     } finally {
-      this.enCurso.set(false);
+      this.enCurso.set(null);
     }
   }
 
@@ -78,7 +81,7 @@ export class ArmadorFlashService {
     if (this.enCurso() || !this.puede()) {
       return null;
     }
-    this.enCurso.set(true);
+    this.enCurso.set('sugerir');
     const semana = this.semana();
     try {
       const { semana: dias, tipos, ctx } = this.mealService.entradaArmador();
@@ -103,7 +106,7 @@ export class ArmadorFlashService {
     } catch (error) {
       return mensajeDeError(error, ERROR_ARMADOR);
     } finally {
-      this.enCurso.set(false);
+      this.enCurso.set(null);
     }
   }
 

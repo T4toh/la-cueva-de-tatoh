@@ -1,5 +1,7 @@
 // "Completar con Flash", paso por paso: elecciones de Flash, completar, y
 // recetas nuevas para lo que quedó sin candidatos. El servicio sólo lo cablea.
+import { isDevMode } from '@angular/core';
+
 import { mensajeDeError } from '../revision/pedido';
 import { PedirJson } from '../services/flash';
 import {
@@ -34,7 +36,7 @@ export type ResultadoFlash = {
   nuevas: RecetaNueva[];
   error: string | null;
   cambioSemana: boolean;
-  // Sólo si Flash respondió las elecciones.
+  // Sólo en desarrollo y si Flash respondió las elecciones.
   diagnostico?: Diagnostico;
 };
 
@@ -121,16 +123,20 @@ export async function completarConFlash(d: DepsFlash): Promise<ResultadoFlash> {
     return { ...sinResultado(), cambioSemana: true };
   }
   const { rechazos = [], ...r } = completado;
-  const despues = d.entrada();
-  const diagnostico: Partial<ResultadoFlash> = crudo === undefined
-    ? {}
-    : { diagnostico: { crudo, filas: filasDiagnostico(conOpciones, preferidas, rechazos, despues) } };
+  // La semana ya completada se lee una vez y sólo si hace falta.
+  let despues: EntradaArmador | undefined;
+  const semanaDespues = (): EntradaArmador => (despues ??= d.entrada());
+  // Sólo en desarrollo: en producción el diagnóstico no se arma.
+  const diagnostico: Partial<ResultadoFlash> = isDevMode() && crudo !== undefined
+    ? { diagnostico: { crudo, filas: filasDiagnostico(conOpciones, preferidas, rechazos, semanaDespues()) } }
+    : {};
   // Si Flash ya falló no se gasta un segundo pedido.
   if (r.sinCandidatos === 0 || error !== null) {
     return { ...r, nuevas: [], error, cambioSemana: false, ...diagnostico };
   }
   try {
-    return { ...r, nuevas: await recetasParaHuecos(despues, d), error: null, cambioSemana: false, ...diagnostico };
+    const nuevas = await recetasParaHuecos(semanaDespues(), d);
+    return { ...r, nuevas, error: null, cambioSemana: false, ...diagnostico };
   } catch (err) {
     return { ...r, nuevas: [], error: mensajeDeError(err, ERROR_ARMADOR), cambioSemana: false, ...diagnostico };
   }

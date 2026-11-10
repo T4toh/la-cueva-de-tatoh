@@ -151,7 +151,7 @@
       [title]="sinSesion() || sinVacias()"
       (click)="completarConFlash()"
     >
-      {{ flash.armando() ? 'Armando con Flash…' : 'Completar con Flash' }}
+      {{ flash.armando() && !flash.sugiriendo() ? 'Armando con Flash…' : 'Completar con Flash' }}
     </button>
     <button
       class="btn-secondary"
@@ -160,7 +160,7 @@
       [title]="sinSesion()"
       (click)="sugerir()"
     >
-      Sugerime algo nuevo
+      {{ flash.sugiriendo() ? 'Armando con Flash…' : 'Sugerime algo nuevo' }}
     </button>
     <small class="completar-vacio">{{ sinSesion() }}</small>
     <button class="btn-secondary btn-print" type="button" (click)="printMenu()">

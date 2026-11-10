@@ -73,6 +73,18 @@ describe('ArmadorFlashService', () => {
     expect(flash.nuevas().map((r) => r.name)).toEqual(['Guiso de lentejas', 'Hamburguesas de lentejas']);
   });
 
+  it('mientras sugiere, dice que sugiere; completando, no', async () => {
+    pedir.mockResolvedValueOnce({ recetas: [] });
+    const sugiriendo = flash.sugerir();
+    expect([flash.armando(), flash.sugiriendo()]).toEqual([true, true]);
+    await sugiriendo;
+    expect([flash.armando(), flash.sugiriendo()]).toEqual([false, false]);
+    pedir.mockResolvedValueOnce({ recetas: [] });
+    const completando = flash.completar();
+    expect([flash.armando(), flash.sugiriendo()]).toEqual([true, false]);
+    await completando;
+  });
+
   it('un pedido nuevo no repite una receta pendiente', async () => {
     pedir.mockResolvedValueOnce({ recetas: [cruda('Guiso de lentejas')] });
     await flash.sugerir();

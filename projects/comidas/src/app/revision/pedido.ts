@@ -197,11 +197,16 @@ const SATURADO = /\b50[03]\b|UNAVAILABLE|high demand|Deadline|timed out|abort/i;
 
 const mensajeDe = (error: unknown): string => (error instanceof Error ? error.message : '');
 
-// Cuota, saturación o tiempo agotado: con otro modelo puede andar. Un esquema
-// rechazado (400), una respuesta ilegible o la red caída fallarían igual.
+// Cuota, saturación, cualquier 5xx o tiempo agotado: con otro modelo puede
+// andar. Un esquema rechazado (400), una respuesta ilegible o la red caída
+// fallarían igual. Esos dos van primero: el mensaje de un JSON roto trae su
+// posición ("at position 500") y las regex lo tomarían por un 500.
 export function esErrorTransitorio(error: unknown): boolean {
+  if (error instanceof SyntaxError || error instanceof TypeError) {
+    return false;
+  }
   const mensaje = mensajeDe(error);
-  return CUOTA.test(mensaje) || SATURADO.test(mensaje);
+  return CUOTA.test(mensaje) || SATURADO.test(mensaje) || /\b5\d\d\b/.test(mensaje);
 }
 
 // El texto que ve el usuario cuando una pasada falla. Lo ya revisado se
@@ -210,18 +215,19 @@ export function mensajeDeError(
   error: unknown,
   generico = 'No se pudo revisar el recetario. Probá de nuevo más tarde.'
 ): string {
+  // Antes que las regex, por lo mismo que en esErrorTransitorio.
+  if (error instanceof SyntaxError) {
+    return 'Flash respondió algo que no se pudo leer. Probá de nuevo.';
+  }
+  if (error instanceof TypeError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+    return 'Sin conexión: revisá internet y probá de nuevo.';
+  }
   const mensaje = mensajeDe(error);
   if (CUOTA.test(mensaje)) {
     return 'Se terminó la cuota gratuita de Flash por hoy. Probá de nuevo mañana.';
   }
   if (SATURADO.test(mensaje)) {
     return 'Flash está saturado ahora. Probá de nuevo en un rato.';
-  }
-  if (error instanceof SyntaxError) {
-    return 'Flash respondió algo que no se pudo leer. Probá de nuevo.';
-  }
-  if (error instanceof TypeError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
-    return 'Sin conexión: revisá internet y probá de nuevo.';
   }
   return generico;
 }

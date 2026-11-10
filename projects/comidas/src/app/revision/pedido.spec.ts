@@ -267,4 +267,17 @@ describe('esErrorTransitorio', () => {
     expect(esErrorTransitorio(new TypeError('Failed to fetch'))).toBe(false);
     expect(esErrorTransitorio('raro')).toBe(false);
   });
+
+  it('un JSON roto no es transitorio aunque su posición parezca un 500', () => {
+    const roto = new SyntaxError(
+      "Expected ',' or '}' after property value in JSON at position 500 (line 1 column 501)"
+    );
+    expect(esErrorTransitorio(roto)).toBe(false);
+    expect(mensajeDeError(roto)).toContain('no se pudo leer');
+  });
+
+  it('cualquier 5xx es transitorio', () => {
+    expect(esErrorTransitorio(new Error('[502 ] Bad Gateway'))).toBe(true);
+    expect(esErrorTransitorio(new Error('[504 ] Gateway Timeout'))).toBe(true);
+  });
 });

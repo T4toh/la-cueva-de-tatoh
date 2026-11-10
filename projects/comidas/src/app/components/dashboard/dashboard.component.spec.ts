@@ -61,15 +61,18 @@ describe('DashboardComponent: completar semana', () => {
 describe('DashboardComponent: completar con Flash', () => {
   let responder: (r: ResultadoFlash) => void;
   const armando = signal(false);
+  const sugiriendo = signal(false);
   const nuevas = signal<RecetaNueva[]>([]);
 
   beforeEach(() => {
     localStorage.clear();
     vi.stubGlobal('matchMedia', () => ({ matches: false }));
     armando.set(false);
+    sugiriendo.set(false);
     nuevas.set([]);
     const flash = {
       armando,
+      sugiriendo,
       puede: signal(true),
       nuevas,
       completar: (): Promise<ResultadoFlash> => new Promise((ok) => (responder = ok)),
@@ -132,6 +135,22 @@ describe('DashboardComponent: completar con Flash', () => {
     expect(arriba).toContain('Completar con Flash');
     expect(arriba).toContain('Sugerime algo nuevo');
     expect(el.querySelectorAll('.flash-aviso').length).toBe(1);
+  });
+
+  it('cada botón de Flash dice "Armando" sólo si es el suyo, y los dos quedan deshabilitados', () => {
+    TestBed.inject(MealService).addMeal({ name: 'Guiso', tags: ['almuerzo'], ingredients: [] });
+    const fixture = TestBed.createComponent(DashboardComponent);
+    const botones = (): (string | undefined)[] =>
+      [...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>('.actions-top button')]
+        .filter((b) => b.disabled)
+        .map((b) => b.textContent?.trim());
+    armando.set(true);
+    sugiriendo.set(true);
+    fixture.detectChanges();
+    expect(botones()).toEqual(['Completar semana', 'Completar con Flash', 'Armando con Flash…']);
+    sugiriendo.set(false);
+    fixture.detectChanges();
+    expect(botones()).toEqual(['Completar semana', 'Armando con Flash…', 'Sugerime algo nuevo']);
   });
 
   it('el error de "Sugerime algo nuevo" va a la línea de estado de Flash', async () => {
