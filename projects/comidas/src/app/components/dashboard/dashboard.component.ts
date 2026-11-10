@@ -125,6 +125,10 @@ export class DashboardComponent implements OnDestroy {
     return this.getMealName(dishes[0].mealId);
   }
 
+  motivoDe(day: DaySchedule, type: DishMealType): string {
+    return day[type][0]?.motivo ?? '';
+  }
+
   isPlaceholder(mealId: string): boolean {
     return this.mealService.getMeal(mealId)?.includeInShoppingList === false;
   }

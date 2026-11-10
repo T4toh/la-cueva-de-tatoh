@@ -740,3 +740,8 @@ input:checked + .slider:before {
 .completar-aviso [hidden] {
   display: none;
 }
+
+// Modo individual: el motivo va centrado bajo el botón del plato.
+.slot > .dish-motivo {
+  text-align: center;
+}
