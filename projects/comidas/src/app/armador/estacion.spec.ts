@@ -32,6 +32,7 @@ describe('paisDeTimezone', () => {
     expect(paisDeTimezone('America/Argentina/Buenos_Aires')).toBe('ar');
     expect(paisDeTimezone('America/Buenos_Aires')).toBe('ar');
     expect(paisDeTimezone('America/Santiago')).toBe('cl');
+    expect(paisDeTimezone('America/Coyhaique')).toBe('cl');
     expect(paisDeTimezone('America/Mexico_City')).toBe('mx');
   });
 

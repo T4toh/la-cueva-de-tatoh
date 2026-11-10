@@ -45,7 +45,7 @@ const TZ_PAIS: Readonly<Record<string, string>> = Object.fromEntries(
     ['br', ['Sao_Paulo', 'Bahia', 'Fortaleza', 'Manaus', 'Recife', 'Belem', 'Cuiaba', 'Campo_Grande',
       'Porto_Velho', 'Maceio', 'Rio_Branco', 'Araguaina', 'Santarem', 'Noronha', 'Boa_Vista', 'Eirunepe']],
     ['ca', ['Toronto', 'Vancouver', 'Edmonton', 'Winnipeg', 'Halifax', 'Montreal', 'Regina', 'St_Johns']],
-    ['cl', ['Santiago', 'Punta_Arenas']],
+    ['cl', ['Santiago', 'Punta_Arenas', 'Coyhaique']],
     ['co', ['Bogota']],
     ['cr', ['Costa_Rica']],
     ['cu', ['Havana']],
