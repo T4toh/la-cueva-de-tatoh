@@ -194,14 +194,22 @@ describe('opcionesPorSlot', () => {
     }
   });
 
-  it('desayuno respeta el tope y no ofrece lo que ya es almuerzo o cena; max por defecto 8', () => {
-    const muchos = Array.from({ length: 10 }, (_, i) => comida(`d${i}`));
+  it('desayuno respeta el tope y no ofrece lo que ya es almuerzo o cena; por defecto 8 más uno por slot', () => {
+    const muchos = Array.from({ length: 12 }, (_, i) => comida(`d${i}`));
     const semana = [dia('lunes', { desayuno: ['d0', 'd0', 'd0'], cena: ['d1'] }), dia('martes')];
     const [o] = opcionesPorSlot(semana, 1, ['desayuno'], cands(muchos, []), ctx(muchos), undefined);
-    expect(o.opciones.length).toBe(8);
+    expect(o.opciones.length).toBe(9);
     const ofrecidos = o.opciones.map((x) => x.meal.id);
     expect(ofrecidos).not.toContain('d0');
     expect(ofrecidos).not.toContain('d1');
+  });
+
+  it('con más slots que 8 hay comidas distintas para cada uno', () => {
+    const muchas = Array.from({ length: 30 }, (_, i) => comida(`c${i}`));
+    const r = opcionesPorSlot(vacia(7), 0, ['almuerzo', 'cena'], cands([], muchas), ctx(muchas));
+    const distintas = new Set(r.flatMap((o) => o.opciones.map((x) => x.meal.id)));
+    expect(r.length).toBe(14);
+    expect(distintas.size).toBeGreaterThanOrEqual(14);
   });
 });
 

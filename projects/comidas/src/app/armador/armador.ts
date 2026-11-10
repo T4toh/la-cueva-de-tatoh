@@ -132,14 +132,19 @@ export function opcionesPorSlot(
   tipos: readonly DishMealType[],
   candidatos: Candidatos,
   ctx: ContextoPuntaje,
-  max = MAX_OPCIONES,
+  max?: number,
 ): OpcionesSlot[] {
-  return slotsVacios(semana, desde, tipos).map((slot) => ({
+  const vacios = slotsVacios(semana, desde, tipos);
+  // Todos los slots se puntúan contra la misma semana, así que sus mejores
+  // opciones son casi las mismas: con sólo 8, Flash se queda sin comidas
+  // distintas al quinto día y repite. Uno más por slot alcanza para no repetir.
+  const tope = max ?? MAX_OPCIONES + vacios.length;
+  return vacios.map((slot) => ({
     slot,
     clave: claveSlot(semana, slot),
     opciones: puntuadosPara(semana, slot, candidatos, ctx)
       .sort((a, b) => b.puntaje.puntos - a.puntaje.puntos)
-      .slice(0, max)
+      .slice(0, tope)
       .map(({ meal, puntaje }) => ({ meal, puntos: puntaje.puntos })),
   }));
 }
