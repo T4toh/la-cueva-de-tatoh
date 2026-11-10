@@ -245,10 +245,10 @@ describe('armarSemana con preferidas', () => {
     expect(r.deFlash).toBe(0);
   });
 
-  it('id ya usado por un slot anterior: no es posible, no cuenta', () => {
+  it('id ya puesto en la semana: no es posible, no cuenta', () => {
     const p = new Map([['lunes-cena', { mealId: 'tres', motivo: 'm' }]]);
-    const r = armarSemana(vacia(1), 0, ['almuerzo', 'cena'], cands([], todas), ctx(todas), cero, p);
-    expect(r.semana[0].almuerzo[0].mealId).toBe('tres');
+    const semana = [dia('lunes', { almuerzo: ['tres'] })];
+    const r = armarSemana(semana, 0, ['cena'], cands([], todas), ctx(todas), cero, p);
     expect(r.semana[0].cena[0].mealId).toBe('cero');
     expect(r.deFlash).toBe(0);
   });
@@ -262,6 +262,17 @@ describe('armarSemana con preferidas', () => {
     const r = armarSemana(semana, 0, ['cena'], cands([], c), ctx([comida('arroz', ['arroz']), ...c]), cero, p);
     expect(r.semana[0].cena[0].mealId).toBe('liviana');
     expect(r.deFlash).toBe(0);
+  });
+
+  it('el algoritmo no toma lo que Flash eligió para un slot de más adelante', () => {
+    const p = new Map([
+      ['lunes-almuerzo', { mealId: 'inexistente', motivo: 'm' }],
+      ['lunes-cena', { mealId: 'tres', motivo: 'm' }],
+    ]);
+    const r = armarSemana(vacia(1), 0, ['almuerzo', 'cena'], cands([], todas), ctx(todas), cero, p);
+    expect(r.semana[0].almuerzo[0].mealId).toBe('cero');
+    expect(r.semana[0].cena[0].mealId).toBe('tres');
+    expect(r.deFlash).toBe(1);
   });
 
   it('sin preferidas, deFlash es 0', () => {

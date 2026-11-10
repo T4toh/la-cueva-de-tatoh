@@ -163,12 +163,17 @@ export function armarSemana(
   let sinCandidatos = 0;
   let deFlash = 0;
   const rechazos: Rechazo[] = [];
+  // Lo que Flash eligió para slots que todavía no se armaron: si un slot cae
+  // al algoritmo y toma una de esas, la elección de Flash de más adelante
+  // queda repetida y arrastra a la siguiente.
+  const reservadas = new Map([...(preferidas ?? [])].map(([clave, p]) => [clave, p.mealId]));
 
   for (const slot of slotsVacios(semana, desde, tipos)) {
     // sort es estable: a igual puntaje queda el orden de los candidatos.
     const puntuados = puntuadosPara(actual, slot, candidatos, ctx).sort((a, b) => b.puntaje.puntos - a.puntaje.puntos);
     const clave = claveSlot(semana, slot);
     const pref = preferidas?.get(clave);
+    reservadas.delete(clave);
     const deFlashElegida = pref && puntuados.find((c) => c.meal.id === pref.mealId);
     const aceptada = deFlashElegida && deFlashElegida.puntaje.puntos >= puntuados[0].puntaje.puntos - MARGEN_PREFERIDA;
     if (pref && !aceptada) {
@@ -187,7 +192,9 @@ export function armarSemana(
       continue;
     }
 
-    const { meal, puntaje } = elegir(puntuados.slice(0, TOP), azar);
+    const ocupadas = new Set(reservadas.values());
+    const libres = puntuados.filter((c) => !ocupadas.has(c.meal.id));
+    const { meal, puntaje } = elegir((libres.length ? libres : puntuados).slice(0, TOP), azar);
     actual = poner(actual, slot, { mealId: meal.id, portions: 1, excluded: false, motivo: puntaje.motivo });
     puestos++;
   }
