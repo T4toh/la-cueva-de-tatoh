@@ -1405,6 +1405,23 @@ describe('MealService: armador de semanas', () => {
     expect(martes.almuerzo[0].motivo).toBe('variedad');
   });
 
+  it('copiar la semana anterior no se lleva los motivos', () => {
+    const service = TestBed.inject(MealService);
+    service.previousWeek();
+    const anterior = clave(service);
+    service.nextWeek();
+    const semana = service.schedule().map((d, i) =>
+      i === 0 ? { ...d, almuerzo: [{ mealId: 'a', portions: 2, excluded: false, motivo: 'variedad' }] } : d
+    );
+    service.importData(JSON.stringify({ schedules: { [anterior]: semana } }));
+
+    service.copyFromPreviousWeek();
+
+    expect(service.schedule()[0].almuerzo).toEqual([{ mealId: 'a', portions: 2, excluded: false }]);
+    service.previousWeek();
+    expect(service.schedule()[0].almuerzo[0].motivo).toBe('variedad');
+  });
+
   it('No como guarda recortado, sin repetidos, y persiste', async () => {
     const service = TestBed.inject(MealService);
 

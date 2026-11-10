@@ -1611,7 +1611,13 @@ export class MealService {
     const prevKey = this.formatDateKey(prevDate);
     const prevSchedule = this.schedules()[prevKey];
     if (prevSchedule) {
-      const copy = JSON.parse(JSON.stringify(prevSchedule));
+      // Copiarla es elegirla: lo que puso el armador queda como del usuario.
+      const copy = prevSchedule.map((d) => ({
+        ...d,
+        desayuno: d.desayuno.map(sinMotivo),
+        almuerzo: d.almuerzo.map(sinMotivo),
+        cena: d.cena.map(sinMotivo),
+      }));
       this.schedules.update((s) => ({ ...s, [currentKey]: copy }));
     } else {
       this.dialogService.alert(
