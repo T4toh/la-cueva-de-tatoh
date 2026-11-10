@@ -190,19 +190,31 @@ export async function revisarEnTandas(
   return { resultados, error: null };
 }
 
+const CUOTA = /429|RESOURCE_EXHAUSTED|quota/i;
+// En el plan gratuito Google corta con 500 "high demand" o 503 "Deadline
+// expired" cuando el modelo está cargado; el abort es nuestro tope de espera.
+const SATURADO = /\b50[03]\b|UNAVAILABLE|high demand|Deadline|timed out|abort/i;
+
+const mensajeDe = (error: unknown): string => (error instanceof Error ? error.message : '');
+
+// Cuota, saturación o tiempo agotado: con otro modelo puede andar. Un esquema
+// rechazado (400), una respuesta ilegible o la red caída fallarían igual.
+export function esErrorTransitorio(error: unknown): boolean {
+  const mensaje = mensajeDe(error);
+  return CUOTA.test(mensaje) || SATURADO.test(mensaje);
+}
+
 // El texto que ve el usuario cuando una pasada falla. Lo ya revisado se
 // guardó igual; esto sólo explica por qué faltan las demás.
 export function mensajeDeError(
   error: unknown,
   generico = 'No se pudo revisar el recetario. Probá de nuevo más tarde.'
 ): string {
-  const mensaje = error instanceof Error ? error.message : '';
-  if (/429|RESOURCE_EXHAUSTED|quota/i.test(mensaje)) {
+  const mensaje = mensajeDe(error);
+  if (CUOTA.test(mensaje)) {
     return 'Se terminó la cuota gratuita de Flash por hoy. Probá de nuevo mañana.';
   }
-  // En el plan gratuito Google corta con 500 "high demand" o 503 "Deadline
-  // expired" cuando el modelo está cargado; el abort es nuestro tope de espera.
-  if (/\b50[03]\b|UNAVAILABLE|high demand|Deadline|timed out|abort/i.test(mensaje)) {
+  if (SATURADO.test(mensaje)) {
     return 'Flash está saturado ahora. Probá de nuevo en un rato.';
   }
   if (error instanceof SyntaxError) {
