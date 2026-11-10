@@ -103,11 +103,11 @@ export function esquemaRespuesta(ids: string[]): ObjectSchema {
   });
 }
 
-function esObjeto(x: unknown): x is Record<string, unknown> {
+export function esObjeto(x: unknown): x is Record<string, unknown> {
   return typeof x === 'object' && x !== null && !Array.isArray(x);
 }
 
-function texto(x: unknown): string {
+export function texto(x: unknown): string {
   return typeof x === 'string' ? x.trim() : '';
 }
 
