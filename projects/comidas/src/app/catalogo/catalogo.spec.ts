@@ -43,6 +43,15 @@ describe('clasificar', () => {
     expect(clasificar('pechuga', indice)?.nombre).toBe('pechuga de pollo');
   });
 
+  it('lo recordado vale para su índice y no para otro', () => {
+    const propio = indexar([{ nombre: 'tomate', grupo: 'frutas', unidad: 'unidad' }]);
+    expect(clasificar('Tomate', indice)?.grupo).toBe('hortalizas');
+    expect(clasificar('Tomate', propio)?.grupo).toBe('frutas');
+    expect(clasificar('tomate ', indice)?.grupo).toBe('hortalizas');
+    expect(clasificar('zzz', indice)).toBeNull();
+    expect(clasificar('zzz', indice)).toBeNull();
+  });
+
   it('ignora acentos, mayúsculas y espacios', () => {
     expect(clasificar('  LIMON ', indice)?.nombre).toBe('limón');
   });

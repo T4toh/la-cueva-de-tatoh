@@ -2,7 +2,7 @@
 // Ver docs/superpowers/specs/2026-11-06-armador-semanas-design.md
 import { DaySchedule, Dish, DishMealType, Meal } from '../models/meal.model';
 import { Candidatos } from './candidatos';
-import { ContextoPuntaje, Puntaje, puntuar } from './puntaje';
+import { ContextoPuntaje, previoDe, Puntaje, puntuar } from './puntaje';
 
 export const MAX_DESAYUNO_REPETIDO = 3;
 
@@ -87,9 +87,10 @@ export function armarSemana(
       continue;
     }
 
+    const previo = previoDe(actual, ctx);
     const puntuados = posibles.map((meal) => {
       const conEl = poner(actual, slot, { mealId: meal.id, portions: 1 });
-      const p = puntuar(meal, actual, conEl, ctx);
+      const p = puntuar(meal, actual, conEl, ctx, previo);
       return { meal, puntaje: { ...p, puntos: p.puntos + veces(meal) * PESO_DESAYUNO_REPETIDO } };
     });
     // sort es estable: a igual puntaje queda el orden de los candidatos.

@@ -1,6 +1,6 @@
 import { clasificar, IndiceCatalogo, normalizar } from '../catalogo/catalogo';
 import { META_PLANTAS, plantasDe, plantasDeLaSemana } from '../catalogo/plantas';
-import { chequearSemana, MAX_CARNE_ROJA, MIN_PESCADO } from '../guia/chequeos';
+import { chequearSemana, ChequeoSemana, MAX_CARNE_ROJA, MIN_PESCADO } from '../guia/chequeos';
 import { DaySchedule, Meal, PantryItem } from '../models/meal.model';
 import { Estacion, fueraDeEstacion } from './estacion';
 
@@ -50,12 +50,29 @@ function deLaDespensa(meal: Meal, ctx: ContextoPuntaje): string[] {
   return [...usados.values()];
 }
 
-export function puntuar(meal: Meal, antes: DaySchedule[], semana: DaySchedule[], ctx: ContextoPuntaje): Puntaje {
+// Lo que sólo depende de la semana de antes: el armador lo calcula una vez por
+// slot y no una por candidato.
+export type Previo = { plantas: ReadonlySet<string>; chequeo: ChequeoSemana };
+
+export function previoDe(antes: DaySchedule[], ctx: ContextoPuntaje): Previo {
+  return {
+    plantas: new Set(plantasDeLaSemana(antes, ctx.meals, ctx.indice).plantas),
+    chequeo: chequearSemana(antes, ctx.meals, ctx.indice),
+  };
+}
+
+export function puntuar(
+  meal: Meal,
+  antes: DaySchedule[],
+  semana: DaySchedule[],
+  ctx: ContextoPuntaje,
+  previo: Previo = previoDe(antes, ctx),
+): Puntaje {
   let puntos = 0;
   // A favor, con el texto de cada uno: el de más puntos es el motivo.
   const favor: { puntos: number; texto: string }[] = [];
 
-  const yaHay = new Set(plantasDeLaSemana(antes, ctx.meals, ctx.indice).plantas);
+  const yaHay = previo.plantas;
   const faltan = Math.max(0, META_PLANTAS - yaHay.size);
   const nuevas = Math.min([...plantasDe(meal, ctx.indice)].filter((p) => !yaHay.has(p)).length, faltan);
   if (nuevas > 0) {
@@ -75,7 +92,7 @@ export function puntuar(meal: Meal, antes: DaySchedule[], semana: DaySchedule[],
     });
   }
 
-  const antesChequeo = chequearSemana(antes, ctx.meals, ctx.indice);
+  const antesChequeo = previo.chequeo;
   const conChequeo = chequearSemana(semana, ctx.meals, ctx.indice);
   const rompeCarbos = conChequeo.diasConDosCarbos.length > antesChequeo.diasConDosCarbos.length;
   if (rompeCarbos && !ctx.reglasOcultas.has('un-carbo-por-dia')) {
