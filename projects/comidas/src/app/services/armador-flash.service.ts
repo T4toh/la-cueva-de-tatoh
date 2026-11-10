@@ -132,7 +132,8 @@ export class ArmadorFlashService {
     return {
       paisNombre: PAISES.find((p) => p.id === pais)?.nombre ?? pais,
       noComo: this.mealService.noComo(),
-      nombresExistentes: this.mealService.meals().map((m) => m.name),
+      // Las pendientes también: un pedido nuevo no repite una que todavía no resolviste.
+      nombresExistentes: [...this.mealService.meals(), ...this.sugeridas()].map((m) => m.name),
     };
   }
 }
