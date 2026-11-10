@@ -1356,8 +1356,26 @@ describe('MealService: armador de semanas', () => {
     expect(service.puedeDeshacer()).toBe(false);
 
     service.previousWeek();
+    expect(service.puedeDeshacer()).toBe(true);
     service.olvidarDeshacer();
     expect(service.puedeDeshacer()).toBe(false);
+  });
+
+  it('lo de la semana anterior pierde contra uno igual que no estuvo', () => {
+    const service = TestBed.inject(MealService);
+    service.addMeal({ name: 'Reciente', tags: ['almuerzo'], ingredients: [] });
+    service.addMeal({ name: 'Nuevo', tags: ['almuerzo'], ingredients: [] });
+    const [reciente, nuevo] = service.meals().map((m) => m.id);
+    service.previousWeek();
+    service.setMeal('Lunes', 'almuerzo', reciente);
+    service.nextWeek();
+    // Un solo slot: el almuerzo del domingo.
+    desdeElDia(service, 6);
+    service.toggleMealVisibility('breakfast');
+    service.toggleMealVisibility('dinner');
+
+    expect(service.completarSemana(() => 0)).toEqual({ puestos: 1, sinCandidatos: 0 });
+    expect(service.schedule()[6].almuerzo[0].mealId).toBe(nuevo);
   });
 
   const cambios: [string, (s: MealService) => void][] = [
@@ -1411,6 +1429,63 @@ describe('MealService: armador de semanas', () => {
 
     service.importData(JSON.stringify({ noComo: ['pescado'] }));
     expect(service.noComo()).toEqual(['pescado']);
+  });
+
+  it('No como mal formado queda como lista de textos y el armador sigue andando', () => {
+    localStorage.setItem('comidas_no_como', JSON.stringify('cebolla'));
+    const service = TestBed.inject(MealService);
+    expect(service.noComo()).toEqual([]);
+
+    service.importData(JSON.stringify({ noComo: [' ajo ', 3, null, '', { a: 1 }] }));
+    expect(service.noComo()).toEqual(['ajo']);
+    service.importData(JSON.stringify({ noComo: {} }));
+    expect(service.noComo()).toEqual([]);
+
+    desdeElDia(service, 0);
+    cargar(service);
+    expect(service.agregarNoComo('Ajo')).toBe(true);
+    expect(service.completarSemana(() => 0).puestos).toBeGreaterThan(0);
+  });
+
+  it('No como mal formado desde la nube queda como lista de textos', async () => {
+    let bajar: (snap: DocumentSnapshot) => void = () => undefined;
+    vi.mocked(onSnapshot).mockImplementation(((_ref: unknown, next: (snap: DocumentSnapshot) => void) => {
+      bajar = next;
+      return (): void => undefined;
+    }) as never);
+    TestBed.overrideProvider(AuthService, { useValue: { currentUser: signal({ uid: 'u1' }) } });
+    const service = TestBed.inject(MealService);
+    TestBed.tick();
+    bajar({
+      exists: () => true,
+      data: () => ({ noComo: 'cebolla', lastUpdated: 100 }),
+      metadata: { hasPendingWrites: false },
+    } as unknown as DocumentSnapshot);
+    await asentar();
+
+    expect(service.noComo()).toEqual([]);
+    expect(service.agregarNoComo('ajo')).toBe(true);
+  });
+
+  it('el backup exportado lleva No como y el país', async () => {
+    const service = TestBed.inject(MealService);
+    service.agregarNoComo('cebolla');
+    service.pais.set('cl');
+    let blob: Blob | undefined;
+    const crear = vi.fn((b: Blob) => {
+      blob = b;
+      return 'blob:x';
+    });
+    vi.stubGlobal('URL', Object.assign(URL, { createObjectURL: crear, revokeObjectURL: vi.fn() }));
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+
+    service.exportData();
+
+    const data = JSON.parse(await blob!.text());
+    expect(data.noComo).toEqual(['cebolla']);
+    expect(data.familySettings.pais).toBe('cl');
+    click.mockRestore();
+    vi.unstubAllGlobals();
   });
 
   it('el país va en familySettings; sin él sale del timezone', async () => {

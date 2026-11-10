@@ -57,3 +57,11 @@ export function chocaConNoComo(meal: Meal, noComo: readonly string[], indice: In
 export function reconocido(texto: string, indice: IndiceCatalogo): boolean {
   return CATEGORIAS.has(normalizar(texto)) || clasificar(texto, indice) !== null;
 }
+
+// Lo que llega de afuera (localStorage, la nube, un backup) queda como lista de
+// textos no vacíos: cualquier otra forma rompería el armador y se volvería a guardar.
+export function normalizarNoComo(v: unknown): string[] {
+  return Array.isArray(v)
+    ? v.filter((t): t is string => typeof t === 'string').map((t) => t.trim()).filter((t) => t)
+    : [];
+}

@@ -36,6 +36,7 @@ import { claveParte, DiaLista, estaTildada, ParteCompra, repartirDespensa, sinRu
 import { GUIA_VACIA, GuiaPropia, normalizarGuia } from '../guia/guia';
 import { armarSemana, Slot, slotsVacios } from '../armador/armador';
 import { candidatosPorTipo } from '../armador/candidatos';
+import { normalizarNoComo } from '../armador/no-como';
 import { estacionDe, hemisferioDe, paisDeTimezone } from '../armador/estacion';
 import { ContextoPuntaje } from '../armador/puntaje';
 import {
@@ -947,7 +948,7 @@ export class MealService {
       pantryGroups: (v) => this.pantryGroups.set(v as PantryGroup[]),
       catalogoPropio: (v) => this.catalogoPropio.set(v as EntradaCatalogo[]),
       guia: (v) => this.guia.set(normalizarGuia(v)),
-      noComo: (v) => this.noComo.set(v as string[]),
+      noComo: (v) => this.noComo.set(normalizarNoComo(v)),
       familySettings: (v) => {
         const fs = v as {
           isFamilyMode: boolean;
@@ -1211,7 +1212,7 @@ export class MealService {
 
   private loadNoComo(): string[] {
     const data = localStorage.getItem(this.NO_COMO_KEY);
-    return data ? (JSON.parse(data) as string[]) : [];
+    return data ? normalizarNoComo(JSON.parse(data)) : [];
   }
 
   // Devuelve `false` si queda en blanco o ya está (comparado normalizado), para
@@ -2785,7 +2786,7 @@ export class MealService {
       pasos.push(() => this.guia.set(v));
     }
     if (data['noComo']) {
-      const v = data['noComo'] as string[];
+      const v = normalizarNoComo(data['noComo']);
       pasos.push(() => this.noComo.set(v));
     }
     if (data['familySettings']) {
