@@ -66,6 +66,7 @@ describe('promptArmador', () => {
     expect(p).toContain('maní');
     expect(p).toContain('sólo entre los candidatos');
     expect(p).toContain('No repitas');
+    expect(p).toContain('grupos.feculento');
     expect(p).toContain('exactamente una entrada por cada clave');
     expect(p).toContain('rioplatense');
     expect(p.endsWith(JSON.stringify(cf))).toBe(true);

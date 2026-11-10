@@ -66,6 +66,8 @@ export function promptArmador(c: ContextoFlash): string {
     'que sumen plantas que todavía faltan.',
     'Fijate en "chequeo": evitá un segundo carbo en días que ya tienen uno en almuerzo o cena, y no',
     'sumes carne roja de más; las carnes blancas y el pescado suman.',
+    'Eso vale también entre tus elecciones: no elijas para el almuerzo y la cena del mismo día dos',
+    'recetas con "grupos.feculento" en true (legumbres, papa, pasta, masa, arroz cuentan como carbo).',
     ...(c.noComo.length > 0 ? [`El usuario no come estos ingredientes: ${c.noComo.join(', ')}.`] : []),
     'En "elecciones" respondé exactamente una entrada por cada clave de "slots": la clave, el id elegido',
     'y un motivo corto, de una línea, en español rioplatense.',
