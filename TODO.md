@@ -187,6 +187,29 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       los demás chequeos (medio plato de verdura, fermentado, día
       vegetariano) y un control para `menor` en el formulario.
 
+- [x] **Lista de compras por día.** El spec está en
+      [`docs/superpowers/specs/2026-11-05-lista-por-dia-design.md`](docs/superpowers/specs/2026-11-05-lista-por-dia-design.md).
+      Cada parte de la lista sabe de qué día viene, así que comprar en dos
+      veces ya no obliga a destildar comidas en el plan. Dos vistas —**Por
+      góndola**, con los días de cada renglón, y **Por día**, con sus platos e
+      ingredientes—, el tilde es por ingrediente y por día, y "Copiar" sale
+      según la vista. Los ítems manuales no tienen día.
+
+- [x] **Completar recetas con Flash.** El spec está en
+      [`docs/superpowers/specs/2026-11-06-completar-recetas-design.md`](docs/superpowers/specs/2026-11-06-completar-recetas-design.md).
+      Primera feature con IA en comidas. "Revisar recetario" en `/meals` manda
+      en un pedido las recetas sin revisar a `gemini-flash-lite-latest`
+      (Firebase AI Logic, plan Spark), que marca las que quedan cortas con
+      hasta 3 ingredientes sugeridos y su por qué; se suman de a uno desde la
+      ficha. La revisión vive en `Meal.revision` con una firma del contenido:
+      editar nombre, tags o ingredientes la invalida. No se publica en la
+      receta pública. Sólo con sesión iniciada, con el aviso de que el free
+      tier puede usar los pedidos para entrenar. Dejó armada la conexión que
+      usa el armador: App Check con reCAPTCHA Enterprise y **enforce activo**
+      en AI Logic (servicio `firebaseml.googleapis.com`), debug token de
+      localhost en `app-check-debug.local.ts`, fuera del repo. Firestore y
+      Auth siguen sin enforce.
+
 ## En curso / pendiente
 
 - [ ] **Recetario.** Diseñado y sin implementar. El spec está en
@@ -244,18 +267,36 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       no el nombre, para que renombrarla no rompa nada— y qué pasa si se
       borra una preparación que otra comida usa.
 
-- [ ] **Armador de semanas.** Un botón que llena los slots vacíos del plan
-      respetando lo ya elegido y las salidas. Sin IA: por cada slot, puntaje a
-      cada comida candidata y la mejor con algo de azar para que no salga
-      siempre la misma semana. El puntaje sale de lo que ya hay —los chequeos
-      de la guía (carbos una vez por día, carne roja ≤3, pescado ≥2), plantas
-      nuevas para la semana (`comidasQueSuman`), no repetir lo de las últimas
-      semanas (el historial de `schedules`), tags de estación
-      ("otoño-invierno", "primavera")— y cada elección muestra por qué la
-      eligió. Depende de los chequeos de la guía, que son el mismo cálculo.
-      Metadata que falta: carne roja / blanca / pescado en el catálogo, si la
-      comida es plato principal, guarnición o desayuno (hoy son tags sueltos
-      y desparejos), y el rating si existe.
+- [ ] **Armador de semanas.** Entrega 1 hecha, sigue la 2 (Flash). La
+      entrega 1 es el botón "Completar semana", la lista **No como** y el
+      país en Ajustes; plan en
+      [`docs/superpowers/plans/2026-11-10-armador-semanas.md`](docs/superpowers/plans/2026-11-10-armador-semanas.md).
+      *Completar recetas* ya respeta No como. Alcance completo: un botón que llena
+      los desayunos, almuerzos y cenas vacíos del plan respetando lo ya
+      elegido y las salidas (postres y colación no). Dos entregas:
+      **1. algorítmica** —funciones puras con Vitest: estación por fecha y
+      hemisferio, puntaje por plantas nuevas hacia la meta de 30
+      (`comidasQueSuman`) y por usar lo que sobra en la despensa, no repetir
+      en la semana, validación con `chequearSemana` (carbos una vez por día,
+      roja ≤3, pescado ≥2)— y **2. Flash encima**, sobre la conexión que dejó
+      armada *completar recetas*: un pedido con el contexto preparado y
+      `responseSchema` (ids como `enum`), y un segundo pedido aparte sólo
+      para recetas nuevas —si faltan para variedad o no se llega a 30
+      plantas, tope 2-3—, que se usan, se descartan o se guardan con el tag
+      "para probar". Suma una lista **No como** en Ajustes: filtro duro por
+      ingrediente vía el catálogo, y se le pasa a Flash. Cada elección muestra por
+      qué. Metadata que sigue faltando: si la comida es plato principal,
+      guarnición o desayuno (hoy son tags sueltos y desparejos), y el rating
+      si existe.
+
+- [ ] **Comidas y acompañamientos por separado.** Salió de *completar
+      recetas*: Flash sugería "1 taza de ensalada verde" y se resolvió
+      pidiéndole ingredientes concretos, que se suman a la receta. Lo que se
+      quiere es que una sugerencia de acompañamiento pueda crear el plato y
+      usarlo —un acompañamiento sirve para varios platos—, y para eso `Meal`
+      tiene que distinguir platos de acompañamientos, que hoy no hace. Se
+      cruza con *Preparaciones* (abajo) y con el armador, que necesita la
+      misma distinción.
 
 - [ ] **Lista de compras: lo que quedó afuera del redondeo.** Dos cosas del
       ítem de cantidades que se compran (hecho, arriba): "clara" se compra

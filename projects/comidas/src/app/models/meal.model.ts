@@ -63,6 +63,8 @@ export type Dish = {
   portions: number;
   excluded?: boolean;
   label?: string;
+  // Por qué lo puso el armador ("suma 4 plantas nuevas"); se borra cuando el usuario cambia el slot.
+  motivo?: string;
 };
 
 export type DaySchedule = {

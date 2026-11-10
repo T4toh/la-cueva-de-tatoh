@@ -1,4 +1,4 @@
-import { afterRenderEffect, Component, computed, inject, signal } from '@angular/core';
+import { afterRenderEffect, Component, computed, inject, linkedSignal, OnDestroy, signal } from '@angular/core';
 import { comidasQueSuman, META_PLANTAS, plantasDeLaSemana } from '../../catalogo/plantas';
 import { armarGuia, REGLAS, tipDelPlan } from '../../guia/guia';
 import { chequearSemana, MAX_CARNE_ROJA, META_CARNE_BLANCA, MIN_PESCADO } from '../../guia/chequeos';
@@ -26,7 +26,7 @@ let diaMostrado = 0;
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnDestroy {
   mealService = inject(MealService);
   private dialogService = inject(DialogService);
 
@@ -39,6 +39,38 @@ export class DashboardComponent {
     diaMostrado = hoy;
     document.querySelector('.day-panel.is-today')?.scrollIntoView({ block: 'start' });
   });
+
+  // El aviso es de la semana que se completó: cambiar de semana lo borra.
+  readonly resultado = linkedSignal<number, { puestos: number; sinCandidatos: number } | null>({
+    source: computed(() => this.mealService.currentWeekStart().getTime()),
+    computation: () => null,
+  });
+
+  readonly sinVacias = computed(() =>
+    this.mealService.slotsParaCompletar().length === 0 ? 'No hay comidas vacías para completar' : ''
+  );
+  readonly aviso = computed(() => {
+    const r = this.resultado();
+    if (!r) {
+      return '';
+    }
+    const n = r.sinCandidatos;
+    const resto = n > 0 ? ` · ${n} ${n === 1 ? 'quedó' : 'quedaron'} sin opciones` : '';
+    return `Puse ${r.puestos} ${r.puestos === 1 ? 'comida' : 'comidas'}${resto}`;
+  });
+
+  completarSemana(): void {
+    this.resultado.set(this.mealService.completarSemana());
+  }
+
+  deshacer(): void {
+    this.mealService.deshacerCompletar();
+    this.resultado.set(null);
+  }
+
+  ngOnDestroy(): void {
+    this.mealService.olvidarDeshacer();
+  }
 
   readonly metaPlantas = META_PLANTAS;
   readonly verPlantas = signal(false);
@@ -91,6 +123,10 @@ export class DashboardComponent {
       return 'Seleccionar';
     }
     return this.getMealName(dishes[0].mealId);
+  }
+
+  motivoDe(day: DaySchedule, type: DishMealType): string {
+    return day[type][0]?.motivo ?? '';
   }
 
   isPlaceholder(mealId: string): boolean {

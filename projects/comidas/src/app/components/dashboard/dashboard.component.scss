@@ -705,3 +705,43 @@ input:checked + .slider:before {
     display: none;
   }
 }
+
+.dish-motivo {
+  display: block;
+  color: var(--fg-secondary);
+  font-size: 0.75rem;
+  padding: 0 0.5rem;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.completar-vacio:empty {
+  display: none;
+}
+
+.completar-vacio {
+  align-self: center;
+  color: var(--fg-secondary);
+}
+
+.completar-aviso {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: -1rem 0 1.5rem;
+  color: var(--fg-secondary);
+}
+
+.completar-aviso[hidden],
+.completar-aviso [hidden] {
+  display: none;
+}
+
+// Modo individual: el motivo va centrado bajo el botón del plato.
+.slot > .dish-motivo {
+  text-align: center;
+}

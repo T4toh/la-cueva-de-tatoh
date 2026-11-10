@@ -34,6 +34,11 @@ import {
 import { CATALOGO } from '../catalogo/catalogo-datos';
 import { claveParte, DiaLista, estaTildada, ParteCompra, repartirDespensa, sinRuido } from '../compras/partes';
 import { GUIA_VACIA, GuiaPropia, normalizarGuia } from '../guia/guia';
+import { armarSemana, Slot, slotsVacios } from '../armador/armador';
+import { candidatosPorTipo } from '../armador/candidatos';
+import { normalizarNoComo } from '../armador/no-como';
+import { estacionDe, hemisferioDe, paisDeTimezone } from '../armador/estacion';
+import { ContextoPuntaje } from '../armador/puntaje';
 import {
   CompraRegistrada,
   DaySchedule,
@@ -57,6 +62,19 @@ import {
 const ID_AFUERA = 'afuera';
 
 const CANTIDAD = /^\s*(?:(\d+)\s+)?(\d+(?:[.,]\d+)?)(?:\s*\/\s*(\d+))?/;
+
+// Qué clave de `visibleMeals` muestra cada tipo de slot que llena el armador.
+const VISIBLE_DE: Record<DishMealType, 'breakfast' | 'lunch' | 'dinner'> = {
+  desayuno: 'breakfast',
+  almuerzo: 'lunch',
+  cena: 'dinner',
+};
+
+function sinMotivo(plato: Dish): Dish {
+  const copia = { ...plato };
+  delete copia.motivo;
+  return copia;
+}
 
 // Lo que dice de cada parte de un renglón `leerRenglon`. `registroDe` devuelve
 // la clave del registro en `compras`; `faltas` es por parte de `sinRegistro`.
@@ -370,6 +388,7 @@ export class MealService {
   private readonly ALIAS_KEY = 'comidas_alias';
   private readonly CATALOGO_PROPIO_KEY = 'comidas_catalogo_propio';
   private readonly GUIA_KEY = 'comidas_guia';
+  private readonly NO_COMO_KEY = 'comidas_no_como';
   private readonly POR_REVOCAR_KEY = 'comidas_por_revocar';
   // Links huérfanos que todavía no se confirmaron revocados. Una vez que el
   // `publicId` salió de `meals`, éste es el único lado donde queda el puntero,
@@ -441,6 +460,8 @@ export class MealService {
   // Lo que el usuario ocultó o agregó a la guía. Ver
   // docs/superpowers/specs/2026-10-08-guia-design.md
   readonly guia = signal<GuiaPropia>(this.loadGuia());
+  // Lo que el armador nunca sugiere. Ver docs/superpowers/specs/2026-11-06-armador-semanas-design.md
+  readonly noComo = signal<string[]>(this.loadNoComo());
   readonly catalogoPropio = signal<EntradaCatalogo[]>(this.loadCatalogoPropio());
   readonly catalogoEfectivo = computed(() => combinar(CATALOGO, this.catalogoPropio()));
   readonly indiceCatalogo = computed<IndiceCatalogo>(() => indexar(this.catalogoEfectivo()));
@@ -473,6 +494,11 @@ export class MealService {
     dinner: true,
   });
   readonly familyPortions = signal<number>(4);
+  // Para la estación del armador. Null: sale del timezone.
+  readonly pais = signal<string | null>(null);
+  readonly paisEfectivo = computed(
+    () => this.pais() ?? paisDeTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone)
+  );
 
   // Navigation State
   readonly currentWeekStart = signal<Date>(this.getStartOfWeek(new Date()));
@@ -634,6 +660,9 @@ export class MealService {
         isFamilyMode: this.isFamilyMode(),
         visibleMeals: this.visibleMeals(),
         familyPortions: this.familyPortions(),
+        // Null y no undefined: el setDoc con merge mezcla el mapa, y una clave
+        // que no viaja no borra el país que quedó en la nube.
+        pais: this.pais(),
       };
       localStorage.setItem(this.FAMILY_SETTINGS_KEY, JSON.stringify(settings));
       if (this.cola.debeGuardarAhora('familySettings')) {
@@ -659,6 +688,13 @@ export class MealService {
       localStorage.setItem(this.GUIA_KEY, JSON.stringify(data));
       if (this.cola.debeGuardarAhora('guia')) {
         this.saveToFirestore('guia', data);
+      }
+    });
+    effect(() => {
+      const data = this.noComo();
+      localStorage.setItem(this.NO_COMO_KEY, JSON.stringify(data));
+      if (this.cola.debeGuardarAhora('noComo')) {
+        this.saveToFirestore('noComo', data);
       }
     });
     this.migrateQuantitiesToNumeric();
@@ -912,6 +948,7 @@ export class MealService {
       pantryGroups: (v) => this.pantryGroups.set(v as PantryGroup[]),
       catalogoPropio: (v) => this.catalogoPropio.set(v as EntradaCatalogo[]),
       guia: (v) => this.guia.set(normalizarGuia(v)),
+      noComo: (v) => this.noComo.set(normalizarNoComo(v)),
       familySettings: (v) => {
         const fs = v as {
           isFamilyMode: boolean;
@@ -922,12 +959,14 @@ export class MealService {
             dinner: boolean;
           };
           familyPortions: number;
+          pais?: string | null;
         };
         this.isFamilyMode.set(fs.isFamilyMode);
         if (fs.visibleMeals) {
           this.visibleMeals.set(fs.visibleMeals);
         }
         this.familyPortions.set(fs.familyPortions);
+        this.pais.set(fs.pais ?? null);
       },
     };
 
@@ -962,10 +1001,12 @@ export class MealService {
       pantryGroups: this.pantryGroups(),
       catalogoPropio: this.catalogoPropio(),
       guia: this.guia(),
+      noComo: this.noComo(),
       familySettings: {
         isFamilyMode: this.isFamilyMode(),
         visibleMeals: this.visibleMeals(),
         familyPortions: this.familyPortions(),
+        pais: this.pais(),
       },
       alias: this.alias(),
     };
@@ -1169,6 +1210,26 @@ export class MealService {
     return data ? normalizarGuia(JSON.parse(data)) : GUIA_VACIA;
   }
 
+  private loadNoComo(): string[] {
+    const data = localStorage.getItem(this.NO_COMO_KEY);
+    return data ? normalizarNoComo(JSON.parse(data)) : [];
+  }
+
+  // Devuelve `false` si queda en blanco o ya está (comparado normalizado), para
+  // que la pantalla no limpie el input.
+  agregarNoComo(texto: string): boolean {
+    const limpio = texto.trim();
+    if (!limpio || this.noComo().some((t) => normalizar(t) === normalizar(limpio))) {
+      return false;
+    }
+    this.noComo.update((lista) => [...lista, limpio]);
+    return true;
+  }
+
+  quitarNoComo(texto: string): void {
+    this.noComo.update((lista) => lista.filter((t) => normalizar(t) !== normalizar(texto)));
+  }
+
   // Una en blanco no se guarda: devuelve `false` para que la pantalla no
   // limpie el formulario.
   agregarReglaPropia(texto: string, detalle?: string): boolean {
@@ -1273,6 +1334,7 @@ export class MealService {
       }
 
       this.familyPortions.set(settings.familyPortions || 4);
+      this.pais.set(settings.pais ?? null);
     }
   }
 
@@ -1440,25 +1502,22 @@ export class MealService {
     this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
   }
 
-  setMeal(dayName: string, type: DishMealType, mealId: string): void {
+  // Cambia los platos de un slot de la semana mostrada. El usuario lo tocó: el
+  // motivo que dejó el armador se borra de ese slot, y de ningún otro.
+  private cambiarSlot(dayName: string, type: DishMealType, cambio: (platos: Dish[]) => Dish[]): void {
     const key = this.formatDateKey(this.currentWeekStart());
-    const currentWeekSchedule = this.schedule();
-    const updatedWeek = currentWeekSchedule.map((day) => {
-      if (day.dayName !== dayName) {
-        return day;
-      }
-      return { ...day, [type]: [{ mealId, portions: 1, excluded: false }] };
-    });
+    const updatedWeek = this.schedule().map((day) =>
+      day.dayName === dayName ? { ...day, [type]: cambio(day[type]).map(sinMotivo) } : day
+    );
     this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
   }
 
+  setMeal(dayName: string, type: DishMealType, mealId: string): void {
+    this.cambiarSlot(dayName, type, () => [{ mealId, portions: 1, excluded: false }]);
+  }
+
   clearMeal(dayName: string, type: DishMealType): void {
-    const key = this.formatDateKey(this.currentWeekStart());
-    const currentWeekSchedule = this.schedule();
-    const updatedWeek = currentWeekSchedule.map((day) =>
-      day.dayName === dayName ? { ...day, [type]: [] } : day
-    );
-    this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
+    this.cambiarSlot(dayName, type, () => []);
   }
 
   addDish(
@@ -1467,32 +1526,11 @@ export class MealService {
     mealId: string,
     portions: number
   ): void {
-    const key = this.formatDateKey(this.currentWeekStart());
-    const currentWeekSchedule = this.schedule();
-    const updatedWeek = currentWeekSchedule.map((day) => {
-      if (day.dayName !== dayName) {
-        return day;
-      }
-      const current = day[type] as Dish[];
-      return {
-        ...day,
-        [type]: [...current, { mealId, portions, excluded: false }],
-      };
-    });
-    this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
+    this.cambiarSlot(dayName, type, (platos) => [...platos, { mealId, portions, excluded: false }]);
   }
 
   removeDish(dayName: string, type: DishMealType, index: number): void {
-    const key = this.formatDateKey(this.currentWeekStart());
-    const currentWeekSchedule = this.schedule();
-    const updatedWeek = currentWeekSchedule.map((day) => {
-      if (day.dayName !== dayName) {
-        return day;
-      }
-      const current = day[type] as Dish[];
-      return { ...day, [type]: current.filter((_, i) => i !== index) };
-    });
-    this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
+    this.cambiarSlot(dayName, type, (platos) => platos.filter((_, i) => i !== index));
   }
 
   updateDishPortions(
@@ -1501,19 +1539,7 @@ export class MealService {
     index: number,
     portions: number
   ): void {
-    const key = this.formatDateKey(this.currentWeekStart());
-    const currentWeekSchedule = this.schedule();
-    const updatedWeek = currentWeekSchedule.map((day) => {
-      if (day.dayName !== dayName) {
-        return day;
-      }
-      const current = day[type] as Dish[];
-      return {
-        ...day,
-        [type]: current.map((d, i) => (i === index ? { ...d, portions } : d)),
-      };
-    });
-    this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
+    this.cambiarSlot(dayName, type, (platos) => platos.map((d, i) => (i === index ? { ...d, portions } : d)));
   }
 
   updateDishLabel(
@@ -1522,30 +1548,20 @@ export class MealService {
     index: number,
     label: string
   ): void {
-    const key = this.formatDateKey(this.currentWeekStart());
-    const currentWeekSchedule = this.schedule();
-    const updatedWeek = currentWeekSchedule.map((day) => {
-      if (day.dayName !== dayName) {
-        return day;
-      }
-      const current = day[type] as Dish[];
-      return {
-        ...day,
-        [type]: current.map((d, i) => {
-          if (i !== index) {
-            return d;
-          }
-          const dish: Dish = { ...d };
-          if (label.trim()) {
-            dish.label = label.trim();
-          } else {
-            delete dish.label;
-          }
-          return dish;
-        }),
-      };
-    });
-    this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
+    this.cambiarSlot(dayName, type, (platos) =>
+      platos.map((d, i) => {
+        if (i !== index) {
+          return d;
+        }
+        const dish: Dish = { ...d };
+        if (label.trim()) {
+          dish.label = label.trim();
+        } else {
+          delete dish.label;
+        }
+        return dish;
+      })
+    );
   }
 
   toggleDishExclusion(
@@ -1553,21 +1569,9 @@ export class MealService {
     type: DishMealType,
     index: number
   ): void {
-    const key = this.formatDateKey(this.currentWeekStart());
-    const currentWeekSchedule = this.schedule();
-    const updatedWeek = currentWeekSchedule.map((day) => {
-      if (day.dayName !== dayName) {
-        return day;
-      }
-      const current = day[type] as Dish[];
-      return {
-        ...day,
-        [type]: current.map((d, i) =>
-          i === index ? { ...d, excluded: !d.excluded } : d
-        ),
-      };
-    });
-    this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
+    this.cambiarSlot(dayName, type, (platos) =>
+      platos.map((d, i) => (i === index ? { ...d, excluded: !d.excluded } : d))
+    );
   }
 
   replaceDishMeal(
@@ -1576,19 +1580,7 @@ export class MealService {
     index: number,
     mealId: string
   ): void {
-    const key = this.formatDateKey(this.currentWeekStart());
-    const currentWeekSchedule = this.schedule();
-    const updatedWeek = currentWeekSchedule.map((day) => {
-      if (day.dayName !== dayName) {
-        return day;
-      }
-      const current = day[type] as Dish[];
-      return {
-        ...day,
-        [type]: current.map((d, i) => (i === index ? { ...d, mealId } : d)),
-      };
-    });
-    this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
+    this.cambiarSlot(dayName, type, (platos) => platos.map((d, i) => (i === index ? { ...d, mealId } : d)));
   }
 
   clearSchedule(): void {
@@ -1619,7 +1611,13 @@ export class MealService {
     const prevKey = this.formatDateKey(prevDate);
     const prevSchedule = this.schedules()[prevKey];
     if (prevSchedule) {
-      const copy = JSON.parse(JSON.stringify(prevSchedule));
+      // Copiarla es elegirla: lo que puso el armador queda como del usuario.
+      const copy = prevSchedule.map((d) => ({
+        ...d,
+        desayuno: d.desayuno.map(sinMotivo),
+        almuerzo: d.almuerzo.map(sinMotivo),
+        cena: d.cena.map(sinMotivo),
+      }));
       this.schedules.update((s) => ({ ...s, [currentKey]: copy }));
     } else {
       this.dialogService.alert(
@@ -1627,6 +1625,80 @@ export class MealService {
         'No hay datos de la semana anterior para copiar.'
       );
     }
+  }
+
+  // La fecha del día `index` de la semana mostrada; negativo, hacia atrás.
+  private fechaDelDia(index: number): Date {
+    const d = new Date(this.currentWeekStart());
+    d.setDate(d.getDate() + index);
+    return d;
+  }
+
+  // Desde qué día y qué tipos llena el armador: de hoy en adelante, como la
+  // lista de compras, y sólo lo visible. Semana pasada: desde 7, ninguno.
+  private readonly alcanceCompletar = computed(() => {
+    const today = new Date(this.todayTimestamp());
+    const desde = this.schedule().findIndex((_, i) => this.fechaDelDia(i) >= today);
+    const visibles = this.visibleMeals();
+    return {
+      desde: desde < 0 ? this.schedule().length : desde,
+      tipos: (Object.keys(VISIBLE_DE) as DishMealType[]).filter((t) => visibles[VISIBLE_DE[t]]),
+    };
+  });
+
+  readonly slotsParaCompletar = computed<Slot[]>(() => {
+    const { desde, tipos } = this.alcanceCompletar();
+    return slotsVacios(this.schedule(), desde, tipos);
+  });
+
+  // Lo que deshace "Completar semana". Vale mientras lo puesto siga siendo lo
+  // guardado y esa semana sea la que se ve: cualquier cambio del plan lo apaga.
+  private readonly ultimoCompletar = signal<{ key: string; antes: DaySchedule[]; despues: DaySchedule[] } | null>(
+    null
+  );
+  readonly puedeDeshacer = computed(() => {
+    const u = this.ultimoCompletar();
+    return !!u && this.schedules()[u.key] === u.despues && this.formatDateKey(this.currentWeekStart()) === u.key;
+  });
+
+  completarSemana(azar: () => number = Math.random): { puestos: number; sinCandidatos: number } {
+    const key = this.formatDateKey(this.currentWeekStart());
+    const antes = this.schedule();
+    const { desde, tipos } = this.alcanceCompletar();
+    const indice = this.indiceCatalogo();
+    const candidatos = candidatosPorTipo(this.meals(), Object.values(this.schedules()), this.noComo(), indice);
+    // "Reciente": estuvo en alguna de las dos semanas anteriores.
+    const recientes = new Set(
+      [-7, -14]
+        .flatMap((dias) => this.schedules()[this.formatDateKey(this.fechaDelDia(dias))] ?? [])
+        .flatMap((d) => [...d.desayuno, ...d.almuerzo, ...d.cena].map((p) => p.mealId))
+    );
+    const ctx: ContextoPuntaje = {
+      meals: this.meals(),
+      indice,
+      despensa: this.pantry(),
+      recientes,
+      estacion: estacionDe(this.currentWeekStart(), hemisferioDe(this.paisEfectivo())),
+      reglasOcultas: new Set(this.guia().ocultas),
+    };
+    const { semana, puestos, sinCandidatos } = armarSemana(antes, desde, tipos, candidatos, ctx, azar);
+    if (puestos) {
+      this.schedules.update((s) => ({ ...s, [key]: semana }));
+      this.ultimoCompletar.set({ key, antes, despues: semana });
+    }
+    return { puestos, sinCandidatos };
+  }
+
+  deshacerCompletar(): void {
+    const u = this.ultimoCompletar();
+    if (u && this.puedeDeshacer()) {
+      this.schedules.update((s) => ({ ...s, [u.key]: u.antes }));
+      this.ultimoCompletar.set(null);
+    }
+  }
+
+  olvidarDeshacer(): void {
+    this.ultimoCompletar.set(null);
   }
 
   addTag(name: string, color: string): void {
@@ -1857,14 +1929,12 @@ export class MealService {
   readonly partesSemana = computed<ParteCompra[]>(() => {
     const allMeals = this.meals();
     const today = new Date(this.todayTimestamp());
-    const weekStart = this.currentWeekStart();
     const tagMap = this.ingredientTags();
     const tagDe = (nombre: string): string | undefined => tagMap[nombre.toLowerCase().trim()];
     const partes: ParteCompra[] = [];
 
     this.schedule().forEach((day, index) => {
-      const dayDate = new Date(weekStart);
-      dayDate.setDate(weekStart.getDate() + index);
+      const dayDate = this.fechaDelDia(index);
       if (dayDate < today) {
         return;
       }
@@ -2721,6 +2791,10 @@ export class MealService {
       const v = normalizarGuia(data['guia']);
       pasos.push(() => this.guia.set(v));
     }
+    if (data['noComo']) {
+      const v = normalizarNoComo(data['noComo']);
+      pasos.push(() => this.noComo.set(v));
+    }
     if (data['familySettings']) {
       const fs = data['familySettings'] as {
         isFamilyMode: boolean;
@@ -2733,6 +2807,7 @@ export class MealService {
         };
         // Formato viejo, anterior a `visibleMeals`.
         isBreakfastEnabled?: boolean;
+        pais?: string | null;
       };
       const visibles = fs.visibleMeals ?? {
         breakfast: fs.isBreakfastEnabled ?? false,
@@ -2744,6 +2819,7 @@ export class MealService {
         this.isFamilyMode.set(fs.isFamilyMode);
         this.visibleMeals.set(visibles);
         this.familyPortions.set(fs.familyPortions);
+        this.pais.set(fs.pais ?? null);
       });
     }
     return pasos;

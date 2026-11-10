@@ -1,5 +1,6 @@
 import {
   Component,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -9,6 +10,8 @@ import { MealService } from '../../services/meal.service';
 import { AuthService } from '../../services/auth.service';
 import { DialogService } from '../../services/dialog.service';
 import { Icon, Panel } from 'componentes';
+import { reconocido } from '../../armador/no-como';
+import { PAISES } from '../../armador/estacion';
 import { ImportPreviewComponent } from '../import-preview/import-preview.component';
 
 @Component({
@@ -24,6 +27,23 @@ export class SettingsComponent {
   authService = inject(AuthService);
   readonly promptCopied = signal(false);
   readonly importOpen = signal(false);
+  readonly paises = PAISES;
+  readonly nuevoNoComo = signal('');
+  readonly reconocidoNuevo = computed(() => reconocido(this.nuevoNoComo(), this.mealService.indiceCatalogo()));
+  readonly nombrePaisEfectivo = computed(
+    () => PAISES.find((p) => p.id === this.mealService.paisEfectivo())?.nombre ?? ''
+  );
+
+  agregarNoComo(): void {
+    if (this.mealService.agregarNoComo(this.nuevoNoComo())) {
+      this.nuevoNoComo.set('');
+    }
+  }
+
+  cambiarPais(id: string): void {
+    this.mealService.pais.set(id || null);
+  }
+
   async refreshData(): Promise<void> {
     await this.mealService.refreshData();
     this.dialogService.alert('Sincronización', 'Datos descargados de la nube.');

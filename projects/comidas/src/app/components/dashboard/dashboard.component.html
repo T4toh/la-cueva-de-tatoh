@@ -134,10 +134,27 @@
     >
       Copiar semana anterior
     </button>
+    <button
+      class="btn-secondary"
+      type="button"
+      [disabled]="mealService.slotsParaCompletar().length === 0"
+      [title]="sinVacias()"
+      (click)="completarSemana()"
+    >
+      Completar semana
+    </button>
+    <small class="completar-vacio">{{ sinVacias() }}</small>
     <button class="btn-secondary btn-print" type="button" (click)="printMenu()">
       Imprimir Menú
     </button>
   </div>
+
+  <p class="completar-aviso" [hidden]="!aviso()">
+    {{ aviso() }}
+    <button class="btn-secondary" type="button" [hidden]="!mealService.puedeDeshacer()" (click)="deshacer()">
+      Deshacer
+    </button>
+  </p>
 
   <div class="schedule-grid">
     @for (day of mealService.schedule(); track day.dayName) {
@@ -216,6 +233,7 @@
                           </button>
                         </div>
                       </div>
+                      <small class="dish-motivo">{{ dish.motivo }}</small>
                       <input
                         class="dish-label-input"
                         placeholder="Para quién..."
@@ -279,6 +297,7 @@
                 >
                   {{ getFirstMealName(day, 'desayuno') }}
                 </a>
+                <small class="dish-motivo">{{ motivoDe(day, 'desayuno') }}</small>
               }
             </div>
           }
@@ -343,6 +362,7 @@
                           </button>
                         </div>
                       </div>
+                      <small class="dish-motivo">{{ dish.motivo }}</small>
                       <input
                         class="dish-label-input"
                         placeholder="Para quién..."
@@ -406,6 +426,7 @@
                 >
                   {{ getFirstMealName(day, 'almuerzo') }}
                 </a>
+                <small class="dish-motivo">{{ motivoDe(day, 'almuerzo') }}</small>
               }
               <div class="embedded-postre">
                 <input
@@ -487,6 +508,7 @@
                           </button>
                         </div>
                       </div>
+                      <small class="dish-motivo">{{ dish.motivo }}</small>
                       <input
                         class="dish-label-input"
                         placeholder="Para quién..."
@@ -541,6 +563,7 @@
                 >
                   {{ getFirstMealName(day, 'cena') }}
                 </a>
+                <small class="dish-motivo">{{ motivoDe(day, 'cena') }}</small>
               }
               <div class="embedded-postre">
                 <input

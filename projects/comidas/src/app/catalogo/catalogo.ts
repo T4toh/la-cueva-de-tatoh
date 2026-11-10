@@ -134,6 +134,10 @@ function candidatos(clave: string): string[] {
   return [clave, sinS, sinEs, conS, conEs].map((c) => (Array.isArray(c) ? c.join(' ') : c));
 }
 
+// Lo ya clasificado, por índice: el armador clasifica los mismos ingredientes
+// miles de veces por semana. Un índice no cambia después de `indexar`.
+const clasificados = new WeakMap<IndiceCatalogo, Map<string, EntradaCatalogo | null>>();
+
 // Sin coincidencias parciales a propósito: "salsa de tomate" no es tomate. Lo
 // que tiene que reconocerse va como sinónimo en el catálogo.
 export function clasificar(nombre: string, indice: IndiceCatalogo): EntradaCatalogo | null {
@@ -141,13 +145,18 @@ export function clasificar(nombre: string, indice: IndiceCatalogo): EntradaCatal
   if (!clave) {
     return null;
   }
-  for (const candidato of candidatos(clave)) {
-    const entrada = indice.get(candidato);
-    if (entrada) {
-      return entrada;
-    }
+  let cache = clasificados.get(indice);
+  if (!cache) {
+    cache = new Map();
+    clasificados.set(indice, cache);
   }
-  return null;
+  const visto = cache.get(clave);
+  if (visto !== undefined) {
+    return visto;
+  }
+  const entrada = candidatos(clave).map((c) => indice.get(c)).find((e) => e) ?? null;
+  cache.set(clave, entrada);
+  return entrada;
 }
 
 // Para el autocompletado del editor: primero el catálogo (por nombre o

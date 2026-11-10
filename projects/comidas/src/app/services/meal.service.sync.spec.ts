@@ -9,7 +9,8 @@ import {
 } from '@angular/fire/firestore';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Meal, ShoppingItem } from '../models/meal.model';
+import { paisDeTimezone } from '../armador/estacion';
+import { Dish, Meal, ShoppingItem } from '../models/meal.model';
 import { AuthService } from './auth.service';
 import { MealService, pareceBackup, parseNumericQuantity } from './meal.service';
 import { RecetaPublicaService } from './receta-publica.service';
@@ -1260,5 +1261,262 @@ describe('MealService: lista por día', () => {
     expect(dias[0].items[0]).toMatchObject({ quantityOverride: '1 unidad', checked: false });
     expect(dias[1].items[0]).toMatchObject({ quantityOverride: '1 unidad', usas: '0.5 unidad' });
     expect(dias[2].items.map((i) => i.name)).toEqual(['Servilletas']);
+  });
+});
+
+describe('MealService: armador de semanas', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: Firestore, useValue: {} },
+        { provide: AuthService, useValue: { currentUser: signal(null) } },
+      ],
+    });
+  });
+
+  afterEach(() => localStorage.clear());
+
+  const desdeElDia = (service: MealService, dias: number): void => {
+    const hoy = new Date(service.currentWeekStart());
+    hoy.setDate(hoy.getDate() + dias);
+    service.todayTimestamp.set(hoy.getTime());
+  };
+
+  const clave = (service: MealService): string => service.currentWeekStart().toISOString().split('T')[0];
+
+  // Un desayuno y diez principales: el desayuno se repite y los principales no alcanzan.
+  const cargar = (service: MealService): string[] => {
+    service.addMeal({ name: 'Avena', tags: ['desayuno'], ingredients: [] });
+    for (let i = 0; i < 10; i++) {
+      service.addMeal({ name: `Plato ${i}`, tags: ['almuerzo'], ingredients: [] });
+    }
+    return service.meals().map((m) => m.id);
+  };
+
+  it('completa la semana mostrada y deshacer la deja como estaba', () => {
+    const service = TestBed.inject(MealService);
+    desdeElDia(service, 0);
+    const [, primero] = cargar(service);
+    service.setMeal('Lunes', 'almuerzo', primero);
+    const antes = service.schedule();
+
+    // 7 desayunos + 6 almuerzos + 7 cenas vacíos; quedan 9 principales sin usar.
+    expect(service.completarSemana(() => 0)).toEqual({ puestos: 16, sinCandidatos: 4 });
+    const [lunes] = service.schedule();
+    expect(lunes.almuerzo).toEqual([{ mealId: primero, portions: 1, excluded: false }]);
+    expect(lunes.cena[0].motivo).toBeTruthy();
+    expect(service.schedule().every((d) => d.desayuno.length === 1)).toBe(true);
+    expect(service.puedeDeshacer()).toBe(true);
+
+    service.deshacerCompletar();
+    expect(service.schedule()).toEqual(antes);
+    expect(service.puedeDeshacer()).toBe(false);
+  });
+
+  it('sólo cuenta los días desde hoy y los tipos visibles', () => {
+    const service = TestBed.inject(MealService);
+    desdeElDia(service, 5);
+    service.toggleMealVisibility('breakfast');
+
+    expect(service.slotsParaCompletar()).toEqual([
+      { dia: 5, tipo: 'almuerzo' },
+      { dia: 5, tipo: 'cena' },
+      { dia: 6, tipo: 'almuerzo' },
+      { dia: 6, tipo: 'cena' },
+    ]);
+
+    service.previousWeek();
+    expect(service.slotsParaCompletar()).toEqual([]);
+    const antes = service.schedule();
+    expect(service.completarSemana()).toEqual({ puestos: 0, sinCandidatos: 0 });
+    expect(service.schedule()).toBe(antes);
+    expect(service.puedeDeshacer()).toBe(false);
+  });
+
+  it('un cambio del plan apaga el deshacer', () => {
+    const service = TestBed.inject(MealService);
+    desdeElDia(service, 0);
+    const [avena] = cargar(service);
+    service.completarSemana(() => 0);
+
+    service.setMeal('Martes', 'cena', avena);
+    expect(service.puedeDeshacer()).toBe(false);
+    service.deshacerCompletar();
+    expect(service.schedule()[1].cena[0].mealId).toBe(avena);
+  });
+
+  it('cambiar de semana apaga el deshacer; olvidarlo lo borra', () => {
+    const service = TestBed.inject(MealService);
+    desdeElDia(service, 0);
+    cargar(service);
+    service.completarSemana(() => 0);
+
+    service.nextWeek();
+    expect(service.puedeDeshacer()).toBe(false);
+
+    service.previousWeek();
+    expect(service.puedeDeshacer()).toBe(true);
+    service.olvidarDeshacer();
+    expect(service.puedeDeshacer()).toBe(false);
+  });
+
+  it('lo de la semana anterior pierde contra uno igual que no estuvo', () => {
+    const service = TestBed.inject(MealService);
+    service.addMeal({ name: 'Reciente', tags: ['almuerzo'], ingredients: [] });
+    service.addMeal({ name: 'Nuevo', tags: ['almuerzo'], ingredients: [] });
+    const [reciente, nuevo] = service.meals().map((m) => m.id);
+    service.previousWeek();
+    service.setMeal('Lunes', 'almuerzo', reciente);
+    service.nextWeek();
+    // Un solo slot: el almuerzo del domingo.
+    desdeElDia(service, 6);
+    service.toggleMealVisibility('breakfast');
+    service.toggleMealVisibility('dinner');
+
+    expect(service.completarSemana(() => 0)).toEqual({ puestos: 1, sinCandidatos: 0 });
+    expect(service.schedule()[6].almuerzo[0].mealId).toBe(nuevo);
+  });
+
+  const cambios: [string, (s: MealService) => void][] = [
+    ['setMeal', (s): void => s.setMeal('Lunes', 'almuerzo', 'x')],
+    ['addDish', (s): void => s.addDish('Lunes', 'almuerzo', 'x', 2)],
+    ['removeDish', (s): void => s.removeDish('Lunes', 'almuerzo', 0)],
+    ['updateDishPortions', (s): void => s.updateDishPortions('Lunes', 'almuerzo', 0, 3)],
+    ['updateDishLabel', (s): void => s.updateDishLabel('Lunes', 'almuerzo', 0, 'Grande')],
+    ['toggleDishExclusion', (s): void => s.toggleDishExclusion('Lunes', 'almuerzo', 0)],
+    ['replaceDishMeal', (s): void => s.replaceDishMeal('Lunes', 'almuerzo', 0, 'x')],
+  ];
+
+  it.each(cambios)('%s borra el motivo de ese slot y de ningún otro', (_, cambiar) => {
+    const service = TestBed.inject(MealService);
+    const plato = (mealId: string): Dish => ({ mealId, portions: 1, excluded: false, motivo: 'variedad' });
+    const semana = service.schedule().map((d, i) =>
+      i === 0 ? { ...d, almuerzo: [plato('a'), plato('b')], cena: [plato('c')] } : { ...d, almuerzo: [plato('d')] }
+    );
+    service.importData(JSON.stringify({ schedules: { [clave(service)]: semana } }));
+
+    cambiar(service);
+
+    const [lunes, martes] = service.schedule();
+    expect(lunes.almuerzo.length).toBeGreaterThan(0);
+    expect(lunes.almuerzo.filter((p) => 'motivo' in p)).toEqual([]);
+    expect(lunes.cena[0].motivo).toBe('variedad');
+    expect(martes.almuerzo[0].motivo).toBe('variedad');
+  });
+
+  it('copiar la semana anterior no se lleva los motivos', () => {
+    const service = TestBed.inject(MealService);
+    service.previousWeek();
+    const anterior = clave(service);
+    service.nextWeek();
+    const semana = service.schedule().map((d, i) =>
+      i === 0 ? { ...d, almuerzo: [{ mealId: 'a', portions: 2, excluded: false, motivo: 'variedad' }] } : d
+    );
+    service.importData(JSON.stringify({ schedules: { [anterior]: semana } }));
+
+    service.copyFromPreviousWeek();
+
+    expect(service.schedule()[0].almuerzo).toEqual([{ mealId: 'a', portions: 2, excluded: false }]);
+    service.previousWeek();
+    expect(service.schedule()[0].almuerzo[0].motivo).toBe('variedad');
+  });
+
+  it('No como guarda recortado, sin repetidos, y persiste', async () => {
+    const service = TestBed.inject(MealService);
+
+    expect(service.agregarNoComo(' Cebolla ')).toBe(true);
+    expect(service.agregarNoComo('cebolla')).toBe(false);
+    expect(service.agregarNoComo('   ')).toBe(false);
+    expect(service.agregarNoComo('Pescado')).toBe(true);
+    service.quitarNoComo('PESCADO');
+    await asentar();
+
+    expect(service.noComo()).toEqual(['Cebolla']);
+    expect(JSON.parse(localStorage.getItem('comidas_no_como')!)).toEqual(['Cebolla']);
+  });
+
+  it('No como arranca desde localStorage y viaja en el backup', () => {
+    localStorage.setItem('comidas_no_como', JSON.stringify(['cebolla']));
+    const service = TestBed.inject(MealService);
+    expect(service.noComo()).toEqual(['cebolla']);
+
+    service.importData(JSON.stringify({ meals: [] }));
+    expect(service.noComo()).toEqual(['cebolla']);
+
+    service.importData(JSON.stringify({ noComo: ['pescado'] }));
+    expect(service.noComo()).toEqual(['pescado']);
+  });
+
+  it('No como mal formado queda como lista de textos y el armador sigue andando', () => {
+    localStorage.setItem('comidas_no_como', JSON.stringify('cebolla'));
+    const service = TestBed.inject(MealService);
+    expect(service.noComo()).toEqual([]);
+
+    service.importData(JSON.stringify({ noComo: [' ajo ', 3, null, '', { a: 1 }] }));
+    expect(service.noComo()).toEqual(['ajo']);
+    service.importData(JSON.stringify({ noComo: {} }));
+    expect(service.noComo()).toEqual([]);
+
+    desdeElDia(service, 0);
+    cargar(service);
+    expect(service.agregarNoComo('Ajo')).toBe(true);
+    expect(service.completarSemana(() => 0).puestos).toBeGreaterThan(0);
+  });
+
+  it('No como mal formado desde la nube queda como lista de textos', async () => {
+    let bajar: (snap: DocumentSnapshot) => void = () => undefined;
+    vi.mocked(onSnapshot).mockImplementation(((_ref: unknown, next: (snap: DocumentSnapshot) => void) => {
+      bajar = next;
+      return (): void => undefined;
+    }) as never);
+    TestBed.overrideProvider(AuthService, { useValue: { currentUser: signal({ uid: 'u1' }) } });
+    const service = TestBed.inject(MealService);
+    TestBed.tick();
+    bajar({
+      exists: () => true,
+      data: () => ({ noComo: 'cebolla', lastUpdated: 100 }),
+      metadata: { hasPendingWrites: false },
+    } as unknown as DocumentSnapshot);
+    await asentar();
+
+    expect(service.noComo()).toEqual([]);
+    expect(service.agregarNoComo('ajo')).toBe(true);
+  });
+
+  it('el backup exportado lleva No como y el país', async () => {
+    const service = TestBed.inject(MealService);
+    service.agregarNoComo('cebolla');
+    service.pais.set('cl');
+    let blob: Blob | undefined;
+    const crear = vi.fn((b: Blob) => {
+      blob = b;
+      return 'blob:x';
+    });
+    vi.stubGlobal('URL', Object.assign(URL, { createObjectURL: crear, revokeObjectURL: vi.fn() }));
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+
+    service.exportData();
+
+    const data = JSON.parse(await blob!.text());
+    expect(data.noComo).toEqual(['cebolla']);
+    expect(data.familySettings.pais).toBe('cl');
+    click.mockRestore();
+    vi.unstubAllGlobals();
+  });
+
+  it('el país va en familySettings; sin él sale del timezone', async () => {
+    localStorage.setItem('comidas_family_settings', JSON.stringify({ isFamilyMode: false, pais: 'cl' }));
+    const service = TestBed.inject(MealService);
+    expect(service.pais()).toBe('cl');
+    expect(service.paisEfectivo()).toBe('cl');
+
+    service.pais.set('mx');
+    await asentar();
+    expect(JSON.parse(localStorage.getItem('comidas_family_settings')!).pais).toBe('mx');
+
+    service.importData(JSON.stringify({ familySettings: { isFamilyMode: false, familyPortions: 4 } }));
+    expect(service.pais()).toBeNull();
+    expect(service.paisEfectivo()).toBe(paisDeTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone));
   });
 });
