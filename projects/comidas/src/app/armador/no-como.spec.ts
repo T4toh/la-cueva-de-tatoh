@@ -20,8 +20,18 @@ describe('chocaConNoComo', () => {
     expect(chocaConNoComo(comida('tomate'), ['cebolla'], indice)).toBe(false);
   });
 
-  it('también contra los sinónimos de la entrada', () => {
-    expect(chocaConNoComo(comida('verdeo'), ['cebolla de verdeo'], indice)).toBe(true);
+  it('también contra el nombre y los sinónimos de la entrada', () => {
+    // "pollo" clasifica en "pechuga de pollo"; el término sólo está en la entrada.
+    expect(chocaConNoComo(comida('pollo'), ['pechuga'], indice)).toBe(true);
+    expect(chocaConNoComo(comida('pollo'), ['bife de pechuga'], indice)).toBe(true);
+    expect(chocaConNoComo(comida('pollo'), ['bife de lomo'], indice)).toBe(false);
+  });
+
+  it('plurales y falsos positivos aceptados', () => {
+    expect(chocaConNoComo(comida('tomates'), ['tomate'], indice)).toBe(true);
+    expect(chocaConNoComo(comida('cebollas'), ['cebolla'], indice)).toBe(true);
+    // Aceptado a propósito: mejor sacar de más que sugerir lo que no come.
+    expect(chocaConNoComo(comida('salmón'), ['sal'], indice)).toBe(true);
   });
 
   it('categorías, con plural', () => {

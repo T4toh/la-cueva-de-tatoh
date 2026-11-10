@@ -13,20 +13,27 @@ import {
 import { Meal } from '../models/meal.model';
 
 // Etiqueta normalizada (y su plural con s/es) → cómo se reconoce en una entrada.
-const CATEGORIAS = new Map<string, (e: EntradaCatalogo) => boolean>();
-const agregar = (etiqueta: string, coincide: (e: EntradaCatalogo) => boolean): void => {
-  const base = normalizar(etiqueta);
-  [base, base + 's', base + 'es'].forEach((c) => CATEGORIAS.set(c, coincide));
-};
-for (const [grupo, etiqueta] of Object.entries(ETIQUETA_GRUPO)) {
-  agregar(etiqueta, (e) => e.grupo === (grupo as Grupo));
-}
-for (const [carne, etiqueta] of Object.entries(ETIQUETA_CARNE)) {
-  agregar(etiqueta, (e) => e.carne === (carne as Carne));
-}
+type Coincide = (e: EntradaCatalogo) => boolean;
 
-// Contiene por palabras enteras: "sal" no está en "salmón".
-const contiene = (a: string, b: string): boolean => ` ${a} `.includes(` ${b} `);
+const CATEGORIAS: ReadonlyMap<string, Coincide> = new Map(
+  [
+    ...Object.entries(ETIQUETA_GRUPO).map(([g, et]): [string, Coincide] => [
+      et,
+      (e): boolean => e.grupo === (g as Grupo),
+    ]),
+    ...Object.entries(ETIQUETA_CARNE).map(([c, et]): [string, Coincide] => [
+      et,
+      (e): boolean => e.carne === (c as Carne),
+    ]),
+  ].flatMap(([etiqueta, coincide]): [string, Coincide][] => {
+    const base = normalizar(etiqueta);
+    return [base, base + 's', base + 'es'].map((k): [string, Coincide] => [k, coincide]);
+  }),
+);
+
+// "Contiene" sobre texto normalizado, sin límite de palabra: es mejor sacar de
+// más (sal choca con salmón) que sugerir lo que no come. También cubre plurales.
+const contiene = (a: string, b: string): boolean => a.includes(b);
 
 export function chocaConNoComo(meal: Meal, noComo: readonly string[], indice: IndiceCatalogo): boolean {
   const terminos = noComo.map(normalizar).filter((t) => t);
