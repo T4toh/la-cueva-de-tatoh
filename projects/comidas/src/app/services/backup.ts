@@ -23,7 +23,7 @@ const SECCIONES: Seccion[] = [
     claves: ['tags', 'ingredientTags', 'extraItems', 'extraItemsHistory', 'overrides', 'checkedItems', 'compras'],
   },
   { seccion: 'despensa', etiqueta: 'Despensa', claves: ['pantry', 'pantryGroups'], cuenta: 'pantry', unidad: 'items' },
-  { seccion: 'ajustes', etiqueta: 'Ajustes', claves: ['familySettings', 'alias', 'guia'] },
+  { seccion: 'ajustes', etiqueta: 'Ajustes', claves: ['familySettings', 'alias', 'guia', 'noComo'] },
 ];
 
 // Las claves que un backup puede traer. `version` no está: se escribe pero no
