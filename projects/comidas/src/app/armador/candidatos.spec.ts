@@ -63,6 +63,21 @@ describe('candidatosPorTipo', () => {
     expect(ids(r.desayuno)).toEqual(['ok']);
   });
 
+  it('lo que puso el armador (con motivo) no cuenta como historial; lo del usuario sí', () => {
+    const meals = [comida('a', ['Desayuno']), comida('b'), comida('c')];
+    const armada: DaySchedule = {
+      ...dia({}),
+      desayuno: [{ mealId: 'b', portions: 1, motivo: 'variedad' }],
+      almuerzo: [{ mealId: 'b', portions: 1, motivo: 'variedad' }],
+    };
+    const r = candidatosPorTipo(meals, [[armada]], [], indice);
+    expect(ids(r.desayuno)).toEqual(['a']);
+    expect(ids(r.almuerzo)).toEqual(['b', 'c']);
+
+    const tocada: DaySchedule = { ...armada, almuerzo: [{ mealId: 'c', portions: 1 }] };
+    expect(ids(candidatosPorTipo(meals, [[tocada]], [], indice).almuerzo)).toEqual(['c']);
+  });
+
   it('un id del historial sin Meal se ignora', () => {
     const r = candidatosPorTipo([comida('a')], [[dia({ almuerzo: ['fantasma'] })]], [], indice);
     expect(ids(r.almuerzo)).toEqual(['a']);

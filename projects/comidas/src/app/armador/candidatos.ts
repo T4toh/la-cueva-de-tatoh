@@ -20,10 +20,12 @@ export function candidatosPorTipo(
     almuerzo: new Set(),
     cena: new Set(),
   };
+  // Lo que puso el armador y nadie tocó (tiene motivo) no cuenta: si no, una
+  // semana armada a ciegas definiría las siguientes.
   for (const dias of historial) {
     for (const d of dias) {
       for (const tipo of ['desayuno', 'almuerzo', 'cena'] as const) {
-        d[tipo].forEach((p) => usadas[tipo].add(p.mealId));
+        d[tipo].filter((p) => !p.motivo).forEach((p) => usadas[tipo].add(p.mealId));
       }
     }
   }
