@@ -94,14 +94,30 @@ describe('armarSemana', () => {
     expect(r2.semana[0].cena[0].motivo).toBeTruthy();
   });
 
-  it('golozo: no repite almuerzo/cena, tampoco lo puesto por el usuario; el desayuno no bloquea', () => {
+  it('golozo: no repite almuerzo/cena ni lo que ya está de desayuno, tampoco lo puesto por el usuario', () => {
     const [x, y, z, w] = ['x', 'y', 'z', 'w'].map((id) => comida(id));
     const semana = [dia('lunes', { almuerzo: ['x'], desayuno: ['y'] }), dia('martes')];
     const r = armarSemana(semana, 0, ['almuerzo', 'cena'], cands([], [x, y, z, w]), ctx([x, y, z, w]), cero);
     const principales = [...ids(r.semana, 'almuerzo'), ...ids(r.semana, 'cena')];
-    expect(principales.sort()).toEqual(['w', 'x', 'y', 'z']);
-    expect(r.puestos).toBe(3);
-    expect(r.sinCandidatos).toBe(0);
+    expect(principales.sort()).toEqual(['w', 'x', 'z']);
+    expect(r.puestos).toBe(2);
+    expect(r.sinCandidatos).toBe(1);
+  });
+
+  it('una comida de desayuno y de cena no cae en dos tipos de slot la misma semana', () => {
+    const ambos = comida('ambos', ['brócoli', 'lechuga', 'tomate']);
+    const otros = ['a', 'b', 'c', 'd', 'e', 'f', 'g'].map((id) => comida(id));
+    const tipos = (r: DaySchedule[]): DishMealType[] => TODOS.filter((t) => ids(r, t).includes('ambos'));
+
+    const r1 = armarSemana(vacia(), 0, TODOS, cands([ambos], [ambos, ...otros]), ctx([ambos, ...otros]), cero);
+    expect(tipos(r1.semana)).toEqual(['desayuno']);
+
+    // Puesta de cena por el usuario: el desayuno no la repite aunque sea la mejor.
+    const otro = comida('otro');
+    const semana = [dia('lunes', { cena: ['ambos'] }), dia('martes')];
+    const r2 = armarSemana(semana, 0, ['desayuno'], cands([ambos, otro], []), ctx([ambos, otro]), cero);
+    expect(tipos(r2.semana)).toEqual(['cena']);
+    expect(ids(r2.semana, 'desayuno')).toEqual(['otro', 'otro']);
   });
 
   it('con 2 candidatos y 4 slots pone 2 y avisa 2', () => {

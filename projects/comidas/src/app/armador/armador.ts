@@ -66,14 +66,20 @@ export function armarSemana(
   for (const slot of slotsVacios(semana, desde, tipos)) {
     let posibles: Meal[];
     let veces: (m: Meal) => number = () => 0;
+    const ids = (de: readonly DishMealType[]): Set<string> =>
+      new Set(actual.flatMap((d) => de.flatMap((t) => d[t].map((p) => p.mealId))));
     if (slot.tipo === 'desayuno') {
       const desayunos = actual.flatMap((d) => d.desayuno.map((p) => p.mealId));
       veces = (m): number => desayunos.filter((id) => id === m.id).length;
-      // El tope es regla dura, salvo que no quede ninguno debajo: antes que dejarlo vacío, repite.
-      const bajoTope = candidatos.desayuno.filter((m) => veces(m) < MAX_DESAYUNO_REPETIDO);
-      posibles = bajoTope.length ? bajoTope : candidatos.desayuno;
+      // Lo que ya es almuerzo o cena no se desayuna. El tope es regla dura,
+      // salvo que no quede ninguno debajo: antes que dejarlo vacío, repite.
+      const principales = ids(['almuerzo', 'cena']);
+      const libres = candidatos.desayuno.filter((m) => !principales.has(m.id));
+      const bajoTope = libres.filter((m) => veces(m) < MAX_DESAYUNO_REPETIDO);
+      posibles = bajoTope.length ? bajoTope : libres;
     } else {
-      const usadas = new Set(actual.flatMap((d) => [...d.almuerzo, ...d.cena].map((p) => p.mealId)));
+      // Almuerzo y cena no repiten nada de la semana, desayunos incluidos.
+      const usadas = ids(TIPOS);
       posibles = candidatos[slot.tipo].filter((m) => !usadas.has(m.id));
     }
     if (!posibles.length) {

@@ -160,7 +160,9 @@ Reglas duras (el candidato queda afuera, no es un castigo):
   `MAX_DESAYUNO_REPETIDO = 3` veces en la semana. Si los candidatos no
   alcanzan para eso, se repite lo que haga falta antes de dejar un desayuno
   vacío. Un desayuno ya repetido resta, así que se prefiere rotar. *(del
-  usuario: rota con tope 2-3; el 3 es mi decisión)*
+  usuario: rota con tope 2-3; el 3 es mi decisión)* La excepción es entre
+  desayunos: lo que ya es almuerzo o cena no se desayuna, y lo que ya es
+  desayuno no se almuerza ni se cena.
 - Choca con No como.
 
 Para que no salga siempre la misma semana, se elige al azar entre los tres
