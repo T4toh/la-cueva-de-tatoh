@@ -221,7 +221,7 @@
 - [ ] **Step 1: Tests:**
   - `completarSemana(() => 0)` llena la semana mostrada y devuelve los conteos; `deshacerCompletar()` la deja igual que antes.
   - Después de `completarSemana`, un `setMeal` cualquiera hace `puedeDeshacer()` false; cambiar de semana (`nextWeek`) también.
-  - Cualquier método que modifique los platos de un slot (`setMeal`, `addDish`, `removeDish`, `updateDishPortions`, `updateDishLabel`, el de `excluded`) borra `motivo` de los platos de **ese** slot y de ningún otro.
+  - Cualquier método que modifique los platos de un slot (`setMeal`, `addDish`, `removeDish`, `updateDishPortions`, `updateDishLabel`, `toggleDishExclusion`) borra `motivo` de los platos de **ese** slot y de ningún otro.
   - `agregarNoComo(' Cebolla ')` guarda; `agregarNoComo('cebolla')` después devuelve false; la clave sobrevive a recargar desde localStorage.
 - [ ] **Step 2:** correr `meal.service.spec.ts`. Falla.
 - [ ] **Step 3:** implementar.
