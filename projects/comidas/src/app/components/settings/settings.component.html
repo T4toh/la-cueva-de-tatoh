@@ -126,6 +126,57 @@
     [colorFondo]="'var(--bg-surface)'"
     [colorTexto]="'var(--fg-primary)'"
     [sombreado]="false"
+    [texto]="'Armador de semanas'"
+  >
+    <div class="settings-content">
+      <div class="actions">
+        <label class="alias">
+          <span>No como</span>
+          <input
+            placeholder="Ej: pescado"
+            type="text"
+            [value]="nuevoNoComo()"
+            (input)="nuevoNoComo.set($any($event.target).value)"
+            (keydown.enter)="agregarNoComo()"
+          />
+          @if (nuevoNoComo().trim() && !reconocidoNuevo()) {
+            <small>No lo encuentro en el catálogo: sólo se filtra si aparece escrito en un ingrediente.</small>
+          }
+        </label>
+        <button class="btn-secondary" type="button" (click)="agregarNoComo()">Agregar</button>
+        <ul class="chips">
+          @for (texto of mealService.noComo(); track texto) {
+            <li class="chip">
+              <span>{{ texto }}</span>
+              <button
+                aria-label="Quitar"
+                type="button"
+                (click)="mealService.quitarNoComo(texto)"
+              >
+                ✕
+              </button>
+            </li>
+          }
+        </ul>
+
+        <label class="alias">
+          <span>País</span>
+          <select [value]="mealService.pais() ?? ''" (change)="cambiarPais($any($event.target).value)">
+            <option value="">Automático ({{ nombrePaisEfectivo() }})</option>
+            @for (p of paises; track p.id) {
+              <option [value]="p.id">{{ p.nombre }}</option>
+            }
+          </select>
+          <small>Define la estación para elegir verduras y frutas de temporada.</small>
+        </label>
+      </div>
+    </div>
+  </lib-panel>
+
+  <lib-panel
+    [colorFondo]="'var(--bg-surface)'"
+    [colorTexto]="'var(--fg-primary)'"
+    [sombreado]="false"
     [texto]="'Completar comidas con IA'"
   >
     <div class="settings-content">

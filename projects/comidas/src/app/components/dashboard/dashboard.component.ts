@@ -1,4 +1,4 @@
-import { afterRenderEffect, Component, computed, inject, signal } from '@angular/core';
+import { afterRenderEffect, Component, computed, inject, OnDestroy, signal } from '@angular/core';
 import { comidasQueSuman, META_PLANTAS, plantasDeLaSemana } from '../../catalogo/plantas';
 import { armarGuia, REGLAS, tipDelPlan } from '../../guia/guia';
 import { chequearSemana, MAX_CARNE_ROJA, META_CARNE_BLANCA, MIN_PESCADO } from '../../guia/chequeos';
@@ -26,7 +26,7 @@ let diaMostrado = 0;
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnDestroy {
   mealService = inject(MealService);
   private dialogService = inject(DialogService);
 
@@ -39,6 +39,20 @@ export class DashboardComponent {
     diaMostrado = hoy;
     document.querySelector('.day-panel.is-today')?.scrollIntoView({ block: 'start' });
   });
+
+  readonly resultado = signal<{ puestos: number; sinCandidatos: number } | null>(null);
+
+  completarSemana(): void {
+    this.resultado.set(this.mealService.completarSemana());
+  }
+
+  deshacer(): void {
+    this.mealService.deshacerCompletar();
+  }
+
+  ngOnDestroy(): void {
+    this.mealService.olvidarDeshacer();
+  }
 
   readonly metaPlantas = META_PLANTAS;
   readonly verPlantas = signal(false);

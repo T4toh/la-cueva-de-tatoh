@@ -134,10 +134,31 @@
     >
       Copiar semana anterior
     </button>
+    <button
+      class="btn-secondary"
+      type="button"
+      [disabled]="mealService.slotsParaCompletar().length === 0"
+      [title]="mealService.slotsParaCompletar().length === 0 ? 'No hay comidas vacías para completar' : ''"
+      (click)="completarSemana()"
+    >
+      Completar semana
+    </button>
     <button class="btn-secondary btn-print" type="button" (click)="printMenu()">
       Imprimir Menú
     </button>
   </div>
+
+  @if (resultado(); as r) {
+    <p class="completar-aviso">
+      Puse {{ r.puestos }} {{ r.puestos === 1 ? 'comida' : 'comidas' }}
+      @if (r.sinCandidatos > 0) {
+        · {{ r.sinCandidatos }} {{ r.sinCandidatos === 1 ? 'quedó' : 'quedaron' }} sin opciones
+      }
+      @if (mealService.puedeDeshacer()) {
+        <button class="btn-secondary" type="button" (click)="deshacer()">Deshacer</button>
+      }
+    </p>
+  }
 
   <div class="schedule-grid">
     @for (day of mealService.schedule(); track day.dayName) {
@@ -216,6 +237,9 @@
                           </button>
                         </div>
                       </div>
+                      @if (dish.motivo) {
+                        <small class="dish-motivo">{{ dish.motivo }}</small>
+                      }
                       <input
                         class="dish-label-input"
                         placeholder="Para quién..."
@@ -343,6 +367,9 @@
                           </button>
                         </div>
                       </div>
+                      @if (dish.motivo) {
+                        <small class="dish-motivo">{{ dish.motivo }}</small>
+                      }
                       <input
                         class="dish-label-input"
                         placeholder="Para quién..."
@@ -487,6 +514,9 @@
                           </button>
                         </div>
                       </div>
+                      @if (dish.motivo) {
+                        <small class="dish-motivo">{{ dish.motivo }}</small>
+                      }
                       <input
                         class="dish-label-input"
                         placeholder="Para quién..."

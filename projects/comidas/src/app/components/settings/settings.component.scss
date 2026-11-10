@@ -168,3 +168,36 @@ h1 {
   font-size: 0.8rem;
   color: var(--fg-muted);
 }
+
+select {
+  font-size: 16px; // iOS hace zoom con menos
+  padding: 0.5rem;
+  border-radius: 8px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.5rem 0.25rem 0.75rem;
+  border-radius: 20px;
+  background: var(--accent-muted);
+  color: var(--fg-primary);
+
+  button {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+  }
+}
