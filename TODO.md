@@ -360,6 +360,14 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       en una colección pública: la regla de Firestore y la moderación son la
       parte difícil, no la UI.
 
+- [ ] **Otro proveedor de reserva (Qwen vía OpenRouter u otro).** Hoy la
+      reserva de Flash es entre dos Gemini (`MODELOS` en
+      `services/flash.ts`). Otro proveedor necesita una clave secreta que no
+      puede ir en el navegador, así que iría detrás del Worker de comidas (el
+      que ya existe para `/r/*`) como un endpoint que guarda la clave y
+      reenvía el pedido. OpenRouter tiene modelos gratis con límites. Pedido
+      el 2026-11-10.
+
 ## Deuda técnica declarada
 
 Cada una está marcada en el código con un comentario `ponytail:` que nombra el
