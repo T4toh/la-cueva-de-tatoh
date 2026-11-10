@@ -67,40 +67,48 @@ export function promptArmador(c: ContextoFlash): string {
     'Fijate en "chequeo": evitá un segundo carbo en días que ya tienen uno en almuerzo o cena, y no',
     'sumes carne roja de más; las carnes blancas y el pescado suman.',
     ...(c.noComo.length > 0 ? [`El usuario no come estos ingredientes: ${c.noComo.join(', ')}.`] : []),
-    'Por cada slot respondé el id elegido y un motivo corto, de una línea, en español rioplatense.',
+    'En "elecciones" respondé exactamente una entrada por cada clave de "slots": la clave, el id elegido',
+    'y un motivo corto, de una línea, en español rioplatense.',
     '',
     JSON.stringify(c),
   ].join('\n');
 }
 
-// Cada slot es opcional: una respuesta parcial igual se lee, y el resto lo completa el algoritmo.
+// Un arreglo de elecciones, como el esquema de la revisión: un objeto con una
+// propiedad opcional por slot era demasiado para Flash y le permitía devolver
+// `{}`. El enum de ids es la unión de candidatos; preferidasDe valida por slot.
 export function esquemaArmador(opciones: OpcionesSlot[]): ObjectSchema {
+  const ids = [...new Set(opciones.flatMap((o) => o.opciones.map(({ meal }) => meal.id)))];
   return Schema.object({
-    properties: Object.fromEntries(
-      opciones.map((o) => [
-        o.clave,
-        Schema.object({
+    properties: {
+      elecciones: Schema.array({
+        items: Schema.object({
           properties: {
-            mealId: Schema.enumString({ enum: o.opciones.map(({ meal }) => meal.id) }),
+            clave: Schema.enumString({ enum: opciones.map((o) => o.clave) }),
+            mealId: Schema.enumString({ enum: ids }),
             motivo: Schema.string(),
           },
         }),
-      ]),
-    ),
-    optionalProperties: opciones.map((o) => o.clave),
+      }),
+    },
   });
 }
 
-// Lo inválido se ignora: ese slot cae a la elección del algoritmo.
+// Lo inválido se ignora: ese slot cae a la elección del algoritmo. Con la
+// clave repetida vale la primera entrada válida.
 export function preferidasDe(raw: unknown, opciones: OpcionesSlot[]): Map<string, Preferida> {
   const preferidas = new Map<string, Preferida>();
-  if (!esObjeto(raw)) {
+  if (!esObjeto(raw) || !Array.isArray(raw['elecciones'])) {
     return preferidas;
   }
-  for (const { clave, opciones: ops } of opciones) {
-    const entrada = raw[clave];
-    if (esObjeto(entrada) && ops.some(({ meal }) => meal.id === entrada['mealId'])) {
-      preferidas.set(clave, { mealId: entrada['mealId'] as string, motivo: texto(entrada['motivo']) });
+  const porClave = new Map(opciones.map((o) => [o.clave, o.opciones]));
+  for (const entrada of raw['elecciones'] as unknown[]) {
+    if (!esObjeto(entrada) || typeof entrada['clave'] !== 'string' || preferidas.has(entrada['clave'])) {
+      continue;
+    }
+    const ops = porClave.get(entrada['clave']);
+    if (ops?.some(({ meal }) => meal.id === entrada['mealId'])) {
+      preferidas.set(entrada['clave'], { mealId: entrada['mealId'] as string, motivo: texto(entrada['motivo']) });
     }
   }
   return preferidas;

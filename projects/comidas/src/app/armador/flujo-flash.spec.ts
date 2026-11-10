@@ -54,7 +54,9 @@ const deps = (
 describe('completarConFlash', () => {
   it('pasa las preferidas de Flash y la semana pedida a completar', async () => {
     const completar = vi.fn().mockReturnValue({ puestos: 2, sinCandidatos: 0, deFlash: 1 });
-    const pedir = vi.fn().mockResolvedValue({ 'Lunes-almuerzo': { mealId: 'b', motivo: 'suma plantas' } });
+    const pedir = vi.fn().mockResolvedValue({
+      elecciones: [{ clave: 'Lunes-almuerzo', mealId: 'b', motivo: 'suma plantas' }],
+    });
     const r = await completarConFlash(deps(() => entrada([dia('Lunes'), dia('Martes')]), completar, pedir));
 
     expect(pedir).toHaveBeenCalledTimes(1);

@@ -66,6 +66,7 @@ describe('promptArmador', () => {
     expect(p).toContain('maní');
     expect(p).toContain('sólo entre los candidatos');
     expect(p).toContain('No repitas');
+    expect(p).toContain('exactamente una entrada por cada clave');
     expect(p).toContain('rioplatense');
     expect(p.endsWith(JSON.stringify(cf))).toBe(true);
   });
@@ -77,40 +78,65 @@ describe('promptArmador', () => {
 });
 
 describe('esquemaArmador', () => {
-  it('una propiedad por clave con mealId enum y motivo', () => {
+  it('un arreglo de elecciones con clave y mealId enum, todo requerido', () => {
     const e = JSON.parse(JSON.stringify(esquemaArmador(opciones))) as {
-      properties: Record<string, { properties: { mealId: { enum: string[] }; motivo: unknown } }>;
-      required: string[];
+      properties: {
+        elecciones: {
+          type: string;
+          items: {
+            properties: { clave: { enum: string[] }; mealId: { enum: string[] }; motivo: unknown };
+            optionalProperties?: string[];
+          };
+        };
+      };
+      optionalProperties?: string[];
     };
-    expect(Object.keys(e.properties)).toEqual(['Martes-almuerzo', 'Martes-cena']);
-    expect(e.properties['Martes-almuerzo'].properties.mealId.enum).toEqual(['a', 'b']);
-    expect(e.properties['Martes-cena'].properties.mealId.enum).toEqual(['a']);
-    expect(e.properties['Martes-cena'].properties.motivo).toBeDefined();
-    expect(e.required ?? []).toEqual([]);
+    const { elecciones } = e.properties;
+    expect(elecciones.type).toBe('array');
+    expect(elecciones.items.properties.clave.enum).toEqual(['Martes-almuerzo', 'Martes-cena']);
+    // Unión sin repetir de los candidatos de todos los slots.
+    expect(elecciones.items.properties.mealId.enum).toEqual(['a', 'b']);
+    expect(elecciones.items.properties.motivo).toBeDefined();
+    expect(e.optionalProperties ?? []).toEqual([]);
+    expect(elecciones.items.optionalProperties ?? []).toEqual([]);
   });
 });
 
 describe('preferidasDe', () => {
+  const de = (elecciones: unknown): ReturnType<typeof preferidasDe> => preferidasDe({ elecciones }, opciones);
+
   it('acepta lo válido y recorta el motivo', () => {
-    const m = preferidasDe({ 'Martes-almuerzo': { mealId: 'b', motivo: '  liviano ' } }, opciones);
+    const m = de([{ clave: 'Martes-almuerzo', mealId: 'b', motivo: '  liviano ' }]);
     expect(m.get('Martes-almuerzo')).toEqual({ mealId: 'b', motivo: 'liviano' });
   });
 
   it('ignora claves desconocidas, ids fuera del enum y entradas que no son objeto', () => {
-    const m = preferidasDe(
-      {
-        'Lunes-cena': { mealId: 'a', motivo: 'x' },
-        'Martes-almuerzo': { mealId: 'zzz', motivo: 'x' },
-        'Martes-cena': 'a',
-      },
-      opciones,
-    );
+    const m = de([
+      { clave: 'Lunes-cena', mealId: 'a', motivo: 'x' },
+      { clave: 'Martes-almuerzo', mealId: 'zzz', motivo: 'x' },
+      'a',
+    ]);
     expect(m.size).toBe(0);
   });
 
-  it('raw que no es objeto da mapa vacío', () => {
+  it('un id válido para otro slot no vale en éste', () => {
+    expect(de([{ clave: 'Martes-cena', mealId: 'b', motivo: 'x' }]).size).toBe(0);
+  });
+
+  it('con la clave repetida gana la primera entrada válida', () => {
+    const m = de([
+      { clave: 'Martes-almuerzo', mealId: 'zzz', motivo: 'inválida' },
+      { clave: 'Martes-almuerzo', mealId: 'a', motivo: 'primera' },
+      { clave: 'Martes-almuerzo', mealId: 'b', motivo: 'segunda' },
+    ]);
+    expect(m.get('Martes-almuerzo')).toEqual({ mealId: 'a', motivo: 'primera' });
+  });
+
+  it('raw o elecciones que no son lo esperado dan mapa vacío', () => {
     expect(preferidasDe(null, opciones).size).toBe(0);
     expect(preferidasDe([1], opciones).size).toBe(0);
     expect(preferidasDe('hola', opciones).size).toBe(0);
+    expect(de({ 'Martes-almuerzo': { mealId: 'a' } }).size).toBe(0);
+    expect(de(undefined).size).toBe(0);
   });
 });
