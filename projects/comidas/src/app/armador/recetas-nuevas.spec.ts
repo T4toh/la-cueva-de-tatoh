@@ -82,6 +82,11 @@ describe('validarRecetasNuevas', () => {
     ]);
   });
 
+  it('en modo huecos el tipo es el del hueco aunque Flash diga otro', () => {
+    const [r] = validar([ok('A', { clave: 'Lunes-almuerzo', tipo: 'cena' })], pHuecos);
+    expect(r.tipo).toBe('almuerzo');
+  });
+
   it('una respuesta que no es lo esperado da []', () => {
     expect(validarRecetasNuevas('x', pPlantas, huecos, [], indice, [])).toEqual([]);
   });
@@ -150,6 +155,16 @@ describe('slotParaUsar', () => {
     const semana = [dia('L', [{ mealId: 'rica', motivo: 'x' }]), dia('M', [{ mealId: 'rica', motivo: 'x' }])];
     expect(slotParaUsar(semana, 0, 'almuerzo', meals, indice)).toEqual({ dia: 0, tipo: 'almuerzo' });
     expect(slotParaUsar(semana, 1, 'almuerzo', meals, indice)).toEqual({ dia: 1, tipo: 'almuerzo' });
+  });
+
+  it('una comida que ya no existe aporta 0 plantas', () => {
+    const semana = [dia('L', [{ mealId: 'rica', motivo: 'x' }]), dia('M', [{ mealId: 'borrada', motivo: 'y' }])];
+    expect(slotParaUsar(semana, 0, 'almuerzo', meals, indice)).toEqual({ dia: 1, tipo: 'almuerzo' });
+  });
+
+  it('el motivo en un segundo plato del slot no cuenta', () => {
+    const semana = [dia('L', [{ mealId: 'fija' }, { mealId: 'rica', motivo: 'x' }]), dia('M')];
+    expect(slotParaUsar(semana, 0, 'almuerzo', meals, indice)).toEqual({ dia: 1, tipo: 'almuerzo' });
   });
 
   it('sin motivos: primer vacío; sin vacío: null', () => {

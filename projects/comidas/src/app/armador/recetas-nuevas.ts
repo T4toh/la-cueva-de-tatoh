@@ -140,7 +140,15 @@ export function validarRecetasNuevas(
     }
     nombres.add(normalizar(name));
     clavesUsadas.add(clave);
-    recetas.push({ name, tags: textos(entrada['tags']), ingredients, pasos: textos(entrada['pasos']), tipo, slot });
+    // El hueco manda: si Flash contradice el tipo, se usa el del hueco.
+    recetas.push({
+      name,
+      tags: textos(entrada['tags']),
+      ingredients,
+      pasos: textos(entrada['pasos']),
+      tipo: slot?.tipo ?? tipo,
+      slot,
+    });
   }
   return recetas;
 }
