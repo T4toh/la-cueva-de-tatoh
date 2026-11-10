@@ -711,6 +711,19 @@ input:checked + .slider:before {
   color: var(--fg-secondary);
   font-size: 0.75rem;
   padding: 0 0.5rem;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.completar-vacio:empty {
+  display: none;
+}
+
+.completar-vacio {
+  align-self: center;
+  color: var(--fg-secondary);
 }
 
 .completar-aviso {
@@ -721,4 +734,9 @@ input:checked + .slider:before {
   gap: 0.75rem;
   margin: -1rem 0 1.5rem;
   color: var(--fg-secondary);
+}
+
+.completar-aviso[hidden],
+.completar-aviso [hidden] {
+  display: none;
 }

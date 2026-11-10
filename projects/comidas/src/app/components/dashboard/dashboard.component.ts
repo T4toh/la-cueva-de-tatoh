@@ -42,12 +42,26 @@ export class DashboardComponent implements OnDestroy {
 
   readonly resultado = signal<{ puestos: number; sinCandidatos: number } | null>(null);
 
+  readonly sinVacias = computed(() =>
+    this.mealService.slotsParaCompletar().length === 0 ? 'No hay comidas vacías para completar' : ''
+  );
+  readonly aviso = computed(() => {
+    const r = this.resultado();
+    if (!r) {
+      return '';
+    }
+    const n = r.sinCandidatos;
+    const resto = n > 0 ? ` · ${n} ${n === 1 ? 'quedó' : 'quedaron'} sin opciones` : '';
+    return `Puse ${r.puestos} ${r.puestos === 1 ? 'comida' : 'comidas'}${resto}`;
+  });
+
   completarSemana(): void {
     this.resultado.set(this.mealService.completarSemana());
   }
 
   deshacer(): void {
     this.mealService.deshacerCompletar();
+    this.resultado.set(null);
   }
 
   ngOnDestroy(): void {
