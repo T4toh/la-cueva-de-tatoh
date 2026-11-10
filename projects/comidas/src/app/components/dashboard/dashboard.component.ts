@@ -41,8 +41,8 @@ export class DashboardComponent implements OnDestroy {
   });
 
   // El aviso es de la semana que se completó: cambiar de semana lo borra.
-  readonly resultado = linkedSignal<Date, { puestos: number; sinCandidatos: number } | null>({
-    source: this.mealService.currentWeekStart,
+  readonly resultado = linkedSignal<number, { puestos: number; sinCandidatos: number } | null>({
+    source: computed(() => this.mealService.currentWeekStart().getTime()),
     computation: () => null,
   });
 
