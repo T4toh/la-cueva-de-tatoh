@@ -174,7 +174,7 @@ Si un slot no tiene candidatos, queda vacío y se avisa cuántos quedaron.
 ### El porqué
 
 Cada elección guarda un texto corto armado con lo que más pesó en su
-puntaje: "suma 4 plantas nuevas", "usa el brócoli de la despensa", "pescado:
+puntaje: "suma 4 plantas nuevas", "usa brócoli de la despensa", "pescado:
 van 1 de 2". Se guarda en el `Dish` como `motivo?: string`, se ve debajo del
 plato en el plan y se borra cuando el usuario cambia ese slot. Viaja con el
 schedule (Firestore, backup). *(mi decisión: guardarlo y no recalcularlo,

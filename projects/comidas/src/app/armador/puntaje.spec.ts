@@ -71,7 +71,7 @@ describe('puntuar', () => {
     expect(vacia.puntos).toBe(sinDespensa.puntos);
     const soloDespensa = comida('s', ['pollo']);
     expect(puntos(soloDespensa, base, [], { despensa: [{ name: 'Pollo', quantity: '1' }] }).motivo)
-      .toBe('usa el pollo de la despensa');
+      .toBe('usa pollo de la despensa');
   });
 
   it('carbos en almuerzo y cena del mismo día restan, salvo regla oculta', () => {
@@ -130,7 +130,7 @@ describe('puntuar', () => {
     expect(dos.puntos).toBe(una.puntos);
     const propia = comida('p', ['Salsa Rara']);
     expect(puntos(propia, base, [], { despensa: [{ name: 'salsa rara', quantity: '1' }] }).motivo)
-      .toBe('usa el salsa rara de la despensa');
+      .toBe('usa salsa rara de la despensa');
   });
 
   it('reciente resta', () => {

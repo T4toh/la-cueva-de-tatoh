@@ -88,7 +88,7 @@ export function puntuar(
     const resto = enDespensa.length - 1;
     favor.push({
       puntos: pts,
-      texto: `usa el ${enDespensa[0]}${resto > 0 ? ` y ${resto} más` : ''} de la despensa`,
+      texto: `usa ${enDespensa[0]}${resto > 0 ? ` y ${resto} más` : ''} de la despensa`,
     });
   }
 
