@@ -40,6 +40,16 @@ export function claveSlot(semana: DaySchedule[], { dia, tipo }: Slot): string {
 
 export type ResultadoArmador = { semana: DaySchedule[]; puestos: number; sinCandidatos: number; deFlash: number };
 
+// Lo que necesita el armador de la semana mostrada; lo arma MealService.
+export type EntradaArmador = {
+  key: string;
+  semana: DaySchedule[];
+  desde: number;
+  tipos: DishMealType[];
+  candidatos: Candidatos;
+  ctx: ContextoPuntaje;
+};
+
 // Preferida de Flash: se acepta salvo que rompa algo que el mejor no rompe (un chequeo vale -1000).
 const MARGEN_PREFERIDA = 900;
 const MAX_MOTIVO = 80;

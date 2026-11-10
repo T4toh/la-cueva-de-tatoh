@@ -34,11 +34,12 @@ import {
 import { CATALOGO } from '../catalogo/catalogo-datos';
 import { claveParte, DiaLista, estaTildada, ParteCompra, repartirDespensa, sinRuido } from '../compras/partes';
 import { GUIA_VACIA, GuiaPropia, normalizarGuia } from '../guia/guia';
-import { armarSemana, Slot, slotsVacios } from '../armador/armador';
+import { armarSemana, EntradaArmador, Preferida, Slot, slotsVacios } from '../armador/armador';
 import { candidatosPorTipo } from '../armador/candidatos';
 import { normalizarNoComo } from '../armador/no-como';
 import { estacionDe, hemisferioDe, paisDeTimezone } from '../armador/estacion';
 import { ContextoPuntaje } from '../armador/puntaje';
+import { RecetaNueva, slotParaUsar } from '../armador/recetas-nuevas';
 import {
   CompraRegistrada,
   DaySchedule,
@@ -1381,9 +1382,10 @@ export class MealService {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
   }
 
-  addMeal(meal: Omit<Meal, 'id'>): void {
+  addMeal(meal: Omit<Meal, 'id'>): string {
     const newMeal: Meal = { ...meal, id: this.generateId() };
     this.meals.update((current) => [...current, newMeal]);
+    return newMeal.id;
   }
 
   // El placeholder genérico para comer afuera sin saber qué. Id fijo: se
@@ -1503,11 +1505,12 @@ export class MealService {
   }
 
   // Cambia los platos de un slot de la semana mostrada. El usuario lo tocó: el
-  // motivo que dejó el armador se borra de ese slot, y de ningún otro.
+  // motivo que dejó el armador se borra de ese slot, y de ningún otro. Un plato
+  // nuevo que ya trae motivo (una receta de Flash) lo conserva.
   private cambiarSlot(dayName: string, type: DishMealType, cambio: (platos: Dish[]) => Dish[]): void {
     const key = this.formatDateKey(this.currentWeekStart());
     const updatedWeek = this.schedule().map((day) =>
-      day.dayName === dayName ? { ...day, [type]: cambio(day[type]).map(sinMotivo) } : day
+      day.dayName === dayName ? { ...day, [type]: cambio(day[type].map(sinMotivo)) } : day
     );
     this.schedules.update((s) => ({ ...s, [key]: updatedWeek }));
   }
@@ -1661,9 +1664,9 @@ export class MealService {
     return !!u && this.schedules()[u.key] === u.despues && this.formatDateKey(this.currentWeekStart()) === u.key;
   });
 
-  completarSemana(azar: () => number = Math.random): { puestos: number; sinCandidatos: number } {
+  // La semana mostrada con todo lo que el armador necesita para completarla.
+  entradaArmador(): EntradaArmador {
     const key = this.formatDateKey(this.currentWeekStart());
-    const antes = this.schedule();
     const { desde, tipos } = this.alcanceCompletar();
     const indice = this.indiceCatalogo();
     const candidatos = candidatosPorTipo(this.meals(), Object.values(this.schedules()), this.noComo(), indice);
@@ -1681,12 +1684,60 @@ export class MealService {
       estacion: estacionDe(this.currentWeekStart(), hemisferioDe(this.paisEfectivo())),
       reglasOcultas: new Set(this.guia().ocultas),
     };
-    const { semana, puestos, sinCandidatos } = armarSemana(antes, desde, tipos, candidatos, ctx, azar);
+    return { key, semana: this.schedule(), desde, tipos, candidatos, ctx };
+  }
+
+  // `semanaEsperada`: la semana para la que se pidió (a Flash). Si el usuario
+  // cambió de semana mientras tanto, no se toca nada y devuelve null.
+  completarSemana(
+    azar: () => number = Math.random,
+    preferidas?: ReadonlyMap<string, Preferida>,
+    semanaEsperada?: string
+  ): { puestos: number; sinCandidatos: number; deFlash: number } | null {
+    const { key, semana: antes, desde, tipos, candidatos, ctx } = this.entradaArmador();
+    if (semanaEsperada !== undefined && semanaEsperada !== key) {
+      return null;
+    }
+    const { semana, puestos, sinCandidatos, deFlash } = armarSemana(
+      antes, desde, tipos, candidatos, ctx, azar, preferidas
+    );
     if (puestos) {
       this.schedules.update((s) => ({ ...s, [key]: semana }));
       this.ultimoCompletar.set({ key, antes, despues: semana });
     }
-    return { puestos, sinCandidatos };
+    return { puestos, sinCandidatos, deFlash };
+  }
+
+  private agregarReceta(r: RecetaNueva, tags: string[]): string {
+    return this.addMeal({
+      name: r.name,
+      tags,
+      ingredients: r.ingredients,
+      includeInShoppingList: true,
+      ...(r.pasos.length ? { pasos: r.pasos.map((texto): Paso => ({ texto })) } : {}),
+    });
+  }
+
+  // Al recetario y a la semana: a su hueco si sigue vacío; si no (o si no
+  // tenía), adonde diga `slotParaUsar`. Sin lugar, queda sólo guardada.
+  usarRecetaNueva(r: RecetaNueva): 'puesta' | 'guardada' {
+    const mealId = this.agregarReceta(r, r.tags);
+    const semana = this.schedule();
+    const slot =
+      r.slot && !semana[r.slot.dia][r.slot.tipo].length
+        ? r.slot
+        : slotParaUsar(semana, this.alcanceCompletar().desde, r.tipo, this.meals(), this.indiceCatalogo());
+    if (!slot) {
+      return 'guardada';
+    }
+    const plato: Dish = { mealId, portions: 1, excluded: false, motivo: 'receta nueva de Flash' };
+    this.cambiarSlot(semana[slot.dia].dayName, slot.tipo, () => [plato]);
+    return 'puesta';
+  }
+
+  guardarRecetaParaDespues(r: RecetaNueva): void {
+    const yaEsta = r.tags.some((t) => normalizar(t) === 'para probar');
+    this.agregarReceta(r, yaEsta ? r.tags : [...r.tags, 'para probar']);
   }
 
   deshacerCompletar(): void {
