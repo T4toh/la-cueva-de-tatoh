@@ -222,7 +222,8 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       plantas nuevas hacia las 30 y por usar lo de la despensa, sin repetir en
       la semana, y validado con `chequearSemana` (carbos una vez por día, roja
       ≤3, pescado ≥2). La lista **No como** de Ajustes es un filtro duro por
-      ingrediente vía el catálogo, y *completar recetas* también la respeta.
+      ingrediente vía el catálogo; *completar recetas* la recibe sólo como
+      instrucción en el prompt de Flash, no como filtro.
       Decisiones que no se ven: No como compara por subcadena hacia adelante
       (el texto contiene el término) y al revés sólo con el plural —mejor
       sacar de más ("sal" saca salmón) que sugerir lo que no come, pero
@@ -234,8 +235,9 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       `gemini-flash-lite-latest` de `services/flash.ts` que usa *completar
       recetas*). Flash **sólo elige** entre los mejores candidatos de cada
       hueco; `armarSemana` acepta o pisa cada elección con las mismas reglas
-      duras, y la rechaza si agrega una penalidad que la mejor opción
-      algorítmica no tiene. Si el pedido falla, se llena algorítmicamente y
+      duras, y la rechaza si queda a más de 900 puntos de la mejor opción
+      algorítmica: en la práctica, si rompe un chequeo de la guía o es de otra
+      estación y la mejor no. Si el pedido falla, se llena algorítmicamente y
       se avisa; Deshacer es el mismo. Las recetas nuevas salen solas en los
       huecos sin candidatos, o a pedido con "Sugerime algo nuevo", en un
       panel con Usar / Guardar para después (tag "para probar") / Descartar;
