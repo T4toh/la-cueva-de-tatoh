@@ -210,6 +210,38 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       localhost en `app-check-debug.local.ts`, fuera del repo. Firestore y
       Auth siguen sin enforce.
 
+- [x] **Armador de semanas.** El spec está en
+      [`docs/superpowers/specs/2026-11-06-armador-semanas-design.md`](docs/superpowers/specs/2026-11-06-armador-semanas-design.md);
+      planes en
+      [`2026-11-10-armador-semanas.md`](docs/superpowers/plans/2026-11-10-armador-semanas.md)
+      (entrega 1, PR #88) y
+      [`2026-11-10-armador-flash.md`](docs/superpowers/plans/2026-11-10-armador-flash.md)
+      (entrega 2). "Completar semana" llena los desayunos, almuerzos y cenas
+      vacíos respetando lo ya elegido y las salidas, con funciones puras bajo
+      Vitest: estación por fecha y hemisferio (país en Ajustes), puntaje por
+      plantas nuevas hacia las 30 y por usar lo de la despensa, sin repetir en
+      la semana, y validado con `chequearSemana` (carbos una vez por día, roja
+      ≤3, pescado ≥2). La lista **No como** de Ajustes es un filtro duro por
+      ingrediente vía el catálogo, y *completar recetas* también la respeta.
+      Decisiones que no se ven: No como compara por subcadena hacia adelante
+      (el texto contiene el término) y al revés sólo con el plural —mejor
+      sacar de más ("sal" saca salmón) que sugerir lo que no come, pero
+      "salchichas" no puede sacar todo lo que lleva sal—; fuera de estación
+      es una penalidad, no una exclusión; y el armador ignora sus propias
+      colocaciones en el historial (las que llevan motivo y nadie tocó),
+      para que una semana armada a ciegas no defina las siguientes.
+      La entrega 2 suma "Completar con Flash" (con sesión; el mismo
+      `gemini-flash-lite-latest` de `services/flash.ts` que usa *completar
+      recetas*). Flash **sólo elige** entre los mejores candidatos de cada
+      hueco; `armarSemana` acepta o pisa cada elección con las mismas reglas
+      duras, y la rechaza si agrega una penalidad que la mejor opción
+      algorítmica no tiene. Si el pedido falla, se llena algorítmicamente y
+      se avisa; Deshacer es el mismo. Las recetas nuevas salen solas en los
+      huecos sin candidatos, o a pedido con "Sugerime algo nuevo", en un
+      panel con Usar / Guardar para después (tag "para probar") / Descartar;
+      llevan su tipo como tag y se limpian al cambiar de semana. Lleva el
+      aviso de que el free tier puede usar los pedidos para entrenar.
+
 ## En curso / pendiente
 
 - [ ] **Recetario.** Diseñado y sin implementar. El spec está en
@@ -267,28 +299,6 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       no el nombre, para que renombrarla no rompa nada— y qué pasa si se
       borra una preparación que otra comida usa.
 
-- [ ] **Armador de semanas.** Entrega 1 hecha, sigue la 2 (Flash). La
-      entrega 1 es el botón "Completar semana", la lista **No como** y el
-      país en Ajustes; plan en
-      [`docs/superpowers/plans/2026-11-10-armador-semanas.md`](docs/superpowers/plans/2026-11-10-armador-semanas.md).
-      *Completar recetas* ya respeta No como. Alcance completo: un botón que llena
-      los desayunos, almuerzos y cenas vacíos del plan respetando lo ya
-      elegido y las salidas (postres y colación no). Dos entregas:
-      **1. algorítmica** —funciones puras con Vitest: estación por fecha y
-      hemisferio, puntaje por plantas nuevas hacia la meta de 30
-      (`comidasQueSuman`) y por usar lo que sobra en la despensa, no repetir
-      en la semana, validación con `chequearSemana` (carbos una vez por día,
-      roja ≤3, pescado ≥2)— y **2. Flash encima**, sobre la conexión que dejó
-      armada *completar recetas*: un pedido con el contexto preparado y
-      `responseSchema` (ids como `enum`), y un segundo pedido aparte sólo
-      para recetas nuevas —si faltan para variedad o no se llega a 30
-      plantas, tope 2-3—, que se usan, se descartan o se guardan con el tag
-      "para probar". Suma una lista **No como** en Ajustes: filtro duro por
-      ingrediente vía el catálogo, y se le pasa a Flash. Cada elección muestra por
-      qué. Metadata que sigue faltando: si la comida es plato principal,
-      guarnición o desayuno (hoy son tags sueltos y desparejos), y el rating
-      si existe.
-
 - [ ] **Comidas y acompañamientos por separado.** Salió de *completar
       recetas*: Flash sugería "1 taza de ensalada verde" y se resolvió
       pidiéndole ingredientes concretos, que se suman a la receta. Lo que se
@@ -296,7 +306,8 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       usarlo —un acompañamiento sirve para varios platos—, y para eso `Meal`
       tiene que distinguir platos de acompañamientos, que hoy no hace. Se
       cruza con *Preparaciones* (abajo) y con el armador, que necesita la
-      misma distinción.
+      misma distinción: hoy plato principal, guarnición y desayuno son tags
+      sueltos y desparejos, y es la metadata que le sigue faltando.
 
 - [ ] **Lista de compras: lo que quedó afuera del redondeo.** Dos cosas del
       ítem de cantidades que se compran (hecho, arriba): "clara" se compra
