@@ -1,4 +1,4 @@
-import { afterRenderEffect, Component, computed, inject, OnDestroy, signal } from '@angular/core';
+import { afterRenderEffect, Component, computed, inject, linkedSignal, OnDestroy, signal } from '@angular/core';
 import { comidasQueSuman, META_PLANTAS, plantasDeLaSemana } from '../../catalogo/plantas';
 import { armarGuia, REGLAS, tipDelPlan } from '../../guia/guia';
 import { chequearSemana, MAX_CARNE_ROJA, META_CARNE_BLANCA, MIN_PESCADO } from '../../guia/chequeos';
@@ -40,7 +40,11 @@ export class DashboardComponent implements OnDestroy {
     document.querySelector('.day-panel.is-today')?.scrollIntoView({ block: 'start' });
   });
 
-  readonly resultado = signal<{ puestos: number; sinCandidatos: number } | null>(null);
+  // El aviso es de la semana que se completó: cambiar de semana lo borra.
+  readonly resultado = linkedSignal<Date, { puestos: number; sinCandidatos: number } | null>({
+    source: this.mealService.currentWeekStart,
+    computation: () => null,
+  });
 
   readonly sinVacias = computed(() =>
     this.mealService.slotsParaCompletar().length === 0 ? 'No hay comidas vacías para completar' : ''
