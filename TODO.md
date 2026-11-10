@@ -267,7 +267,11 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       no el nombre, para que renombrarla no rompa nada— y qué pasa si se
       borra una preparación que otra comida usa.
 
-- [ ] **Armador de semanas.** Lo próximo; spec en curso. Un botón que llena
+- [ ] **Armador de semanas.** Entrega 1 hecha, sigue la 2 (Flash). La
+      entrega 1 es el botón "Completar semana", la lista **No como** y el
+      país en Ajustes; plan en
+      [`docs/superpowers/plans/2026-11-10-armador-semanas.md`](docs/superpowers/plans/2026-11-10-armador-semanas.md).
+      *Completar recetas* ya respeta No como. Alcance completo: un botón que llena
       los desayunos, almuerzos y cenas vacíos del plan respetando lo ya
       elegido y las salidas (postres y colación no). Dos entregas:
       **1. algorítmica** —funciones puras con Vitest: estación por fecha y
@@ -280,8 +284,7 @@ Lista de trabajo del monorepo. Lo de infra de la Raspberry vive aparte, en
       para recetas nuevas —si faltan para variedad o no se llega a 30
       plantas, tope 2-3—, que se usan, se descartan o se guardan con el tag
       "para probar". Suma una lista **No como** en Ajustes: filtro duro por
-      ingrediente vía el catálogo, y se le pasa a Flash (y a *completar
-      recetas*, que hoy no manda restricciones). Cada elección muestra por
+      ingrediente vía el catálogo, y se le pasa a Flash. Cada elección muestra por
       qué. Metadata que sigue faltando: si la comida es plato principal,
       guarnición o desayuno (hoy son tags sueltos y desparejos), y el rating
       si existe.

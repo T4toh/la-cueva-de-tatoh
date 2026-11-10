@@ -38,7 +38,7 @@ export class RevisionService {
       model: MODELO,
       generationConfig: { responseMimeType: 'application/json', responseSchema: esquemaRespuesta(ids) },
     }, { timeout: ESPERA_MS });
-    const respuesta = await modelo.generateContent(promptRevision(recetas));
+    const respuesta = await modelo.generateContent(promptRevision(recetas, this.mealService.noComo()));
     return JSON.parse(respuesta.response.text()) as unknown;
   };
 

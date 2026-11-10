@@ -47,8 +47,7 @@ export function resumenParaFlash(meal: Meal, indice: IndiceCatalogo): RecetaPara
   };
 }
 
-// TODO: lista "No como" (spec del armador). Todavía no se manda nada.
-export function promptRevision(recetas: RecetaParaFlash[]): string {
+export function promptRevision(recetas: RecetaParaFlash[], noComo: readonly string[] = []): string {
   return [
     'Sos un cocinero que ayuda a completar recetas caseras. Te paso un recetario en JSON.',
     'Las cantidades de cada receta son por una porción, para una persona.',
@@ -68,6 +67,9 @@ export function promptRevision(recetas: RecetaParaFlash[]): string {
     'Cada sugerencia es un solo ingrediente concreto, de los que se compran: nunca una preparación',
     'como "ensalada verde", "guarnición" o "salteado de verduras". Si proponés un acompañamiento,',
     'desarmalo en sus ingredientes (por ejemplo lechuga y tomate, cada uno con su cantidad).',
+    ...(noComo.length > 0
+      ? [`El usuario no come estos ingredientes: ${noComo.join(', ')}. En las sugerencias no sugieras ninguno.`]
+      : []),
     'Los campos "grupos" y "porcionReferencia" los calculó la app: son una ayuda, no la regla.',
     'Respondé una entrada por cada receta, con su id. Escribí en español rioplatense.',
     '',

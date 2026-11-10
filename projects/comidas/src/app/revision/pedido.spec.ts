@@ -96,6 +96,15 @@ describe('promptRevision', () => {
     expect(prompt).toContain('medio plato de verduras');
     expect(prompt).toContain('aunque tenga de todo un poco');
   });
+
+  it('con No como pide no sugerir esos ingredientes; vacía no menciona nada', () => {
+    const recetas = [resumenParaFlash(okonomiyaki, indice)];
+    const prompt = promptRevision(recetas, ['cebolla', 'gluten']);
+    expect(prompt).toContain('cebolla, gluten');
+    expect(prompt).toContain('no sugieras ninguno');
+    expect(promptRevision(recetas, [])).not.toContain('no sugieras');
+    expect(promptRevision(recetas)).toBe(promptRevision(recetas, []));
+  });
 });
 
 describe('esquemaRespuesta', () => {
