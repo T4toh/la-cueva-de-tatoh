@@ -1432,7 +1432,7 @@ describe('MealService: armador de semanas', () => {
     motivo: 'receta nueva de Flash',
   });
 
-  it('usar una receta nueva la suma al recetario y la pone en su hueco', () => {
+  it('usar una receta nueva la suma al recetario con su tipo de tag y la pone en su hueco', () => {
     const service = TestBed.inject(MealService);
     desdeElDia(service, 0);
 
@@ -1442,7 +1442,7 @@ describe('MealService: armador de semanas', () => {
     expect(meal).toEqual({
       id: meal.id,
       name: 'Guiso de lentejas',
-      tags: ['almuerzo'],
+      tags: ['almuerzo', 'cena'],
       ingredients: [{ name: 'Lentejas', quantity: '100', unit: 'g' }],
       pasos: [{ texto: 'Remojar' }, { texto: 'Hervir' }],
       includeInShoppingList: true,
@@ -1475,6 +1475,25 @@ describe('MealService: armador de semanas', () => {
     expect(service.schedule()).toBe(antes);
   });
 
+  it('el tipo no se repite como tag aunque Flash lo haya escrito distinto', () => {
+    const service = TestBed.inject(MealService);
+    desdeElDia(service, 0);
+
+    service.usarRecetaNueva(receta({ tags: ['Almuerzo', 'guiso'] }));
+
+    expect(service.meals().at(-1)!.tags).toEqual(['Almuerzo', 'guiso']);
+  });
+
+  it('un hueco de un día que ya pasó no se usa: va adonde diga slotParaUsar', () => {
+    const service = TestBed.inject(MealService);
+    desdeElDia(service, 3);
+
+    expect(service.usarRecetaNueva(receta({ tipo: 'cena', slot: { dia: 1, tipo: 'cena' } }))).toBe('puesta');
+
+    expect(service.schedule()[1].cena).toEqual([]);
+    expect(service.schedule()[3].cena).toEqual([deFlash(service.meals().at(-1)!.id)]);
+  });
+
   it('no pisa el hueco que el usuario llenó mientras tanto', () => {
     const service = TestBed.inject(MealService);
     desdeElDia(service, 0);
@@ -1486,22 +1505,22 @@ describe('MealService: armador de semanas', () => {
     expect(service.schedule()[0].cena).toEqual([deFlash(service.meals().at(-1)!.id)]);
   });
 
-  it('guardar para después suma el tag "para probar" sin duplicarlo y no toca el plan', () => {
+  it('guardar para después suma su tipo y "para probar" sin duplicarlos y no toca el plan', () => {
     const service = TestBed.inject(MealService);
     const antes = service.schedule();
 
-    service.guardarRecetaParaDespues(receta({ name: 'Uno', tags: ['cena'], pasos: [] }));
-    service.guardarRecetaParaDespues(receta({ name: 'Dos', tags: ['cena', 'Para Probar '] }));
+    service.guardarRecetaParaDespues(receta({ name: 'Uno', tags: ['guiso'], tipo: 'cena', pasos: [] }));
+    service.guardarRecetaParaDespues(receta({ name: 'Dos', tags: ['Cena', 'Para Probar '], tipo: 'cena' }));
 
     const [uno, dos] = service.meals();
     expect(uno).toEqual({
       id: uno.id,
       name: 'Uno',
-      tags: ['cena', 'para probar'],
+      tags: ['guiso', 'cena', 'para probar'],
       ingredients: [{ name: 'Lentejas', quantity: '100', unit: 'g' }],
       includeInShoppingList: true,
     });
-    expect(dos.tags).toEqual(['cena', 'Para Probar ']);
+    expect(dos.tags).toEqual(['Cena', 'Para Probar ']);
     expect(service.schedule()).toBe(antes);
   });
 

@@ -1694,10 +1694,10 @@ export class MealService {
     preferidas?: ReadonlyMap<string, Preferida>,
     semanaEsperada?: string
   ): { puestos: number; sinCandidatos: number; deFlash: number } | null {
-    const { key, semana: antes, desde, tipos, candidatos, ctx } = this.entradaArmador();
-    if (semanaEsperada !== undefined && semanaEsperada !== key) {
+    if (semanaEsperada !== undefined && semanaEsperada !== this.formatDateKey(this.currentWeekStart())) {
       return null;
     }
+    const { key, semana: antes, desde, tipos, candidatos, ctx } = this.entradaArmador();
     const { semana, puestos, sinCandidatos, deFlash } = armarSemana(
       antes, desde, tipos, candidatos, ctx, azar, preferidas
     );
@@ -1708,7 +1708,15 @@ export class MealService {
     return { puestos, sinCandidatos, deFlash };
   }
 
-  private agregarReceta(r: RecetaNueva, tags: string[]): string {
+  // Al recetario, con su tipo como tag (si no, el armador no la toma de
+  // candidata) y los `extra`; sin repetir un tag que ya tenga.
+  private agregarReceta(r: RecetaNueva, extra: string[] = []): string {
+    const tags = [...r.tags];
+    for (const tag of [r.tipo, ...extra]) {
+      if (!tags.some((t) => normalizar(t) === tag)) {
+        tags.push(tag);
+      }
+    }
     return this.addMeal({
       name: r.name,
       tags,
@@ -1718,15 +1726,16 @@ export class MealService {
     });
   }
 
-  // Al recetario y a la semana: a su hueco si sigue vacío; si no (o si no
-  // tenía), adonde diga `slotParaUsar`. Sin lugar, queda sólo guardada.
+  // Al recetario y a la semana: a su hueco si sigue vacío y no pasó; si no (o
+  // si no tenía), adonde diga `slotParaUsar`. Sin lugar, queda sólo guardada.
   usarRecetaNueva(r: RecetaNueva): 'puesta' | 'guardada' {
-    const mealId = this.agregarReceta(r, r.tags);
+    const mealId = this.agregarReceta(r);
     const semana = this.schedule();
+    const { desde } = this.alcanceCompletar();
     const slot =
-      r.slot && !semana[r.slot.dia][r.slot.tipo].length
+      r.slot && r.slot.dia >= desde && !semana[r.slot.dia][r.slot.tipo].length
         ? r.slot
-        : slotParaUsar(semana, this.alcanceCompletar().desde, r.tipo, this.meals(), this.indiceCatalogo());
+        : slotParaUsar(semana, desde, r.tipo, this.meals(), this.indiceCatalogo());
     if (!slot) {
       return 'guardada';
     }
@@ -1736,8 +1745,7 @@ export class MealService {
   }
 
   guardarRecetaParaDespues(r: RecetaNueva): void {
-    const yaEsta = r.tags.some((t) => normalizar(t) === 'para probar');
-    this.agregarReceta(r, yaEsta ? r.tags : [...r.tags, 'para probar']);
+    this.agregarReceta(r, ['para probar']);
   }
 
   deshacerCompletar(): void {
