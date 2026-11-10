@@ -58,9 +58,8 @@ export class ArmadorFlashService {
       if (this.semana() !== semana) {
         return { ...r, nuevas: [] };
       }
-      if (r.nuevas.length > 0) {
-        this.sugeridas.set(r.nuevas);
-      }
+      // Se suman a las pendientes: pedir más no borra lo que todavía no resolviste.
+      this.sugeridas.update((lista) => [...lista, ...r.nuevas]);
       return r;
     } catch (error) {
       return { ...sinResultado(), error: mensajeDeError(error, ERROR_ARMADOR) };
@@ -92,7 +91,8 @@ export class ArmadorFlashService {
         promptRecetasNuevas(p, ctx.estacion, paisNombre, noComo, nombresExistentes),
       );
       if (this.semana() === semana) {
-        this.sugeridas.set(validarRecetasNuevas(raw, p, new Map(), noComo, ctx.indice, nombresExistentes));
+        const nuevas = validarRecetasNuevas(raw, p, new Map(), noComo, ctx.indice, nombresExistentes);
+        this.sugeridas.update((lista) => [...lista, ...nuevas]);
       }
       return null;
     } catch (error) {
@@ -102,21 +102,28 @@ export class ArmadorFlashService {
     }
   }
 
-  usar(i: number): 'puesta' | 'guardada' {
-    return this.mealService.usarRecetaNueva(this.quitar(i));
+  // Un índice que ya no está (doble clic, lista que cambió) no hace nada: null.
+  usar(i: number): 'puesta' | 'guardada' | null {
+    const r = this.quitar(i);
+    return r && this.mealService.usarRecetaNueva(r);
   }
 
   guardar(i: number): void {
-    this.mealService.guardarRecetaParaDespues(this.quitar(i));
+    const r = this.quitar(i);
+    if (r) {
+      this.mealService.guardarRecetaParaDespues(r);
+    }
   }
 
   descartar(i: number): void {
     this.quitar(i);
   }
 
-  private quitar(i: number): RecetaNueva {
-    const r = this.sugeridas()[i];
-    this.sugeridas.update((lista) => lista.filter((_, j) => j !== i));
+  private quitar(i: number): RecetaNueva | null {
+    const r = this.sugeridas()[i] ?? null;
+    if (r) {
+      this.sugeridas.update((lista) => lista.filter((_, j) => j !== i));
+    }
     return r;
   }
 

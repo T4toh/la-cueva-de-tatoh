@@ -30,18 +30,26 @@ export class RecetasNuevasComponent {
   }
 
   guardar(i: number): void {
-    this.flash.guardar(i);
-    this.estado.set('La guardé en el recetario con "para probar"');
+    if (this.flash.nuevas()[i]) {
+      this.flash.guardar(i);
+      this.estado.set('La guardé en el recetario con "para probar"');
+    }
   }
 
   descartar(i: number): void {
-    this.flash.descartar(i);
-    this.estado.set('Descartada');
+    if (this.flash.nuevas()[i]) {
+      this.flash.descartar(i);
+      this.estado.set('Descartada');
+    }
   }
 
   usar(i: number): void {
     const antes = this.mealService.schedule();
-    if (this.flash.usar(i) === 'guardada') {
+    const r = this.flash.usar(i);
+    if (r === null) {
+      return;
+    }
+    if (r === 'guardada') {
       this.estado.set('No había lugar: la guardé en el recetario');
       return;
     }
