@@ -3,8 +3,16 @@
 }
 
 .completar-vacio,
-.estado {
+.estado,
+.flash-aviso {
   color: var(--fg-secondary);
+}
+
+.flash-aviso {
+  flex-basis: 100%;
+  margin: 0;
+  text-align: center;
+  font-size: 0.8rem;
 }
 
 .estado[hidden] {
