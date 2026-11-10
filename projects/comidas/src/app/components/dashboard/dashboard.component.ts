@@ -70,6 +70,9 @@ export class DashboardComponent implements OnDestroy {
     source: computed(() => this.mealService.currentWeekStart().getTime()),
     computation: () => '',
   });
+  // Mientras Flash piensa la línea de estado lo dice, para quien no ve el botón.
+  readonly estadoVisible = computed(() => (this.flash.armando() ? 'Armando con Flash…' : this.estadoFlash()));
+
   readonly sinSesion = computed(() => (this.flash.puede() ? '' : 'Iniciá sesión para completar con Flash'));
   // Completar con Flash: sin sesión, sin huecos o armando.
   readonly flashDeshabilitado = computed(
@@ -83,10 +86,12 @@ export class DashboardComponent implements OnDestroy {
   }
 
   completarSemana(): void {
+    this.estadoFlash.set('');
     this.resultado.set(this.mealService.completarSemana());
   }
 
   deshacer(): void {
+    this.estadoFlash.set('');
     this.mealService.deshacerCompletar();
     this.resultado.set(null);
   }

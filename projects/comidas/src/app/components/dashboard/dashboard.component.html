@@ -172,7 +172,7 @@
     </button>
   </p>
 
-  <p class="completar-aviso" role="status" [hidden]="!estadoFlash()">{{ estadoFlash() }}</p>
+  <p class="completar-aviso" role="status" [hidden]="!estadoVisible()">{{ estadoVisible() }}</p>
 
   <div class="schedule-grid">
     @for (day of mealService.schedule(); track day.dayName) {

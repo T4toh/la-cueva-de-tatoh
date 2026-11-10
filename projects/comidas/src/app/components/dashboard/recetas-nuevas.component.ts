@@ -29,6 +29,16 @@ export class RecetasNuevasComponent {
     this.estado.set((await this.flash.sugerir()) ?? '');
   }
 
+  guardar(i: number): void {
+    this.flash.guardar(i);
+    this.estado.set('La guardé en el recetario con "para probar"');
+  }
+
+  descartar(i: number): void {
+    this.flash.descartar(i);
+    this.estado.set('Descartada');
+  }
+
   usar(i: number): void {
     const antes = this.mealService.schedule();
     if (this.flash.usar(i) === 'guardada') {
