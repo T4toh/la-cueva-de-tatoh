@@ -34,7 +34,7 @@ import {
 import { CATALOGO } from '../catalogo/catalogo-datos';
 import { claveParte, DiaLista, estaTildada, ParteCompra, repartirDespensa, sinRuido } from '../compras/partes';
 import { GUIA_VACIA, GuiaPropia, normalizarGuia } from '../guia/guia';
-import { armarSemana, EntradaArmador, Preferida, Slot, slotsVacios } from '../armador/armador';
+import { armarSemana, EntradaArmador, Preferida, ResultadoArmador, Slot, slotsVacios } from '../armador/armador';
 import { candidatosPorTipo } from '../armador/candidatos';
 import { normalizarNoComo } from '../armador/no-como';
 import { estacionDe, hemisferioDe, paisDeTimezone } from '../armador/estacion';
@@ -1693,19 +1693,17 @@ export class MealService {
     azar: () => number = Math.random,
     preferidas?: ReadonlyMap<string, Preferida>,
     semanaEsperada?: string
-  ): { puestos: number; sinCandidatos: number; deFlash: number } | null {
+  ): Omit<ResultadoArmador, 'semana'> | null {
     if (semanaEsperada !== undefined && semanaEsperada !== this.formatDateKey(this.currentWeekStart())) {
       return null;
     }
     const { key, semana: antes, desde, tipos, candidatos, ctx } = this.entradaArmador();
-    const { semana, puestos, sinCandidatos, deFlash } = armarSemana(
-      antes, desde, tipos, candidatos, ctx, azar, preferidas
-    );
-    if (puestos) {
+    const { semana, ...resultado } = armarSemana(antes, desde, tipos, candidatos, ctx, azar, preferidas);
+    if (resultado.puestos) {
       this.schedules.update((s) => ({ ...s, [key]: semana }));
       this.ultimoCompletar.set({ key, antes, despues: semana });
     }
-    return { puestos, sinCandidatos, deFlash };
+    return resultado;
   }
 
   // Al recetario, con su tipo como tag (si no, el armador no la toma de

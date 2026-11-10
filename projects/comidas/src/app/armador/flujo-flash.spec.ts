@@ -63,7 +63,36 @@ describe('completarConFlash', () => {
     const [, preferidas, semanaEsperada] = completar.mock.calls[0];
     expect([...preferidas]).toEqual([['Lunes-almuerzo', { mealId: 'b', motivo: 'suma plantas' }]]);
     expect(semanaEsperada).toBe('2026-11-09');
-    expect(r).toEqual({ puestos: 2, sinCandidatos: 0, deFlash: 1, nuevas: [], error: null, cambioSemana: false });
+    expect(r).toEqual({
+      puestos: 2, sinCandidatos: 0, deFlash: 1, nuevas: [], error: null, cambioSemana: false,
+      diagnostico: expect.anything(),
+    });
+  });
+
+  it('el diagnóstico tiene una fila por slot enviado con lo que eligió Flash y lo que quedó', async () => {
+    const despues = [dia('Lunes', ['a']), dia('Martes', ['b']), dia('Miércoles', ['b'])];
+    let llamadas = 0;
+    const e = (): EntradaArmador => entrada(llamadas++ ? despues : [dia('Lunes'), dia('Martes'), dia('Miércoles')]);
+    const completar = vi.fn().mockReturnValue({
+      puestos: 3, sinCandidatos: 0, deFlash: 1,
+      rechazos: [{ clave: 'Lunes-almuerzo', mealId: 'b', razon: 'margen' }],
+    });
+    const crudo = {
+      elecciones: [
+        { clave: 'Lunes-almuerzo', mealId: 'b', motivo: 'm' },
+        { clave: 'Martes-almuerzo', mealId: 'b', motivo: 'm' },
+      ],
+    };
+    const r = await completarConFlash(deps(e, completar, vi.fn().mockResolvedValue(crudo)));
+
+    expect(r.diagnostico).toEqual({
+      crudo,
+      filas: [
+        { clave: 'Lunes-almuerzo', eligioFlash: 'b · b', puesto: 'a · a', resultado: 'margen (chequeo o estación)' },
+        { clave: 'Martes-almuerzo', eligioFlash: 'b · b', puesto: 'b · b', resultado: 'aceptada' },
+        { clave: 'Miércoles-almuerzo', eligioFlash: '—', puesto: 'b · b', resultado: 'sin respuesta' },
+      ],
+    });
   });
 
   it('si Flash falla completa con el algoritmo, avisa el error y no pide recetas', async () => {

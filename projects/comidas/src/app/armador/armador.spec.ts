@@ -259,4 +259,27 @@ describe('armarSemana con preferidas', () => {
   it('sin preferidas, deFlash es 0', () => {
     expect(arma(new Map()).deFlash).toBe(0);
   });
+
+  it('registra cada rechazo con su razón: no posible o por margen', () => {
+    const papa = comida('papa', ['papa']);
+    const liviana = comida('liviana', ['lechuga']);
+    const semana = [dia('lunes', { almuerzo: ['arroz'] }), dia('martes')];
+    const c = [papa, liviana];
+    const p = new Map([
+      ['lunes-cena', { mealId: 'papa', motivo: 'm' }],
+      ['martes-almuerzo', { mealId: 'inexistente', motivo: 'm' }],
+      ['martes-cena', { mealId: 'liviana', motivo: 'm' }],
+    ]);
+    const todasMas = ctx([comida('arroz', ['arroz']), ...c]);
+    const r = armarSemana(semana, 0, ['almuerzo', 'cena'], cands([], c), todasMas, cero, p);
+    expect(r.rechazos).toEqual([
+      { clave: 'lunes-cena', mealId: 'papa', razon: 'margen' },
+      { clave: 'martes-almuerzo', mealId: 'inexistente', razon: 'no-posible' },
+      { clave: 'martes-cena', mealId: 'liviana', razon: 'no-posible' },
+    ]);
+  });
+
+  it('sin preferidas no hay registro de rechazos', () => {
+    expect(armarSemana(vacia(1), 0, ['almuerzo'], cands([], todas), ctx(todas), cero).rechazos).toBeUndefined();
+  });
 });

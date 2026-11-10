@@ -1395,6 +1395,7 @@ describe('MealService: armador de semanas', () => {
       puestos: 1,
       sinCandidatos: 0,
       deFlash: 1,
+      rechazos: [],
     });
     expect(service.schedule()[6].almuerzo).toEqual([
       { mealId: segundo, portions: 1, excluded: false, motivo: 'para variar' },

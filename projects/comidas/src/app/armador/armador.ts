@@ -38,7 +38,18 @@ export function claveSlot(semana: DaySchedule[], { dia, tipo }: Slot): string {
   return `${semana[dia].dayName}-${tipo}`;
 }
 
-export type ResultadoArmador = { semana: DaySchedule[]; puestos: number; sinCandidatos: number; deFlash: number };
+// Una preferida de Flash que no se puso: no estaba entre los posibles del slot
+// (repetida, ya usada) o quedaba a más de MARGEN_PREFERIDA del mejor.
+export type Rechazo = { clave: string; mealId: string; razon: 'no-posible' | 'margen' };
+
+// `rechazos` sólo viene cuando hubo preferidas.
+export type ResultadoArmador = {
+  semana: DaySchedule[];
+  puestos: number;
+  sinCandidatos: number;
+  deFlash: number;
+  rechazos?: Rechazo[];
+};
 
 // Lo que necesita el armador de la semana mostrada; lo arma MealService.
 export type EntradaArmador = {
@@ -146,18 +157,24 @@ export function armarSemana(
   let puestos = 0;
   let sinCandidatos = 0;
   let deFlash = 0;
+  const rechazos: Rechazo[] = [];
 
   for (const slot of slotsVacios(semana, desde, tipos)) {
     // sort es estable: a igual puntaje queda el orden de los candidatos.
     const puntuados = puntuadosPara(actual, slot, candidatos, ctx).sort((a, b) => b.puntaje.puntos - a.puntaje.puntos);
+    const clave = claveSlot(semana, slot);
+    const pref = preferidas?.get(clave);
+    const deFlashElegida = pref && puntuados.find((c) => c.meal.id === pref.mealId);
+    const aceptada = deFlashElegida && deFlashElegida.puntaje.puntos >= puntuados[0].puntaje.puntos - MARGEN_PREFERIDA;
+    if (pref && !aceptada) {
+      rechazos.push({ clave, mealId: pref.mealId, razon: deFlashElegida ? 'margen' : 'no-posible' });
+    }
     if (!puntuados.length) {
       sinCandidatos++;
       continue;
     }
 
-    const pref = preferidas?.get(claveSlot(semana, slot));
-    const deFlashElegida = pref && puntuados.find((c) => c.meal.id === pref.mealId);
-    if (deFlashElegida && deFlashElegida.puntaje.puntos >= puntuados[0].puntaje.puntos - MARGEN_PREFERIDA) {
+    if (pref && aceptada) {
       const motivo = pref.motivo.trim().slice(0, MAX_MOTIVO) || deFlashElegida.puntaje.motivo;
       actual = poner(actual, slot, { mealId: pref.mealId, portions: 1, excluded: false, motivo });
       puestos++;
@@ -169,5 +186,5 @@ export function armarSemana(
     actual = poner(actual, slot, { mealId: meal.id, portions: 1, excluded: false, motivo: puntaje.motivo });
     puestos++;
   }
-  return { semana: actual, puestos, sinCandidatos, deFlash };
+  return { semana: actual, puestos, sinCandidatos, deFlash, ...(preferidas ? { rechazos } : {}) };
 }

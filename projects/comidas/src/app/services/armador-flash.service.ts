@@ -1,4 +1,4 @@
-import { computed, effect, inject, Injectable, signal, untracked } from '@angular/core';
+import { computed, effect, inject, Injectable, isDevMode, signal, untracked } from '@angular/core';
 import { FirebaseApp } from '@angular/fire/app';
 
 import { PAISES } from '../armador/estacion';
@@ -55,6 +55,11 @@ export class ArmadorFlashService {
         pedir: this.pedir,
         ...this.datos(),
       });
+      // Para ver en la consola por qué Flash eligió una cosa y quedó otra. Nunca en producción.
+      if (isDevMode() && r.diagnostico) {
+        console.debug('Respuesta de Flash', r.diagnostico.crudo);
+        console.table(r.diagnostico.filas);
+      }
       if (this.semana() !== semana) {
         return { ...r, nuevas: [] };
       }
