@@ -103,12 +103,19 @@ export function esquemaRespuesta(ids: string[]): ObjectSchema {
   });
 }
 
-function esObjeto(x: unknown): x is Record<string, unknown> {
+export function esObjeto(x: unknown): x is Record<string, unknown> {
   return typeof x === 'object' && x !== null && !Array.isArray(x);
 }
 
-function texto(x: unknown): string {
+export function texto(x: unknown): string {
   return typeof x === 'string' ? x.trim() : '';
+}
+
+// Con texto después del número ('2 cdas', '2-3') la normalización al cargar lo
+// recorta, y la firma de la receta cambiaría sola.
+export function cantidadEntera(q: string): boolean {
+  const cantidad = parseQuantity(q);
+  return !!cantidad && cantidad.resto.trim() === '';
 }
 
 // Una cantidad que `parseQuantity` no entiende entera rompería la
@@ -120,10 +127,7 @@ function sugerenciaValida(raw: unknown): SugerenciaReceta | null {
   const name = texto(raw['name']);
   const quantity = texto(raw['quantity']);
   const unit = texto(raw['unit']);
-  // Con texto después del número ('2 cdas', '2-3') la normalización al cargar
-  // lo recorta, y la firma de la receta cambiaría sola.
-  const cantidad = parseQuantity(quantity);
-  if (!name || !cantidad || cantidad.resto.trim() !== '') {
+  if (!name || !cantidadEntera(quantity)) {
     return null;
   }
   return { name, quantity, ...(unit ? { unit } : {}), motivo: texto(raw['motivo']) };
@@ -186,23 +190,44 @@ export async function revisarEnTandas(
   return { resultados, error: null };
 }
 
+const CUOTA = /429|RESOURCE_EXHAUSTED|quota/i;
+// En el plan gratuito Google corta con 500 "high demand" o 503 "Deadline
+// expired" cuando el modelo está cargado; el abort es nuestro tope de espera.
+const SATURADO = /\b50[03]\b|UNAVAILABLE|high demand|Deadline|timed out|abort/i;
+
+const mensajeDe = (error: unknown): string => (error instanceof Error ? error.message : '');
+
+// Cuota, saturación, cualquier 5xx o tiempo agotado: con otro modelo puede
+// andar. Un esquema rechazado (400), una respuesta ilegible o la red caída
+// fallarían igual. Esos dos van primero: el mensaje de un JSON roto trae su
+// posición ("at position 500") y las regex lo tomarían por un 500.
+export function esErrorTransitorio(error: unknown): boolean {
+  if (error instanceof SyntaxError || error instanceof TypeError) {
+    return false;
+  }
+  const mensaje = mensajeDe(error);
+  return CUOTA.test(mensaje) || SATURADO.test(mensaje) || /\b5\d\d\b/.test(mensaje);
+}
+
 // El texto que ve el usuario cuando una pasada falla. Lo ya revisado se
 // guardó igual; esto sólo explica por qué faltan las demás.
-export function mensajeDeError(error: unknown): string {
-  const mensaje = error instanceof Error ? error.message : '';
-  if (/429|RESOURCE_EXHAUSTED|quota/i.test(mensaje)) {
-    return 'Se terminó la cuota gratuita de Flash por hoy. Probá de nuevo mañana.';
-  }
-  // En el plan gratuito Google corta con 500 "high demand" o 503 "Deadline
-  // expired" cuando el modelo está cargado; el abort es nuestro tope de espera.
-  if (/\b50[03]\b|UNAVAILABLE|high demand|Deadline|timed out|abort/i.test(mensaje)) {
-    return 'Flash está saturado ahora. Probá de nuevo en un rato.';
-  }
+export function mensajeDeError(
+  error: unknown,
+  generico = 'No se pudo revisar el recetario. Probá de nuevo más tarde.'
+): string {
+  // Antes que las regex, por lo mismo que en esErrorTransitorio.
   if (error instanceof SyntaxError) {
     return 'Flash respondió algo que no se pudo leer. Probá de nuevo.';
   }
   if (error instanceof TypeError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
     return 'Sin conexión: revisá internet y probá de nuevo.';
   }
-  return 'No se pudo revisar el recetario. Probá de nuevo más tarde.';
+  const mensaje = mensajeDe(error);
+  if (CUOTA.test(mensaje)) {
+    return 'Se terminó la cuota gratuita de Flash por hoy. Probá de nuevo mañana.';
+  }
+  if (SATURADO.test(mensaje)) {
+    return 'Flash está saturado ahora. Probá de nuevo en un rato.';
+  }
+  return generico;
 }

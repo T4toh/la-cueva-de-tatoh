@@ -31,7 +31,40 @@ export function slotsVacios(semana: DaySchedule[], desde: number, tipos: readonl
   return slots;
 }
 
-export type ResultadoArmador = { semana: DaySchedule[]; puestos: number; sinCandidatos: number };
+export type Preferida = { mealId: string; motivo: string };
+
+// "Martes-almuerzo": legible para Flash y estable dentro de la semana.
+export function claveSlot(semana: DaySchedule[], { dia, tipo }: Slot): string {
+  return `${semana[dia].dayName}-${tipo}`;
+}
+
+// Una preferida de Flash que no se puso: no estaba entre los posibles del slot
+// (repetida, ya usada) o quedaba a más de MARGEN_PREFERIDA del mejor.
+export type Rechazo = { clave: string; mealId: string; razon: 'no-posible' | 'margen' };
+
+// `rechazos` sólo viene cuando hubo preferidas.
+export type ResultadoArmador = {
+  semana: DaySchedule[];
+  puestos: number;
+  sinCandidatos: number;
+  deFlash: number;
+  rechazos?: Rechazo[];
+};
+
+// Lo que necesita el armador de la semana mostrada; lo arma MealService.
+export type EntradaArmador = {
+  key: string;
+  semana: DaySchedule[];
+  desde: number;
+  tipos: DishMealType[];
+  candidatos: Candidatos;
+  ctx: ContextoPuntaje;
+};
+
+// Preferida de Flash: se acepta salvo que rompa algo que el mejor no rompe (un chequeo vale -1000).
+const MARGEN_PREFERIDA = 900;
+const MAX_MOTIVO = 80;
+const MAX_OPCIONES = 8;
 
 function poner(semana: DaySchedule[], { dia, tipo }: Slot, plato: Dish): DaySchedule[] {
   return semana.map((d, i) => (i === dia ? { ...d, [tipo]: [plato] } : d));
@@ -51,6 +84,71 @@ function elegir(top: { meal: Meal; puntaje: Puntaje }[], azar: () => number): { 
   return top[top.length - 1];
 }
 
+// Reglas duras de un slot: qué comidas puede recibir y cuántas veces ya está cada una de desayuno.
+function posiblesPara(
+  actual: DaySchedule[],
+  slot: Slot,
+  candidatos: Candidatos,
+): { posibles: Meal[]; veces: (m: Meal) => number } {
+  const ids = (de: readonly DishMealType[]): Set<string> =>
+    new Set(actual.flatMap((d) => de.flatMap((t) => d[t].map((p) => p.mealId))));
+  if (slot.tipo === 'desayuno') {
+    const desayunos = actual.flatMap((d) => d.desayuno.map((p) => p.mealId));
+    const veces = (m: Meal): number => desayunos.filter((id) => id === m.id).length;
+    // Lo que ya es almuerzo o cena no se desayuna. El tope es regla dura,
+    // salvo que no quede ninguno debajo: antes que dejarlo vacío, repite.
+    const principales = ids(['almuerzo', 'cena']);
+    const libres = candidatos.desayuno.filter((m) => !principales.has(m.id));
+    const bajoTope = libres.filter((m) => veces(m) < MAX_DESAYUNO_REPETIDO);
+    return { posibles: bajoTope.length ? bajoTope : libres, veces };
+  }
+  // Almuerzo y cena no repiten nada de la semana, desayunos incluidos.
+  const usadas = ids(TIPOS);
+  return { posibles: candidatos[slot.tipo].filter((m) => !usadas.has(m.id)), veces: () => 0 };
+}
+
+// Los posibles de un slot con su puntaje contra `actual` (sin ordenar).
+function puntuadosPara(
+  actual: DaySchedule[],
+  slot: Slot,
+  candidatos: Candidatos,
+  ctx: ContextoPuntaje,
+): { meal: Meal; puntaje: Puntaje }[] {
+  const { posibles, veces } = posiblesPara(actual, slot, candidatos);
+  const previo = previoDe(actual, ctx);
+  return posibles.map((meal) => {
+    const conEl = poner(actual, slot, { mealId: meal.id, portions: 1 });
+    const p = puntuar(meal, actual, conEl, ctx, previo);
+    return { meal, puntaje: { ...p, puntos: p.puntos + veces(meal) * PESO_DESAYUNO_REPETIDO } };
+  });
+}
+
+export type OpcionesSlot = { slot: Slot; clave: string; opciones: { meal: Meal; puntos: number }[] };
+
+// Puntúa contra la semana como está (sin las elecciones de los otros slots). Mejores primero.
+export function opcionesPorSlot(
+  semana: DaySchedule[],
+  desde: number,
+  tipos: readonly DishMealType[],
+  candidatos: Candidatos,
+  ctx: ContextoPuntaje,
+  max?: number,
+): OpcionesSlot[] {
+  const vacios = slotsVacios(semana, desde, tipos);
+  // Todos los slots se puntúan contra la misma semana, así que sus mejores
+  // opciones son casi las mismas: con sólo 8, Flash se queda sin comidas
+  // distintas al quinto día y repite. Uno más por slot alcanza para no repetir.
+  const tope = max ?? MAX_OPCIONES + vacios.length;
+  return vacios.map((slot) => ({
+    slot,
+    clave: claveSlot(semana, slot),
+    opciones: puntuadosPara(semana, slot, candidatos, ctx)
+      .sort((a, b) => b.puntaje.puntos - a.puntaje.puntos)
+      .slice(0, tope)
+      .map(({ meal, puntaje }) => ({ meal, puntos: puntaje.puntos })),
+  }));
+}
+
 export function armarSemana(
   semana: DaySchedule[],
   desde: number,
@@ -58,46 +156,47 @@ export function armarSemana(
   candidatos: Candidatos,
   ctx: ContextoPuntaje,
   azar: () => number,
+  preferidas?: ReadonlyMap<string, Preferida>,
 ): ResultadoArmador {
   let actual = semana;
   let puestos = 0;
   let sinCandidatos = 0;
+  let deFlash = 0;
+  const rechazos: Rechazo[] = [];
+  // Lo que Flash eligió para slots que todavía no se armaron: si un slot cae
+  // al algoritmo y toma una de esas, la elección de Flash de más adelante
+  // queda repetida y arrastra a la siguiente.
+  const reservadas = new Map([...(preferidas ?? [])].map(([clave, p]) => [clave, p.mealId]));
 
   for (const slot of slotsVacios(semana, desde, tipos)) {
-    let posibles: Meal[];
-    let veces: (m: Meal) => number = () => 0;
-    const ids = (de: readonly DishMealType[]): Set<string> =>
-      new Set(actual.flatMap((d) => de.flatMap((t) => d[t].map((p) => p.mealId))));
-    if (slot.tipo === 'desayuno') {
-      const desayunos = actual.flatMap((d) => d.desayuno.map((p) => p.mealId));
-      veces = (m): number => desayunos.filter((id) => id === m.id).length;
-      // Lo que ya es almuerzo o cena no se desayuna. El tope es regla dura,
-      // salvo que no quede ninguno debajo: antes que dejarlo vacío, repite.
-      const principales = ids(['almuerzo', 'cena']);
-      const libres = candidatos.desayuno.filter((m) => !principales.has(m.id));
-      const bajoTope = libres.filter((m) => veces(m) < MAX_DESAYUNO_REPETIDO);
-      posibles = bajoTope.length ? bajoTope : libres;
-    } else {
-      // Almuerzo y cena no repiten nada de la semana, desayunos incluidos.
-      const usadas = ids(TIPOS);
-      posibles = candidatos[slot.tipo].filter((m) => !usadas.has(m.id));
+    // sort es estable: a igual puntaje queda el orden de los candidatos.
+    const puntuados = puntuadosPara(actual, slot, candidatos, ctx).sort((a, b) => b.puntaje.puntos - a.puntaje.puntos);
+    const clave = claveSlot(semana, slot);
+    const pref = preferidas?.get(clave);
+    reservadas.delete(clave);
+    const deFlashElegida = pref && puntuados.find((c) => c.meal.id === pref.mealId);
+    const aceptada = deFlashElegida && deFlashElegida.puntaje.puntos >= puntuados[0].puntaje.puntos - MARGEN_PREFERIDA;
+    if (pref && !aceptada) {
+      rechazos.push({ clave, mealId: pref.mealId, razon: deFlashElegida ? 'margen' : 'no-posible' });
     }
-    if (!posibles.length) {
+    if (!puntuados.length) {
       sinCandidatos++;
       continue;
     }
 
-    const previo = previoDe(actual, ctx);
-    const puntuados = posibles.map((meal) => {
-      const conEl = poner(actual, slot, { mealId: meal.id, portions: 1 });
-      const p = puntuar(meal, actual, conEl, ctx, previo);
-      return { meal, puntaje: { ...p, puntos: p.puntos + veces(meal) * PESO_DESAYUNO_REPETIDO } };
-    });
-    // sort es estable: a igual puntaje queda el orden de los candidatos.
-    const top = puntuados.sort((a, b) => b.puntaje.puntos - a.puntaje.puntos).slice(0, TOP);
-    const { meal, puntaje } = elegir(top, azar);
+    if (pref && aceptada) {
+      const motivo = pref.motivo.trim().slice(0, MAX_MOTIVO) || deFlashElegida.puntaje.motivo;
+      actual = poner(actual, slot, { mealId: pref.mealId, portions: 1, excluded: false, motivo });
+      puestos++;
+      deFlash++;
+      continue;
+    }
+
+    const ocupadas = new Set(reservadas.values());
+    const libres = puntuados.filter((c) => !ocupadas.has(c.meal.id));
+    const { meal, puntaje } = elegir((libres.length ? libres : puntuados).slice(0, TOP), azar);
     actual = poner(actual, slot, { mealId: meal.id, portions: 1, excluded: false, motivo: puntaje.motivo });
     puestos++;
   }
-  return { semana: actual, puestos, sinCandidatos };
+  return { semana: actual, puestos, sinCandidatos, deFlash, ...(preferidas ? { rechazos } : {}) };
 }

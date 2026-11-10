@@ -1,0 +1,66 @@
+.estado {
+  flex-basis: 100%;
+  margin: 0;
+  text-align: center;
+  color: var(--fg-secondary);
+}
+
+.estado[hidden] {
+  display: none;
+}
+
+.recetas-nuevas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 0 0 1.5rem;
+
+  .btn-secondary,
+  .btn-accent {
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+  }
+
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--accent-hover);
+    color: var(--fg-secondary);
+
+    &:hover:not(:disabled) {
+      background: var(--bg-tint);
+      color: var(--fg-primary);
+    }
+  }
+
+  .btn-accent {
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    color: var(--fg-on-accent);
+  }
+}
+
+.receta-nueva {
+  flex: 1 1 250px;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-surface);
+
+  h3 small {
+    color: var(--fg-secondary);
+    font-weight: normal;
+  }
+
+  ul {
+    margin: 0.5rem 0;
+    padding-left: 1.25rem;
+  }
+}
+
+.receta-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

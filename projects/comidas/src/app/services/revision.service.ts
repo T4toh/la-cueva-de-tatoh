@@ -1,20 +1,11 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { getAI, getGenerativeModel, GoogleAIBackend } from '@angular/fire/ai';
 import { FirebaseApp } from '@angular/fire/app';
 
 import { esquemaRespuesta, mensajeDeError, Pedir, promptRevision, revisarEnTandas } from '../revision/pedido';
 import { aplicarRevisiones, recetasSinRevisar } from '../revision/revision';
 import { AuthService } from './auth.service';
+import { pedirJsonDe } from './flash';
 import { MealService } from './meal.service';
-
-// Lite y no `gemini-flash-latest`: el 2026-11-06 el Flash completo del plan
-// gratuito contestaba 500 "high demand" / 503 o no contestaba, y lite
-// respondía en 2 s con buen criterio una vez que el prompt da la vara del plato.
-const MODELO = 'gemini-flash-lite-latest';
-// ponytail: el SDK espera 180 s por defecto y, con el modelo saturado, Google
-// tarda eso para terminar fallando. 90 s por tanda alcanza para 40 recetas;
-// subirlo si una tanda sana empieza a cortarse.
-const ESPERA_MS = 90_000;
 
 export type ResultadoRevision = { revisadas: number; error: string | null };
 
@@ -33,14 +24,9 @@ export class RevisionService {
   // se gasta. Esto no frena a quien llame directo a la API; eso es App Check.
   readonly puede = computed(() => !!this.authService.currentUser());
 
-  private readonly pedir: Pedir = async (recetas, ids) => {
-    const modelo = getGenerativeModel(getAI(this.app, { backend: new GoogleAIBackend() }), {
-      model: MODELO,
-      generationConfig: { responseMimeType: 'application/json', responseSchema: esquemaRespuesta(ids) },
-    }, { timeout: ESPERA_MS });
-    const respuesta = await modelo.generateContent(promptRevision(recetas, this.mealService.noComo()));
-    return JSON.parse(respuesta.response.text()) as unknown;
-  };
+  private readonly pedirJson = pedirJsonDe(this.app);
+  private readonly pedir: Pedir = (recetas, ids) =>
+    this.pedirJson(esquemaRespuesta(ids), promptRevision(recetas, this.mealService.noComo()));
 
   async revisar(): Promise<ResultadoRevision> {
     if (this.enCurso() || !this.puede() || this.pendientes() === 0) {

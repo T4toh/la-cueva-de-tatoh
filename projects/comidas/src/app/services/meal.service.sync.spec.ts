@@ -10,6 +10,7 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { paisDeTimezone } from '../armador/estacion';
+import { RecetaNueva } from '../armador/recetas-nuevas';
 import { Dish, Meal, ShoppingItem } from '../models/meal.model';
 import { AuthService } from './auth.service';
 import { MealService, pareceBackup, parseNumericQuantity } from './meal.service';
@@ -1302,7 +1303,7 @@ describe('MealService: armador de semanas', () => {
     const antes = service.schedule();
 
     // 7 desayunos + 6 almuerzos + 7 cenas vacíos; quedan 9 principales sin usar.
-    expect(service.completarSemana(() => 0)).toEqual({ puestos: 16, sinCandidatos: 4 });
+    expect(service.completarSemana(() => 0)).toEqual({ puestos: 16, sinCandidatos: 4, deFlash: 0 });
     const [lunes] = service.schedule();
     expect(lunes.almuerzo).toEqual([{ mealId: primero, portions: 1, excluded: false }]);
     expect(lunes.cena[0].motivo).toBeTruthy();
@@ -1329,7 +1330,7 @@ describe('MealService: armador de semanas', () => {
     service.previousWeek();
     expect(service.slotsParaCompletar()).toEqual([]);
     const antes = service.schedule();
-    expect(service.completarSemana()).toEqual({ puestos: 0, sinCandidatos: 0 });
+    expect(service.completarSemana()).toEqual({ puestos: 0, sinCandidatos: 0, deFlash: 0 });
     expect(service.schedule()).toBe(antes);
     expect(service.puedeDeshacer()).toBe(false);
   });
@@ -1374,8 +1375,154 @@ describe('MealService: armador de semanas', () => {
     service.toggleMealVisibility('breakfast');
     service.toggleMealVisibility('dinner');
 
-    expect(service.completarSemana(() => 0)).toEqual({ puestos: 1, sinCandidatos: 0 });
+    expect(service.completarSemana(() => 0)).toEqual({ puestos: 1, sinCandidatos: 0, deFlash: 0 });
     expect(service.schedule()[6].almuerzo[0].mealId).toBe(nuevo);
+  });
+
+  it('pone la preferida de Flash, la cuenta, y deshacer vuelve atrás', () => {
+    const service = TestBed.inject(MealService);
+    service.addMeal({ name: 'Primero', tags: ['almuerzo'], ingredients: [] });
+    service.addMeal({ name: 'Segundo', tags: ['almuerzo'], ingredients: [] });
+    const [, segundo] = service.meals().map((m) => m.id);
+    // Un solo slot: el almuerzo del domingo. Sin preferida ganaría 'Primero'.
+    desdeElDia(service, 6);
+    service.toggleMealVisibility('breakfast');
+    service.toggleMealVisibility('dinner');
+    const antes = service.schedule();
+    const preferidas = new Map([['Domingo-almuerzo', { mealId: segundo, motivo: 'para variar' }]]);
+
+    expect(service.completarSemana(() => 0, preferidas, clave(service))).toEqual({
+      puestos: 1,
+      sinCandidatos: 0,
+      deFlash: 1,
+      rechazos: [],
+    });
+    expect(service.schedule()[6].almuerzo).toEqual([
+      { mealId: segundo, portions: 1, excluded: false, motivo: 'para variar' },
+    ]);
+    service.deshacerCompletar();
+    expect(service.schedule()).toEqual(antes);
+  });
+
+  it('si la semana mostrada cambió mientras Flash pensaba, no toca nada', () => {
+    const service = TestBed.inject(MealService);
+    desdeElDia(service, 0);
+    cargar(service);
+    const pedida = clave(service);
+    service.nextWeek();
+    const antes = service.schedule();
+
+    expect(service.completarSemana(() => 0, new Map(), pedida)).toBeNull();
+    expect(service.schedule()).toBe(antes);
+    expect(service.puedeDeshacer()).toBe(false);
+  });
+
+  const receta = (r: Partial<RecetaNueva> = {}): RecetaNueva => ({
+    name: 'Guiso de lentejas',
+    tags: ['almuerzo'],
+    ingredients: [{ name: 'Lentejas', quantity: '100', unit: 'g' }],
+    pasos: ['Remojar', 'Hervir'],
+    tipo: 'almuerzo',
+    slot: null,
+    ...r,
+  });
+  const deFlash = (mealId: string): Dish => ({
+    mealId,
+    portions: 1,
+    excluded: false,
+    motivo: 'receta nueva de Flash',
+  });
+
+  it('usar una receta nueva la suma al recetario con su tipo de tag y la pone en su hueco', () => {
+    const service = TestBed.inject(MealService);
+    desdeElDia(service, 0);
+
+    expect(service.usarRecetaNueva(receta({ tipo: 'cena', slot: { dia: 2, tipo: 'cena' } }))).toBe('puesta');
+
+    const meal = service.meals().at(-1)!;
+    expect(meal).toEqual({
+      id: meal.id,
+      name: 'Guiso de lentejas',
+      tags: ['almuerzo', 'cena'],
+      ingredients: [{ name: 'Lentejas', quantity: '100', unit: 'g' }],
+      pasos: [{ texto: 'Remojar' }, { texto: 'Hervir' }],
+      includeInShoppingList: true,
+    });
+    expect(service.schedule()[2].cena).toEqual([deFlash(meal.id)]);
+    expect(service.puedeDeshacer()).toBe(false);
+  });
+
+  it('una receta sin hueco reemplaza un plato del armador del mismo tipo', () => {
+    const service = TestBed.inject(MealService);
+    desdeElDia(service, 0);
+    cargar(service);
+    service.completarSemana(() => 0);
+    const martes = service.schedule()[1].almuerzo;
+
+    // Nada suma plantas: empatan todos y gana el más temprano, el lunes.
+    expect(service.usarRecetaNueva(receta())).toBe('puesta');
+
+    expect(service.schedule()[0].almuerzo).toEqual([deFlash(service.meals().at(-1)!.id)]);
+    expect(service.schedule()[1].almuerzo).toEqual(martes);
+  });
+
+  it('una receta sin lugar en la semana sólo se guarda', () => {
+    const service = TestBed.inject(MealService);
+    desdeElDia(service, 7);
+    const antes = service.schedule();
+
+    expect(service.usarRecetaNueva(receta())).toBe('guardada');
+    expect(service.meals().map((m) => m.name)).toEqual(['Guiso de lentejas']);
+    expect(service.schedule()).toBe(antes);
+  });
+
+  it('el tipo no se repite como tag aunque Flash lo haya escrito distinto', () => {
+    const service = TestBed.inject(MealService);
+    desdeElDia(service, 0);
+
+    service.usarRecetaNueva(receta({ tags: ['Almuerzo', 'guiso'] }));
+
+    expect(service.meals().at(-1)!.tags).toEqual(['Almuerzo', 'guiso']);
+  });
+
+  it('un hueco de un día que ya pasó no se usa: va adonde diga slotParaUsar', () => {
+    const service = TestBed.inject(MealService);
+    desdeElDia(service, 3);
+
+    expect(service.usarRecetaNueva(receta({ tipo: 'cena', slot: { dia: 1, tipo: 'cena' } }))).toBe('puesta');
+
+    expect(service.schedule()[1].cena).toEqual([]);
+    expect(service.schedule()[3].cena).toEqual([deFlash(service.meals().at(-1)!.id)]);
+  });
+
+  it('no pisa el hueco que el usuario llenó mientras tanto', () => {
+    const service = TestBed.inject(MealService);
+    desdeElDia(service, 0);
+    service.setMeal('Miércoles', 'cena', 'propia');
+
+    expect(service.usarRecetaNueva(receta({ tipo: 'cena', slot: { dia: 2, tipo: 'cena' } }))).toBe('puesta');
+
+    expect(service.schedule()[2].cena).toEqual([{ mealId: 'propia', portions: 1, excluded: false }]);
+    expect(service.schedule()[0].cena).toEqual([deFlash(service.meals().at(-1)!.id)]);
+  });
+
+  it('guardar para después suma su tipo y "para probar" sin duplicarlos y no toca el plan', () => {
+    const service = TestBed.inject(MealService);
+    const antes = service.schedule();
+
+    service.guardarRecetaParaDespues(receta({ name: 'Uno', tags: ['guiso'], tipo: 'cena', pasos: [] }));
+    service.guardarRecetaParaDespues(receta({ name: 'Dos', tags: ['Cena', 'Para Probar '], tipo: 'cena' }));
+
+    const [uno, dos] = service.meals();
+    expect(uno).toEqual({
+      id: uno.id,
+      name: 'Uno',
+      tags: ['guiso', 'cena', 'para probar'],
+      ingredients: [{ name: 'Lentejas', quantity: '100', unit: 'g' }],
+      includeInShoppingList: true,
+    });
+    expect(dos.tags).toEqual(['Cena', 'Para Probar ']);
+    expect(service.schedule()).toBe(antes);
   });
 
   const cambios: [string, (s: MealService) => void][] = [
@@ -1461,7 +1608,7 @@ describe('MealService: armador de semanas', () => {
     desdeElDia(service, 0);
     cargar(service);
     expect(service.agregarNoComo('Ajo')).toBe(true);
-    expect(service.completarSemana(() => 0).puestos).toBeGreaterThan(0);
+    expect(service.completarSemana(() => 0)!.puestos).toBeGreaterThan(0);
   });
 
   it('No como mal formado desde la nube queda como lista de textos', async () => {

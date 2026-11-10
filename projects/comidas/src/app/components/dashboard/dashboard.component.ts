@@ -3,6 +3,7 @@ import { comidasQueSuman, META_PLANTAS, plantasDeLaSemana } from '../../catalogo
 import { armarGuia, REGLAS, tipDelPlan } from '../../guia/guia';
 import { chequearSemana, MAX_CARNE_ROJA, META_CARNE_BLANCA, MIN_PESCADO } from '../../guia/chequeos';
 import { RouterModule } from '@angular/router';
+import { ArmadorFlashService } from '../../services/armador-flash.service';
 import { MealService } from '../../services/meal.service';
 import { DialogService } from '../../services/dialog.service';
 import {
@@ -12,6 +13,7 @@ import {
   TextScheduleField,
 } from '../../models/meal.model';
 import { Icon, Panel } from 'componentes';
+import { RecetasNuevasComponent } from './recetas-nuevas.component';
 import { FormsModule } from '@angular/forms';
 
 // El día al que ya se llevó la vista. Vive fuera del componente para que
@@ -22,13 +24,14 @@ let diaMostrado = 0;
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterModule, Panel, FormsModule, Icon],
+  imports: [RouterModule, Panel, FormsModule, Icon, RecetasNuevasComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent implements OnDestroy {
   mealService = inject(MealService);
   private dialogService = inject(DialogService);
+  readonly flash = inject(ArmadorFlashService);
 
   // En el celu los días van en una columna y hoy puede quedar muy abajo.
   private readonly irAHoy = afterRenderEffect(() => {
@@ -41,7 +44,7 @@ export class DashboardComponent implements OnDestroy {
   });
 
   // El aviso es de la semana que se completó: cambiar de semana lo borra.
-  readonly resultado = linkedSignal<number, { puestos: number; sinCandidatos: number } | null>({
+  readonly resultado = linkedSignal<number, { puestos: number; sinCandidatos: number; deFlash?: number } | null>({
     source: computed(() => this.mealService.currentWeekStart().getTime()),
     computation: () => null,
   });
@@ -56,14 +59,55 @@ export class DashboardComponent implements OnDestroy {
     }
     const n = r.sinCandidatos;
     const resto = n > 0 ? ` · ${n} ${n === 1 ? 'quedó' : 'quedaron'} sin opciones` : '';
-    return `Puse ${r.puestos} ${r.puestos === 1 ? 'comida' : 'comidas'}${resto}`;
+    const f = r.deFlash ?? 0;
+    const deFlash = f > 0 ? `, ${f} ${f === 1 ? 'elegida' : 'elegidas'} por Flash` : '';
+    return `Puse ${r.puestos} ${r.puestos === 1 ? 'comida' : 'comidas'}${deFlash}${resto}`;
   });
 
+  // Lo que Flash dejó para decir en una línea aparte (error, cambio de semana,
+  // dónde quedó una receta usada). Es de la semana mostrada: cambiarla lo borra.
+  readonly estadoFlash = linkedSignal<number, string>({
+    source: computed(() => this.mealService.currentWeekStart().getTime()),
+    computation: () => '',
+  });
+  // Mientras Flash piensa la línea de estado lo dice, para quien no ve el botón.
+  readonly estadoVisible = computed(() => (this.flash.armando() ? 'Armando con Flash…' : this.estadoFlash()));
+
+  readonly sinSesion = computed(() => (this.flash.puede() ? '' : 'Iniciá sesión para completar con Flash'));
+  // Completar con Flash: sin sesión, sin huecos o armando.
+  readonly flashDeshabilitado = computed(
+    () => !this.flash.puede() || this.flash.armando() || this.mealService.slotsParaCompletar().length === 0
+  );
+
+  // Sugerime algo nuevo: sin sesión, armando o sin ninguna comida visible.
+  readonly sugerirDeshabilitado = computed(() => {
+    const v = this.mealService.visibleMeals();
+    return !this.flash.puede() || this.flash.armando() || !(v.breakfast || v.lunch || v.dinner);
+  });
+
+  async sugerir(): Promise<void> {
+    this.estadoFlash.set((await this.flash.sugerir()) ?? '');
+  }
+
+  async completarConFlash(): Promise<void> {
+    const semana = this.mealService.currentWeekStart().getTime();
+    const r = await this.flash.completar();
+    // Lo que puso es de la semana que se completó: no se avisa en la que se ve ahora.
+    if (this.mealService.currentWeekStart().getTime() !== semana) {
+      this.estadoFlash.set(r.cambioSemana ? 'Cambiaste de semana mientras Flash pensaba: no puse nada.' : '');
+      return;
+    }
+    this.estadoFlash.set(r.error ?? '');
+    this.resultado.set(r.error && r.puestos === 0 ? null : r);
+  }
+
   completarSemana(): void {
+    this.estadoFlash.set('');
     this.resultado.set(this.mealService.completarSemana());
   }
 
   deshacer(): void {
+    this.estadoFlash.set('');
     this.mealService.deshacerCompletar();
     this.resultado.set(null);
   }

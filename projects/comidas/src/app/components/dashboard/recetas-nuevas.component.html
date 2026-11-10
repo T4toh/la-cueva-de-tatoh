@@ -1,0 +1,35 @@
+@if (flash.nuevas().length || estado()) {
+  <section class="recetas-nuevas">
+    <p class="estado" role="status" [hidden]="!estado()">{{ estado() }}</p>
+    @for (r of flash.nuevas(); track $index; let i = $index) {
+      <article class="receta-nueva">
+        <h3>{{ r.name }} <small>{{ r.tipo }}</small></h3>
+        <ul>
+          @for (ing of r.ingredients; track $index) {
+            <li>{{ ing.quantity }} {{ ing.unit }} {{ ing.name }}</li>
+          }
+        </ul>
+        <div class="receta-acciones">
+          <button
+            class="btn-accent"
+            type="button"
+            [attr.aria-label]="'Usar ' + r.name"
+            (click)="usar(i)"
+          >Usar</button>
+          <button
+            class="btn-secondary"
+            type="button"
+            [attr.aria-label]="'Guardar para después ' + r.name"
+            (click)="guardar(i)"
+          >Guardar para después</button>
+          <button
+            class="btn-secondary"
+            type="button"
+            [attr.aria-label]="'Descartar ' + r.name"
+            (click)="descartar(i)"
+          >Descartar</button>
+        </div>
+      </article>
+    }
+  </section>
+}

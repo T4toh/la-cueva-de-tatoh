@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { indexar } from '../catalogo/catalogo';
 import { Meal } from '../models/meal.model';
 import {
+  esErrorTransitorio,
   esquemaRespuesta,
   mensajeDeError,
   Pedir,
@@ -243,5 +244,40 @@ describe('mensajeDeError', () => {
 
   it('cualquier otro error da un mensaje genérico', () => {
     expect(mensajeDeError('raro')).toBe('No se pudo revisar el recetario. Probá de nuevo más tarde.');
+    expect(mensajeDeError('raro', 'Otro texto.')).toBe('Otro texto.');
+  });
+});
+
+describe('esErrorTransitorio', () => {
+  it('cuota, saturación y tiempo agotado son transitorios', () => {
+    for (const m of [
+      '[429 ] Resource has been exhausted (RESOURCE_EXHAUSTED)',
+      '[500 ] This model is currently experiencing high demand.',
+      '[503 ] Deadline expired before operation could complete.',
+      'Request timed out after 60000ms',
+      'signal is aborted without reason',
+    ]) {
+      expect(esErrorTransitorio(new Error(m))).toBe(true);
+    }
+  });
+
+  it('esquema, respuesta ilegible, red o algo raro no lo son', () => {
+    expect(esErrorTransitorio(new Error('[400 ] Invalid JSON payload: responseSchema'))).toBe(false);
+    expect(esErrorTransitorio(new SyntaxError('Unexpected token'))).toBe(false);
+    expect(esErrorTransitorio(new TypeError('Failed to fetch'))).toBe(false);
+    expect(esErrorTransitorio('raro')).toBe(false);
+  });
+
+  it('un JSON roto no es transitorio aunque su posición parezca un 500', () => {
+    const roto = new SyntaxError(
+      "Expected ',' or '}' after property value in JSON at position 500 (line 1 column 501)"
+    );
+    expect(esErrorTransitorio(roto)).toBe(false);
+    expect(mensajeDeError(roto)).toContain('no se pudo leer');
+  });
+
+  it('cualquier 5xx es transitorio', () => {
+    expect(esErrorTransitorio(new Error('[502 ] Bad Gateway'))).toBe(true);
+    expect(esErrorTransitorio(new Error('[504 ] Gateway Timeout'))).toBe(true);
   });
 });

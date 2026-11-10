@@ -1,7 +1,7 @@
 # Armador de semanas
 
 Fecha: 2026-11-06
-Estado: entrega 1 implementada
+Estado: implementado
 
 Las decisiones vienen del brainstorming del 2026-11-05. Lo que este documento
 agrega por su cuenta está marcado *(mi decisión)*.

@@ -137,17 +137,42 @@
     <button
       class="btn-secondary"
       type="button"
-      [disabled]="mealService.slotsParaCompletar().length === 0"
+      [disabled]="flash.armando() || mealService.slotsParaCompletar().length === 0"
       [title]="sinVacias()"
       (click)="completarSemana()"
     >
       Completar semana
     </button>
     <small class="completar-vacio">{{ sinVacias() }}</small>
+    <button
+      class="btn-secondary"
+      type="button"
+      [disabled]="flashDeshabilitado()"
+      [title]="sinSesion() || sinVacias()"
+      (click)="completarConFlash()"
+    >
+      {{ flash.armando() && !flash.sugiriendo() ? 'Armando con Flash…' : 'Completar con Flash' }}
+    </button>
+    <button
+      class="btn-secondary"
+      type="button"
+      [disabled]="sugerirDeshabilitado()"
+      [title]="sinSesion()"
+      (click)="sugerir()"
+    >
+      {{ flash.sugiriendo() ? 'Armando con Flash…' : 'Sugerime algo nuevo' }}
+    </button>
+    <small class="completar-vacio">{{ sinSesion() }}</small>
     <button class="btn-secondary btn-print" type="button" (click)="printMenu()">
       Imprimir Menú
     </button>
   </div>
+
+  <p class="flash-aviso">
+    Con el plan gratuito, Google puede usar lo que se le manda para entrenar sus modelos. Los botones de Flash mandan
+    los nombres, tags e ingredientes de las comidas candidatas, la semana, tu lista No como, los nombres de tus
+    recetas, tu país y la estación, y sólo cuando tocás el botón.
+  </p>
 
   <p class="completar-aviso" [hidden]="!aviso()">
     {{ aviso() }}
@@ -155,6 +180,10 @@
       Deshacer
     </button>
   </p>
+
+  <p class="completar-aviso" role="status" [hidden]="!estadoVisible()">{{ estadoVisible() }}</p>
+
+  <app-recetas-nuevas />
 
   <div class="schedule-grid">
     @for (day of mealService.schedule(); track day.dayName) {

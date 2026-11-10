@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { indexar } from '../catalogo/catalogo';
 import { CATALOGO } from '../catalogo/catalogo-datos';
 import { DaySchedule, DishMealType, Meal } from '../models/meal.model';
-import { armarSemana, MAX_DESAYUNO_REPETIDO, slotsVacios } from './armador';
+import { armarSemana, claveSlot, MAX_DESAYUNO_REPETIDO, opcionesPorSlot, Preferida, slotsVacios } from './armador';
 import { Candidatos } from './candidatos';
 import { ContextoPuntaje } from './puntaje';
 
@@ -168,5 +168,137 @@ describe('armarSemana', () => {
     for (const azar of [0, 0.2, 0.5, 0.7, 0.9, 0.99, 0.999999]) {
       expect(['tres', 'dos', 'una']).toContain(elige(azar));
     }
+  });
+});
+
+describe('claveSlot', () => {
+  it('es el día y el tipo, legible', () => {
+    expect(claveSlot([dia('Lunes'), dia('Martes')], { dia: 1, tipo: 'almuerzo' })).toBe('Martes-almuerzo');
+  });
+});
+
+describe('opcionesPorSlot', () => {
+  it('aplica las reglas duras contra la semana dada, ordena por puntos y corta en max', () => {
+    const tres = comida('tres', ['brócoli', 'lechuga', 'tomate']);
+    const dos = comida('dos', ['zanahoria', 'zapallo']);
+    const una = comida('una', ['espinaca']);
+    const puesta = comida('puesta');
+    const todas = [puesta, una, dos, tres];
+    const semana = [dia('lunes', { almuerzo: ['puesta'] }), dia('martes')];
+    const r = opcionesPorSlot(semana, 0, ['almuerzo', 'cena'], cands([], todas), ctx(todas), 2);
+
+    expect(r.map((o) => o.clave)).toEqual(['lunes-cena', 'martes-almuerzo', 'martes-cena']);
+    for (const o of r) {
+      expect(o.opciones.map((x) => x.meal.id)).toEqual(['tres', 'dos']);
+      expect(o.opciones[0].puntos).toBeGreaterThan(o.opciones[1].puntos);
+    }
+  });
+
+  it('desayuno respeta el tope y no ofrece lo que ya es almuerzo o cena; por defecto 8 más uno por slot', () => {
+    const muchos = Array.from({ length: 12 }, (_, i) => comida(`d${i}`));
+    const semana = [dia('lunes', { desayuno: ['d0', 'd0', 'd0'], cena: ['d1'] }), dia('martes')];
+    const [o] = opcionesPorSlot(semana, 1, ['desayuno'], cands(muchos, []), ctx(muchos), undefined);
+    expect(o.opciones.length).toBe(9);
+    const ofrecidos = o.opciones.map((x) => x.meal.id);
+    expect(ofrecidos).not.toContain('d0');
+    expect(ofrecidos).not.toContain('d1');
+  });
+
+  it('con más slots que 8 hay comidas distintas para cada uno', () => {
+    const muchas = Array.from({ length: 30 }, (_, i) => comida(`c${i}`));
+    const r = opcionesPorSlot(vacia(7), 0, ['almuerzo', 'cena'], cands([], muchas), ctx(muchas));
+    const distintas = new Set(r.flatMap((o) => o.opciones.map((x) => x.meal.id)));
+    expect(r.length).toBe(14);
+    expect(distintas.size).toBeGreaterThanOrEqual(14);
+  });
+});
+
+describe('armarSemana con preferidas', () => {
+  const tres = comida('tres', ['brócoli', 'lechuga', 'tomate']);
+  const cero0 = comida('cero');
+  const todas = [cero0, tres];
+  const pref = (mealId: string, motivo = 'porque sí'): ReadonlyMap<string, Preferida> =>
+    new Map([['lunes-almuerzo', { mealId, motivo }]]);
+  const arma = (p: ReadonlyMap<string, Preferida>): ReturnType<typeof armarSemana> =>
+    armarSemana(vacia(1), 0, ['almuerzo'], cands([], todas), ctx(todas), cero, p);
+
+  it('pone la preferida con su motivo y cuenta deFlash', () => {
+    const r = arma(pref('cero'));
+    expect(r.semana[0].almuerzo[0]).toEqual({ mealId: 'cero', portions: 1, excluded: false, motivo: 'porque sí' });
+    expect(r.deFlash).toBe(1);
+    expect(r.puestos).toBe(1);
+  });
+
+  it('recorta el motivo a 80 caracteres', () => {
+    expect(arma(pref('cero', 'x'.repeat(100))).semana[0].almuerzo[0].motivo).toBe('x'.repeat(80));
+  });
+
+  it('motivo vacío: se pone con el motivo algorítmico', () => {
+    const r = arma(pref('tres', '  '));
+    expect(r.semana[0].almuerzo[0].motivo).toBe('suma 3 plantas nuevas');
+    expect(r.deFlash).toBe(1);
+  });
+
+  it('id que no es posible del slot: elección algorítmica y no cuenta', () => {
+    const r = arma(pref('inexistente'));
+    expect(r.semana[0].almuerzo[0].mealId).toBe('tres');
+    expect(r.deFlash).toBe(0);
+  });
+
+  it('id ya puesto en la semana: no es posible, no cuenta', () => {
+    const p = new Map([['lunes-cena', { mealId: 'tres', motivo: 'm' }]]);
+    const semana = [dia('lunes', { almuerzo: ['tres'] })];
+    const r = armarSemana(semana, 0, ['cena'], cands([], todas), ctx(todas), cero, p);
+    expect(r.semana[0].cena[0].mealId).toBe('cero');
+    expect(r.deFlash).toBe(0);
+  });
+
+  it('rechaza la que rompe un chequeo si el mejor no lo rompe', () => {
+    const papa = comida('papa', ['papa']);
+    const liviana = comida('liviana', ['lechuga']);
+    const semana = [dia('lunes', { almuerzo: ['arroz'] })];
+    const c = [papa, liviana];
+    const p = new Map([['lunes-cena', { mealId: 'papa', motivo: 'm' }]]);
+    const r = armarSemana(semana, 0, ['cena'], cands([], c), ctx([comida('arroz', ['arroz']), ...c]), cero, p);
+    expect(r.semana[0].cena[0].mealId).toBe('liviana');
+    expect(r.deFlash).toBe(0);
+  });
+
+  it('el algoritmo no toma lo que Flash eligió para un slot de más adelante', () => {
+    const p = new Map([
+      ['lunes-almuerzo', { mealId: 'inexistente', motivo: 'm' }],
+      ['lunes-cena', { mealId: 'tres', motivo: 'm' }],
+    ]);
+    const r = armarSemana(vacia(1), 0, ['almuerzo', 'cena'], cands([], todas), ctx(todas), cero, p);
+    expect(r.semana[0].almuerzo[0].mealId).toBe('cero');
+    expect(r.semana[0].cena[0].mealId).toBe('tres');
+    expect(r.deFlash).toBe(1);
+  });
+
+  it('sin preferidas, deFlash es 0', () => {
+    expect(arma(new Map()).deFlash).toBe(0);
+  });
+
+  it('registra cada rechazo con su razón: no posible o por margen', () => {
+    const papa = comida('papa', ['papa']);
+    const liviana = comida('liviana', ['lechuga']);
+    const semana = [dia('lunes', { almuerzo: ['arroz'] }), dia('martes')];
+    const c = [papa, liviana];
+    const p = new Map([
+      ['lunes-cena', { mealId: 'papa', motivo: 'm' }],
+      ['martes-almuerzo', { mealId: 'inexistente', motivo: 'm' }],
+      ['martes-cena', { mealId: 'liviana', motivo: 'm' }],
+    ]);
+    const todasMas = ctx([comida('arroz', ['arroz']), ...c]);
+    const r = armarSemana(semana, 0, ['almuerzo', 'cena'], cands([], c), todasMas, cero, p);
+    expect(r.rechazos).toEqual([
+      { clave: 'lunes-cena', mealId: 'papa', razon: 'margen' },
+      { clave: 'martes-almuerzo', mealId: 'inexistente', razon: 'no-posible' },
+      { clave: 'martes-cena', mealId: 'liviana', razon: 'no-posible' },
+    ]);
+  });
+
+  it('sin preferidas no hay registro de rechazos', () => {
+    expect(armarSemana(vacia(1), 0, ['almuerzo'], cands([], todas), ctx(todas), cero).rechazos).toBeUndefined();
   });
 });
