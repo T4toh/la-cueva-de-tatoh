@@ -19,6 +19,14 @@ describe('estacionDe', () => {
   });
 });
 
+describe('estacionDe, bordes de mes', () => {
+  it('31 may / 1 dic / 28 feb en el sur', () => {
+    expect(estacionDe(new Date(2026, 4, 31), 'sur')).toBe('otono');
+    expect(estacionDe(new Date(2026, 11, 1), 'sur')).toBe('verano');
+    expect(estacionDe(new Date(2026, 1, 28), 'sur')).toBe('verano');
+  });
+});
+
 describe('paisDeTimezone', () => {
   it('reconoce países de América', () => {
     expect(paisDeTimezone('America/Argentina/Buenos_Aires')).toBe('ar');
@@ -31,7 +39,18 @@ describe('paisDeTimezone', () => {
     expect(paisDeTimezone('Europe/Madrid')).toBe('otro-norte');
     expect(paisDeTimezone('Australia/Sydney')).toBe('otro-sur');
     expect(paisDeTimezone('Pacific/Auckland')).toBe('otro-sur');
+    expect(paisDeTimezone('Antarctica/Troll')).toBe('otro-sur');
     expect(paisDeTimezone('')).toBe('otro-norte');
+  });
+
+  it('zonas poco obvias de América', () => {
+    expect(paisDeTimezone('America/Cuiaba')).toBe('br');
+    expect(paisDeTimezone('America/Bahia')).toBe('br');
+    expect(paisDeTimezone('America/Bahia_Banderas')).toBe('mx');
+    expect(paisDeTimezone('America/Jujuy')).toBe('ar');
+    expect(paisDeTimezone('America/Indiana/Indianapolis')).toBe('us');
+    expect(paisDeTimezone('Pacific/Easter')).toBe('cl');
+    expect(paisDeTimezone('Pacific/Galapagos')).toBe('ec');
   });
 
   it('todo id devuelto existe en PAISES', () => {
@@ -56,6 +75,7 @@ describe('fueraDeEstacion', () => {
     expect(fueraDeEstacion(['Otoño-Invierno'], 'verano')).toBe(true);
     expect(fueraDeEstacion(['otoño-invierno'], 'invierno')).toBe(false);
     expect(fueraDeEstacion(['Otoño-Invierno'], 'otono')).toBe(false);
+    expect(fueraDeEstacion(['verano', 'otono-invierno'], 'verano')).toBe(false);
   });
 
   it('sin tag de estación no está fuera', () => {

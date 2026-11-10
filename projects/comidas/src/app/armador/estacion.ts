@@ -31,31 +31,49 @@ export const PAISES: readonly Pais[] = [
   { id: 'otro-sur', nombre: 'Otro (hemisferio sur)', hemisferio: 'sur' },
 ];
 
-// Ciudades/regiones del timezone IANA → país. Los timezones de América son 'America/<ciudad>'.
-const TZ_PAIS: readonly (readonly [string, string])[] = [
-  ['America/Argentina/', 'ar'], ['America/Buenos_Aires', 'ar'], ['America/Cordoba', 'ar'],
-  ['America/Mendoza', 'ar'], ['America/La_Paz', 'bo'], ['America/Sao_Paulo', 'br'],
-  ['America/Bahia', 'br'], ['America/Fortaleza', 'br'], ['America/Manaus', 'br'],
-  ['America/Recife', 'br'], ['America/Belem', 'br'], ['America/Toronto', 'ca'],
-  ['America/Vancouver', 'ca'], ['America/Edmonton', 'ca'], ['America/Winnipeg', 'ca'],
-  ['America/Halifax', 'ca'], ['America/Santiago', 'cl'], ['America/Punta_Arenas', 'cl'],
-  ['America/Bogota', 'co'], ['America/Costa_Rica', 'cr'], ['America/Havana', 'cu'],
-  ['America/Santo_Domingo', 'do'], ['America/Guayaquil', 'ec'], ['America/Guatemala', 'gt'],
-  ['America/Tegucigalpa', 'hn'], ['America/Mexico_City', 'mx'], ['America/Monterrey', 'mx'],
-  ['America/Cancun', 'mx'], ['America/Tijuana', 'mx'], ['America/Merida', 'mx'],
-  ['America/Managua', 'ni'], ['America/Panama', 'pa'], ['America/Lima', 'pe'],
-  ['America/Asuncion', 'py'], ['America/El_Salvador', 'sv'], ['America/New_York', 'us'],
-  ['America/Chicago', 'us'], ['America/Denver', 'us'], ['America/Los_Angeles', 'us'],
-  ['America/Phoenix', 'us'], ['America/Anchorage', 'us'], ['Pacific/Honolulu', 'us'],
-  ['America/Montevideo', 'uy'], ['America/Caracas', 've'],
+// Prefijos de timezone IANA que cubren todo un país (el resto va por igualdad exacta, abajo).
+const TZ_PREFIJOS: readonly (readonly [string, string])[] = [
+  ['America/Argentina/', 'ar'], ['America/Indiana/', 'us'], ['America/Kentucky/', 'us'],
+  ['America/North_Dakota/', 'us'],
 ];
+
+// Timezone IANA exacto → país. Igualdad exacta: 'America/Bahia' no debe atrapar 'America/Bahia_Banderas'.
+const TZ_PAIS: Readonly<Record<string, string>> = Object.fromEntries(
+  ([
+    ['ar', ['Buenos_Aires', 'Cordoba', 'Mendoza', 'Jujuy', 'Catamarca', 'Rosario']],
+    ['bo', ['La_Paz']],
+    ['br', ['Sao_Paulo', 'Bahia', 'Fortaleza', 'Manaus', 'Recife', 'Belem', 'Cuiaba', 'Campo_Grande',
+      'Porto_Velho', 'Maceio', 'Rio_Branco', 'Araguaina', 'Santarem', 'Noronha', 'Boa_Vista', 'Eirunepe']],
+    ['ca', ['Toronto', 'Vancouver', 'Edmonton', 'Winnipeg', 'Halifax', 'Montreal', 'Regina', 'St_Johns']],
+    ['cl', ['Santiago', 'Punta_Arenas']],
+    ['co', ['Bogota']],
+    ['cr', ['Costa_Rica']],
+    ['cu', ['Havana']],
+    ['do', ['Santo_Domingo']],
+    ['ec', ['Guayaquil']],
+    ['gt', ['Guatemala']],
+    ['hn', ['Tegucigalpa']],
+    ['mx', ['Mexico_City', 'Monterrey', 'Cancun', 'Tijuana', 'Merida', 'Bahia_Banderas', 'Mazatlan',
+      'Chihuahua', 'Hermosillo']],
+    ['ni', ['Managua']],
+    ['pa', ['Panama']],
+    ['pe', ['Lima']],
+    ['py', ['Asuncion']],
+    ['sv', ['El_Salvador']],
+    ['us', ['New_York', 'Chicago', 'Denver', 'Los_Angeles', 'Phoenix', 'Anchorage', 'Detroit', 'Juneau', 'Adak']],
+    ['uy', ['Montevideo']],
+    ['ve', ['Caracas']],
+  ] as [string, string[]][]).flatMap(([pais, ciudades]) => ciudades.map((c) => [`America/${c}`, pais])).concat([
+    ['Pacific/Easter', 'cl'], ['Pacific/Galapagos', 'ec'], ['Pacific/Honolulu', 'us'],
+  ]),
+);
 
 const SUR_FUERA_DE_AMERICA = ['Australia/', 'Pacific/Auckland', 'Africa/Johannesburg', 'Antarctica/'];
 
 export function paisDeTimezone(tz: string): string {
-  const hit = TZ_PAIS.find(([prefijo]) => tz.startsWith(prefijo));
-  if (hit) {
-    return hit[1];
+  const pais = TZ_PAIS[tz] ?? TZ_PREFIJOS.find(([prefijo]) => tz.startsWith(prefijo))?.[1];
+  if (pais) {
+    return pais;
   }
   return SUR_FUERA_DE_AMERICA.some((p) => tz.startsWith(p)) ? 'otro-sur' : 'otro-norte';
 }
