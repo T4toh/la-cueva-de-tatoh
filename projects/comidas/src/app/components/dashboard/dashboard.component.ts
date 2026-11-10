@@ -79,6 +79,16 @@ export class DashboardComponent implements OnDestroy {
     () => !this.flash.puede() || this.flash.armando() || this.mealService.slotsParaCompletar().length === 0
   );
 
+  // Sugerime algo nuevo: sin sesión, armando o sin ninguna comida visible.
+  readonly sugerirDeshabilitado = computed(() => {
+    const v = this.mealService.visibleMeals();
+    return !this.flash.puede() || this.flash.armando() || !(v.breakfast || v.lunch || v.dinner);
+  });
+
+  async sugerir(): Promise<void> {
+    this.estadoFlash.set((await this.flash.sugerir()) ?? '');
+  }
+
   async completarConFlash(): Promise<void> {
     const semana = this.mealService.currentWeekStart().getTime();
     const r = await this.flash.completar();

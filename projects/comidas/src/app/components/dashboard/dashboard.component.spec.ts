@@ -6,6 +6,7 @@ import { provideRouter } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ResultadoFlash, sinResultado } from '../../armador/flujo-flash';
+import { RecetaNueva } from '../../armador/recetas-nuevas';
 import { ArmadorFlashService } from '../../services/armador-flash.service';
 import { AuthService } from '../../services/auth.service';
 import { MealService } from '../../services/meal.service';
@@ -60,16 +61,19 @@ describe('DashboardComponent: completar semana', () => {
 describe('DashboardComponent: completar con Flash', () => {
   let responder: (r: ResultadoFlash) => void;
   const armando = signal(false);
+  const nuevas = signal<RecetaNueva[]>([]);
 
   beforeEach(() => {
     localStorage.clear();
     vi.stubGlobal('matchMedia', () => ({ matches: false }));
     armando.set(false);
+    nuevas.set([]);
     const flash = {
       armando,
       puede: signal(true),
-      nuevas: signal([]),
+      nuevas,
       completar: (): Promise<ResultadoFlash> => new Promise((ok) => (responder = ok)),
+      sugerir: (): Promise<string | null> => Promise.resolve('Flash está saturado ahora. Probá de nuevo en un rato.'),
     };
     TestBed.configureTestingModule({
       imports: [DashboardComponent],
@@ -118,6 +122,33 @@ describe('DashboardComponent: completar con Flash', () => {
     await listo;
     expect(dashboard.aviso()).toBe('');
     expect(dashboard.estadoFlash()).toMatch(/^Cambiaste de semana/);
+  });
+
+  it('"Sugerime algo nuevo" va arriba, junto a "Completar con Flash", con un solo aviso para los dos', () => {
+    const fixture = TestBed.createComponent(DashboardComponent);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    const arriba = [...el.querySelectorAll('.actions-top button')].map((b) => b.textContent?.trim());
+    expect(arriba).toContain('Completar con Flash');
+    expect(arriba).toContain('Sugerime algo nuevo');
+    expect(el.querySelectorAll('.flash-aviso').length).toBe(1);
+  });
+
+  it('el error de "Sugerime algo nuevo" va a la línea de estado de Flash', async () => {
+    const dashboard = TestBed.createComponent(DashboardComponent).componentInstance;
+    await dashboard.sugerir();
+    expect(dashboard.estadoFlash()).toMatch(/saturado/);
+  });
+
+  it('las recetas nuevas se ven antes de la grilla de la semana', () => {
+    nuevas.set([{ name: 'Guiso nuevo', tags: [], ingredients: [], pasos: [], tipo: 'almuerzo', slot: null }]);
+    const fixture = TestBed.createComponent(DashboardComponent);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    const panel = el.querySelector('.recetas-nuevas');
+    const grilla = el.querySelector('.schedule-grid');
+    expect(panel?.textContent).toContain('Guiso nuevo');
+    expect(grilla && panel?.compareDocumentPosition(grilla)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
   it('"Completar semana" queda deshabilitado mientras Flash arma', () => {

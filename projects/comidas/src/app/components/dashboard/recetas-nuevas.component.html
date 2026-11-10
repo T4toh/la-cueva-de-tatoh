@@ -1,18 +1,5 @@
-@if (flash.puede() || flash.nuevas().length) {
+@if (flash.nuevas().length || estado()) {
   <section class="recetas-nuevas">
-    <button
-      class="btn-secondary"
-      type="button"
-      [disabled]="sugerirDeshabilitado()"
-      (click)="sugerir()"
-    >
-      {{ flash.armando() ? 'Armando con Flash…' : 'Sugerime algo nuevo' }}
-    </button>
-    <small class="completar-vacio">{{ sinSesion() }}</small>
-    <p class="flash-aviso">
-      Con el plan gratuito, Google puede usar lo que se le manda para entrenar sus modelos. Este botón manda las
-      plantas de la semana, tu lista No como, los nombres de tus recetas, tu país y la estación, y sólo cuando lo tocás.
-    </p>
     <p class="estado" role="status" [hidden]="!estado()">{{ estado() }}</p>
     @for (r of flash.nuevas(); track $index; let i = $index) {
       <article class="receta-nueva">

@@ -153,6 +153,15 @@
     >
       {{ flash.armando() ? 'Armando con Flash…' : 'Completar con Flash' }}
     </button>
+    <button
+      class="btn-secondary"
+      type="button"
+      [disabled]="sugerirDeshabilitado()"
+      [title]="sinSesion()"
+      (click)="sugerir()"
+    >
+      Sugerime algo nuevo
+    </button>
     <small class="completar-vacio">{{ sinSesion() }}</small>
     <button class="btn-secondary btn-print" type="button" (click)="printMenu()">
       Imprimir Menú
@@ -173,6 +182,8 @@
   </p>
 
   <p class="completar-aviso" role="status" [hidden]="!estadoVisible()">{{ estadoVisible() }}</p>
+
+  <app-recetas-nuevas />
 
   <div class="schedule-grid">
     @for (day of mealService.schedule(); track day.dayName) {
@@ -598,8 +609,6 @@
       </lib-panel>
     }
   </div>
-
-  <app-recetas-nuevas />
 
   <div class="actions">
     <button class="btn-clear" type="button" (click)="clearWeek()">

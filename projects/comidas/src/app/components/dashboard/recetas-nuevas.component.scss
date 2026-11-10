@@ -1,18 +1,8 @@
-.completar-vacio:empty {
-  display: none;
-}
-
-.completar-vacio,
-.estado,
-.flash-aviso {
-  color: var(--fg-secondary);
-}
-
-.flash-aviso {
+.estado {
   flex-basis: 100%;
   margin: 0;
   text-align: center;
-  font-size: 0.8rem;
+  color: var(--fg-secondary);
 }
 
 .estado[hidden] {
@@ -25,7 +15,7 @@
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  margin-top: 1.5rem;
+  margin: 0 0 1.5rem;
 
   .btn-secondary,
   .btn-accent {

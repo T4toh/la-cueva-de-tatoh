@@ -2,7 +2,8 @@ import { Component, computed, inject, linkedSignal } from '@angular/core';
 import { ArmadorFlashService } from '../../services/armador-flash.service';
 import { MealService } from '../../services/meal.service';
 
-// Las recetas que Flash propone para la semana y "Sugerime algo nuevo".
+// Las recetas que Flash propone para la semana. Los botones que las piden y
+// el aviso de entrenamiento están en la fila de arriba del dashboard.
 @Component({
   selector: 'app-recetas-nuevas',
   standalone: true,
@@ -18,16 +19,6 @@ export class RecetasNuevasComponent {
     source: computed(() => this.mealService.currentWeekStart().getTime()),
     computation: () => '',
   });
-
-  readonly sinSesion = computed(() => (this.flash.puede() ? '' : 'Iniciá sesión para completar con Flash'));
-  readonly sugerirDeshabilitado = computed(() => {
-    const v = this.mealService.visibleMeals();
-    return !this.flash.puede() || this.flash.armando() || !(v.breakfast || v.lunch || v.dinner);
-  });
-
-  async sugerir(): Promise<void> {
-    this.estado.set((await this.flash.sugerir()) ?? '');
-  }
 
   guardar(i: number): void {
     if (this.flash.nuevas()[i]) {
