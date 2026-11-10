@@ -22,6 +22,8 @@ export type ResultadoFlash = {
   cambioSemana: boolean;
 };
 
+export const ERROR_ARMADOR = 'No se pudo completar con Flash. Probá de nuevo.';
+
 export const sinResultado = (): ResultadoFlash => ({
   puestos: 0, sinCandidatos: 0, deFlash: 0, nuevas: [], error: null, cambioSemana: false,
 });
@@ -69,7 +71,7 @@ export async function completarConFlash(d: DepsFlash): Promise<ResultadoFlash> {
       );
       preferidas = preferidasDe(raw, conOpciones);
     } catch (err) {
-      error = mensajeDeError(err);
+      error = mensajeDeError(err, ERROR_ARMADOR);
     }
   }
   const r = d.completar(Math.random, preferidas, e.key);
@@ -83,6 +85,6 @@ export async function completarConFlash(d: DepsFlash): Promise<ResultadoFlash> {
   try {
     return { ...r, nuevas: await recetasParaHuecos(d.entrada(), d), error: null, cambioSemana: false };
   } catch (err) {
-    return { ...r, nuevas: [], error: mensajeDeError(err), cambioSemana: false };
+    return { ...r, nuevas: [], error: mensajeDeError(err, ERROR_ARMADOR), cambioSemana: false };
   }
 }

@@ -192,7 +192,10 @@ export async function revisarEnTandas(
 
 // El texto que ve el usuario cuando una pasada falla. Lo ya revisado se
 // guardó igual; esto sólo explica por qué faltan las demás.
-export function mensajeDeError(error: unknown): string {
+export function mensajeDeError(
+  error: unknown,
+  generico = 'No se pudo revisar el recetario. Probá de nuevo más tarde.'
+): string {
   const mensaje = error instanceof Error ? error.message : '';
   if (/429|RESOURCE_EXHAUSTED|quota/i.test(mensaje)) {
     return 'Se terminó la cuota gratuita de Flash por hoy. Probá de nuevo mañana.';
@@ -208,5 +211,5 @@ export function mensajeDeError(error: unknown): string {
   if (error instanceof TypeError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
     return 'Sin conexión: revisá internet y probá de nuevo.';
   }
-  return 'No se pudo revisar el recetario. Probá de nuevo más tarde.';
+  return generico;
 }

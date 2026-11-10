@@ -243,5 +243,6 @@ describe('mensajeDeError', () => {
 
   it('cualquier otro error da un mensaje genérico', () => {
     expect(mensajeDeError('raro')).toBe('No se pudo revisar el recetario. Probá de nuevo más tarde.');
+    expect(mensajeDeError('raro', 'Otro texto.')).toBe('Otro texto.');
   });
 });

@@ -4,7 +4,7 @@ import { indexar } from '../catalogo/catalogo';
 import { CATALOGO } from '../catalogo/catalogo-datos';
 import { DaySchedule, Meal } from '../models/meal.model';
 import { EntradaArmador } from './armador';
-import { completarConFlash, DepsFlash } from './flujo-flash';
+import { completarConFlash, DepsFlash, ERROR_ARMADOR } from './flujo-flash';
 
 const indice = indexar(CATALOGO);
 const comida = (id: string): Meal => ({ id, name: id, ingredients: [{ name: 'tomate', quantity: '1' }] });
@@ -74,6 +74,15 @@ describe('completarConFlash', () => {
     expect(r.puestos).toBe(1);
     expect(r.nuevas).toEqual([]);
     expect(r.error).toBe('Se terminó la cuota gratuita de Flash por hoy. Probá de nuevo mañana.');
+  });
+
+  it('un error sin explicación conocida da el mensaje del armador', async () => {
+    const completar = vi.fn().mockReturnValue({ puestos: 1, sinCandidatos: 0, deFlash: 0 });
+    const pedir = vi.fn().mockRejectedValue(new Error('raro'));
+    const r = await completarConFlash(deps(() => entrada([dia('Lunes')]), completar, pedir));
+
+    expect(r.error).toBe(ERROR_ARMADOR);
+    expect(ERROR_ARMADOR).toBe('No se pudo completar con Flash. Probá de nuevo.');
   });
 
   it('sin slots vacíos no pide nada y todo queda en 0', async () => {

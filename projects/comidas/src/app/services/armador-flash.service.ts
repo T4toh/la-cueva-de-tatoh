@@ -2,7 +2,7 @@ import { computed, effect, inject, Injectable, signal, untracked } from '@angula
 import { FirebaseApp } from '@angular/fire/app';
 
 import { PAISES } from '../armador/estacion';
-import { completarConFlash, ResultadoFlash, sinResultado } from '../armador/flujo-flash';
+import { completarConFlash, ERROR_ARMADOR, ResultadoFlash, sinResultado } from '../armador/flujo-flash';
 import {
   esquemaRecetasNuevas,
   PedidoRecetas,
@@ -55,10 +55,15 @@ export class ArmadorFlashService {
         pedir: this.pedir,
         ...this.datos(),
       });
-      if (r.nuevas.length > 0 && this.semana() === semana) {
+      if (this.semana() !== semana) {
+        return { ...r, nuevas: [] };
+      }
+      if (r.nuevas.length > 0) {
         this.sugeridas.set(r.nuevas);
       }
       return r;
+    } catch (error) {
+      return { ...sinResultado(), error: mensajeDeError(error, ERROR_ARMADOR) };
     } finally {
       this.enCurso.set(false);
     }
@@ -73,6 +78,9 @@ export class ArmadorFlashService {
     const semana = this.semana();
     try {
       const { semana: dias, tipos, ctx } = this.mealService.entradaArmador();
+      if (tipos.length === 0) {
+        return 'No hay comidas visibles para sugerir.';
+      }
       const { paisNombre, noComo, nombresExistentes } = this.datos();
       const p: PedidoRecetas = {
         modo: 'plantas',
@@ -88,7 +96,7 @@ export class ArmadorFlashService {
       }
       return null;
     } catch (error) {
-      return mensajeDeError(error);
+      return mensajeDeError(error, ERROR_ARMADOR);
     } finally {
       this.enCurso.set(false);
     }
