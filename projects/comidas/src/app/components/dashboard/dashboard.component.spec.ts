@@ -1,5 +1,6 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { FirebaseApp } from '@angular/fire/app';
 import { Firestore } from '@angular/fire/firestore';
 import { provideRouter } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -15,6 +16,7 @@ describe('DashboardComponent: completar semana', () => {
       imports: [DashboardComponent],
       providers: [
         provideRouter([]),
+        { provide: FirebaseApp, useValue: {} },
         { provide: Firestore, useValue: {} },
         { provide: AuthService, useValue: { currentUser: signal(null) } },
       ],

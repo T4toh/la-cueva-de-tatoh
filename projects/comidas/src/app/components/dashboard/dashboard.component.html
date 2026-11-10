@@ -144,10 +144,26 @@
       Completar semana
     </button>
     <small class="completar-vacio">{{ sinVacias() }}</small>
+    <button
+      class="btn-secondary"
+      type="button"
+      [disabled]="flashDeshabilitado()"
+      [title]="sinSesion() || sinVacias()"
+      (click)="completarConFlash()"
+    >
+      {{ flash.armando() ? 'Armando con Flash…' : 'Completar con Flash' }}
+    </button>
+    <small class="completar-vacio">{{ sinSesion() }}</small>
     <button class="btn-secondary btn-print" type="button" (click)="printMenu()">
       Imprimir Menú
     </button>
   </div>
+
+  <p class="flash-aviso">
+    Con el plan gratuito, Google puede usar lo que se le manda para entrenar sus modelos. Al tocar un botón de Flash
+    se manda: los nombres, tags e ingredientes de las comidas candidatas, la semana y tu lista No como. Sólo se manda
+    al tocar el botón.
+  </p>
 
   <p class="completar-aviso" [hidden]="!aviso()">
     {{ aviso() }}
@@ -155,6 +171,8 @@
       Deshacer
     </button>
   </p>
+
+  <p class="completar-aviso" role="status" [hidden]="!estadoFlash()">{{ estadoFlash() }}</p>
 
   <div class="schedule-grid">
     @for (day of mealService.schedule(); track day.dayName) {
@@ -580,6 +598,8 @@
       </lib-panel>
     }
   </div>
+
+  <app-recetas-nuevas />
 
   <div class="actions">
     <button class="btn-clear" type="button" (click)="clearWeek()">

@@ -1,0 +1,29 @@
+@if (flash.puede() || flash.nuevas().length) {
+  <section class="recetas-nuevas">
+    <button
+      class="btn-secondary"
+      type="button"
+      [disabled]="sugerirDeshabilitado()"
+      (click)="sugerir()"
+    >
+      {{ flash.armando() ? 'Armando con Flash…' : 'Sugerime algo nuevo' }}
+    </button>
+    <small class="completar-vacio">{{ sinSesion() }}</small>
+    <p class="estado" role="status" [hidden]="!estado()">{{ estado() }}</p>
+    @for (r of flash.nuevas(); track r.name; let i = $index) {
+      <article class="receta-nueva">
+        <h3>{{ r.name }} <small>{{ r.tipo }}</small></h3>
+        <ul>
+          @for (ing of r.ingredients; track $index) {
+            <li>{{ ing.quantity }} {{ ing.unit }} {{ ing.name }}</li>
+          }
+        </ul>
+        <div class="receta-acciones">
+          <button class="btn-accent" type="button" (click)="usar(i)">Usar</button>
+          <button class="btn-secondary" type="button" (click)="flash.guardar(i)">Guardar para después</button>
+          <button class="btn-secondary" type="button" (click)="flash.descartar(i)">Descartar</button>
+        </div>
+      </article>
+    }
+  </section>
+}
