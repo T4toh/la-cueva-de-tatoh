@@ -111,6 +111,28 @@ describe('puntuar', () => {
     expect(puntos(invernal, dias, [almuerzo]).puntos).toBeLessThan(puntos(rompe, dias, [almuerzo]).puntos);
   });
 
+  it('fuera de estación pierde aun contra romper carbos y roja a la vez', () => {
+    const almuerzo = comida('alm', ['arroz', 'carne vacuna']);
+    const previas = ['r1', 'r2'].map((id) => comida(id, ['carne vacuna']));
+    const dias = [dia('lunes', { almuerzo: ['alm'], desayuno: ['r1'] }), dia('martes', { almuerzo: ['r2'] })];
+    const rompeAmbas = comida('ambas', ['papa', 'carne vacuna']);
+    const invernal = comida('inv', ['lechuga'], ['invierno']);
+    const meals = [almuerzo, ...previas];
+    expect(puntos(invernal, dias, meals).puntos).toBeLessThan(puntos(rompeAmbas, dias, meals).puntos);
+  });
+
+  it('despensa: mayúsculas y acentos no duplican; sin catálogo, por nombre normalizado', () => {
+    const c = comida('c', ['brócoli']);
+    const una = puntos(c, base, [], { despensa: [{ name: 'Brócoli', quantity: '1' }] });
+    const dos = puntos(c, base, [], {
+      despensa: [{ name: 'Brócoli', quantity: '1' }, { name: 'brocoli', quantity: '1' }],
+    });
+    expect(dos.puntos).toBe(una.puntos);
+    const propia = comida('p', ['Salsa Rara']);
+    expect(puntos(propia, base, [], { despensa: [{ name: 'salsa rara', quantity: '1' }] }).motivo)
+      .toBe('usa el salsa rara de la despensa');
+  });
+
   it('reciente resta', () => {
     const c = comida('c', ['lechuga']);
     expect(puntos(c, base, [], { recientes: new Set(['c']) }).puntos).toBeLessThan(puntos(c, base, []).puntos);

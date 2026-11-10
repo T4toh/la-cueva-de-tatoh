@@ -20,21 +20,23 @@ export type Puntaje = { puntos: number; motivo: string };
 // Pesos enteros. El orden (spec): fuera de estación > rompe chequeo > plantas
 // nuevas > despensa > reciente. Los topes hacen que ninguna suma de factores
 // chicos pueda con uno grande: plantas suman a lo sumo 30 * 10 = 300 y
-// despensa a lo sumo 10 * 3 = 30, así que un chequeo roto (-1000) siempre
-// pesa más, y fuera de estación (-1500) más que un chequeo roto.
+// despensa a lo sumo 10 * 3 = 30. Fuera de estación es un anti-objetivo y la
+// guía sólo marca: -2500 pierde incluso contra romper carbos Y roja a la vez
+// (2 * -1000), con las plantas (+330 como mucho) que traiga de más.
 const PESO_PLANTA = 10;
 const PESO_DESPENSA = 3;
 const TOPE_DESPENSA = 10;
 const PESO_PESCADO = 40;
 const PESO_RECIENTE = -5;
 const PESO_ROMPE_CHEQUEO = -1000;
-const PESO_FUERA_DE_ESTACION = -1500;
+const PESO_FUERA_DE_ESTACION = -2500;
 
 // Ingredientes de la comida que están en la despensa con cantidad: por el
 // catálogo, y si no por nombre normalizado.
 function deLaDespensa(meal: Meal, ctx: ContextoPuntaje): string[] {
   const disponibles = ctx.despensa.filter((p) => p.quantity.trim());
-  const usados = new Set<string>();
+  // Por entrada del catálogo (o nombre normalizado): "Brócoli" y "brocoli" cuentan una vez.
+  const usados = new Map<string, string>();
   for (const ing of meal.ingredients) {
     const entrada = clasificar(ing.name, ctx.indice);
     const item = disponibles.find((p) => {
@@ -42,10 +44,10 @@ function deLaDespensa(meal: Meal, ctx: ContextoPuntaje): string[] {
       return entrada && deItem ? entrada.nombre === deItem.nombre : normalizar(p.name) === normalizar(ing.name);
     });
     if (item) {
-      usados.add(item.name.trim().toLowerCase());
+      usados.set(entrada?.nombre ?? normalizar(ing.name), item.name.trim().toLowerCase());
     }
   }
-  return [...usados];
+  return [...usados.values()];
 }
 
 export function puntuar(meal: Meal, antes: DaySchedule[], semana: DaySchedule[], ctx: ContextoPuntaje): Puntaje {
