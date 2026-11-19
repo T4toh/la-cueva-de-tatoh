@@ -1,0 +1,53 @@
+<section class="sesion">
+  @switch (fase()) {
+    @case ('previa') {
+      <h1>Sesión de {{ minutos }} minutos</h1>
+      <p class="dato">Día {{ diaTexto }}</p>
+      <ul class="bloques">
+        @for (b of bloques; track $index) {
+          <li>{{ b }}</li>
+        }
+      </ul>
+      @if (necesita) {
+        <p class="necesita">Vas a necesitar: {{ necesita }}</p>
+      }
+      <p class="aviso">Si algo duele (no cansa, duele), cortá.</p>
+      <button class="btn btn-grande" type="button" (click)="arrancar()">Arrancar</button>
+    }
+    @case ('vivo') {
+      @if (paso(); as p) {
+        <p class="progreso">Paso {{ numero() }} de {{ sesion.pasos.length }}</p>
+        <h1>{{ p.titulo }}</h1>
+        @if (p.vuelta; as v) {
+          <p class="dato">Vuelta {{ v.n }} de {{ v.de }}</p>
+        }
+        @if (p.detalle) {
+          <p class="detalle">{{ p.detalle }}</p>
+        }
+        @if (p.medida === 'segundos') {
+          <p class="cuenta">{{ cuenta() }}</p>
+        } @else {
+          <p class="cuenta">{{ p.cantidad }} reps</p>
+          <button class="btn btn-grande" type="button" (click)="listo()">Listo</button>
+        }
+        @if (siguiente(); as s) {
+          <p class="siguiente">Sigue: {{ s.titulo }}</p>
+        }
+      }
+      <div class="acciones">
+        <button class="btn" type="button" (click)="pausaOSeguir()">{{ pausado() ? 'Seguir' : 'Pausa' }}</button>
+        <button class="btn" type="button" (click)="listo()">Saltear</button>
+        <button class="btn btn-peligro" type="button" (click)="terminar()">Terminar</button>
+      </div>
+    }
+    @case ('fin') {
+      <h1>¡Listo!</h1>
+      <p class="dato">Entrenaste {{ minutosReales().toFixed(0) }} minutos. ¿Cómo estuvo?</p>
+      <div class="acciones">
+        <button class="btn btn-grande" type="button" (click)="responder('facil')">Fácil</button>
+        <button class="btn btn-grande" type="button" (click)="responder('bien')">Bien</button>
+        <button class="btn btn-grande" type="button" (click)="responder('mato')">Me mató</button>
+      </div>
+    }
+  }
+</section>
