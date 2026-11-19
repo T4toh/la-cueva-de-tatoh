@@ -115,18 +115,18 @@ export const PLANTILLAS: readonly Plantilla[] = [
     nivel: 5,
     dia: 'A',
     bloques: [
-      caminata(CALENTAMIENTO_A, comodo(90), trote(180)),
+      caminata(CALENTAMIENTO_A, comodo(90), trote(120)),
       circuito(
         3,
         20,
         ['sentadilla-pausa', 10],
-        ['flexion-piso', 8],
+        ['flexion-inclinada-baja', 10],
         ['zancada-caminando', 10],
-        ['plancha', 30]
+        ['plancha-rodillas', 30]
       ),
     ],
   },
-  { id: 'n5b', nivel: 5, dia: 'B', bloques: [caminata(CALENTAMIENTO_B, comodo(90), trote(240)), MOVILIDAD_2] },
+  { id: 'n5b', nivel: 5, dia: 'B', bloques: [caminata(CALENTAMIENTO_B, comodo(90), trote(120)), MOVILIDAD_2] },
   {
     id: 'n6a',
     nivel: 6,
@@ -135,11 +135,11 @@ export const PLANTILLAS: readonly Plantilla[] = [
       caminata(CALENTAMIENTO_A, trote(600), comodo(60)),
       circuito(
         3,
-        15,
-        ['silla-pared', 40],
-        ['escaladores', 40],
-        ['puente-una-pierna', 40],
-        ['plancha', 40]
+        25,
+        ['silla-pared', 30],
+        ['rodillas-altas', 30],
+        ['puente-una-pierna', 30],
+        ['plancha-rodillas', 30]
       ),
     ],
   },

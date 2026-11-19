@@ -53,15 +53,6 @@ export const EJERCICIOS: readonly Ejercicio[] = [
     medida: 'reps',
   },
   {
-    id: 'flexion-piso',
-    nombre: 'Flexión en el piso',
-    como:
-      'Manos bajo los hombros y cuerpo recto. Bajá hasta casi tocar el piso ' +
-      'con el pecho y empujá. Si no podés, apoyá las rodillas.',
-    necesita: 'piso',
-    medida: 'reps',
-  },
-  {
     id: 'puente-gluteo',
     nombre: 'Puente de glúteo',
     como:
@@ -101,10 +92,9 @@ export const EJERCICIOS: readonly Ejercicio[] = [
     medida: 'segundos',
   },
   {
-    id: 'escaladores',
-    nombre: 'Escaladores',
-    como: 'En posición de flexión, llevá una rodilla al pecho y cambiá de pierna a buen ritmo. Mantené la cadera baja.',
-    necesita: 'piso',
+    id: 'rodillas-altas',
+    nombre: 'Rodillas altas',
+    como: 'Parado, marchá en el lugar llevando las rodillas a la cadera, a ritmo parejo y con la panza firme.',
     medida: 'segundos',
   },
   {
