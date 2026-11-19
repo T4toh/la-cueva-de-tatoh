@@ -59,6 +59,8 @@ export class EntrenarSesionComponent implements OnDestroy {
   private timer: ReturnType<typeof setInterval> | null = null;
   private audio: AudioContext | null = null;
   private sentinel: WakeLockSentinel | null = null;
+  // Cae apenas termina o se cierra la sesión: un pedido de lock en vuelo no debe quedarse con la pantalla.
+  private conLock = false;
 
   private nombreBloque(tipo: string): string {
     return tipo === 'caminata' ? 'Caminata' : 'Movilidad';
@@ -67,6 +69,7 @@ export class EntrenarSesionComponent implements OnDestroy {
   arrancar(): void {
     const ahora = Date.now();
     this.crearAudio();
+    this.conLock = true;
     this.inicio = ahora;
     this.ahora.set(ahora);
     this.reloj.set({ indice: 0, finPaso: finDe(this.sesion.pasos[0], ahora), pausadoRestante: null });
@@ -88,25 +91,33 @@ export class EntrenarSesionComponent implements OnDestroy {
       return;
     }
     this.reloj.set(nuevo);
-    this.alCambiarIndice(previo.indice, nuevo.indice);
+    this.alCambiarIndice(previo.indice, nuevo.indice, nuevo.finPaso ?? ahora);
   }
 
-  private alCambiarIndice(antes: number, despues: number): void {
+  // `momento`: cuándo terminó la sesión, que con la pantalla apagada no es "ahora".
+  private alCambiarIndice(antes: number, despues: number, momento: number): void {
     if (despues === antes) {
       return;
     }
     this.senal();
     if (despues >= this.sesion.pasos.length) {
-      this.terminar();
+      this.terminar(momento);
     }
   }
 
   listo(): void {
     const ahora = Date.now();
     const indice = this.reloj().indice + 1;
+    this.cerrarPausa(ahora);
     this.ahora.set(ahora);
     this.reloj.set({ indice, finPaso: finDe(this.sesion.pasos[indice], ahora), pausadoRestante: null });
-    this.alCambiarIndice(indice - 1, indice);
+    this.alCambiarIndice(indice - 1, indice, ahora);
+  }
+
+  private cerrarPausa(ahora: number): void {
+    if (this.pausado()) {
+      this.pausasMs += ahora - this.pausaDesde;
+    }
   }
 
   pausaOSeguir(): void {
@@ -117,16 +128,15 @@ export class EntrenarSesionComponent implements OnDestroy {
       this.reloj.set({ ...r, pausadoRestante: restante(r, ahora) });
       return;
     }
-    this.pausasMs += ahora - this.pausaDesde;
+    this.cerrarPausa(ahora);
     const finPaso = r.finPaso === null ? null : ahora + r.pausadoRestante;
     this.reloj.set({ indice: r.indice, finPaso, pausadoRestante: null });
   }
 
-  terminar(): void {
+  terminar(ahora = Date.now()): void {
     if (this.fase() !== 'vivo') {
       return;
     }
-    const ahora = Date.now();
     const enPausa = this.pausado() ? ahora - this.pausaDesde : 0;
     const reales = (ahora - this.inicio - this.pausasMs - enPausa) / 60000;
     this.detener();
@@ -154,6 +164,7 @@ export class EntrenarSesionComponent implements OnDestroy {
   }
 
   private detener(): void {
+    this.conLock = false;
     if (this.timer !== null) {
       clearInterval(this.timer);
       this.timer = null;
@@ -171,7 +182,9 @@ export class EntrenarSesionComponent implements OnDestroy {
   alCambiarVisibilidad(): void {
     if (document.visibilityState === 'visible' && this.fase() === 'vivo') {
       this.avanzarHasta(Date.now());
-      void this.pedirWakeLock();
+      if (this.fase() === 'vivo') {
+        void this.pedirWakeLock();
+      }
     }
   }
 
@@ -215,8 +228,13 @@ export class EntrenarSesionComponent implements OnDestroy {
       return;
     }
     try {
-      this.sentinel = await navigator.wakeLock.request('screen');
-      this.sentinel.addEventListener('release', () => {
+      const obtenido = await navigator.wakeLock.request('screen');
+      if (!this.conLock) {
+        await obtenido.release();
+        return;
+      }
+      this.sentinel = obtenido;
+      obtenido.addEventListener('release', () => {
         this.sentinel = null;
       });
     } catch {

@@ -8,7 +8,7 @@ export function finDe(paso: Paso | undefined, desde: number): number | null {
 }
 
 // Avanza los pasos por tiempo que vencieron entre finPaso y ahora; un paso de reps frena el avance.
-// `indice === pasos.length` quiere decir que se terminó el último paso.
+// `indice === pasos.length` quiere decir que se terminó el último paso, y `finPaso` es cuándo.
 export function alcanzar(pasos: Paso[], r: EstadoReloj, ahora: number): EstadoReloj {
   if (r.pausadoRestante !== null) {
     return r;
@@ -16,6 +16,9 @@ export function alcanzar(pasos: Paso[], r: EstadoReloj, ahora: number): EstadoRe
   let { indice, finPaso } = r;
   while (finPaso !== null && ahora >= finPaso && indice < pasos.length) {
     indice++;
+    if (indice >= pasos.length) {
+      break; // finPaso queda en el instante en que venció el último paso.
+    }
     finPaso = finDe(pasos[indice], finPaso);
   }
   return { indice, finPaso, pausadoRestante: null };

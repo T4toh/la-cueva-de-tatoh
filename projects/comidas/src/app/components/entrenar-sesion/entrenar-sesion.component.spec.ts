@@ -33,10 +33,12 @@ describe('EntrenarSesionComponent', () => {
     localStorage.clear();
     vi.useFakeTimers();
     vi.setSystemTime(INICIO);
+    vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible');
   });
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
     localStorage.clear();
   });
@@ -93,5 +95,74 @@ describe('EntrenarSesionComponent', () => {
     expect(registro).toMatchObject({ minutos: 25, completa: true, respuesta: 'bien' });
     expect(dia).toBe('A');
     expect(navegar).toHaveBeenCalledWith(['/entrenar']);
+  });
+
+  it('Saltear en pausa descuenta la pausa de los minutos reales', () => {
+    const c = crear('20');
+    const registrar = vi.spyOn(TestBed.inject(MealService), 'registrarSesion');
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    c.arrancar();
+    vi.advanceTimersByTime(2 * 60_000);
+    c.pausaOSeguir();
+    vi.advanceTimersByTime(10 * 60_000);
+    c.listo();
+    vi.advanceTimersByTime(60_000);
+    c.terminar();
+    c.responder('bien');
+    expect(registrar.mock.calls[0][0].minutos).toBe(3);
+  });
+
+  it('si la pantalla estuvo apagada, el fin se registra cuando venció el último paso', () => {
+    const c = crear('20');
+    const registrar = vi.spyOn(TestBed.inject(MealService), 'registrarSesion');
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    c.arrancar();
+    vi.setSystemTime(new Date(Date.now() + 5 * 60_000));
+    const pasos = c.sesion.pasos;
+    for (let i = 0; i < pasos.length - 1; i++) {
+      c.listo();
+    }
+    const ultimo = pasos[pasos.length - 1];
+    expect(ultimo.medida).toBe('segundos');
+    vi.setSystemTime(new Date(Date.now() + ultimo.cantidad * 1000 + 30 * 60_000));
+    c.alCambiarVisibilidad();
+    expect(c.fase()).toBe('fin');
+    c.responder('bien');
+    expect(registrar.mock.calls[0][0].minutos).toBe(Math.round(5 + ultimo.cantidad / 60));
+  });
+
+  it('al volver a la pestaña con la sesión ya terminada no pide otro wake lock', () => {
+    const request = vi.fn().mockReturnValue(new Promise(() => undefined));
+    vi.stubGlobal('navigator', { wakeLock: { request } });
+    const c = crear('20');
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    c.arrancar();
+    vi.setSystemTime(new Date(Date.now() + 5 * 60_000));
+    const pasos = c.sesion.pasos;
+    for (let i = 0; i < pasos.length - 1; i++) {
+      c.listo();
+    }
+    vi.setSystemTime(new Date(Date.now() + 90 * 60_000));
+    c.alCambiarVisibilidad();
+    expect(c.fase()).toBe('fin');
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
+  it('un wake lock que llega después de terminar se suelta', async () => {
+    const release = vi.fn().mockResolvedValue(undefined);
+    let llegar: (s: unknown) => void = () => undefined;
+    const request = vi.fn().mockReturnValue(
+      new Promise((r) => {
+        llegar = r;
+      })
+    );
+    vi.stubGlobal('navigator', { wakeLock: { request } });
+    const c = crear('20');
+    c.arrancar();
+    vi.advanceTimersByTime(2 * 60_000);
+    c.terminar();
+    llegar({ release, addEventListener: vi.fn() });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(release).toHaveBeenCalledTimes(1);
   });
 });

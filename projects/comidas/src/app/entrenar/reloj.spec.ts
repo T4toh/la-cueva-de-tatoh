@@ -23,7 +23,7 @@ describe('reloj', () => {
   it('al vencer el último paso el índice queda en pasos.length', () => {
     const r = alcanzar([seg(10)], { indice: 0, finPaso: 10_000, pausadoRestante: null }, 20_000);
     expect(r.indice).toBe(1);
-    expect(r.finPaso).toBeNull();
+    expect(r.finPaso).toBe(10_000);
   });
 
   it('pausado no avanza; restante devuelve pausadoRestante', () => {
