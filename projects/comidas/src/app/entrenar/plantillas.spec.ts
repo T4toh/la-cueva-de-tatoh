@@ -86,6 +86,24 @@ describe('PLANTILLAS', () => {
     expect(ritmos(4)).toContain('trote');
   });
 
+  it('ningún tramo de trote pasa de 5 min: el salto desde el 5 no es de golpe', () => {
+    const ciclo = (d: 'A' | 'B'): unknown =>
+      plantillaDe(6, d).bloques.flatMap((b) => (b.tipo === 'caminata' ? b.ciclo : []));
+    expect(ciclo('A')).toEqual([
+      { ritmo: 'trote', segundos: 300 },
+      { ritmo: 'comodo', segundos: 60 },
+    ]);
+    for (const p of PLANTILLAS) {
+      for (const b of p.bloques) {
+        if (b.tipo === 'caminata') {
+          b.ciclo
+            .filter((t) => t.ritmo === 'trote')
+            .forEach((t) => expect(t.segundos, p.id).toBeLessThanOrEqual(300));
+        }
+      }
+    }
+  });
+
   it('el circuito del nivel 1 tiene una vuelta', () => {
     expect(circuito(plantillaDe(1, 'A')).vueltas).toBe(1);
   });

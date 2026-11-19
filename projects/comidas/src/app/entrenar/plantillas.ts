@@ -132,7 +132,7 @@ export const PLANTILLAS: readonly Plantilla[] = [
     nivel: 6,
     dia: 'A',
     bloques: [
-      caminata(CALENTAMIENTO_A, trote(600), comodo(60)),
+      caminata(CALENTAMIENTO_A, trote(300), comodo(60)),
       circuito(
         3,
         25,
@@ -143,7 +143,7 @@ export const PLANTILLAS: readonly Plantilla[] = [
       ),
     ],
   },
-  { id: 'n6b', nivel: 6, dia: 'B', bloques: [caminata(CALENTAMIENTO_B, trote(480), comodo(120)), MOVILIDAD_3] },
+  { id: 'n6b', nivel: 6, dia: 'B', bloques: [caminata(CALENTAMIENTO_B, trote(300), comodo(120)), MOVILIDAD_3] },
 ];
 
 export function plantillaDe(nivel: number, dia: Dia): Plantilla {

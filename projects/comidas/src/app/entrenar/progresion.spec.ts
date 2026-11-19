@@ -141,4 +141,15 @@ describe('progresion', () => {
     expect(cambiarNivel(e, 9).nivel).toBe(6);
     expect(cambiarNivel(e, 0).nivel).toBe(1);
   });
+  it('cambiarNivel al mismo nivel (o a uno que redondea igual) no toca la dosis', () => {
+    const e = estado({ nivel: 3, dosis: 2 });
+    expect(cambiarNivel(e, 3)).toBe(e);
+    expect(cambiarNivel(e, 3.2)).toBe(e);
+    expect(cambiarNivel(estado({ nivel: 6, dosis: 1 }), 9).dosis).toBe(1);
+  });
+  it('cambiarNivel con NaN o infinito deja el estado igual', () => {
+    const e = estado({ nivel: 3, dosis: 2 });
+    expect(cambiarNivel(e, NaN)).toBe(e);
+    expect(cambiarNivel(e, Infinity)).toBe(e);
+  });
 });

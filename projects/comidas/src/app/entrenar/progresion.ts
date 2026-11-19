@@ -116,7 +116,12 @@ export function propuestaNivel(e: EstadoEntrenar): 'subir' | 'bajar' | null {
 }
 
 export function cambiarNivel(e: EstadoEntrenar, nivel: number): EstadoEntrenar {
-  return { ...e, nivel: entre(Math.round(nivel), NIVEL_MIN, NIVEL_MAX), dosis: 0 };
+  if (!Number.isFinite(nivel)) {
+    return e;
+  }
+  const nuevo = entre(Math.round(nivel), NIVEL_MIN, NIVEL_MAX);
+  // Tocar el nivel en el que ya estás no puede tirar la dosis ganada.
+  return nuevo === e.nivel ? e : { ...e, nivel: nuevo, dosis: 0 };
 }
 
 export function descartarPropuesta(e: EstadoEntrenar): EstadoEntrenar {
