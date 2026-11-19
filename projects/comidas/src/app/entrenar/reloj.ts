@@ -21,6 +21,9 @@ export function alcanzar(pasos: Paso[], r: EstadoReloj, ahora: number): EstadoRe
     }
     finPaso = finDe(pasos[indice], finPaso);
   }
+  if (indice === r.indice && finPaso === r.finPaso) {
+    return r; // Sin cambios: mismo objeto, así el tick no re-renderiza ni guarda de más.
+  }
   return { indice, finPaso, pausadoRestante: null };
 }
 

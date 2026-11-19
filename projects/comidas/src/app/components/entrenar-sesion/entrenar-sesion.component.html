@@ -12,6 +12,7 @@
         <p class="necesita">Vas a necesitar: {{ necesita }}</p>
       }
       <p class="aviso">Si algo duele (no cansa, duele), cortá.</p>
+      <p class="aviso">La pantalla queda prendida durante la sesión.</p>
       <button class="btn btn-grande" type="button" (click)="arrancar()">Arrancar</button>
     }
     @case ('vivo') {
@@ -37,7 +38,7 @@
       <div class="acciones">
         <button class="btn" type="button" (click)="pausaOSeguir()">{{ pausado() ? 'Seguir' : 'Pausa' }}</button>
         <button class="btn" type="button" (click)="listo()">Saltear</button>
-        <button class="btn btn-peligro" type="button" (click)="terminar()">Terminar</button>
+        <button class="btn btn-peligro" type="button" (click)="pedirTerminar()">Terminar</button>
       </div>
     }
     @case ('fin') {

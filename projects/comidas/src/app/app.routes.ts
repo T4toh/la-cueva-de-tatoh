@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
-import { EntrenarSesionComponent } from './components/entrenar-sesion/entrenar-sesion.component';
+import { EntrenarSesionComponent, salirDeSesion } from './components/entrenar-sesion/entrenar-sesion.component';
 import { EntrenarComponent } from './components/entrenar/entrenar.component';
 import { GuiaComponent } from './components/guia/guia.component';
 import { MealEditorComponent } from './components/meal-editor/meal-editor.component';
@@ -24,7 +24,7 @@ export const routes: Routes = [
   { path: 'despensa', component: PantryComponent },
   { path: 'guia', component: GuiaComponent },
   { path: 'entrenar', component: EntrenarComponent },
-  { path: 'entrenar/sesion', component: EntrenarSesionComponent },
+  { path: 'entrenar/sesion', component: EntrenarSesionComponent, canDeactivate: [salirDeSesion] },
   { path: 'schedule/:day/:type', component: MealSelectorComponent },
   { path: 'settings', component: SettingsComponent },
   // Dos rutas y no una con comodín: difieren en cantidad de segmentos, así que

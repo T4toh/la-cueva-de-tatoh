@@ -59,7 +59,8 @@ h2 {
   width: 100%;
 }
 
-.banner {
+.banner,
+.en-curso {
   background: var(--bg-tint);
   border-radius: var(--radius-sm);
   display: flex;
@@ -121,4 +122,12 @@ li {
   border-radius: var(--radius-sm);
   font-size: 0.85rem;
   padding: 0.1rem 0.5rem;
+}
+
+a.btn {
+  align-items: center;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  text-decoration: none;
 }

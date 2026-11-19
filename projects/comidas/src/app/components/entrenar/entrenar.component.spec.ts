@@ -3,7 +3,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { CLAVE_EN_CURSO } from '../../entrenar/en-curso';
 import { EstadoEntrenar, RegistroSesion } from '../../entrenar/progresion';
+import { DialogService } from '../../services/dialog.service';
 import { MealService } from '../../services/meal.service';
 import { EntrenarComponent } from './entrenar.component';
 
@@ -50,6 +52,7 @@ describe('EntrenarComponent', () => {
   beforeEach(() => {
     cambiarNivelEntrenar.mockReset();
     descartarPropuestaEntrenar.mockReset();
+    localStorage.clear();
   });
 
   it('muestra el banner de subir con dosis 2 y dos fáciles, y Subir pasa a nivel+1', () => {
@@ -83,5 +86,47 @@ describe('EntrenarComponent', () => {
   it('historial vacío muestra "Todavía no entrenaste"', () => {
     const el = montar(estado({}));
     expect(el.textContent).toContain('Todavía no entrenaste');
+  });
+
+  describe('con una sesión en curso', () => {
+    const guardada = (inicio: number): string =>
+      JSON.stringify({
+        minutos: 40,
+        dia: 'A',
+        plantillaId: 'n3a',
+        dosis: 0,
+        inicio,
+        pausasMs: 0,
+        pausaDesde: null,
+        reloj: { indice: 2, finPaso: inicio + 600_000, pausadoRestante: null },
+        fase: 'vivo',
+        fin: null,
+      });
+
+    it('muestra Seguir en lugar de Empezar', () => {
+      localStorage.setItem(CLAVE_EN_CURSO, guardada(Date.now() - 10 * 60_000));
+      const el = montar(estado({}));
+      expect(el.textContent).toContain('Tenés una sesión en curso');
+      const seguir = Array.from(el.querySelectorAll('a')).find((a) => a.textContent?.trim() === 'Seguir');
+      expect(seguir?.getAttribute('href')).toBe('/entrenar/sesion');
+      expect(boton(el, 'Empezar')).toBeUndefined();
+    });
+
+    it('Descartar (confirmado) la borra y vuelve Empezar', async () => {
+      localStorage.setItem(CLAVE_EN_CURSO, guardada(Date.now() - 10 * 60_000));
+      const el = montar(estado({}));
+      vi.spyOn(TestBed.inject(DialogService), 'confirm').mockResolvedValue(true);
+      await fixture.componentInstance.descartarEnCurso();
+      fixture.detectChanges();
+      expect(localStorage.getItem(CLAVE_EN_CURSO)).toBeNull();
+      expect(boton(el, 'Empezar')).toBeDefined();
+    });
+
+    it('una de hace más de 6 h no cuenta', () => {
+      localStorage.setItem(CLAVE_EN_CURSO, guardada(Date.now() - 7 * 60 * 60_000));
+      const el = montar(estado({}));
+      expect(el.textContent).not.toContain('Tenés una sesión en curso');
+      expect(localStorage.getItem(CLAVE_EN_CURSO)).toBeNull();
+    });
   });
 });

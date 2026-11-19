@@ -1,11 +1,13 @@
 import { Component, computed, HostListener, inject, OnDestroy, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, CanDeactivateFn, Router } from '@angular/router';
 
+import { borrarEnCurso, EnCurso, guardarEnCurso, leerEnCurso, plantillaPorId } from '../../entrenar/en-curso';
 import { Necesidad } from '../../entrenar/modelo';
 import { plantillaDe } from '../../entrenar/plantillas';
 import { esCompleta, proximoDia, Respuesta } from '../../entrenar/progresion';
 import { alcanzar, EstadoReloj, finDe, restante } from '../../entrenar/reloj';
 import { armarSesion, minutosValidos } from '../../entrenar/sesion';
+import { DialogService } from '../../services/dialog.service';
 import { MealService } from '../../services/meal.service';
 
 type Fase = 'previa' | 'vivo' | 'fin';
@@ -27,11 +29,17 @@ const TICK_MS = 250;
 export class EntrenarSesionComponent implements OnDestroy {
   private readonly meal = inject(MealService);
   private readonly router = inject(Router);
+  private readonly dialog = inject(DialogService);
 
-  readonly minutos = minutosValidos(inject(ActivatedRoute).snapshot.queryParamMap.get('min'));
-  private readonly dia = proximoDia(this.meal.entrenar());
-  private readonly plantilla = plantillaDe(this.meal.entrenar().nivel, this.dia);
-  readonly sesion = armarSesion(this.plantilla, this.meal.entrenar().dosis, this.minutos);
+  // Una sesión que quedó a medias (atrás, otra pestaña, reload) manda sobre la URL.
+  private readonly guardada = leerEnCurso(Date.now());
+  readonly minutos =
+    this.guardada?.minutos ?? minutosValidos(inject(ActivatedRoute).snapshot.queryParamMap.get('min'));
+  private readonly dia = this.guardada?.dia ?? proximoDia(this.meal.entrenar());
+  private readonly plantilla =
+    (this.guardada && plantillaPorId(this.guardada.plantillaId)) ?? plantillaDe(this.meal.entrenar().nivel, this.dia);
+  private readonly dosis = this.guardada?.dosis ?? this.meal.entrenar().dosis;
+  readonly sesion = armarSesion(this.plantilla, this.dosis, this.minutos);
   readonly diaTexto = this.dia;
   readonly necesita = this.sesion.necesita.map((n) => TEXTO_NECESIDAD[n]).join(', ');
   readonly bloques = this.plantilla.bloques.map((b) =>
@@ -56,14 +64,85 @@ export class EntrenarSesionComponent implements OnDestroy {
   private inicio = 0;
   private pausasMs = 0;
   private pausaDesde = 0;
+  private fin: number | null = null;
+  // Ya se registró o se descartó: no hay nada más que responder ni que cuidar al salir.
+  private cerrada = false;
   private timer: ReturnType<typeof setInterval> | null = null;
   private audio: AudioContext | null = null;
   private sentinel: WakeLockSentinel | null = null;
   // Cae apenas termina o se cierra la sesión: un pedido de lock en vuelo no debe quedarse con la pantalla.
   private conLock = false;
 
+  constructor() {
+    if (this.guardada) {
+      this.retomar(this.guardada);
+    }
+  }
+
   private nombreBloque(tipo: string): string {
     return tipo === 'caminata' ? 'Caminata' : 'Movilidad';
+  }
+
+  private retomar(g: EnCurso): void {
+    const n = this.sesion.pasos.length;
+    const indiceOk = g.fase === 'vivo' ? g.reloj.indice < n : g.fin !== null;
+    if (!indiceOk) {
+      borrarEnCurso();
+      return;
+    }
+    this.inicio = g.inicio;
+    this.pausasMs = g.pausasMs;
+    this.pausaDesde = g.pausaDesde ?? 0;
+    this.reloj.set(g.reloj);
+    if (g.fase === 'fin' && g.fin !== null) {
+      this.fin = g.fin;
+      this.minutosReales.set((g.fin - g.inicio - g.pausasMs) / 60000);
+      this.fase.set('fin');
+      return;
+    }
+    // El AudioContext se crea en el próximo toque: sin gesto del usuario no suena.
+    this.conLock = true;
+    this.fase.set('vivo');
+    this.avanzarHasta(Date.now());
+    if (this.fase() === 'vivo') {
+      void this.pedirWakeLock();
+      this.timer = setInterval(() => this.tick(), TICK_MS);
+    }
+    this.guardar();
+  }
+
+  private guardar(): void {
+    const fase = this.fase();
+    if (this.cerrada || fase === 'previa') {
+      return;
+    }
+    guardarEnCurso({
+      minutos: this.minutos,
+      dia: this.dia,
+      plantillaId: this.plantilla.id,
+      dosis: this.dosis,
+      inicio: this.inicio,
+      pausasMs: this.pausasMs,
+      pausaDesde: this.pausado() ? this.pausaDesde : null,
+      reloj: this.reloj(),
+      fase,
+      fin: this.fin,
+    });
+  }
+
+  // Lo llama el guard de la ruta: salir en vivo pregunta, pero no descarta (queda para retomar).
+  puedeSalir(): boolean | Promise<boolean> {
+    if (this.cerrada || this.fase() !== 'vivo') {
+      return true;
+    }
+    return this.dialog.confirm('¿Salir de la sesión?', 'Queda guardada y la podés seguir desde Entrenar.');
+  }
+
+  @HostListener('document:pointerdown')
+  alTocar(): void {
+    if (this.fase() === 'vivo' && !this.audio) {
+      this.crearAudio();
+    }
   }
 
   arrancar(): void {
@@ -74,6 +153,7 @@ export class EntrenarSesionComponent implements OnDestroy {
     this.ahora.set(ahora);
     this.reloj.set({ indice: 0, finPaso: finDe(this.sesion.pasos[0], ahora), pausadoRestante: null });
     this.fase.set('vivo');
+    this.guardar();
     this.senal();
     void this.pedirWakeLock();
     this.timer = setInterval(() => this.tick(), TICK_MS);
@@ -92,6 +172,7 @@ export class EntrenarSesionComponent implements OnDestroy {
     }
     this.reloj.set(nuevo);
     this.alCambiarIndice(previo.indice, nuevo.indice, nuevo.finPaso ?? ahora);
+    this.guardar();
   }
 
   // `momento`: cuándo terminó la sesión, que con la pantalla apagada no es "ahora".
@@ -112,6 +193,7 @@ export class EntrenarSesionComponent implements OnDestroy {
     this.ahora.set(ahora);
     this.reloj.set({ indice, finPaso: finDe(this.sesion.pasos[indice], ahora), pausadoRestante: null });
     this.alCambiarIndice(indice - 1, indice, ahora);
+    this.guardar();
   }
 
   private cerrarPausa(ahora: number): void {
@@ -126,11 +208,23 @@ export class EntrenarSesionComponent implements OnDestroy {
     if (r.pausadoRestante === null) {
       this.pausaDesde = ahora;
       this.reloj.set({ ...r, pausadoRestante: restante(r, ahora) });
+      this.guardar();
       return;
     }
     this.cerrarPausa(ahora);
     const finPaso = r.finPaso === null ? null : ahora + r.pausadoRestante;
     this.reloj.set({ indice: r.indice, finPaso, pausadoRestante: null });
+    this.guardar();
+  }
+
+  // El botón: con la pantalla prendida en el bolsillo, un roce no puede cortar la sesión.
+  async pedirTerminar(): Promise<void> {
+    if (this.fase() !== 'vivo') {
+      return;
+    }
+    if (await this.dialog.confirm('¿Terminar la sesión?', 'Se guarda lo que hiciste hasta ahora.')) {
+      this.terminar();
+    }
   }
 
   terminar(ahora = Date.now()): void {
@@ -138,17 +232,28 @@ export class EntrenarSesionComponent implements OnDestroy {
       return;
     }
     const enPausa = this.pausado() ? ahora - this.pausaDesde : 0;
-    const reales = (ahora - this.inicio - this.pausasMs - enPausa) / 60000;
+    this.pausasMs += enPausa;
+    const reales = (ahora - this.inicio - this.pausasMs) / 60000;
     this.detener();
     if (reales < 1) {
+      this.cerrada = true;
+      borrarEnCurso();
       void this.router.navigate(['/entrenar']);
       return;
     }
+    this.fin = ahora;
     this.minutosReales.set(reales);
     this.fase.set('fin');
+    this.guardar();
   }
 
   responder(respuesta: Respuesta): void {
+    // Un doble toque no puede registrar dos veces (y mover la dosis de a 2).
+    if (this.fase() !== 'fin' || this.cerrada) {
+      return;
+    }
+    this.cerrada = true;
+    borrarEnCurso();
     const reales = this.minutosReales();
     this.meal.registrarSesion(
       {
@@ -213,6 +318,10 @@ export class EntrenarSesionComponent implements OnDestroy {
       return;
     }
     try {
+      // Android suspende el contexto al ir a segundo plano: sin resume, el beep sale mudo.
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => undefined);
+      }
       const osc = ctx.createOscillator();
       osc.frequency.value = 880;
       osc.connect(ctx.destination);
@@ -252,3 +361,5 @@ export class EntrenarSesionComponent implements OnDestroy {
     }
   }
 }
+
+export const salirDeSesion: CanDeactivateFn<EntrenarSesionComponent> = (c) => c.puedeSalir();

@@ -41,7 +41,15 @@
       <span>{{ minutos() }} minutos</span>
       <input max="60" min="20" step="5" type="range" [value]="minutos()" (input)="cambiarMinutos($any($event.target).value)" />
     </label>
-    <button class="btn btn-grande" type="button" (click)="empezar()">Empezar</button>
+    @if (enCurso()) {
+      <div class="en-curso" role="status">
+        <p>Tenés una sesión en curso</p>
+        <a class="btn btn-grande" routerLink="/entrenar/sesion">Seguir</a>
+        <button class="btn" type="button" (click)="descartarEnCurso()">Descartar</button>
+      </div>
+    } @else {
+      <button class="btn btn-grande" type="button" (click)="empezar()">Empezar</button>
+    }
   </div>
 
   <div class="historial">
