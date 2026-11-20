@@ -3,8 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { alcanzar, restante } from './reloj';
 import { Paso } from './sesion';
 
-const seg = (cantidad: number): Paso => ({ tipo: 'caminata', titulo: 'c', medida: 'segundos', cantidad });
-const reps = (cantidad: number): Paso => ({ tipo: 'ejercicio', titulo: 'e', medida: 'reps', cantidad });
+const base = { figura: 'x', bloque: 0 };
+const seg = (cantidad: number): Paso => ({ ...base, tipo: 'caminata', titulo: 'c', medida: 'segundos', cantidad });
+const reps = (cantidad: number): Paso => ({ ...base, tipo: 'ejercicio', titulo: 'e', medida: 'reps', cantidad });
 
 describe('reloj', () => {
   it('alcanzar salta varios pasos vencidos de una', () => {

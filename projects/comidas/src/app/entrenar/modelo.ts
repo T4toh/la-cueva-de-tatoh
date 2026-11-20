@@ -5,6 +5,8 @@ export type Ejercicio = {
   id: string;
   nombre: string;
   como: string;
+  // El error más común, en una línea.
+  ojo: string;
   necesita?: Necesidad;
   medida: 'reps' | 'segundos';
 };

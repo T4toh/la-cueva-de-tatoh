@@ -2,7 +2,18 @@ import { describe, expect, it } from 'vitest';
 
 import { Plantilla } from './modelo';
 import { plantillaDe, PLANTILLAS } from './plantillas';
-import { armarSesion, MIN_MINUTOS, minutosValidos, Paso, PISO_CAMINATA, Sesion } from './sesion';
+import { EJERCICIOS } from './ejercicios';
+import {
+  armarSesion,
+  MIN_MINUTOS,
+  minutosValidos,
+  Paso,
+  PISO_CAMINATA,
+  resumenPrevia,
+  segundosDesde,
+  Sesion,
+  textoCantidad,
+} from './sesion';
 
 const pasosDeEjercicio = (s: Sesion): Paso[] => s.pasos.filter((x) => x.tipo === 'ejercicio');
 const pasosMovilidad = (s: Sesion): Paso[] => s.pasos.filter((x) => x.tipo === 'movilidad');
@@ -93,5 +104,58 @@ describe('sesion', () => {
       expect(primero.titulo, p.id).toBe('Caminá cómodo');
       expect(primero.cantidad, p.id).toBe(b?.tipo === 'caminata' ? b.calentamiento : -1);
     }
+  });
+  it('cada paso trae su dibujo y el número de bloque de la plantilla', () => {
+    const ids = new Set(EJERCICIOS.map((e) => e.id));
+    for (const p of PLANTILLAS) {
+      const s = armarSesion(p, 0, 45);
+      for (const x of s.pasos) {
+        if (x.tipo === 'ejercicio' || x.tipo === 'movilidad') {
+          expect(ids.has(x.figura), `${p.id} ${x.figura}`).toBe(true);
+        } else {
+          expect(['caminar', 'caminar-rapido', 'trotar', 'descanso']).toContain(x.figura);
+        }
+      }
+      // Los bloques van en orden y sin saltos: 0, 0, …, 1, 1, …
+      const bloques = s.pasos.map((x) => x.bloque);
+      expect([...new Set(bloques)]).toEqual(p.bloques.map((_, i) => i));
+      expect(bloques).toEqual([...bloques].sort((a, b) => a - b));
+    }
+  });
+
+  it('resumenPrevia: un bloque por bloque de la plantilla, sin descansos y con las repeticiones agrupadas', () => {
+    const p = plantillaDe(4, 'A');
+    const s = armarSesion(p, 0, 45);
+    const r = resumenPrevia(s);
+    expect(r.map((b) => b.inicio)).toEqual(p.bloques.map((_, i) => s.pasos.findIndex((x) => x.bloque === i)));
+    expect(r.reduce((t, b) => t + b.segundos, 0)).toBe(s.segundosEstimados);
+
+    const circuito = p.bloques.find((b) => b.tipo === 'circuito');
+    const bloqueCircuito = r.find((b) => b.titulo.startsWith('Circuito'));
+    expect(circuito?.tipo).toBe('circuito');
+    if (circuito?.tipo !== 'circuito' || !bloqueCircuito) {
+      return;
+    }
+    expect(bloqueCircuito.titulo).toBe(`Circuito de ${circuito.vueltas} vueltas`);
+    expect(bloqueCircuito.items).toHaveLength(circuito.ejercicios.length);
+    expect(bloqueCircuito.items.every((i) => i.veces === circuito.vueltas)).toBe(true);
+    expect(bloqueCircuito.nota).toBe(`${circuito.descanso} s de descanso entre ejercicios`);
+    expect(r.flatMap((b) => b.items).some((i) => i.titulo === 'Descanso')).toBe(false);
+  });
+
+  it('textoCantidad: reps, segundos y minutos', () => {
+    expect(textoCantidad({ medida: 'reps', cantidad: 12 })).toBe('12 reps');
+    expect(textoCantidad({ medida: 'segundos', cantidad: 45 })).toBe('45 s');
+    expect(textoCantidad({ medida: 'segundos', cantidad: 240 })).toBe('4 min');
+    expect(textoCantidad({ medida: 'segundos', cantidad: 90 })).toBe('1:30 min');
+    expect(textoCantidad({ medida: 'segundos', cantidad: 2286 })).toBe('38 min');
+  });
+
+  it('segundosDesde: lo que falta desde un paso', () => {
+    const s = armarSesion(plantillaDe(2, 'A'), 0, 30);
+    expect(segundosDesde(s, 0)).toBe(s.segundosEstimados);
+    expect(segundosDesde(s, s.pasos.length)).toBe(0);
+    const ultimo = s.pasos[s.pasos.length - 1];
+    expect(segundosDesde(s, s.pasos.length - 1)).toBe(ultimo.medida === 'reps' ? ultimo.cantidad * 3 : ultimo.cantidad);
   });
 });

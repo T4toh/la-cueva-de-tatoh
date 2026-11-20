@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CLAVE_EN_CURSO } from '../../entrenar/en-curso';
 import { alcanzar } from '../../entrenar/reloj';
+import { segundosDesde } from '../../entrenar/sesion';
 import { AuthService } from '../../services/auth.service';
 import { DialogService } from '../../services/dialog.service';
 import { MealService } from '../../services/meal.service';
@@ -167,6 +168,49 @@ describe('EntrenarSesionComponent', () => {
     llegar({ release, addEventListener: vi.fn() });
     await vi.advanceTimersByTimeAsync(0);
     expect(release).toHaveBeenCalledTimes(1);
+  });
+
+  it('Empezar acá arranca en el primer paso de ese bloque', () => {
+    const c = crear('40');
+    const segundo = c.previa[1];
+    c.arrancar(segundo.inicio);
+    expect(c.fase()).toBe('vivo');
+    expect(c.reloj().indice).toBe(segundo.inicio);
+    expect(c.paso()?.bloque).toBe(1);
+  });
+
+  it('Saltear bloque va al primero del bloque siguiente; en el último está deshabilitado', () => {
+    const c = crear('40');
+    c.arrancar();
+    expect(c.hayOtroBloque()).toBe(true);
+    c.saltearBloque();
+    expect(c.reloj().indice).toBe(c.previa[1].inicio);
+
+    TestBed.resetTestingModule();
+    localStorage.clear();
+    const d = crear('40');
+    d.arrancar(d.previa[d.previa.length - 1].inicio);
+    expect(d.hayOtroBloque()).toBe(false);
+  });
+
+  it('arrancando en el medio, completa se mide contra lo que quedaba y sobrevive a un reload', () => {
+    const c = crear('40');
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const inicio = c.previa[1].inicio;
+    const quedaban = segundosDesde(c.sesion, inicio);
+    c.arrancar(inicio);
+    // Con 40 minutos planeados esto sería incompleta; con lo que quedaba, no.
+    const hechos = Math.ceil((quedaban * 0.6) / 60);
+    expect(hechos * 2).toBeLessThan(40);
+    vi.setSystemTime(INICIO.getTime() + hechos * 60_000);
+
+    TestBed.resetTestingModule();
+    const r = crear(null);
+    const registrar = vi.spyOn(TestBed.inject(MealService), 'registrarSesion');
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    r.terminar();
+    r.responder('bien');
+    expect(registrar.mock.calls[0][0]).toMatchObject({ minutos: hechos, completa: true });
   });
 
   describe('sesión en curso', () => {

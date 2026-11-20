@@ -38,7 +38,8 @@ a "Salud"), pero eso queda fuera de esta entrega.
   Google queda anotada para más adelante, cuando el resto ande.
 - Equipo de gimnasio, pesas o bandas.
 - Renombrar la app.
-- Imágenes o videos de los ejercicios: en v1 alcanza una descripción corta.
+- Videos de los ejercicios. Las imágenes son monigotes SVG generados por
+  `scripts/figuras-entrenar.mjs` (en `public/figuras`, cacheados por la PWA).
 
 ## Anti-objetivos
 
@@ -129,8 +130,12 @@ caminata. El mínimo es 20 minutos y el máximo, 60. *(Decisión del agente.)*
 
 ### Sesión en vivo
 
-- Pantalla de previa: minutos, lista de bloques, "vas a necesitar: …" y el
-  botón Arrancar.
+- Pantalla de previa: minutos, "vas a necesitar: …", el botón Arrancar y la
+  lista completa de pasos por bloque, con dibujo, cómo se hace y un "Ojo:".
+  Cada bloque tiene "Empezar acá"; si se arranca en el medio, `completa` se
+  mide contra el tiempo que quedaba desde ese bloque.
+- `/entrenar/ejercicios`: para leer antes, cómo es una sesión, los ritmos y
+  una ficha por ejercicio.
 - Al arrancar se pide Wake Lock de pantalla, con el mismo patrón que
   `receta-detalle.component.ts` (se re-pide en `visibilitychange`). Se avisa
   que la pantalla queda prendida. Sin Wake Lock, los timers con la pantalla
@@ -141,7 +146,7 @@ caminata. El mínimo es 20 minutos y el máximo, 60. *(Decisión del agente.)*
   Web Audio, sin archivos de audio.
 - El tiempo se calcula contra `Date.now()` y no sumando ticks, para que no se
   atrase si el navegador frena el intervalo.
-- Pausa, saltear paso y terminar. Terminar antes igual pide la respuesta de
+- Pausa, saltear paso, saltear bloque y terminar. Terminar antes igual pide la respuesta de
   tres botones y guarda lo hecho.
 
 ### Datos

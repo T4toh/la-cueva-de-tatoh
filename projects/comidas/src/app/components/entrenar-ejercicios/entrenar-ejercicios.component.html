@@ -1,0 +1,72 @@
+<section class="ejercicios">
+  <a class="volver" routerLink="/entrenar">← Entrenar</a>
+  <h1>Cómo es una sesión</h1>
+
+  <ol class="partes">
+    <li>
+      <strong>Caminata.</strong>
+      Siempre arranca caminando cómodo para entrar en calor. Según el nivel, se suman tramos rápidos o de trote.
+    </li>
+    <li>
+      <strong>Circuito de fuerza</strong>
+      (día A). Hacés cada ejercicio, descansás un poco y pasás al siguiente. Al terminar la lista, empieza otra
+      vuelta. Si el ejercicio es por repeticiones, tocá «Listo» cuando termines.
+    </li>
+    <li>
+      <strong>Movilidad.</strong>
+      Estiramientos suaves para cerrar. Sin rebotes y sin dolor.
+    </li>
+    <li>
+      <strong>¿Cómo estuvo?</strong>
+      «Fácil», «Bien» o «Me mató» ajusta la próxima sesión. Cuando venís sobrado, la app te propone subir de nivel.
+    </li>
+  </ol>
+  <p class="aviso">Si algo duele (no cansa, duele), cortá.</p>
+
+  <h2>Ritmos de la caminata</h2>
+  <ul class="fichas">
+    @for (r of ritmos; track r.figura) {
+      <li class="ficha">
+        <app-figura [alt]="r.nombre" [id]="r.figura" />
+        <div>
+          <h3>{{ r.nombre }}</h3>
+          <p>{{ r.como }}</p>
+        </div>
+      </li>
+    }
+  </ul>
+
+  <h2>Fuerza</h2>
+  <ul class="fichas">
+    @for (e of fuerza; track e.id) {
+      <li class="ficha">
+        <app-figura [alt]="e.nombre" [id]="e.id" />
+        <div>
+          <h3>{{ e.nombre }}</h3>
+          <p>{{ e.como }}</p>
+          <p class="ojo">Ojo: {{ e.ojo }}</p>
+          @if (e.necesitaTexto) {
+            <p class="necesita">Necesitás {{ e.necesitaTexto }}.</p>
+          }
+        </div>
+      </li>
+    }
+  </ul>
+
+  <h2>Movilidad</h2>
+  <ul class="fichas">
+    @for (e of movilidad; track e.id) {
+      <li class="ficha">
+        <app-figura [alt]="e.nombre" [id]="e.id" />
+        <div>
+          <h3>{{ e.nombre }}</h3>
+          <p>{{ e.como }}</p>
+          <p class="ojo">Ojo: {{ e.ojo }}</p>
+          @if (e.necesitaTexto) {
+            <p class="necesita">Necesitás {{ e.necesitaTexto }}.</p>
+          }
+        </div>
+      </li>
+    }
+  </ul>
+</section>

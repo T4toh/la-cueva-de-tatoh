@@ -1,0 +1,97 @@
+h2 {
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.bloque {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 0.75rem;
+  text-align: left;
+}
+
+.bloque-cabeza {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+summary {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  gap: 0.75rem;
+  list-style: none;
+  min-height: 3rem;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+}
+
+details {
+  border-radius: var(--radius-sm);
+  padding: 0.25rem 0.5rem;
+
+  &[open] {
+    background: var(--bg-tint);
+    padding-bottom: 0.75rem;
+  }
+
+  p {
+    margin: 0.5rem 0 0;
+  }
+}
+
+.mini {
+  flex: none;
+  width: 4.5rem;
+}
+
+.grande {
+  margin: 0.5rem auto 0;
+  max-width: 20rem;
+}
+
+.item-nombre {
+  flex: 1;
+}
+
+.item-cantidad {
+  color: var(--fg-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ojo {
+  color: var(--fg-secondary);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.btn-chico {
+  background: var(--bg-tint-strong);
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--fg-primary);
+  cursor: pointer;
+  flex: none;
+  font-size: 1rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.9rem;
+}
+
+.dato {
+  color: var(--fg-secondary);
+  margin: 0;
+}

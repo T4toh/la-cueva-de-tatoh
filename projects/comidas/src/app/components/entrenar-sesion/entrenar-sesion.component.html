@@ -3,27 +3,27 @@
     @case ('previa') {
       <h1>Sesión de {{ minutos }} minutos</h1>
       <p class="dato">Día {{ diaTexto }}</p>
-      <ul class="bloques">
-        @for (b of bloques; track $index) {
-          <li>{{ b }}</li>
-        }
-      </ul>
       @if (necesita) {
         <p class="necesita">Vas a necesitar: {{ necesita }}</p>
       }
       <p class="aviso">Si algo duele (no cansa, duele), cortá.</p>
-      <p class="aviso">La pantalla queda prendida durante la sesión.</p>
       <button class="btn btn-grande" type="button" (click)="arrancar()">Arrancar</button>
+      <p class="dato">Tocá un ejercicio para ver cómo se hace. Podés arrancar desde cualquier bloque.</p>
+      <app-entrenar-previa [bloques]="previa" (empezar)="arrancar($event)" />
+      <p class="aviso">La pantalla queda prendida durante la sesión.</p>
+      <a class="link" routerLink="/entrenar/ejercicios">Ver todos los ejercicios</a>
     }
     @case ('vivo') {
       @if (paso(); as p) {
         <p class="progreso">Paso {{ numero() }} de {{ sesion.pasos.length }}</p>
+        <app-figura class="vivo-figura" [alt]="p.titulo" [id]="p.figura" />
         <h1>{{ p.titulo }}</h1>
         @if (p.vuelta; as v) {
           <p class="dato">Vuelta {{ v.n }} de {{ v.de }}</p>
         }
         @if (p.detalle) {
           <p class="detalle">{{ p.detalle }}</p>
+          <p class="ojo">Ojo: {{ p.ojo }}</p>
         }
         @if (p.medida === 'segundos') {
           <p class="cuenta">{{ cuenta() }}</p>
@@ -32,12 +32,13 @@
           <button class="btn btn-grande" type="button" (click)="listo()">Listo</button>
         }
         @if (siguiente(); as s) {
-          <p class="siguiente">Sigue: {{ s.titulo }}</p>
+          <p class="siguiente">Sigue: {{ s.titulo }} · {{ textoCantidad(s) }}</p>
         }
       }
       <div class="acciones">
         <button class="btn" type="button" (click)="pausaOSeguir()">{{ pausado() ? 'Seguir' : 'Pausa' }}</button>
         <button class="btn" type="button" (click)="listo()">Saltear</button>
+        <button class="btn" type="button" [disabled]="!hayOtroBloque()" (click)="saltearBloque()">Saltear bloque</button>
         <button class="btn btn-peligro" type="button" (click)="pedirTerminar()">Terminar</button>
       </div>
     }

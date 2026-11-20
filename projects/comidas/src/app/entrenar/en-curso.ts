@@ -13,6 +13,8 @@ export type EnCurso = {
   plantillaId: string;
   dosis: number;
   inicio: number;
+  // Paso desde el que arrancó. Falta en las guardadas antes de que se pudiera elegir: 0.
+  desde?: number;
   pausasMs: number;
   // Cuándo arrancó la pausa actual; null si no está en pausa.
   pausaDesde: number | null;
@@ -48,6 +50,10 @@ function esReloj(v: unknown): v is EstadoReloj {
   );
 }
 
+function desdeValido(v: unknown): boolean {
+  return v === undefined || (esNumero(v) && Number.isInteger(v) && v >= 0);
+}
+
 function valida(v: unknown): EnCurso | null {
   if (typeof v !== 'object' || v === null) {
     return null;
@@ -60,6 +66,7 @@ function valida(v: unknown): EnCurso | null {
     plantillaPorId(e['plantillaId'])?.dia === e['dia'] &&
     esNumero(e['dosis']) &&
     esNumero(e['inicio']) &&
+    desdeValido(e['desde']) &&
     esNumero(e['pausasMs']) &&
     numeroONull(e['pausaDesde']) &&
     esReloj(e['reloj']) &&

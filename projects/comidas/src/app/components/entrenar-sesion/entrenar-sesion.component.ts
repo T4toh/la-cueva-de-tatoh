@@ -1,28 +1,24 @@
 import { Component, computed, HostListener, inject, OnDestroy, signal } from '@angular/core';
-import { ActivatedRoute, CanDeactivateFn, Router } from '@angular/router';
+import { ActivatedRoute, CanDeactivateFn, Router, RouterLink } from '@angular/router';
 
+import { TEXTO_NECESIDAD } from '../../entrenar/ejercicios';
 import { borrarEnCurso, EnCurso, guardarEnCurso, leerEnCurso, plantillaPorId } from '../../entrenar/en-curso';
-import { Necesidad } from '../../entrenar/modelo';
 import { plantillaDe } from '../../entrenar/plantillas';
 import { esCompleta, proximoDia, Respuesta } from '../../entrenar/progresion';
 import { alcanzar, EstadoReloj, finDe, restante } from '../../entrenar/reloj';
-import { armarSesion, minutosValidos } from '../../entrenar/sesion';
+import { armarSesion, minutosValidos, resumenPrevia, segundosDesde, textoCantidad } from '../../entrenar/sesion';
 import { DialogService } from '../../services/dialog.service';
 import { MealService } from '../../services/meal.service';
+import { EntrenarPreviaComponent } from '../entrenar-previa/entrenar-previa.component';
+import { FiguraComponent } from '../figura/figura.component';
 
 type Fase = 'previa' | 'vivo' | 'fin';
-
-const TEXTO_NECESIDAD: Record<Necesidad, string> = {
-  banco: 'un escalón o banco',
-  piso: '2 m² de piso',
-  pared: 'una pared',
-  'tramo-trote': 'un tramo donde puedas trotar',
-};
 
 const TICK_MS = 250;
 
 @Component({
   selector: 'app-entrenar-sesion',
+  imports: [EntrenarPreviaComponent, FiguraComponent, RouterLink],
   templateUrl: './entrenar-sesion.component.html',
   styleUrl: './entrenar-sesion.component.scss',
 })
@@ -42,9 +38,8 @@ export class EntrenarSesionComponent implements OnDestroy {
   readonly sesion = armarSesion(this.plantilla, this.dosis, this.minutos);
   readonly diaTexto = this.dia;
   readonly necesita = this.sesion.necesita.map((n) => TEXTO_NECESIDAD[n]).join(', ');
-  readonly bloques = this.plantilla.bloques.map((b) =>
-    b.tipo === 'circuito' ? `Circuito de ${b.vueltas} vuelta(s)` : this.nombreBloque(b.tipo)
-  );
+  readonly previa = resumenPrevia(this.sesion).map((b) => ({ ...b, duracion: this.duracion(b.segundos) }));
+  readonly textoCantidad = textoCantidad;
 
   readonly fase = signal<Fase>('previa');
   readonly reloj = signal<EstadoReloj>({ indice: 0, finPaso: null, pausadoRestante: null });
@@ -53,6 +48,14 @@ export class EntrenarSesionComponent implements OnDestroy {
 
   readonly paso = computed(() => this.sesion.pasos[this.reloj().indice]);
   readonly siguiente = computed(() => this.sesion.pasos[this.reloj().indice + 1]);
+  // Primer paso del bloque que sigue al actual; undefined en el último bloque.
+  private readonly proximoBloque = computed(() => {
+    const i = this.reloj().indice;
+    const actual = this.sesion.pasos[i]?.bloque;
+    const j = this.sesion.pasos.findIndex((x, k) => k > i && x.bloque !== actual);
+    return j === -1 ? undefined : j;
+  });
+  readonly hayOtroBloque = computed(() => this.proximoBloque() !== undefined);
   readonly numero = computed(() => Math.min(this.reloj().indice + 1, this.sesion.pasos.length));
   readonly pausado = computed(() => this.reloj().pausadoRestante !== null);
   readonly segundosRestantes = computed(() => Math.ceil(restante(this.reloj(), this.ahora()) / 1000));
@@ -62,6 +65,8 @@ export class EntrenarSesionComponent implements OnDestroy {
   });
 
   private inicio = 0;
+  // Paso desde el que se arrancó: lo que quedaba antes no cuenta para saber si la sesión fue completa.
+  private desde = 0;
   private pausasMs = 0;
   private pausaDesde = 0;
   private fin: number | null = null;
@@ -79,8 +84,8 @@ export class EntrenarSesionComponent implements OnDestroy {
     }
   }
 
-  private nombreBloque(tipo: string): string {
-    return tipo === 'caminata' ? 'Caminata' : 'Movilidad';
+  private duracion(segundos: number): string {
+    return `${Math.max(1, Math.round(segundos / 60))} min`;
   }
 
   private retomar(g: EnCurso): void {
@@ -91,6 +96,7 @@ export class EntrenarSesionComponent implements OnDestroy {
       return;
     }
     this.inicio = g.inicio;
+    this.desde = g.desde ?? 0;
     this.pausasMs = g.pausasMs;
     this.pausaDesde = g.pausaDesde ?? 0;
     this.reloj.set(g.reloj);
@@ -122,6 +128,7 @@ export class EntrenarSesionComponent implements OnDestroy {
       plantillaId: this.plantilla.id,
       dosis: this.dosis,
       inicio: this.inicio,
+      desde: this.desde,
       pausasMs: this.pausasMs,
       pausaDesde: this.pausado() ? this.pausaDesde : null,
       reloj: this.reloj(),
@@ -145,13 +152,18 @@ export class EntrenarSesionComponent implements OnDestroy {
     }
   }
 
-  arrancar(): void {
+  arrancar(desde = 0): void {
     const ahora = Date.now();
     this.crearAudio();
     this.conLock = true;
     this.inicio = ahora;
+    this.desde = Math.min(Math.max(0, desde), this.sesion.pasos.length - 1);
     this.ahora.set(ahora);
-    this.reloj.set({ indice: 0, finPaso: finDe(this.sesion.pasos[0], ahora), pausadoRestante: null });
+    this.reloj.set({
+      indice: this.desde,
+      finPaso: finDe(this.sesion.pasos[this.desde], ahora),
+      pausadoRestante: null,
+    });
     this.fase.set('vivo');
     this.guardar();
     this.senal();
@@ -187,12 +199,26 @@ export class EntrenarSesionComponent implements OnDestroy {
   }
 
   listo(): void {
+    this.irA(this.reloj().indice + 1);
+  }
+
+  saltearBloque(): void {
+    const j = this.proximoBloque();
+    if (j !== undefined) {
+      this.irA(j);
+    }
+  }
+
+  private irA(indice: number): void {
+    if (this.fase() !== 'vivo') {
+      return;
+    }
     const ahora = Date.now();
-    const indice = this.reloj().indice + 1;
+    const antes = this.reloj().indice;
     this.cerrarPausa(ahora);
     this.ahora.set(ahora);
     this.reloj.set({ indice, finPaso: finDe(this.sesion.pasos[indice], ahora), pausadoRestante: null });
-    this.alCambiarIndice(indice - 1, indice, ahora);
+    this.alCambiarIndice(antes, indice, ahora);
     this.guardar();
   }
 
@@ -260,12 +286,17 @@ export class EntrenarSesionComponent implements OnDestroy {
         fecha: new Date().toISOString(),
         plantilla: this.plantilla.id,
         minutos: Math.round(reales),
-        completa: esCompleta(reales, this.minutos),
+        completa: esCompleta(reales, this.planeados()),
         respuesta,
       },
       this.dia
     );
     void this.router.navigate(['/entrenar']);
+  }
+
+  // Si arrancó en el medio, lo planeado es lo que quedaba desde ahí.
+  private planeados(): number {
+    return this.desde === 0 ? this.minutos : segundosDesde(this.sesion, this.desde) / 60;
   }
 
   private detener(): void {
