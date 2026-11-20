@@ -33,6 +33,16 @@ import {
 } from '../catalogo/catalogo';
 import { CATALOGO } from '../catalogo/catalogo-datos';
 import { claveParte, DiaLista, estaTildada, ParteCompra, repartirDespensa, sinRuido } from '../compras/partes';
+import {
+  cambiarNivel,
+  descartarPropuesta,
+  ENTRENAR_INICIAL,
+  EstadoEntrenar,
+  normalizarEntrenar,
+  registrar,
+  RegistroSesion,
+} from '../entrenar/progresion';
+import { Dia } from '../entrenar/modelo';
 import { GUIA_VACIA, GuiaPropia, normalizarGuia } from '../guia/guia';
 import { armarSemana, EntradaArmador, Preferida, ResultadoArmador, Slot, slotsVacios } from '../armador/armador';
 import { candidatosPorTipo } from '../armador/candidatos';
@@ -389,6 +399,7 @@ export class MealService {
   private readonly ALIAS_KEY = 'comidas_alias';
   private readonly CATALOGO_PROPIO_KEY = 'comidas_catalogo_propio';
   private readonly GUIA_KEY = 'comidas_guia';
+  private readonly ENTRENAR_KEY = 'comidas_entrenar';
   private readonly NO_COMO_KEY = 'comidas_no_como';
   private readonly POR_REVOCAR_KEY = 'comidas_por_revocar';
   // Links huérfanos que todavía no se confirmaron revocados. Una vez que el
@@ -461,6 +472,8 @@ export class MealService {
   // Lo que el usuario ocultó o agregó a la guía. Ver
   // docs/superpowers/specs/2026-10-08-guia-design.md
   readonly guia = signal<GuiaPropia>(this.loadGuia());
+  private readonly entrenarEstado = signal<EstadoEntrenar>(this.loadEntrenar());
+  readonly entrenar = this.entrenarEstado.asReadonly();
   // Lo que el armador nunca sugiere. Ver docs/superpowers/specs/2026-11-06-armador-semanas-design.md
   readonly noComo = signal<string[]>(this.loadNoComo());
   readonly catalogoPropio = signal<EntradaCatalogo[]>(this.loadCatalogoPropio());
@@ -689,6 +702,13 @@ export class MealService {
       localStorage.setItem(this.GUIA_KEY, JSON.stringify(data));
       if (this.cola.debeGuardarAhora('guia')) {
         this.saveToFirestore('guia', data);
+      }
+    });
+    effect(() => {
+      const data = this.entrenarEstado();
+      localStorage.setItem(this.ENTRENAR_KEY, JSON.stringify(data));
+      if (this.cola.debeGuardarAhora('entrenar')) {
+        this.saveToFirestore('entrenar', data);
       }
     });
     effect(() => {
@@ -949,6 +969,7 @@ export class MealService {
       pantryGroups: (v) => this.pantryGroups.set(v as PantryGroup[]),
       catalogoPropio: (v) => this.catalogoPropio.set(v as EntradaCatalogo[]),
       guia: (v) => this.guia.set(normalizarGuia(v)),
+      entrenar: (v) => this.entrenarEstado.set(normalizarEntrenar(v)),
       noComo: (v) => this.noComo.set(normalizarNoComo(v)),
       familySettings: (v) => {
         const fs = v as {
@@ -1002,6 +1023,7 @@ export class MealService {
       pantryGroups: this.pantryGroups(),
       catalogoPropio: this.catalogoPropio(),
       guia: this.guia(),
+      entrenar: this.entrenarEstado(),
       noComo: this.noComo(),
       familySettings: {
         isFamilyMode: this.isFamilyMode(),
@@ -1204,6 +1226,23 @@ export class MealService {
   private loadPantry(): PantryItem[] {
     const data = localStorage.getItem(this.PANTRY_KEY);
     return data ? (JSON.parse(data) as PantryItem[]) : [];
+  }
+
+  private loadEntrenar(): EstadoEntrenar {
+    const data = localStorage.getItem(this.ENTRENAR_KEY);
+    return data ? normalizarEntrenar(JSON.parse(data)) : ENTRENAR_INICIAL;
+  }
+
+  registrarSesion(r: RegistroSesion, dia: Dia): void {
+    this.entrenarEstado.update((e) => registrar(e, r, dia));
+  }
+
+  cambiarNivelEntrenar(nivel: number): void {
+    this.entrenarEstado.update((e) => cambiarNivel(e, nivel));
+  }
+
+  descartarPropuestaEntrenar(): void {
+    this.entrenarEstado.update((e) => descartarPropuesta(e));
   }
 
   private loadGuia(): GuiaPropia {
@@ -2780,6 +2819,25 @@ export class MealService {
     this.dialogService.alert('Importación', '¡Datos importados con éxito!');
   }
 
+  // Las secciones que se normalizan antes de aplicar: una forma rara en el
+  // archivo no puede romper la pantalla.
+  private pasosNormalizados(data: Record<string, unknown>): (() => void)[] {
+    const pasos: (() => void)[] = [];
+    if (data['guia']) {
+      const v = normalizarGuia(data['guia']);
+      pasos.push(() => this.guia.set(v));
+    }
+    if (data['entrenar']) {
+      const v = normalizarEntrenar(data['entrenar']);
+      pasos.push(() => this.entrenarEstado.set(v));
+    }
+    if (data['noComo']) {
+      const v = normalizarNoComo(data['noComo']);
+      pasos.push(() => this.noComo.set(v));
+    }
+    return pasos;
+  }
+
   // Primera fase del import: transforma todo y devuelve los `set` pendientes,
   // sin tocar nada. Si algo acá tira, no se aplicó ni un campo.
   private prepararImport(data: Record<string, unknown>): (() => void)[] {
@@ -2844,14 +2902,7 @@ export class MealService {
       const v = data['catalogoPropio'] as EntradaCatalogo[];
       pasos.push(() => this.catalogoPropio.set(v));
     }
-    if (data['guia']) {
-      const v = normalizarGuia(data['guia']);
-      pasos.push(() => this.guia.set(v));
-    }
-    if (data['noComo']) {
-      const v = normalizarNoComo(data['noComo']);
-      pasos.push(() => this.noComo.set(v));
-    }
+    pasos.push(...this.pasosNormalizados(data));
     if (data['familySettings']) {
       const fs = data['familySettings'] as {
         isFamilyMode: boolean;

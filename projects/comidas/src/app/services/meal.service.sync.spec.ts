@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { paisDeTimezone } from '../armador/estacion';
 import { RecetaNueva } from '../armador/recetas-nuevas';
+import { ENTRENAR_INICIAL, RegistroSesion } from '../entrenar/progresion';
 import { Dish, Meal, ShoppingItem } from '../models/meal.model';
 import { AuthService } from './auth.service';
 import { MealService, pareceBackup, parseNumericQuantity } from './meal.service';
@@ -516,6 +517,116 @@ describe('MealService: guía', () => {
 
     service.importData(JSON.stringify({ guia: { propias: [], ocultas: ['anotar'] } }));
     expect(service.guia().ocultas).toEqual(['anotar']);
+  });
+});
+
+describe('MealService: entrenar', () => {
+  const registro: RegistroSesion = {
+    fecha: '2026-11-19',
+    plantilla: 'n1-a',
+    minutos: 30,
+    completa: true,
+    respuesta: 'facil',
+  };
+
+  beforeEach(() => {
+    localStorage.clear();
+    vi.mocked(setDoc).mockClear();
+    vi.mocked(onSnapshot).mockImplementation(((_ref: unknown, next: (snap: DocumentSnapshot) => void) => {
+      emitir = next;
+      return (): void => undefined;
+    }) as never);
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: Firestore, useValue: {} },
+        { provide: AuthService, useValue: { currentUser: signal({ uid: 'u1' }) } },
+      ],
+    });
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    vi.restoreAllMocks();
+  });
+
+  const remoto = (data: Record<string, unknown>): DocumentSnapshot =>
+    ({
+      exists: () => true,
+      data: () => ({ lastUpdated: 100, ...data }),
+      metadata: { hasPendingWrites: false },
+    }) as unknown as DocumentSnapshot;
+
+  it('registrarSesion persiste en comidas_entrenar y la recarga lo lee', async () => {
+    const service = TestBed.inject(MealService);
+    service.registrarSesion(registro, 'A');
+    await asentar();
+
+    const guardado = JSON.parse(localStorage.getItem('comidas_entrenar')!);
+    expect(guardado.historial).toEqual([registro]);
+    expect(guardado.ultimoDia).toBe('A');
+    expect(service.entrenar().dosis).toBe(1);
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: Firestore, useValue: {} },
+        { provide: AuthService, useValue: { currentUser: signal(null) } },
+      ],
+    });
+    expect(TestBed.inject(MealService).entrenar().historial).toEqual([registro]);
+  });
+
+  it('cambia de nivel y descarta la propuesta', () => {
+    const service = TestBed.inject(MealService);
+    service.cambiarNivelEntrenar(3);
+    expect(service.entrenar().nivel).toBe(3);
+
+    service.descartarPropuestaEntrenar();
+    expect(service.entrenar().propuestaVista).toBe(service.entrenar().historial.at(-1)?.fecha ?? null);
+  });
+
+  it('una bajada con entrenar roto se normaliza', async () => {
+    const service = TestBed.inject(MealService);
+    TestBed.tick();
+    emitir(remoto({ entrenar: { nivel: 'x' } }));
+    await asentar();
+
+    expect(service.entrenar()).toEqual(ENTRENAR_INICIAL);
+  });
+
+  it('con entrenar pendiente en la cola, la bajada no lo pisa', async () => {
+    localStorage.setItem('comidas_entrenar', JSON.stringify({ ...ENTRENAR_INICIAL, nivel: 4 }));
+    localStorage.setItem('comidas_pendientes', JSON.stringify(['entrenar']));
+    const service = TestBed.inject(MealService);
+    TestBed.tick();
+    emitir(remoto({ entrenar: { ...ENTRENAR_INICIAL, nivel: 2 } }));
+    await asentar();
+
+    expect(service.entrenar().nivel).toBe(4);
+    const subidos = vi.mocked(setDoc).mock.calls.map((c) => c[1] as { entrenar?: { nivel: number } });
+    expect(subidos.some((d) => d.entrenar?.nivel === 4)).toBe(true);
+    expect(localStorage.getItem('comidas_pendientes')).toBe('[]');
+  });
+
+  it('el backup exporta e importa entrenar', async () => {
+    const service = TestBed.inject(MealService);
+    service.cambiarNivelEntrenar(5);
+
+    let blob: Blob | undefined;
+    vi.spyOn(window.URL, 'createObjectURL').mockImplementation((b) => {
+      blob = b as Blob;
+      return 'blob:x';
+    });
+    vi.spyOn(window.URL, 'revokeObjectURL').mockImplementation(() => undefined);
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+    service.exportData();
+    const exportado = JSON.parse(await blob!.text());
+    expect(exportado.entrenar.nivel).toBe(5);
+
+    service.cambiarNivelEntrenar(1);
+    service.importData(JSON.stringify({ entrenar: { nivel: 6 } }));
+    expect(service.entrenar().nivel).toBe(6);
+    expect(pareceBackup({ entrenar: ENTRENAR_INICIAL })).toBe(true);
   });
 });
 

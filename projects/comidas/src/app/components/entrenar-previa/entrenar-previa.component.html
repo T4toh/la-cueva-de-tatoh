@@ -1,0 +1,31 @@
+@for (b of bloques(); track b.inicio) {
+  <section class="bloque">
+    <header class="bloque-cabeza">
+      <div>
+        <h2>{{ b.titulo }}</h2>
+        <p class="dato">{{ b.duracion }}{{ b.nota ? ' · ' + b.nota : '' }}</p>
+      </div>
+      @if (b.inicio > 0) {
+        <button class="btn-chico" type="button" (click)="empezar.emit(b.inicio)">Empezar acá</button>
+      }
+    </header>
+    <ul class="items">
+      @for (it of b.items; track $index) {
+        <li>
+          <details>
+            <summary>
+              <app-figura class="mini" [id]="it.figura" />
+              <span class="item-nombre">{{ it.titulo }}</span>
+              <span class="item-cantidad">{{ it.cantidad }}{{ it.veces > 1 ? ' ×' + it.veces : '' }}</span>
+            </summary>
+            <app-figura class="grande" [alt]="it.titulo" [id]="it.figura" />
+            @if (it.detalle) {
+              <p>{{ it.detalle }}</p>
+              <p class="ojo">Ojo: {{ it.ojo }}</p>
+            }
+          </details>
+        </li>
+      }
+    </ul>
+  </section>
+}

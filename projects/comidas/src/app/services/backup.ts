@@ -2,7 +2,7 @@
 // elegir qué se reemplaza y no adivinar qué clave pisa qué. El calendario y
 // las compras referencian comidas por id: sin ellas quedan apuntando a nada.
 
-export type SeccionBackup = 'comidas' | 'calendario' | 'compras' | 'despensa' | 'ajustes';
+export type SeccionBackup = 'comidas' | 'calendario' | 'compras' | 'despensa' | 'entrenar' | 'ajustes';
 
 export type ResumenSeccion = {
   seccion: SeccionBackup;
@@ -23,6 +23,7 @@ const SECCIONES: Seccion[] = [
     claves: ['tags', 'ingredientTags', 'extraItems', 'extraItemsHistory', 'overrides', 'checkedItems', 'compras'],
   },
   { seccion: 'despensa', etiqueta: 'Despensa', claves: ['pantry', 'pantryGroups'], cuenta: 'pantry', unidad: 'items' },
+  { seccion: 'entrenar', etiqueta: 'Entrenar', claves: ['entrenar'] },
   { seccion: 'ajustes', etiqueta: 'Ajustes', claves: ['familySettings', 'alias', 'guia', 'noComo'] },
 ];
 

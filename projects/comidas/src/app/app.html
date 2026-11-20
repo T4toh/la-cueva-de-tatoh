@@ -30,6 +30,10 @@
       <span class="icon"><lib-icon name="book-open" [size]="18" /></span>
       <span class="text">Guía</span>
     </a>
+    <a routerLink="/entrenar" routerLinkActive="active" title="Entrenar">
+      <span class="icon"><lib-icon name="footprints" [size]="18" /></span>
+      <span class="text">Entrenar</span>
+    </a>
 
     <!-- Auth & Config Logic -->
     @if (authService.user$ | async; as user) {

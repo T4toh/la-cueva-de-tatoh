@@ -1,0 +1,75 @@
+<section class="entrenar">
+  <h1>Entrenar</h1>
+
+  <div class="nivel">
+    <p class="nivel-actual">{{ nivelTexto() }}</p>
+    <div aria-label="Nivel" class="niveles" role="group">
+      @for (n of niveles; track n) {
+        <button
+          class="btn-nivel"
+          type="button"
+          [attr.aria-pressed]="n === estado().nivel"
+          [class.activo]="n === estado().nivel"
+          (click)="cambiarNivel(n)"
+        >
+          {{ n }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (propuesta(); as p) {
+    <div class="banner" role="status">
+      @if (p === 'subir') {
+        <p>Venís sobrado: ¿subimos al nivel {{ estado().nivel + 1 }}?</p>
+      } @else {
+        <p>Viene pesado: ¿bajamos al {{ estado().nivel - 1 }}?</p>
+      }
+      <div class="acciones">
+        <button class="btn btn-principal" type="button" (click)="aceptarPropuesta()">
+          {{ p === 'subir' ? 'Subir' : 'Bajar' }}
+        </button>
+        <button class="btn" type="button" (click)="ahoraNo()">Ahora no</button>
+      </div>
+    </div>
+  }
+
+  <div class="hoy">
+    <h2>Hoy</h2>
+    <p class="resumen">{{ resumenHoy() }}</p>
+    <label class="minutos">
+      <span>{{ minutos() }} minutos</span>
+      <input max="60" min="20" step="5" type="range" [value]="minutos()" (input)="cambiarMinutos($any($event.target).value)" />
+    </label>
+    @if (enCurso()) {
+      <div class="en-curso" role="status">
+        <p>Tenés una sesión en curso</p>
+        <a class="btn btn-grande" routerLink="/entrenar/sesion">Seguir</a>
+        <button class="btn" type="button" (click)="descartarEnCurso()">Descartar</button>
+      </div>
+    } @else {
+      <button class="btn btn-grande" type="button" (click)="empezar()">Empezar</button>
+    }
+  </div>
+
+  <a class="leer" routerLink="/entrenar/ejercicios">Cómo es una sesión y cómo se hace cada ejercicio</a>
+
+  <div class="historial">
+    <h2>Historial</h2>
+    @if (historial().length === 0) {
+      <p class="vacio">Todavía no entrenaste</p>
+    } @else {
+      <ul>
+        @for (h of historial(); track $index) {
+          <li>
+            <span class="fecha">{{ h.fecha }}</span>
+            <span>{{ h.plantilla }} · {{ h.minutos }} min · {{ h.respuesta }}</span>
+            @if (!h.completa) {
+              <span class="incompleta">Incompleta</span>
+            }
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</section>
